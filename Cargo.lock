@@ -220,7 +220,7 @@ checksum = "7ab85b9b05e3978cc9a9cf8fea7f01b494e1a09ed3037e16ba39edc7a29eb61a"
 
 [[package]]
 name = "gannyu-input-cli"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "gannyu-input-core",
  "termion",
@@ -228,7 +228,7 @@ dependencies = [
 
 [[package]]
 name = "gannyu-input-core"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "ahash",
  "bincode",
@@ -245,7 +245,7 @@ dependencies = [
 
 [[package]]
 name = "gannyu-input-ffi"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "chacha20poly1305",
  "gannyu-input-core",
@@ -259,7 +259,7 @@ dependencies = [
 
 [[package]]
 name = "gannyu-sanitize-binary"
-version = "0.2.1"
+version = "0.2.2"
 
 [[package]]
 name = "generic-array"
@@ -309,7 +309,7 @@ dependencies = [
 
 [[package]]
 name = "gonnyu-resource-build"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "bincode",
  "fst",

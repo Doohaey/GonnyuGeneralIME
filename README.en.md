@@ -2,9 +2,9 @@
 
 > A digital writing system rooted in the Gan–Poyang region.
 
-## Version 0.2.1
+## Version 0.2.2
 
-- Initial public release of the dedicated project repository.
+- Dictionary update and automated release workflow test.
 
 ## Overview
 
