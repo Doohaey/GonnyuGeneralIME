@@ -45,3 +45,11 @@ def test_android_workflow_runs_installation_smoke_test() -> None:
     assert "sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost" in content
     assert "adb uninstall io.gannyu.input" in content
     assert "ime set" not in content
+
+
+def test_android_build_supports_a_local_keystore_without_base64() -> None:
+    root = ROOT / "platforms" / "android"
+    build = (root / "build.sh").read_text(encoding="utf-8")
+    gradle = (root / "app" / "build.gradle.kts").read_text(encoding="utf-8")
+
+    assert "ANDROID_KEYSTORE_PATH" in build

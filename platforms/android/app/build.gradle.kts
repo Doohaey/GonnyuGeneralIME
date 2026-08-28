@@ -15,18 +15,29 @@ val versionParts = productVersion.split(".").map(String::toInt)
 require(versionParts.size == 3)
 val productVersionCode = versionParts[0] * 1_000_000 + versionParts[1] * 1_000 + versionParts[2]
 val releaseKeystoreBase64 = System.getenv("ANDROID_KEYSTORE_BASE64")
+val releaseKeystorePath = System.getenv("ANDROID_KEYSTORE_PATH")
 val releaseKeystorePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
 val releaseKeyAlias = System.getenv("ANDROID_KEY_ALIAS")
 val releaseKeyPassword = System.getenv("ANDROID_KEY_PASSWORD")
-val hasReleaseSigning = listOf(
-    releaseKeystoreBase64,
+val hasBase64Keystore = !releaseKeystoreBase64.isNullOrBlank()
+val hasLocalKeystore = !releaseKeystorePath.isNullOrBlank()
+require(!(hasBase64Keystore && hasLocalKeystore)) {
+    "Specify exactly one of ANDROID_KEYSTORE_BASE64 or ANDROID_KEYSTORE_PATH"
+}
+val localKeystoreFile = releaseKeystorePath?.takeIf { it.isNotBlank() }?.let(::file)
+if (hasLocalKeystore) {
+    require(localKeystoreFile!!.isFile) {
+        "ANDROID_KEYSTORE_PATH does not point to a keystore file"
+    }
+}
+val hasReleaseSigning = (hasBase64Keystore || hasLocalKeystore) && listOf(
     releaseKeystorePassword,
     releaseKeyAlias,
     releaseKeyPassword,
 ).all { !it.isNullOrBlank() }
 val isReleaseRequested = gradle.startParameter.taskNames.any { it.contains("release", ignoreCase = true) }
 require(hasReleaseSigning || !isReleaseRequested) {
-    "Release signing requires ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, and ANDROID_KEY_PASSWORD"
+    "Release signing requires ANDROID_KEYSTORE_BASE64 (CI) or ANDROID_KEYSTORE_PATH (local), plus ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, and ANDROID_KEY_PASSWORD"
 }
 
 android {
@@ -45,9 +56,10 @@ android {
     }
 
     if (hasReleaseSigning) {
-        val keystoreFile = layout.buildDirectory.file("release.keystore").get().asFile
-        keystoreFile.parentFile.mkdirs()
-        keystoreFile.writeBytes(Base64.getDecoder().decode(releaseKeystoreBase64!!))
+        val keystoreFile = localKeystoreFile ?: layout.buildDirectory.file("release.keystore").get().asFile.also {
+            it.parentFile.mkdirs()
+            it.writeBytes(Base64.getDecoder().decode(releaseKeystoreBase64!!))
+        }
         signingConfigs {
             create("release") {
                 storeFile = keystoreFile

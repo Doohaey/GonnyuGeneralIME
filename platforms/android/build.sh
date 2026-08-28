@@ -193,7 +193,22 @@ if [ -z "${GANNYU_RESOURCE_KEY:-}" ]; then
   exit 1
 fi
 
-for signing_var in ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
+if [ -n "${ANDROID_KEYSTORE_BASE64:-}" ] && [ -n "${ANDROID_KEYSTORE_PATH:-}" ]; then
+  echo "Set only one of ANDROID_KEYSTORE_BASE64 (CI) or ANDROID_KEYSTORE_PATH (local)." >&2
+  exit 1
+fi
+
+if [ -z "${ANDROID_KEYSTORE_BASE64:-}" ] && [ -z "${ANDROID_KEYSTORE_PATH:-}" ]; then
+  echo "ANDROID_KEYSTORE_BASE64 (CI) or ANDROID_KEYSTORE_PATH (local) is required for a signed Android release" >&2
+  exit 1
+fi
+
+if [ -n "${ANDROID_KEYSTORE_PATH:-}" ] && [ ! -f "$ANDROID_KEYSTORE_PATH" ]; then
+  echo "ANDROID_KEYSTORE_PATH does not point to a keystore file" >&2
+  exit 1
+fi
+
+for signing_var in ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
   if [ -z "${!signing_var:-}" ]; then
     echo "$signing_var is required for a signed Android release" >&2
     exit 1

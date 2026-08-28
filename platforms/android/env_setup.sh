@@ -14,6 +14,10 @@ export GRADLE_USER_HOME="${GRADLE_USER_HOME:-$CACHE_ROOT/home-cache/gradle}"
 # 使用项目 Gradle wrapper；其会自动选择兼容的 JDK。
 export GRADLE_BIN="${GRADLE_BIN:-$SCRIPT_DIR/gradlew}"
 
+if [ -z "${ANDROID_KEYSTORE_PATH:-}" ] && [ -f "$HOME/.android-signing/Doohaey-release.jks" ]; then
+  export ANDROID_KEYSTORE_PATH="$HOME/.android-signing/Doohaey-release.jks"
+fi
+
 echo "Android 构建环境已就绪（本机路径不会写入仓库）"
 echo "  SDK: ready"
 echo "  NDK: ready"
