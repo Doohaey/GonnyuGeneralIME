@@ -28,8 +28,8 @@ BUILD_DIR="$REPO_ROOT/build/linux-ibus"
 cmake -S "$SCRIPT_DIR" -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=Release
 cmake --build "$BUILD_DIR" -j
 
-cargo run -p gannyu-sanitize-binary --release -- "$BUILD_DIR/ibus-engine-gannyu"
-cargo run -p gannyu-sanitize-binary --release -- "$BUILD_DIR/ibus-engine-gannyu" --verify-release --repo-root "$REPO_ROOT"
+(cd "$REPO_ROOT" && cargo run -p gannyu-sanitize-binary --release -- "$BUILD_DIR/ibus-engine-gannyu")
+(cd "$REPO_ROOT" && cargo run -p gannyu-sanitize-binary --release -- "$BUILD_DIR/ibus-engine-gannyu" --verify-release --repo-root "$REPO_ROOT")
 
 echo "构建完成: $BUILD_DIR"
 echo "运行 install.sh 将制品安装到系统。"
