@@ -30,6 +30,7 @@ def test_release_workflow_uses_tagged_workspace_version() -> None:
     assert '"$((4 + 2 * ${#regions[@]}))"' in content
     assert "GonnyuGeneralIME-${{ steps.product.outputs.version }}-*" in content
     assert 'gh release create "$GITHUB_REF_NAME" release-assets/*' in content
+    assert "--prerelease" not in content
 
 def test_linux_workflows_run_isolated_installer_smoke_tests() -> None:
     for name in ("fcitx5.yml", "ibus.yml"):

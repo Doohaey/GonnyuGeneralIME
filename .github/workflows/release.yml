@@ -61,4 +61,4 @@ jobs:
           for suffix in android.apk fcitx5.tar.gz ibus.tar.gz windows-installer.exe; do
             test -f "release-assets/GonnyuGeneralIME-${PRODUCT_VERSION}-${suffix}"
           done
-          gh release create "$GITHUB_REF_NAME" release-assets/* --prerelease --title "GonnyuGeneralIME ${PRODUCT_VERSION}" --notes $'- 支持 Rime iOS、Rime macOS、Android、Fcitx5、IBus 和 Windows。\n- 统一跨平台版本与安装制品。'
+          gh release create "$GITHUB_REF_NAME" release-assets/* --title "GonnyuGeneralIME ${PRODUCT_VERSION}" --notes $'- 支持 Rime iOS、Rime macOS、Android、Fcitx5、IBus 和 Windows。\n- 统一跨平台版本与安装制品。'
