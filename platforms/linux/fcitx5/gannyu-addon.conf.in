@@ -1,0 +1,8 @@
+[Addon]
+Name=Gannyu
+Comment=Gan input method engine
+Category=InputMethod
+Type=SharedLibrary
+Library=libfcitx5-gannyu
+OnDemand=True
+Version=@GONNYU_VERSION@

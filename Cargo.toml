@@ -1,0 +1,25 @@
+[workspace]
+members = [
+    "crates/core",
+    "crates/ffi",
+    "crates/resource-build",
+    "crates/sanitize-binary",
+    "platforms/cli"
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.2.1"
+edition = "2021"
+license = "GPL-3.0-only"
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
+opt-level = 3
+panic = "abort"
+# strip = "true" removes both .symtab and .dynsym from the Rust static library,
+# so internal symbols (e.g. gannyu_input_ffi::whitebox::derive_master_key) do
+# not leak into the final .so/.dll. The final artifact is additionally stripped
+# and sanitized by tools/sanitize_binary.py in the platform build scripts.
+strip = true

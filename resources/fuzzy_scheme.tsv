@@ -1,0 +1,64 @@
+# 模糊音方案总表
+# 赣拼（Gonhan）便捷输入写法（gon_han 列）到存储规范写法（gon_pin 列）的折叠规则。
+# 应用层据此构建模糊音检索函数库：检索时把输入音节展开为一批可模糊音节。
+# 入声韵尾 t/k 存储形式保留原样；输入不带韵尾时可模糊展开到带尾形式（单向）。
+# 带 chainable=false 的规则只做“一次替换”，避免 ion→yon→yuon 这类二次连锁改写。
+# 字段：category 部位；gon_han 用户输入写法；gon_pin 存储规范写法；ipa 国际音标；example 例字；
+#       applies 作用位置(syllable-initial/syllable-final/anywhere)；bidirectional 是否双向；
+#       chainable 是否允许继续参与后续替换；priority_tier 档位(primary/secondary/fallback)；
+#       starts_with 起首限制，逗号分隔；note 备注。
+category	gon_han	gon_pin	ipa	example	applies	bidirectional	chainable	priority_tier	starts_with	note
+onset	i	y	i	也	syllable-initial	false	false	primary	ia,ie,io	零声母 i 系旧写兼容；ia→ya、ieu→yeu、ion→yon、iou→you
+onset	u	w	u	乌	syllable-initial	false	false	primary	ua,ue,uo	零声母 u 系旧写兼容；ua→wa、uen→wen、uon→won
+rime	y	yu	y	与	syllable-final	false	false	primary	y	零声母 y→yu
+rime	yn	yun	yən	云	syllable-final	false	false	primary	yn	零声母 yn→yun
+rime	yng	yung	yəŋ	雍	syllable-final	false	false	primary	yng	零声母 yng→yung
+rime	yon	yuon	yon	袁	syllable-final	false	false	primary	yon	零声母 yon→yuon
+rime	ye	yue	ye	月	anywhere	false	true	primary	ye,jye,lye,nye,qye,xye	ye 系专用桥接，须先于通用 y→yu
+nucleus	y	yu	y	女	anywhere	false	false	primary	by,cy,dy,fy,gy,hy,jy,ky,ly,my,ngy,ny,py,qy,ry,sy,ty,xy,zy	带声母 y 系统一在 y 后补 u
+rime	i	yi	i	一	syllable-final	false	false	primary	i	单写 i→yi
+rime	in	yin	ɪŋ	因	syllable-final	false	false	primary	in	单写 in→yin
+rime	iu	yiu	iu	有	syllable-final	false	false	primary	iu	单写 iu→yiu
+rime	iong	yong	iuŋ	用	syllable-final	false	false	primary	iong	iong→yong
+rime	u	wu	u	乌	syllable-final	false	false	primary	u	单写 u→wu
+rime	ui	wui	uei	为	syllable-final	false	false	primary	ui	单写 ui→wui
+rime	ung	wung	uŋ	翁	syllable-final	false	false	primary	ung	仅零声母 ung→wung；当前词表无此项，仅保留规则
+rime	ve	yue	ye	月	anywhere	false	true	primary	ve,jve,lve,nve,qve,xve	ve 系专用桥接，须先于通用 v→yu
+rime	ue	yue	ye	月	anywhere	false	true	primary	ue,jue,lue,nue,que,xue	ue 系专用桥接，须先于通用 u→yu
+rime	v	yu	y	与	anywhere	false	false	primary		yu 可从 v 输入，涵盖 von→yuon、vot→yuot 等
+rime	u	yu	y	与	anywhere	false	false	secondary		yu 可从 u 输入，涵盖 uon→yuon、uot→yuot 等
+rime	you	yiu	iu	有	syllable-final	false	false	primary	you	yiu 可从 you 模糊输入
+rime	wei	wui	uei	为	syllable-final	false	false	primary	wei	wui 可从 wei 模糊输入
+rime	wi	wui	uei	为	syllable-final	false	false	secondary	wi	wui 可从 wi 模糊输入
+rime	wen	won	uon	碗	syllable-final	false	false	primary	wen	won 可从 wen 模糊输入
+rime	uen	won	uon	碗	syllable-final	false	false	primary	uen	零声母 won 可从 uen 模糊输入
+rime	uen	uon	uon	碗	syllable-final	false	false	primary		带声母 uon 可从 uen 模糊输入
+rime	yan	yen	ian	烟	syllable-final	false	false	primary	yan	仅保留输入 yan→yen 的模糊，不改写现有 yan
+rime	eu	ieu	iɛu	够	syllable-final	false	true	secondary	ng,g,k	g/k/ng 后可省略 i
+rime	iau	yeu	iɛu	妖	syllable-final	false	false	primary	iau	零声母 iau→yeu
+rime	yao	yeu	iɛu	妖	syllable-final	false	false	primary	yao	普通话拼音习惯输入
+rime	ao	au	au	抱	syllable-final	true	true	primary		旧 ao 写法兼容
+rime	ou	eu	ɛu	后	syllable-final	false	false	primary	cou,dou,fou,gou,hou,jou,kou,lou,mou,ngou,pou,sou,tou,you,zou	普通话 ou 输入兼容规范 eu
+rime	uen	un	uən	文	syllable-final	false	true	primary		有声母时省写
+rime	ion	on	on	专	syllable-final	false	false	secondary		旧 i 介音兼容写法
+rime	ioin	on	on	专	syllable-final	false	false	secondary		旧写法向后兼容
+rime	nyoin	on	on	袁	syllable-final	false	false	secondary		允许 nyoin / ioin 相混
+rime	uoin	won	uon	碗	syllable-final	false	false	secondary	uoin	零声母旧写向后兼容
+rime	yoin	yuon	yon	袁	syllable-final	false	false	secondary	yoin	零声母旧写向后兼容
+coda	n	ng	ŋ	牙	syllable-final	true	true	primary		音节尾
+coda		t		客	syllable-final	false	false	fallback		入声尾：输入不带尾可模糊匹配带尾（za→zat）
+coda		k		学	syllable-final	false	false	fallback		入声尾：输入不带尾可模糊匹配带 k 形式（lok）
+coda	t	k		客/学	syllable-final	true	false	secondary		入声尾互相模糊
+rime	yuen	yuon	yon	渲	syllable-final	false	false	primary	yuen,jyuen,nyuen,qyuen,xyuen	覆盖现有全部 yuon 规范音
+rime	yue	yuot	yot	月	syllable-final	false	false	primary	yue,jyue,lyue,nyue,qyue,xyue	省略入声尾时兼容到 yuot
+rime	yuet	yuot	yot	月	syllable-final	false	false	primary	yue,jyue,lyue,nyue,qyue,xyue	正确 t 尾兼容到 yuot
+rime	yuek	yuot	yot	月	syllable-final	false	false	primary	yue,jyue,lyue,nyue,qyue,xyue	误写 k 尾仍兼容到 yuot
+rime	ieu	eu	ɛu	后	syllable-final	false	false	secondary	h	限定 hieu→heu
+rime	fi	fei			syllable-final	false	false	primary	fi	整音节 fi→fei
+rime	zuon	zon			syllable-final	false	false	primary	zuon	整音节 zuon→zon
+rime	cuon	con			syllable-final	false	false	primary	cuon	整音节 cuon→con
+rime	ciu	ceu			syllable-final	false	false	primary	ciu	整音节 ciu→ceu
+rime	suon	son		算	syllable-final	false	true	primary		
+onset	siu	seu		兽	syllable-final	false	false	primary		
+rime	en	ien			syllable-final	false	false	primary	ng,k,g	
+rime	et	iet		额	syllable-final	false	false	primary	ng	

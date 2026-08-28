@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component>
+    <name>org.gannyu.input.gannyu</name>
+    <description>GonnyuGeneralIME input method</description>
+    <exec>/usr/libexec/ibus-engine-gannyu --ibus</exec>
+    <version>@GONNYU_VERSION@</version>
+    <author>GonnyuGeneralIME contributors</author>
+    <license>GPL-3.0-only</license>
+    <homepage>https://github.com/ComeRainOrComeShine/GannyuInputMethod</homepage>
+    <textdomain>ibus-gannyu</textdomain>
+    <engines>
+        <engine>
+            <name>gannyu-gannyu</name>
+            <language>zh</language>
+            <license>GPL-3.0-only</license>
+            <author>GonnyuGeneralIME contributors</author>
+            <layout>us</layout>
+            <longname>GonnyuGeneralIME</longname>
+            <description>GonnyuGeneralIME</description>
+            <rank>50</rank>
+        </engine>
+    </engines>
+</component>

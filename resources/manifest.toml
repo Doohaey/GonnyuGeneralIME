@@ -1,0 +1,13 @@
+default_region = "lancong"
+
+[[regions]]
+id = "lancong"
+name_zh = "南昌"
+status = "active"
+path = "regions/lancong/region.toml"
+
+[[regions]]
+id = "fenni"
+name_zh = "分宜"
+status = "active"
+path = "regions/fenni/region.toml"

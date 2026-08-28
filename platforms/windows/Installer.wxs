@@ -1,0 +1,46 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package
+    Name="GonnyuGeneralIME"
+    Manufacturer="Doohaey"
+    Version="$(var.GonnyuProductVersion)"
+    UpgradeCode="6D91A0E2-68E3-49A0-96ED-BDA9A6A1E313"
+    InstallerVersion="500"
+    Scope="perMachine"
+    Language="2052">
+    <MajorUpgrade DowngradeErrorMessage="A newer version of GonnyuGeneralIME is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="GonnyuGeneralIME">
+        <Component Id="GannyuTextServiceComponent" Guid="258B127C-C3AA-4F53-9EC5-F61C79B81657">
+          <File Id="GannyuTextServiceDll" Source="$(var.DllPath)" KeyPath="yes" />
+        </Component>
+      </Directory>
+    </StandardDirectory>
+
+    <CustomAction
+      Id="RegisterGannyuTextService"
+      Directory="System64Folder"
+      Execute="commit"
+      ExeCommand='regsvr32.exe /s "[#GannyuTextServiceDll]"'
+      Impersonate="no"
+      Return="check" />
+
+    <CustomAction
+      Id="UnregisterGannyuTextService"
+      Directory="System64Folder"
+      Execute="deferred"
+      ExeCommand='regsvr32.exe /u /s "[#GannyuTextServiceDll]"'
+      Impersonate="no"
+      Return="check" />
+
+    <InstallExecuteSequence>
+      <Custom Action="RegisterGannyuTextService" After="InstallFiles" Condition="NOT Installed" />
+      <Custom Action="UnregisterGannyuTextService" Before="RemoveFiles" Condition='REMOVE="ALL"' />
+    </InstallExecuteSequence>
+
+    <Feature Id="MainFeature" Title="GonnyuGeneralIME" Level="1">
+      <ComponentRef Id="GannyuTextServiceComponent" />
+    </Feature>
+  </Package>
+</Wix>

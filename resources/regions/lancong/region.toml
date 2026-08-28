@@ -1,0 +1,25 @@
+[region]
+id = "lancong"
+name_zh = "南昌"
+status = "active"
+
+[tone_classes]
+1 = { name = "阴平", value = "42" }
+2 = { name = "阳平", value = "24" }
+3 = { name = "上声", value = "213" }
+4 = { name = "阴去", value = "445" }
+5 = { name = "阳去", value = "21" }
+6 = { name = "阴入", value = "5" }
+7 = { name = "阳入", value = "1/2" }
+
+[phonology]
+syllables = "phonology/syllables.jsonl"
+fuzzy_map = "../../fuzzy_scheme.tsv"
+
+[language]
+chars = "dictionaries/chars.tsv"
+words = "dictionaries/words.tsv"
+gan_chars = "dictionaries/gan_chars.tsv"
+gan_words = "dictionaries/gan_words.tsv"
+pinyin_rules = "pinyin_rules.md"
+raw_input = "raw/source.dict.yaml"

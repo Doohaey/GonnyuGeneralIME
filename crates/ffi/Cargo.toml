@@ -1,0 +1,28 @@
+[package]
+name = "gannyu-input-ffi"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+name = "gannyu_input_ffi"
+path = "src/lib.rs"
+crate-type = ["staticlib", "rlib"]
+
+[dependencies]
+gannyu-input-core = { path = "../core" }
+serde_json = "1"
+chacha20poly1305 = "0.10"
+hmac = "0.12"
+sha2 = "0.10"
+tempfile = "3"
+parking_lot = "0.12"
+
+[build-dependencies]
+chacha20poly1305 = "0.10"
+hmac = "0.12"
+sha2 = "0.10"
+rand = "0.8"
+
+[lints.clippy]
+missing_safety_doc = "allow"

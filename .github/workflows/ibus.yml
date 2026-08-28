@@ -1,0 +1,47 @@
+name: ibus
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - Cargo.toml
+      - Cargo.lock
+      - crates/**
+      - platforms/linux/ibus/**
+      - resources/**
+      - .github/workflows/ibus.yml
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: product
+        shell: bash
+        run: |
+          version="$(awk -F '"' '/^version[[:space:]]*=/ { print $2; exit }' Cargo.toml)"
+          printf 'version=%s\n' "$version" >> "$GITHUB_OUTPUT"
+      - uses: dtolnay/rust-toolchain@stable
+      - run: sudo apt-get update
+      - run: sudo apt-get install --yes cmake pkg-config libibus-1.0-dev
+      - env:
+          GANNYU_RESOURCE_KEY: ${{ secrets.GANNYU_RESOURCE_KEY }}
+        run: bash platforms/linux/ibus/package.sh
+      - run: |
+          smoke_root="$(mktemp -d)"
+          trap 'rm -rf "$smoke_root"' EXIT
+          artifact="build/GonnyuGeneralIME-${{ steps.product.outputs.version }}-ibus.tar.gz"
+          tar -xzf "$artifact" -C "$smoke_root"
+          DESTDIR="$smoke_root/root" bash "$smoke_root/install.sh"
+          test -f "$smoke_root/root/usr/libexec/ibus-engine-gannyu"
+          test -f "$smoke_root/root/usr/share/ibus/component/gannyu.xml"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GonnyuGeneralIME-${{ steps.product.outputs.version }}-ibus
+          path: build/GonnyuGeneralIME-${{ steps.product.outputs.version }}-ibus.tar.gz
+          if-no-files-found: error

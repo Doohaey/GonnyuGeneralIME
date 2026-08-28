@@ -1,0 +1,46 @@
+name: quality
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - Cargo.toml
+      - Cargo.lock
+      - crates/**
+      - platforms/cli/**
+      - platforms/rime/**
+      - resources/**
+      - tests/**
+      - .github/workflows/quality.yml
+  pull_request:
+    paths:
+      - Cargo.toml
+      - Cargo.lock
+      - crates/**
+      - platforms/cli/**
+      - platforms/rime/**
+      - resources/**
+      - tests/**
+      - .github/workflows/quality.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --upgrade pip pytest pypinyin
+      - run: cargo fmt --check
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+      - run: cargo test --workspace
+      - run: python -m pytest -q tests
+        env:
+          QT_QPA_PLATFORM: offscreen

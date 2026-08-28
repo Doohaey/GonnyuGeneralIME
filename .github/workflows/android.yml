@@ -1,0 +1,65 @@
+name: android
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - Cargo.toml
+      - Cargo.lock
+      - crates/**
+      - platforms/android/**
+      - resources/**
+      - .github/workflows/android.yml
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: product
+        shell: bash
+        run: |
+          version="$(awk -F '"' '/^version[[:space:]]*=/ { print $2; exit }' Cargo.toml)"
+          printf 'version=%s\n' "$version" >> "$GITHUB_OUTPUT"
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v3
+      - run: sdkmanager "ndk;26.3.11579264"
+      - env:
+          GANNYU_RESOURCE_KEY: ${{ secrets.GANNYU_RESOURCE_KEY }}
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_NDK_HOME: ${{ env.ANDROID_SDK_ROOT }}/ndk/26.3.11579264
+        run: bash platforms/android/build.sh
+      - run: $ANDROID_SDK_ROOT/build-tools/$(ls $ANDROID_SDK_ROOT/build-tools | sort -V | tail -n 1)/apksigner verify --verbose build/android/GonnyuGeneralIME-${{ steps.product.outputs.version }}-android.apk
+      - run: |
+          echo 'KERNEL=="kvm", MODE="0666", GROUP="kvm", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost
+          df -h
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          script: |
+            adb install build/android/GonnyuGeneralIME-${{ steps.product.outputs.version }}-android.apk
+            adb shell pm path io.gannyu.input | grep -q "package:"
+            adb uninstall io.gannyu.input
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GonnyuGeneralIME-${{ steps.product.outputs.version }}-android
+          path: build/android/GonnyuGeneralIME-${{ steps.product.outputs.version }}-android.apk
+          if-no-files-found: error

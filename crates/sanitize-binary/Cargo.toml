@@ -1,0 +1,12 @@
+[package]
+name = "gannyu-sanitize-binary"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Sanitize release binaries by stripping symbols and scrubbing sensitive strings"
+
+[[bin]]
+name = "gannyu-sanitize-binary"
+path = "src/main.rs"
+
+[dependencies]

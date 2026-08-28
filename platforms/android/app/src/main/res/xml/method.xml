@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<input-method xmlns:android="http://schemas.android.com/apk/res/android"
+    android:isAsciiCapable="true"
+    android:settingsActivity="io.gannyu.input.SetupActivity"
+    android:supportsSwitchingToNextInputMethod="true">
+    <subtype
+        android:label="赣语"
+        android:imeSubtypeLocale="zh_CN"
+        android:imeSubtypeMode="keyboard" />
+</input-method>

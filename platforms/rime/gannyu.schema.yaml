@@ -1,0 +1,59 @@
+
+schema:
+  schema_id: gannyu_@REGION@
+  name: @REGION_LABEL@
+  version: "@VERSION@"
+  author:
+    - GannyuInputMethod contributors
+  description: |
+    从项目规范词典生成；使用 Rime 原生用户学习，Lua 提供标注和连带候选。
+
+switches:
+  - name: ascii_mode
+    reset: 0
+    states: [@REGION_LABEL@, 西]
+
+engine:
+  processors:
+    - ascii_composer
+    - recognizer
+    - key_binder
+    - speller
+    - punctuator
+    - selector
+    - navigator
+    - express_editor
+  segmentors:
+    - ascii_segmentor
+    - matcher
+    - abc_segmentor
+    - punct_segmentor
+    - fallback_segmentor
+  translators:
+    - punct_translator
+    - script_translator
+  filters:
+    - lua_filter@*gannyu_filter
+    - uniquifier
+
+speller:
+  alphabet: zyxwvutsrqponmlkjihgfedcba
+  delimiter: " '"
+  algebra:
+@FUZZY_ALGEBRA@
+
+translator:
+  dictionary: gannyu_@REGION@
+  enable_user_dict: true
+  enable_sentence: true
+  enable_completion: true
+  spelling_hints: 8
+
+punctuator:
+  import_preset: default
+
+key_binder:
+  import_preset: default
+
+recognizer:
+  import_preset: default

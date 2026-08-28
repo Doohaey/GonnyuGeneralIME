@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">GonnyuGeneralIME</string>
+    <string name="setup_title">GonnyuGeneralIME</string>
+    <string name="setup_summary">支持赣语拼音与普通话拼音混合输入。请先在系统设置中启用本输入法，即可开始使用。</string>
+    <string name="resource_ready">语言资源就绪，可以开始使用。</string>
+    <string name="resource_ready_region">语言资源就绪，当前地区：%1$s。</string>
+    <string name="resource_failed_region">%1$s 地区资源预加载失败，请重试。</string>
+    <string name="resource_failed">语言资源加载失败，请尝试重新安装。</string>
+    <string name="region_load_failed">地区列表加载失败，请重新安装后重试。</string>
+    <string name="region_label">地区方案</string>
+    <string name="region_summary">在这里切换地区方案；切换时会预加载对应资源。</string>
+    <string name="region_loading">正在预加载 %1$s 资源，请稍候…</string>
+    <string name="user_dictionary_label">用户词库</string>
+    <string name="user_dictionary_summary">管理您自己添加的词和使用频率。</string>
+    <string name="user_data_local_notice">用户数据均存储在本地。</string>
+    <string name="manage_user_data">管理</string>
+    <string name="clear_user_data_title">清空用户词库</string>
+    <string name="clear_user_words">用户词</string>
+    <string name="clear_user_frequencies">用户词频</string>
+    <string name="clear_all_user_data">全部</string>
+    <string name="clear_user_data_words_message">将清空全部用户词。清空后无法恢复。</string>
+    <string name="clear_user_data_frequencies_message">将清空全部用户词频。清空后无法恢复。</string>
+    <string name="clear_user_data_all_message">将清空全部用户词和用户词频。清空后无法恢复。</string>
+    <string name="clear_action">清空</string>
+    <string name="cancel_action">取消</string>
+    <string name="user_data_clearing">正在清空用户词库…</string>
+    <string name="user_data_clear_success">%1已清空。</string>
+    <string name="user_data_clear_failed">清空失败，请重试。</string>
+    <string name="system_operations_label">系统操作</string>
+    <string name="open_ime_settings">前往输入法设置</string>
+    <string name="open_ime_picker">切换输入法</string>
+    <string name="preedit_hint">赣拼 / 拼音</string>
+    <string name="key_shift">⇧</string>
+    <string name="key_backspace">⌫</string>
+    <string name="key_enter">↵</string>
+    <string name="key_symbol">符</string>
+    <string name="key_comma">，</string>
+    <string name="key_period">。</string>
+    <string name="key_space">空格</string>
+    <string name="key_apostrophe">\'</string>
+</resources>

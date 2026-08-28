@@ -1,0 +1,18 @@
+[package]
+name = "gannyu-input-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+default-run = "gannyu-input-cli"
+
+[[bin]]
+name = "gannyu-input-cli"
+path = "src/main.rs"
+
+[[bin]]
+name = "gannyu-forward"
+path = "src/forward_main.rs"
+
+[dependencies]
+gannyu-input-core = { path = "../../crates/core" }
+termion = "4.0"

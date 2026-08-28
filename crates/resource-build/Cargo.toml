@@ -1,0 +1,12 @@
+[package]
+name = "gonnyu-resource-build"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+bincode = "1.3"
+fst = "0.4"
+gannyu-input-core = { path = "../core" }
+serde = { version = "1", features = ["derive"] }
+toml = "0.8"

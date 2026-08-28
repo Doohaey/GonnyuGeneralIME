@@ -1,0 +1,56 @@
+.DS_Store
+__pycache__/
+*.tsv.bak
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Large local resource files are required at runtime but are not committed.
+resources/regions/*/phonology/pronunciations.jsonl
+resources/regions/*/dictionaries/candidates.jsonl
+
+# Local prompts
+agents/prompts/
+agents/log/
+resources/phonological/
+
+# Build artifacts and local installer diagnostics
+target/
+build/
+build/downloaded-windows-installer-latest/
+build/windows/logs/
+
+# Native shell build outputs
+platforms/macos/.build/
+platforms/macos/GannyuExplorer/.build/
+platforms/windows/build/
+platforms/linux/build/
+platforms/android/app/build/
+platforms/android/app/.cxx/
+platforms/android/.gradle/
+platforms/android/local.properties
+*.xcodeproj/xcuserdata/
+
+# 测试模块本地配置（含本机路径等敏感信息），仅提交 .example 模板
+platforms/**/test_local.env
+
+# edit_char_reading.py 会话文件（本地配置、输入历史）
+tools/.edit_config.json
+tools/.edit_history
+tools/.manage_dict_history/
+
+# 原始输入文件（大型资料，本地补齐，不入库）
+resources/regions/**/raw/
+
+# 运行时缓存与索引（构建产物，不入库）
+resources/regions/**/dictionaries/dictionary_runtime_cache.*
+resources/regions/**/indexes/*.bin
+
+platforms/android/app/src/main/jniLibs/
+
+# doc
+docs/
+
+docs/impl/

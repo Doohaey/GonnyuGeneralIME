@@ -1,0 +1,22 @@
+<Wix
+  xmlns="http://wixtoolset.org/schemas/v4/wxs"
+  xmlns:bal="http://wixtoolset.org/schemas/v4/wxs/bal">
+  <Bundle
+    Name="GonnyuGeneralIME installer"
+    Manufacturer="Doohaey"
+    Version="$(var.GonnyuBundleVersion)"
+    UpgradeCode="2E2C93C1-41AF-4DE3-A7A5-99DAA16541FC">
+    <BootstrapperApplication>
+      <bal:WixStandardBootstrapperApplication LicenseUrl="" Theme="hyperlinkLicense" />
+    </BootstrapperApplication>
+
+    <Chain>
+      <MsiPackage
+        SourceFile="$(var.MsiPath)"
+        DisplayName="GonnyuGeneralIME"
+        Compressed="yes"
+        Visible="yes"
+        Vital="yes" />
+    </Chain>
+  </Bundle>
+</Wix>

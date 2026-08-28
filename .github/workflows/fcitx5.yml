@@ -1,0 +1,48 @@
+name: fcitx5
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - Cargo.toml
+      - Cargo.lock
+      - crates/**
+      - platforms/linux/fcitx5/**
+      - resources/**
+      - .github/workflows/fcitx5.yml
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: product
+        shell: bash
+        run: |
+          version="$(awk -F '"' '/^version[[:space:]]*=/ { print $2; exit }' Cargo.toml)"
+          printf 'version=%s\n' "$version" >> "$GITHUB_OUTPUT"
+      - uses: dtolnay/rust-toolchain@stable
+      - run: sudo apt-get update
+      - run: sudo apt-get install --yes cmake pkg-config fcitx5-modules-dev libfcitx5core-dev
+      - env:
+          GANNYU_RESOURCE_KEY: ${{ secrets.GANNYU_RESOURCE_KEY }}
+        run: bash platforms/linux/fcitx5/package.sh
+      - run: |
+          smoke_root="$(mktemp -d)"
+          trap 'rm -rf "$smoke_root"' EXIT
+          artifact="build/GonnyuGeneralIME-${{ steps.product.outputs.version }}-fcitx5.tar.gz"
+          tar -xzf "$artifact" -C "$smoke_root"
+          DESTDIR="$smoke_root/root" bash "$smoke_root/install.sh"
+          test -f "$smoke_root/root$(pkg-config --variable=libdir Fcitx5Core)/fcitx5/libfcitx5-gannyu.so"
+          test -f "$smoke_root/root/usr/share/fcitx5/inputmethod/gannyu.conf"
+          test -f "$smoke_root/root/usr/share/fcitx5/addon/gannyu.conf"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GonnyuGeneralIME-${{ steps.product.outputs.version }}-fcitx5
+          path: build/GonnyuGeneralIME-${{ steps.product.outputs.version }}-fcitx5.tar.gz
+          if-no-files-found: error

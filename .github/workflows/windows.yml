@@ -1,0 +1,48 @@
+name: windows
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - Cargo.toml
+      - Cargo.lock
+      - crates/**
+      - platforms/windows/**
+      - resources/**
+      - .github/workflows/windows.yml
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: product
+        shell: bash
+        run: |
+          version="$(awk -F '"' '/^version[[:space:]]*=/ { print $2; exit }' Cargo.toml)"
+          printf 'version=%s\n' "$version" >> "$GITHUB_OUTPUT"
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - shell: pwsh
+        run: |
+          dotnet tool install --global wix --version 5.0.2
+          wix extension add WixToolset.BootstrapperApplications.wixext/5.0.2
+          "$env:USERPROFILE\.dotnet\tools" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      - shell: cmd
+        env:
+          GANNYU_RESOURCE_KEY: ${{ secrets.GANNYU_RESOURCE_KEY }}
+        run: platforms\windows\build_installer.bat
+      - shell: pwsh
+        run: platforms/windows/smoke_installer.ps1 -InstallerPath "build/windows/installer/GonnyuGeneralIME-${{ steps.product.outputs.version }}-windows-installer.exe"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GonnyuGeneralIME-${{ steps.product.outputs.version }}-windows-installer
+          path: build/windows/installer/GonnyuGeneralIME-${{ steps.product.outputs.version }}-windows-installer.exe
+          if-no-files-found: error

@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MandarinHintEntry",
+  "description": "普通话书写者不熟悉、但其实存在赣语本字的提示条目；普通话词写法即使读音匹配也要弹出本字。",
+  "type": "object",
+  "required": ["mandarin", "gan"],
+  "properties": {
+    "mandarin": {
+      "type": "string",
+      "description": "普通话写法。"
+    },
+    "gan": {
+      "type": "string",
+      "description": "对应的赣语本字写法。"
+    },
+    "reading": {
+      "type": "string",
+      "description": "赣语本字的拼写。"
+    },
+    "register": {
+      "type": "string",
+      "enum": ["wen", "bai", "common"],
+      "description": "本字读音 register。"
+    },
+    "note": {
+      "type": "string",
+      "description": "说明。"
+    }
+  }
+}

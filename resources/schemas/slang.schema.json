@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["id", "slang", "triggers", "mandarin_glosses"],
+  "properties": {
+    "id": { "type": "string" },
+    "slang": { "type": "string" },
+    "slang_reading": { "type": "string" },
+    "slang_scheme": { "type": "string", "enum": ["gon-han", "gon-pin"] },
+    "local_forms": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "characters": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "triggers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["text", "kind"],
+        "properties": {
+          "text": { "type": "string" },
+          "kind": { "type": "string", "enum": ["mandarin", "gan-vocab", "gan-fragment"] },
+          "reading": { "type": "string" },
+          "scheme": { "type": "string", "enum": ["gon-han", "gon-pin"] }
+        }
+      }
+    },
+    "reverse_lookup": { "type": "boolean", "default": true },
+    "mandarin_glosses": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "example": { "type": "string" },
+    "source": { "type": "string" },
+    "note": { "type": "string" }
+  }
+}
+
