@@ -28,8 +28,49 @@
 
 ## 安装方法
 
-输入法主体覆盖Linux，Android，Windows平台，MacOS与IOS平台上采用rime资源文件的形式实现。
+输入法主体覆盖Linux，Android，Windows平台，MacOS与IOS平台上采用rime资源文件的形式实现，需要正确下载对应区域文件。
 
+从 [Releases](https://github.com/Doohaey/GonnyuGeneralIME/releases) 下载与系统相符或者对应区域的文件。
+
+### Android
+
+下载 `GonnyuGeneralIME-版本号-android.apk`，在 Android 系统中打开并安装。首次打开应用后，按应用内引导启用“赣语输入法”，再在系统输入法选择器中切换至它。
+
+### Windows
+
+下载并运行 `GonnyuGeneralIME-版本号-windows-installer.exe`，按安装向导完成安装。随后在“设置 → 时间和语言 → 语言和区域 → 中文（简体） → 键盘”中添加“Gannyu”。
+
+### Linux：Fcitx5
+
+下载 `GonnyuGeneralIME-版本号-fcitx5.tar.gz`，解压后运行包内安装程序：
+
+```sh
+tar -xzf GonnyuGeneralIME-版本号-fcitx5.tar.gz
+cd GonnyuGeneralIME-版本号-fcitx5
+./install.sh
+```
+
+重启 Fcitx5（`fcitx5 -r`）或注销后重新登录，并在 `fcitx5-configtool` 中添加“Gannyu Gan / 赣语”。
+
+### Linux：IBus
+
+下载 `GonnyuGeneralIME-版本号-ibus.tar.gz`，解压后运行包内安装程序：
+
+```sh
+tar -xzf GonnyuGeneralIME-版本号-ibus.tar.gz
+cd GonnyuGeneralIME-版本号-ibus
+./install.sh
+```
+
+运行 `ibus-daemon -drx`（或重启 IBus），然后在 `ibus-setup` 的输入法列表添加“Gannyu Gan”。
+
+### macOS：Rime
+
+下载所需区域的 `GonnyuGeneralIME-版本号-rime-macos-lancong.zip` 或 `GonnyuGeneralIME-版本号-rime-macos-fenni.zip`。解压后将其中的文件复制到 `~/Library/Rime/`，再在所使用的 Rime 输入法中重新部署，并从方案菜单选择对应地区。
+
+### iOS：Rime
+
+下载所需区域的 `GonnyuGeneralIME-版本号-rime-ios-lancong.zip` 或 `GonnyuGeneralIME-版本号-rime-ios-fenni.zip`。在所使用的 iOS Rime 输入法中导入该压缩包，重新部署后从方案菜单选择对应地区。
 
 
 ## 本输入法采用的赣语拼音方案
