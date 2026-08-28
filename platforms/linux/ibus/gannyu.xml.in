@@ -6,7 +6,7 @@
     <version>@GONNYU_VERSION@</version>
     <author>GonnyuGeneralIME contributors</author>
     <license>GPL-3.0-only</license>
-    <homepage>https://github.com/ComeRainOrComeShine/GannyuInputMethod</homepage>
+    <homepage>https://github.com/Doohaey/GonnyuGeneralIME</homepage>
     <textdomain>ibus-gannyu</textdomain>
     <engines>
         <engine>
