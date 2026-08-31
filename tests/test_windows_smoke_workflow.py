@@ -21,4 +21,14 @@ def test_windows_toolbar_stays_visible_without_candidates() -> None:
     assert "ShowWindow(statusWindow_, SW_HIDE)" not in candidate_update
     assert "statusWindow_" not in hide_candidate
     assert "STDMETHODIMP Deactivate() override" in source
-    assert "std::wstring label = englishMode_ ? L\"英\" : L\"中\";" in source
+    assert "drawButton(englishMode_ ? L\"英\" : L\"中\", englishButtonRect_);" in source
+
+
+def test_windows_toolbar_clicks_use_drawn_button_rectangles() -> None:
+    source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
+    assert "auto drawButton" in source
+    assert "PtInRect(&englishButtonRect_, point)" in source
+    assert "PtInRect(&punctuationButtonRect_, point)" in source
+    assert "PtInRect(&regionButtonRect_, point)" in source
+    assert "PtInRect(&userDataButtonRect_, point)" in source
+    assert "PtInRect(&tutorialButtonRect_, point)" in source

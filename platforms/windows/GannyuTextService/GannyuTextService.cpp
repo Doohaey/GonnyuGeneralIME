@@ -902,26 +902,25 @@ public:
             case WM_MOUSEACTIVATE:
                 return MA_NOACTIVATE;
             case WM_LBUTTONDOWN: {
-                UINT dpi = GetDpiForWindow(hwnd);
-                if (GET_X_LPARAM(lParam) < ScaleForDpi(32, dpi)) {
+                POINT point{GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+                if (PtInRect(&toolbarDragRect_, point)) {
                     RECT rect; GetWindowRect(hwnd, &rect);
-                    toolbarOffset_ = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+                    toolbarOffset_ = point;
                     draggingToolbar_ = true; SetCapture(hwnd); return 0;
                 }
-                const int x = GET_X_LPARAM(lParam);
-                if (x < ScaleForDpi(72, dpi)) {
+                if (PtInRect(&englishButtonRect_, point)) {
                     ToggleEnglishMode();
                     return 0;
                 }
-                if (x < ScaleForDpi(112, dpi)) {
+                if (PtInRect(&punctuationButtonRect_, point)) {
                     TogglePunctuationMode();
                     return 0;
                 }
-                if (x >= ScaleForDpi(260, dpi) && x < ScaleForDpi(300, dpi)) {
+                if (PtInRect(&tutorialButtonRect_, point)) {
                     OpenTutorial();
                     return 0;
                 }
-                if (x >= ScaleForDpi(200, dpi) && x < ScaleForDpi(260, dpi)) {
+                if (PtInRect(&userDataButtonRect_, point)) {
                     HMENU menu = CreatePopupMenu();
                     AppendMenuW(menu, MF_STRING, GANNYU_USER_DATA_WORDS, L"用户词");
                     AppendMenuW(menu, MF_STRING, GANNYU_USER_DATA_FREQUENCIES, L"用户词频");
@@ -937,7 +936,7 @@ public:
                     }
                     return 0;
                 }
-                if (x < ScaleForDpi(112, dpi) || x >= ScaleForDpi(200, dpi) || regionIds_.size() <= 1) return 0;
+                if (!PtInRect(&regionButtonRect_, point) || regionIds_.size() <= 1) return 0;
                 HMENU menu = CreatePopupMenu();
                 for (size_t i = 0; i < regionIds_.size(); ++i) {
                     UINT flags = MF_STRING;
@@ -970,14 +969,23 @@ public:
                                         DEFAULT_PITCH | FF_DONTCARE, L"Segoe UI");
                 SelectObject(hdc, font);
                 SetTextColor(hdc, RGB(58, 110, 230));
-                std::wstring label = englishMode_ ? L"英" : L"中";
-                label += fullwidthPunctuation_ ? L"   全   " : L"   半   ";
-                label += CurrentRegionLabel();
-                label += L" ▾   词库 ▾   ⚙   ⓘ";
-                RECT textRect = client;
-                textRect.left += ScaleForDpi(8, dpi);
-                textRect.right -= ScaleForDpi(8, dpi);
-                DrawTextW(hdc, label.c_str(), -1, &textRect, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+                int left = ScaleForDpi(8, dpi);
+                toolbarDragRect_ = {left, client.top, left + ScaleForDpi(24, dpi), client.bottom};
+                left = toolbarDragRect_.right;
+                const int padding = ScaleForDpi(6, dpi);
+                auto drawButton = [&](const std::wstring &label, RECT &hitRect) {
+                    RECT measure{0, 0, 0, 0};
+                    DrawTextW(hdc, label.c_str(), -1, &measure, DT_CALCRECT | DT_SINGLELINE);
+                    hitRect = {left, client.top, left + padding + measure.right + padding, client.bottom};
+                    RECT textRect{left + padding, client.top, hitRect.right - padding, client.bottom};
+                    DrawTextW(hdc, label.c_str(), -1, &textRect, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+                    left = hitRect.right;
+                };
+                drawButton(englishMode_ ? L"英" : L"中", englishButtonRect_);
+                drawButton(fullwidthPunctuation_ ? L"全" : L"半", punctuationButtonRect_);
+                drawButton(CurrentRegionLabel() + L" ▾", regionButtonRect_);
+                drawButton(L"词库 ▾   ⚙", userDataButtonRect_);
+                drawButton(L"ⓘ", tutorialButtonRect_);
                 DeleteObject(font);
                 DeleteObject(border);
                 DeleteObject(bg);
@@ -1856,6 +1864,12 @@ private:
     bool shiftUsedWithOtherKey_ = false;
     bool draggingToolbar_ = false;
     POINT toolbarOffset_{};
+    RECT toolbarDragRect_{};
+    RECT englishButtonRect_{};
+    RECT punctuationButtonRect_{};
+    RECT regionButtonRect_{};
+    RECT userDataButtonRect_{};
+    RECT tutorialButtonRect_{};
     HFONT preeditFont_ = nullptr;
     HFONT candidateFont_ = nullptr;
     HFONT annotationFont_ = nullptr;
