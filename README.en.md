@@ -13,6 +13,33 @@ Currently supports: **Lancong(Nanchang) and Fenni(Fenyi)**. More localities are 
 - dict: Updated and corrected a batch of dictionary entries.
 - feat: Added a tutorial.
 
+## Contents
+
+- [Overview](#overview)
+  - [What it provides](#what-it-provides)
+- [Installation](#installation)
+  - [macOS](#macos)
+  - [iOS](#ios)
+  - [Android](#android)
+  - [Windows](#windows)
+  - [Linux: Fcitx5](#linux-fcitx5)
+  - [Linux: IBus](#linux-ibus)
+  - [Rime](#rime)
+- [The Gon-pin Romanisation](#the-gon-pin-romanisation)
+  - [Initials](#initials)
+  - [Finals](#finals)
+    - [Open finals](#open-finals)
+    - [Front-vowel finals](#front-vowel-finals)
+    - [Rounded finals](#rounded-finals)
+    - [Rounded front-vowel finals](#rounded-front-vowel-finals)
+    - [Syllabic nasals](#syllabic-nasals)
+    - [Other segments](#other-segments)
+  - [Lancong(Nanchang) tones](#lancongnanchang-tones)
+- [Sources](#sources)
+  - [Acknowledgements](#acknowledgements)
+- [Why Gon(Gan) Chinese Matters](#why-gongan-chinese-matters)
+- [Contributors and contact](#contributors-and-contact)
+
 ## Overview
 
 The idea for GonnyuGeneralIME emerged in the second half of 2025. We began by assembling a basic dictionary from published descriptions of the relationship between Gon(Gan) pronunciation and Chinese characters. It soon became clear that a simple character-to-sound mapping would not be enough. The project is intended as a more systematic, durable record of language materials from different Gon(Gan)-speaking localities.
