@@ -64,7 +64,7 @@ Beyond the dictionaries themselves, the input method currently provides:
 - Cross-references between common Mandarin words and local Gon(Gan) vocabulary. When either side is found, the corresponding expression is also offered as a candidate.
 - Compatible input and clear annotation for literary and colloquial readings, newer and older readings, and other alternate pronunciations.
 
-The project currently maintains two regional dictionaries: urban Lancong(Nanchang) and Fenni(Fenyi) County in Xinyu. More localities can be added. Pronunciations and annotations remain open to correction, and contributions are welcome.
+The project currently maintains two regional dictionaries: urban Lancong(Nanchang) and Fenni(Fenyi) County in Xinyu. More localities are welcome. Contributions that expand and correct the dictionaries are welcome.
 
 ## Installation
 
@@ -285,7 +285,7 @@ In addition to participants’ own field observations, the project draws on acad
 
 Special thanks to @豫章鸿也 for extensive advice on the project’s romanisation and character and word choices.
 
-The dictionaries are still incomplete, and their contents inevitably contain errors. We are grateful to everyone who offers corrections.
+Given the scale of the dictionaries and the author's limited expertise and time, errors may remain. The author takes responsibility for them. Thank you to everyone who contributes additions and corrections.
 
 ## Why Gon(Gan) Chinese Matters
 
