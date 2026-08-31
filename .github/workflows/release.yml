@@ -57,4 +57,10 @@ jobs:
           for suffix in android.apk fcitx5.tar.gz ibus.tar.gz windows-installer.exe; do
             test -f "release-assets/GonnyuGeneralIME-${PRODUCT_VERSION}-${suffix}"
           done
-          gh release create "$GITHUB_REF_NAME" release-assets/* --title "GonnyuGeneralIME ${PRODUCT_VERSION}" --notes $'- 词典更新与自动发布流程测试。'
+          awk -v heading="## 测试版本 ${PRODUCT_VERSION}" "\$0 == heading { found = 1; next }
+            found && /^## / { exit }
+            found { print }
+            END { if (!found) exit 1 }
+          " README.md > release-notes.md
+          test -s release-notes.md
+          gh release create "$GITHUB_REF_NAME" release-assets/* --title "GonnyuGeneralIME ${PRODUCT_VERSION}" --notes-file release-notes.md
