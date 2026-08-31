@@ -108,8 +108,8 @@ def load_entries(region: str) -> tuple[str, list[Entry]]:
                         category=row["词汇属性"].strip(),
                         mandarin_word=row["对应官话词"].strip(),
                         frequency=max(1, frequency),
-                        synonyms=row["同义词"].strip(),
-                        new_old=row["新旧标记"].strip(),
+                        synonyms=(row["同义词"] or "").strip(),
+                        new_old=(row["新旧标记"] or "").strip(),
                     )
                 )
     return config["region"]["name_zh"], rows
