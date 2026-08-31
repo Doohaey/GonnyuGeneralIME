@@ -692,6 +692,9 @@ public:
 
     STDMETHODIMP Deactivate() override {
         HideCandidateWindow();
+        if (statusWindow_) {
+            ShowWindow(statusWindow_, SW_HIDE);
+        }
         buffer_.clear();
         candidates_.clear();
         preeditDisplay_.clear();
@@ -1507,7 +1510,6 @@ private:
     void UpdateCandidateWindow() {
         if (buffer_.empty()) {
             HideCandidateWindow();
-            if (statusWindow_) ShowWindow(statusWindow_, SW_HIDE);
             return;
         }
         if (!EnsureCandidateWindow()) {
@@ -1600,9 +1602,6 @@ private:
     void HideCandidateWindow() {
         if (candidateWindow_) {
             ShowWindow(candidateWindow_, SW_HIDE);
-        }
-        if (statusWindow_) {
-            ShowWindow(statusWindow_, SW_HIDE);
         }
     }
 
