@@ -11,7 +11,7 @@ val productVersion = Regex("""(?ms)^\[workspace\.package]\s.*?^version\s*=\s*"([
     ?.groupValues
     ?.get(1)
     ?: error("Missing workspace package version")
-val versionParts = productVersion.split(".").map(String::toInt)
+val versionParts = productVersion.substringBefore("-").split(".").map(String::toInt)
 require(versionParts.size == 3)
 val productVersionCode = versionParts[0] * 1_000_000 + versionParts[1] * 1_000 + versionParts[2]
 val releaseKeystoreBase64 = System.getenv("ANDROID_KEYSTORE_BASE64")

@@ -54,3 +54,12 @@ def test_android_build_supports_a_local_keystore_without_base64() -> None:
     gradle = (root / "app" / "build.gradle.kts").read_text(encoding="utf-8")
 
     assert "ANDROID_KEYSTORE_PATH" in build
+
+
+def test_platform_builds_accept_prerelease_versions() -> None:
+    android = (ROOT / "platforms/android/app/build.gradle.kts").read_text(encoding="utf-8")
+    assert 'productVersion.substringBefore("-")' in android
+
+    for platform in ("fcitx5", "ibus"):
+        cmake = (ROOT / f"platforms/linux/{platform}/CMakeLists.txt").read_text(encoding="utf-8")
+        assert "(-[0-9A-Za-z.-]+)?" in cmake

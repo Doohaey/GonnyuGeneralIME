@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 project(ibus-gannyu LANGUAGES C)
 
 file(READ "${CMAKE_CURRENT_SOURCE_DIR}/../../../Cargo.toml" WORKSPACE_MANIFEST)
-string(REGEX MATCH "workspace\\.package\\][\r\n]+version[ \t]*=[ \t]*\"([0-9]+\\.[0-9]+\\.[0-9]+)\"" VERSION_MATCH "${WORKSPACE_MANIFEST}")
+string(REGEX MATCH "workspace\\.package\\][\r\n]+version[ \t]*=[ \t]*\"([0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?)\"" VERSION_MATCH "${WORKSPACE_MANIFEST}")
 if(NOT CMAKE_MATCH_1)
     message(FATAL_ERROR "Missing workspace package version")
 endif()
