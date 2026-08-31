@@ -9,6 +9,7 @@ $logDir = Join-Path $env:RUNNER_TEMP "gonnyu-installer-smoke"
 $installLog = Join-Path $logDir "install.log"
 $uninstallLog = Join-Path $logDir "uninstall.log"
 $installedDll = Join-Path $env:ProgramFiles "GonnyuGeneralIME\GannyuTextService.dll"
+$installedTutorial = Join-Path $env:ProgramFiles "GonnyuGeneralIME\tutorial.html"
 
 New-Item -ItemType Directory -Force -Path $logDir | Out-Null
 
@@ -18,13 +19,18 @@ function Invoke-Burn([string[]]$Arguments) {
     throw "Installer exited with $($process.ExitCode)"
   }
 }
-
 Invoke-Burn @("/quiet", "/norestart", "/log", $installLog)
 if (-not (Test-Path -LiteralPath $installedDll -PathType Leaf)) {
   throw "Installed text service is missing: $installedDll"
+}
+if (-not (Test-Path -LiteralPath $installedTutorial -PathType Leaf)) {
+  throw "Installed tutorial is missing: $installedTutorial"
 }
 
 Invoke-Burn @("/uninstall", "/quiet", "/norestart", "/log", $uninstallLog)
 if (Test-Path -LiteralPath $installedDll -PathType Leaf) {
   throw "Text service remains after uninstall: $installedDll"
+}
+if (Test-Path -LiteralPath $installedTutorial -PathType Leaf) {
+  throw "Tutorial remains after uninstall: $installedTutorial"
 }

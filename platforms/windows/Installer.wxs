@@ -15,6 +15,9 @@
         <Component Id="GannyuTextServiceComponent" Guid="258B127C-C3AA-4F53-9EC5-F61C79B81657">
           <File Id="GannyuTextServiceDll" Source="$(var.DllPath)" KeyPath="yes" />
         </Component>
+        <Component Id="TutorialComponent" Guid="BD7E4B76-51D6-40A6-87CA-EA6D85C1EA5A">
+          <File Id="TutorialHtml" Source="$(var.TutorialPath)" KeyPath="yes" />
+        </Component>
       </Directory>
     </StandardDirectory>
 
@@ -41,6 +44,7 @@
 
     <Feature Id="MainFeature" Title="GonnyuGeneralIME" Level="1">
       <ComponentRef Id="GannyuTextServiceComponent" />
+      <ComponentRef Id="TutorialComponent" />
     </Feature>
   </Package>
 </Wix>

@@ -5,6 +5,7 @@
 #include <ctfutb.h>
 #include <msctf.h>
 #include <olectl.h>
+#include <shellapi.h>
 #include <shlwapi.h>
 #include <strsafe.h>
 
@@ -19,6 +20,7 @@
 #pragma comment(lib, "advapi32.lib")
 #pragma comment(lib, "gdi32.lib")
 #pragma comment(lib, "ole32.lib")
+#pragma comment(lib, "shell32.lib")
 #pragma comment(lib, "shlwapi.lib")
 
 namespace {
@@ -915,6 +917,10 @@ public:
                     TogglePunctuationMode();
                     return 0;
                 }
+                if (x >= ScaleForDpi(260, dpi) && x < ScaleForDpi(300, dpi)) {
+                    OpenTutorial();
+                    return 0;
+                }
                 if (x >= ScaleForDpi(200, dpi) && x < ScaleForDpi(260, dpi)) {
                     HMENU menu = CreatePopupMenu();
                     AppendMenuW(menu, MF_STRING, GANNYU_USER_DATA_WORDS, L"用户词");
@@ -967,7 +973,7 @@ public:
                 std::wstring label = englishMode_ ? L"英" : L"中";
                 label += fullwidthPunctuation_ ? L"   全   " : L"   半   ";
                 label += CurrentRegionLabel();
-                label += L" ▾   词库 ▾   ⚙";
+                label += L" ▾   词库 ▾   ⚙   ⓘ";
                 RECT textRect = client;
                 textRect.left += ScaleForDpi(8, dpi);
                 textRect.right -= ScaleForDpi(8, dpi);
@@ -1477,7 +1483,7 @@ private:
         }
         UINT dpi = GetDpiForWindow(statusWindow_);
         if (dpi == 0) dpi = 96;
-        int barW = ScaleForDpi(290, dpi);
+        int barW = ScaleForDpi(330, dpi);
         int barH = ScaleForDpi(26, dpi);
         RECT workArea{};
         SystemParametersInfoW(SPI_GETWORKAREA, 0, &workArea, 0);
@@ -1505,6 +1511,17 @@ private:
             DestroyWindow(statusWindow_);
             statusWindow_ = nullptr;
         }
+    }
+
+    void OpenTutorial() {
+        wchar_t path[MAX_PATH] = {};
+        if (!GetModuleFileNameW(g_module, path, _countof(path))) {
+            return;
+        }
+        if (!PathRemoveFileSpecW(path) || !PathAppendW(path, L"tutorial.html")) {
+            return;
+        }
+        ShellExecuteW(nullptr, L"open", path, nullptr, nullptr, SW_SHOWNORMAL);
     }
 
     void UpdateCandidateWindow() {

@@ -96,7 +96,7 @@ if not exist "%BA_WIXEXT%" (
   goto :err
 )
 
-wix build "%SCRIPT_DIR%Installer.wxs" -arch x64 -d "DllPath=%DLL_PATH%" -d "GonnyuProductVersion=%MSI_PRODUCT_VERSION%" -o "%MSI_PATH%" || goto :err
+wix build "%SCRIPT_DIR%Installer.wxs" -arch x64 -d "DllPath=%DLL_PATH%" -d "TutorialPath=%REPO_ROOT%\resources\tutorial\tutorial.html" -d "GonnyuProductVersion=%MSI_PRODUCT_VERSION%" -o "%MSI_PATH%" || goto :err
 wix build "%SCRIPT_DIR%InstallerBundle.wxs" -arch x64 -ext "%BA_WIXEXT%" -d "MsiPath=%MSI_PATH%" -d "GonnyuBundleVersion=%BUNDLE_PRODUCT_VERSION%" -o "%EXE_PATH%" || goto :err
 
 echo.

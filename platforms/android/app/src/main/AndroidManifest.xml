@@ -15,6 +15,10 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".TutorialActivity"
+            android:label="使用教程" />
+
         <service
             android:name=".GannyuInputMethodService"
             android:exported="true"

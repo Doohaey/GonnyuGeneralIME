@@ -93,6 +93,7 @@ android {
     sourceSets {
         getByName("main") {
             jniLibs.srcDirs("src/main/jniLibs")
+            assets.srcDirs("../../../resources/tutorial")
         }
     }
 

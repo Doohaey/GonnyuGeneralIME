@@ -30,6 +30,7 @@
     <string name="system_operations_label">系统操作</string>
     <string name="open_ime_settings">前往输入法设置</string>
     <string name="open_ime_picker">切换输入法</string>
+    <string name="open_tutorial">使用教程</string>
     <string name="preedit_hint">赣拼 / 拼音</string>
     <string name="key_shift">⇧</string>
     <string name="key_backspace">⌫</string>

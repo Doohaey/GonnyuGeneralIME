@@ -41,6 +41,9 @@ class SetupActivity : Activity() {
         findViewById<Button>(R.id.openImePicker).setOnClickListener {
             getSystemService(InputMethodManager::class.java)?.showInputMethodPicker()
         }
+        findViewById<Button>(R.id.openTutorial).setOnClickListener {
+            startActivity(Intent(this, TutorialActivity::class.java))
+        }
     }
 
     private fun setupRegionPicker(statusView: TextView) {
