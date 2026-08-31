@@ -11,7 +11,7 @@
 [![Rime 南昌话](https://img.shields.io/badge/Rime-%E5%8D%97%E6%98%8C%E8%AF%9D-0969da?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Doohaey/GonnyuGeneralIME-Rime-Lancong)
 [![Rime 分宜话](https://img.shields.io/badge/Rime-%E5%88%86%E5%AE%9C%E8%AF%9D-8250df?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Doohaey/GonnyuGeneralIME-Rime-Fenni)
 
-南昌话与分宜话的 Rime 方案仓库。其他安装方案请在下方[安装方法](#安装方法)小节找到对应平台内容下载并且安装。
+上方按钮列出南昌话与分宜话的 Rime 方案仓库。其他安装方案请在下方[安装方法](#安装方法)小节找到对应平台内容下载并且安装。
 
 ## 测试版本 0.2.3
 
