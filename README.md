@@ -28,9 +28,17 @@
 
 ## 安装方法
 
-输入法主体覆盖Linux，Android，Windows平台，MacOS与IOS平台上采用rime资源文件的形式实现，需要正确下载对应区域文件。
+输入法主体覆盖 Linux、Android 和 Windows。macOS 与 iOS 的 Rime 输入法使用通用 Rime 资源包，安装方法见 Rime 章节。
 
 从 [Releases](https://github.com/Doohaey/GonnyuGeneralIME/releases) 下载与系统相符或者对应区域的文件。
+
+### macOS
+
+macOS 上使用 Rime 输入法时，见 Rime 章节。
+
+### iOS
+
+iOS 上使用 Rime 输入法时，见 Rime 章节。
 
 ### Android
 
@@ -64,13 +72,11 @@ cd GonnyuGeneralIME-版本号-ibus
 
 运行 `ibus-daemon -drx`（或重启 IBus），然后在 `ibus-setup` 的输入法列表添加“Gannyu Gan”。
 
-### macOS：Rime
+### Rime
 
-下载所需区域的 `GonnyuGeneralIME-版本号-rime-macos-lancong.zip` 或 `GonnyuGeneralIME-版本号-rime-macos-fenni.zip`。解压后将其中的文件复制到 `~/Library/Rime/`，再在所使用的 Rime 输入法中重新部署，并从方案菜单选择对应地区。
+下载所需区域的 `GonnyuGeneralIME-版本号-rime-地区.zip`。压缩包适用于各 Rime 前端。
 
-### iOS：Rime
-
-下载所需区域的 `GonnyuGeneralIME-版本号-rime-ios-lancong.zip` 或 `GonnyuGeneralIME-版本号-rime-ios-fenni.zip`。在所使用的 iOS Rime 输入法中导入该压缩包，重新部署后从方案菜单选择对应地区。
+macOS 鼠须管将压缩包内容复制到 `~/Library/Rime/`，重新部署后从方案菜单选择对应地区。Windows 小狼毫将内容复制到 `%APPDATA%\Rime`，在输入法菜单中重新部署。Linux Fcitx5 Rime 将内容复制到 `~/.local/share/fcitx5/rime/`，重新部署后从方案菜单选择对应地区。iOS 与 Android 使用所安装 Rime 前端的导入或部署功能载入 ZIP。
 
 
 ## 本输入法采用的赣语拼音方案

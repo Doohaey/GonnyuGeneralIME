@@ -9,10 +9,8 @@ permissions:
   contents: write
 
 jobs:
-  rime-ios:
-    uses: ./.github/workflows/rime-ios.yml
-  rime-macos:
-    uses: ./.github/workflows/rime-macos.yml
+  rime:
+    uses: ./.github/workflows/rime.yml
   android:
     uses: ./.github/workflows/android.yml
     secrets: inherit
@@ -26,7 +24,7 @@ jobs:
     uses: ./.github/workflows/windows.yml
     secrets: inherit
   publish:
-    needs: [rime-ios, rime-macos, android, fcitx5, ibus, windows]
+    needs: [rime, android, fcitx5, ibus, windows]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -52,11 +50,9 @@ jobs:
           while IFS= read -r region; do
             regions+=("$region")
           done < <(python3 platforms/rime/build.py --list-regions)
-          test "$(find release-assets -maxdepth 1 -type f | wc -l)" -eq "$((4 + 2 * ${#regions[@]}))"
+          test "$(find release-assets -maxdepth 1 -type f | wc -l)" -eq "$((4 + ${#regions[@]}))"
           for region in "${regions[@]}"; do
-            for platform in ios macos; do
-              test -f "release-assets/GonnyuGeneralIME-${PRODUCT_VERSION}-rime-${platform}-${region}.zip"
-            done
+            test -f "release-assets/GonnyuGeneralIME-${PRODUCT_VERSION}-rime-${region}.zip"
           done
           for suffix in android.apk fcitx5.tar.gz ibus.tar.gz windows-installer.exe; do
             test -f "release-assets/GonnyuGeneralIME-${PRODUCT_VERSION}-${suffix}"

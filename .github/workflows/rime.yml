@@ -1,4 +1,4 @@
-name: rime-ios
+name: rime
 
 on:
   workflow_call:
@@ -9,7 +9,7 @@ on:
       - Cargo.toml
       - platforms/rime/**
       - resources/**
-      - .github/workflows/rime-ios.yml
+      - .github/workflows/rime.yml
 
 permissions:
   contents: read
@@ -27,9 +27,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: bash platforms/rime/package_ios.sh
+      - run: bash platforms/rime/package.sh
       - uses: actions/upload-artifact@v4
         with:
-          name: GonnyuGeneralIME-${{ steps.product.outputs.version }}-rime-ios
-          path: build/GonnyuGeneralIME-${{ steps.product.outputs.version }}-rime-ios-*.zip
+          name: GonnyuGeneralIME-${{ steps.product.outputs.version }}-rime
+          path: build/GonnyuGeneralIME-${{ steps.product.outputs.version }}-rime-*.zip
           if-no-files-found: error

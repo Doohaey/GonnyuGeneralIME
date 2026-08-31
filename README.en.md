@@ -29,9 +29,17 @@ The project currently maintains two regional dictionaries: urban Nanchang and Fe
 
 ## Installation
 
-The native input method is available for Linux, Android, and Windows. macOS and iOS use Rime resource packages; select the package for the required locality.
+The native input method is available for Linux, Android, and Windows. macOS and iOS Rime input methods use the universal Rime resource package; see the Rime section for installation.
 
 Download the file for your operating system or locality from [Releases](https://github.com/Doohaey/GonnyuGeneralIME/releases).
+
+### macOS
+
+For a Rime input method on macOS, see the Rime section.
+
+### iOS
+
+For a Rime input method on iOS, see the Rime section.
 
 ### Android
 
@@ -65,13 +73,11 @@ cd GonnyuGeneralIME-version-ibus
 
 Run `ibus-daemon -drx` (or restart IBus), then add **Gannyu Gan** in the input-method list in `ibus-setup`.
 
-### macOS: Rime
+### Rime
 
-Download either `GonnyuGeneralIME-version-rime-macos-lancong.zip` (Nanchang) or `GonnyuGeneralIME-version-rime-macos-fenni.zip` (Fenyi). Extract it, copy its contents into `~/Library/Rime/`, redeploy in your Rime input method, and select the locality from the schema menu.
+Download `GonnyuGeneralIME-version-rime-region.zip` for the required locality. The archive works with Rime front ends on every platform.
 
-### iOS: Rime
-
-Download either `GonnyuGeneralIME-version-rime-ios-lancong.zip` (Nanchang) or `GonnyuGeneralIME-version-rime-ios-fenni.zip` (Fenyi). Import the ZIP package in your iOS Rime input method, redeploy it, and select the locality from the schema menu.
+For macOS Squirrel, copy the archive contents into `~/Library/Rime/`, redeploy, then select the locality from the schema menu. For Windows Weasel, copy the contents into `%APPDATA%\Rime` and redeploy from the input-method menu. For Linux Fcitx5 Rime, copy the contents into `~/.local/share/fcitx5/rime/`, redeploy, then select the locality from the schema menu. For iOS and Android, import or deploy the ZIP in the installed Rime front end.
 
 ## The Gon-pin Romanisation
 

@@ -15,7 +15,11 @@ fi
 
 for region in "${regions[@]}"; do
   output_dir="$repo_root/build/rime/$region"
-  archive="$repo_root/build/GonnyuGeneralIME-${version}-rime-${platform}-${region}.zip"
+  if [[ "$platform" == universal ]]; then
+    archive="$repo_root/build/GonnyuGeneralIME-${version}-rime-${region}.zip"
+  else
+    archive="$repo_root/build/GonnyuGeneralIME-${version}-rime-${platform}-${region}.zip"
+  fi
   python3 "$repo_root/platforms/rime/build.py" --region "$region" --display-name apple --output "$output_dir"
   (
     cd "$output_dir"

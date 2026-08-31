@@ -2,4 +2,4 @@
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-exec "$script_dir/package_region.sh" macos "$@"
+exec "$script_dir/package_region.sh" universal "$@"

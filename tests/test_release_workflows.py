@@ -6,8 +6,7 @@ WORKFLOWS = (
     "android.yml",
     "fcitx5.yml",
     "ibus.yml",
-    "rime-ios.yml",
-    "rime-macos.yml",
+    "rime.yml",
     "windows.yml",
 )
 
@@ -27,8 +26,9 @@ def test_release_workflow_uses_tagged_workspace_version() -> None:
     assert "scripts/" not in content
     assert "actions/setup-python@v5" in content
     assert "platforms/rime/build.py --list-regions" in content
-    assert '"$((4 + 2 * ${#regions[@]}))"' in content
+    assert '"$((4 + ${#regions[@]}))"' in content
     assert "GonnyuGeneralIME-${{ steps.product.outputs.version }}-*" in content
+    assert "rime-${region}.zip" in content
     assert 'gh release create "$GITHUB_REF_NAME" release-assets/*' in content
     assert "--prerelease" not in content
 
