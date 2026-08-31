@@ -28,17 +28,17 @@
 
 ## 安装方法
 
-输入法主体覆盖 Linux、Android 和 Windows。macOS 与 iOS 的 Rime 输入法使用通用 Rime 资源包，安装方法见 Rime 章节。
+输入法主体覆盖 Linux、Android 和 Windows。macOS 与 iOS 的 输入法目前只能使用通用 Rime 资源包，安装方法见 Rime 章节。
 
 从 [Releases](https://github.com/Doohaey/GonnyuGeneralIME/releases) 下载与系统相符或者对应区域的文件。
 
 ### macOS
 
-macOS 上使用 Rime 输入法时，见 Rime 章节。
+macOS 上使用输入法时，见 Rime 章节。
 
 ### iOS
 
-iOS 上使用 Rime 输入法时，见 Rime 章节。
+iOS 上使用输入法时，见 Rime 章节。
 
 ### Android
 

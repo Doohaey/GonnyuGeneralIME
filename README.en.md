@@ -29,17 +29,17 @@ The project currently maintains two regional dictionaries: urban Nanchang and Fe
 
 ## Installation
 
-The native input method is available for Linux, Android, and Windows. macOS and iOS Rime input methods use the universal Rime resource package; see the Rime section for installation.
+The native input method is available for Linux, Android, and Windows. Input methods on macOS and iOS currently use only the universal Rime resource package; see the Rime section for installation.
 
 Download the file for your operating system or locality from [Releases](https://github.com/Doohaey/GonnyuGeneralIME/releases).
 
 ### macOS
 
-For a Rime input method on macOS, see the Rime section.
+For input on macOS, see the Rime section.
 
 ### iOS
 
-For a Rime input method on iOS, see the Rime section.
+For input on iOS, see the Rime section.
 
 ### Android
 
