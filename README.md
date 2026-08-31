@@ -8,6 +8,11 @@
 
 **现已支持全平台快捷安装以及各平台Rime安装包。**
 
+[![Rime 南昌话](https://img.shields.io/badge/Rime-%E5%8D%97%E6%98%8C%E8%AF%9D-0969da?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Doohaey/GonnyuGeneralIME-Rime-Lancong)
+[![Rime 分宜话](https://img.shields.io/badge/Rime-%E5%88%86%E5%AE%9C%E8%AF%9D-8250df?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Doohaey/GonnyuGeneralIME-Rime-Fenni)
+
+南昌话与分宜话的 Rime 方案仓库。其他安装方案请在下方[安装方法](#安装方法)小节找到对应平台内容下载并且安装。
+
 ## 测试版本 0.2.3
 
 - dict: 更新并修正一批词典内容。
@@ -15,30 +20,34 @@
 
 ## 目录
 
-- [简介](#简介)
-  - [特色](#特色)
-- [安装方法](#安装方法)
-  - [macOS](#macos)
-  - [iOS](#ios)
-  - [Android](#android)
-  - [Windows](#windows)
-  - [Linux：Fcitx5](#linuxfcitx5)
-  - [Linux：IBus](#linuxibus)
-  - [Rime](#rime)
-- [赣语拼音方案](#本输入法采用的赣语拼音方案)
-  - [声母](#声母)
-  - [韵母](#韵母)
-    - [开口呼韵母](#开口呼韵母)
-    - [齐齿呼韵母](#齐齿呼韵母)
-    - [合口呼韵母](#合口呼韵母)
-    - [撮口呼韵母](#撮口呼韵母)
-    - [边鼻韵](#边鼻韵)
-    - [其他音素](#其他音素)
-  - [南昌声调](#补充南昌声调)
-- [参考资料](#参考资料)
-  - [致谢](#致谢)
-- [缘起](#缘起赣语的失落)
-- [参与名单与联系方式](#参与名单与联系方式)
+- [赣语通用输入法 GonnyuGeneralIME](#赣语通用输入法-gonnyugeneralime)
+  - [测试版本 0.2.3](#测试版本-023)
+  - [目录](#目录)
+  - [简介](#简介)
+    - [特色](#特色)
+  - [安装方法](#安装方法)
+    - [macOS](#macos)
+    - [iOS](#ios)
+    - [Android](#android)
+    - [Windows](#windows)
+    - [Linux：Fcitx5](#linuxfcitx5)
+    - [Linux：IBus](#linuxibus)
+    - [Rime](#rime)
+  - [本输入法采用的赣语拼音方案](#本输入法采用的赣语拼音方案)
+    - [声母](#声母)
+    - [韵母](#韵母)
+      - [开口呼韵母](#开口呼韵母)
+      - [齐齿呼韵母](#齐齿呼韵母)
+      - [合口呼韵母](#合口呼韵母)
+      - [撮口呼韵母](#撮口呼韵母)
+      - [边鼻韵](#边鼻韵)
+      - [其他音素](#其他音素)
+    - [补充：南昌声调](#补充南昌声调)
+  - [参考资料](#参考资料)
+    - [参考资料](#参考资料-1)
+    - [致谢](#致谢)
+  - [缘起：赣语的失落](#缘起赣语的失落)
+  - [参与名单与联系方式](#参与名单与联系方式)
 
 ## 简介
 
