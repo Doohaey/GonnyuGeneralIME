@@ -1,20 +1,27 @@
-# GonnyuGeneralIME — A General Gan Chinese Input Method
+# GonnyuGeneralIME — A General Gon(Gan) Chinese Input Method
 
-> A digital writing system rooted in the Gan–Poyang region.
+> A digital writing system rooted in the Gon(Gan)–Poyang region.
 
-## Version 0.2.2
+Currently supports: **Lancong(Nanchang) and Fenni(Fenyi)**. More localities are welcome.
 
-- Dictionary update and automated release workflow test.
+**An easy-to-use Gon(Gan) input method: users who know Pinyin can type immediately, with both local and Mandarin Pinyin input supported.**
+
+**Quick installation is available on every platform, together with Rime packages for each platform.**
+
+## Test version 0.2.3
+
+- dict: Updated and corrected a batch of dictionary entries.
+- feat: Added a tutorial.
 
 ## Overview
 
-The idea for GonnyuGeneralIME emerged in the second half of 2025. We began by assembling a basic dictionary from published descriptions of the relationship between Gan pronunciation and Chinese characters. It soon became clear that a simple character-to-sound mapping would not be enough. The project is intended as a more systematic, durable record of language materials from different Gan-speaking localities.
+The idea for GonnyuGeneralIME emerged in the second half of 2025. We began by assembling a basic dictionary from published descriptions of the relationship between Gon(Gan) pronunciation and Chinese characters. It soon became clear that a simple character-to-sound mapping would not be enough. The project is intended as a more systematic, durable record of language materials from different Gon(Gan)-speaking localities.
 
-It is therefore designed not only for writing Chinese characters from Gan pronunciation, but also for moving naturally between Gan and Mandarin in writing. It is for fluent speakers, younger people who have heard Gan but do not yet command it, and anyone interested in producing idiomatic Gan Chinese text.
+It is therefore designed not only for writing Chinese characters from Gon(Gan) pronunciation, but also for moving naturally between Gon(Gan) and Mandarin in writing. It is for fluent speakers, younger people who have heard Gon(Gan) but do not yet command it, and anyone interested in producing idiomatic Gon(Gan) Chinese text.
 
-“General” has three meanings here: usable across Gan localities; usable in both Gan and Mandarin contexts; and available across major computing platforms.
+“General” has three meanings here: usable across Gon(Gan) localities; usable in both Gon(Gan) and Mandarin contexts; and available across major computing platforms.
 
-The project favours established character forms while accommodating common vernacular spellings. Its aim is a practical, readable written Gan that reflects everyday life in the region as well as its historical Chinese roots.
+The project favours established character forms while accommodating common vernacular spellings. Its aim is a practical, readable written Gon(Gan) that reflects everyday life in the region as well as its historical Chinese roots.
 
 ### What it provides
 
@@ -22,10 +29,10 @@ Beyond the dictionaries themselves, the input method currently provides:
 
 - Pronunciation annotations for characters and words. The spelling system and tone notation are described below. It stays close to Hanyu Pinyin where possible to reduce the learning curve.
 - Tolerant input for spelling habits familiar to Mandarin-input users, while presenting results in the project’s own spelling.
-- Cross-references between common Mandarin words and local Gan vocabulary. When either side is found, the corresponding expression is also offered as a candidate.
+- Cross-references between common Mandarin words and local Gon(Gan) vocabulary. When either side is found, the corresponding expression is also offered as a candidate.
 - Compatible input and clear annotation for literary and colloquial readings, newer and older readings, and other alternate pronunciations.
 
-The project currently maintains two regional dictionaries: urban Nanchang and Fenyi County in Xinyu. More localities can be added. Pronunciations and annotations remain open to correction, and contributions are welcome.
+The project currently maintains two regional dictionaries: urban Lancong(Nanchang) and Fenni(Fenyi) County in Xinyu. More localities can be added. Pronunciations and annotations remain open to correction, and contributions are welcome.
 
 ## Installation
 
@@ -43,7 +50,7 @@ For input on iOS, see the Rime section.
 
 ### Android
 
-Download `GonnyuGeneralIME-version-android.apk` and open it on Android to install. On first launch, follow the in-app setup to enable the Gan Chinese input method, then select it from the system input-method picker.
+Download `GonnyuGeneralIME-version-android.apk` and open it on Android to install. On first launch, follow the in-app setup to enable the Gon(Gan) Chinese input method, then select it from the system input-method picker.
 
 ### Windows
 
@@ -59,7 +66,7 @@ cd GonnyuGeneralIME-version-fcitx5
 ./install.sh
 ```
 
-Restart Fcitx5 with `fcitx5 -r`, or sign out and back in. Then add **Gannyu Gan / 赣语** in `fcitx5-configtool`.
+Restart Fcitx5 with `fcitx5 -r`, or sign out and back in. Then add **Gannyu Gon(Gan) / 赣语** in `fcitx5-configtool`.
 
 ### Linux: IBus
 
@@ -71,7 +78,7 @@ cd GonnyuGeneralIME-version-ibus
 ./install.sh
 ```
 
-Run `ibus-daemon -drx` (or restart IBus), then add **Gannyu Gan** in the input-method list in `ibus-setup`.
+Run `ibus-daemon -drx` (or restart IBus), then add **Gannyu Gon(Gan)** in the input-method list in `ibus-setup`.
 
 ### Rime
 
@@ -83,7 +90,7 @@ For macOS Squirrel, copy the archive contents into `~/Library/Rime/`, redeploy, 
 
 **Data note:** The project actively maintains the visible `gon-pin` implementation. The IPA data behind the dictionary resources comes from varied and uneven sources, and is not yet guaranteed as a scholarly reference dataset.
 
-The spelling system is intended to represent Gan pronunciation while remaining as close as practical to the conventions of Hanyu Pinyin. To make typing easier and to accommodate mergers in newer varieties, some spellings deliberately accept more than one phoneme in a strict phonological sense.
+The spelling system is intended to represent Gon(Gan) pronunciation while remaining as close as practical to the conventions of Hanyu Pinyin. To make typing easier and to accommodate mergers in newer varieties, some spellings deliberately accept more than one phoneme in a strict phonological sense.
 
 ### Initials
 
@@ -110,7 +117,7 @@ The spelling system is intended to represent Gan pronunciation while remaining a
 
 ### Finals
 
-**Compatibility for checked-tone syllables.** Final apical stops `-t` [t] and glottal stops `-k` [ʔ] may be omitted. The two are also accepted interchangeably, so the input method can still recognise a checked-tone syllable when its coda is entered differently. This reflects the weakening and ambiguity of checked tones in Gan: some are difficult to distinguish from neutral tone, and some localities no longer retain them.
+**Compatibility for checked-tone syllables.** Final apical stops `-t` [t] and glottal stops `-k` [ʔ] may be omitted. The two are also accepted interchangeably, so the input method can still recognise a checked-tone syllable when its coda is entered differently. This reflects the weakening and ambiguity of checked tones in Gon(Gan): some are difficult to distinguish from neutral tone, and some localities no longer retain them.
 
 #### Open finals
 
@@ -214,11 +221,11 @@ With no initial consonant:
 
 The system also records a number of extensions based on published descriptions and observed sound changes, including pronunciations recorded in a 1935 language survey and selected alternations involving `-n` and `-ng` codas.
 
-### Nanchang tones
+### Lancong(Nanchang) tones
 
-The Nanchang dictionary uses seven tone markers:
+The Lancong(Nanchang) dictionary uses seven tone markers:
 
-| Marker | Traditional tone category | Example Nanchang pitch |
+| Marker | Traditional tone category | Example Lancong(Nanchang) pitch |
 | --- | --- | --- |
 | 1 | yin level | 42 |
 | 2 | yang level | 24 |
@@ -233,14 +240,14 @@ The Nanchang dictionary uses seven tone markers:
 In addition to participants’ own field observations, the project draws on academic work and dialect-enthusiast communities. A project of this kind necessarily synthesises many sources. The reference material and dictionary data used here have been made public as far as possible. Please raise any copyright concerns through the project repository.
 
 1. osfans. **MCPDict** [CP/OL]. GitHub. <https://github.com/osfans/MCPDict>.
-2. Xiong Zhenghui. *Literary and colloquial readings in the Nanchang dialect* [EB/OL]. <http://ling.cass.cn/keyan/xueshuchengguo/cgtj/202112/W020211223381176680381.pdf>. Accessed 2026-06-01.
-3. Xiong Zhenghui. *Difficult characters in the Nanchang dialect* [EB/OL]. <http://ling.cass.cn/keyan/xueshuchengguo/cgtj/202112/W020211223381177519680.pdf>. Accessed 2026-06-04.
-4. Xiong Zhenghui. *Dictionary of the Nanchang Dialect*.
-5. Zhihu. “What vocabulary is distinctive enough to identify Gan Chinese at once?” <https://www.zhihu.com/question/24262923/>.
-6. Wikipedia. *Gan Chinese original characters*. <https://gan.wikipedia.org/wiki/>.
-7. Wikipedia. *Gan Chinese*. <https://zh.wikipedia.org/zh-hans/%E8%B4%9B%E8%AA%9E>.
+2. Xiong Zhenghui. *Literary and colloquial readings in the Lancong(Nanchang) dialect* [EB/OL]. <http://ling.cass.cn/keyan/xueshuchengguo/cgtj/202112/W020211223381176680381.pdf>. Accessed 2026-06-01.
+3. Xiong Zhenghui. *Difficult characters in the Lancong(Nanchang) dialect* [EB/OL]. <http://ling.cass.cn/keyan/xueshuchengguo/cgtj/202112/W020211223381177519680.pdf>. Accessed 2026-06-04.
+4. Xiong Zhenghui. *Dictionary of the Lancong(Nanchang) Dialect*.
+5. Zhihu. “What vocabulary is distinctive enough to identify Gon(Gan) Chinese at once?” <https://www.zhihu.com/question/24262923/>.
+6. Wikipedia. *Gon(Gan) Chinese original characters*. <https://gan.wikipedia.org/wiki/>.
+7. Wikipedia. *Gon(Gan) Chinese*. <https://zh.wikipedia.org/zh-hans/%E8%B4%9B%E8%AA%9E>.
 8. *Character-use standards for Chinese dialects, Language Resources Protection Project of China*. <http://www.moe.gov.cn/s78/A19/tongzhi/201704/W020170405307025943395.pdf>. Accessed 2026-08-04.
-9. Bilibili. *New Concept Nanchang Dialect* series. <https://www.bilibili.com/video/BV1Us4y1C7fp/?share_source=copy_web&vd_source=5078721afbb2afc4394ca2602bb990de>.
+9. Bilibili. *New Concept Lancong(Nanchang) Dialect* series. <https://www.bilibili.com/video/BV1Us4y1C7fp/?share_source=copy_web&vd_source=5078721afbb2afc4394ca2602bb990de>.
 
 ### Acknowledgements
 
@@ -248,14 +255,20 @@ Special thanks to @豫章鸿也 for extensive advice on the project’s romanisa
 
 The dictionaries are still incomplete, and their contents inevitably contain errors. We are grateful to everyone who offers corrections.
 
-## Why Gan Chinese Matters
+## Why Gon(Gan) Chinese Matters
 
-The Gan–Poyang plain has long been a major cultural and economic centre in southern China. Since the late Qing period, however, Jiangxi and neighbouring areas have experienced serious economic and demographic decline. When the material basis of a cultural tradition erodes, its public standing tends to erode with it. Among the Sinitic languages, Gan now has one of the weakest public profiles.
+The Gon(Gan)–Poyang plain has long been a major cultural and economic centre in southern China. Since the late Qing period, however, Jiangxi and neighbouring areas have experienced serious economic and demographic decline. When the material basis of a cultural tradition erodes, its public standing tends to erode with it. Among the Sinitic languages, Gon(Gan) now has one of the weakest public profiles.
 
-Gan-speaking areas do not have a single, clearly recognised standard pronunciation. They lack the commercial reach often associated with Cantonese, the economic base of Wu varieties, the familiar cultural symbols and overseas presence of Southern Min, or the dense urban networks of Sichuan. Many people who speak Gan, or grew up in a Gan-speaking area, have only a hazy sense of it as a language: it may be called “Jiangxi speech”, or treated as one of many indistinct local ways of speaking. The commonplace observation that speech changes from village to village has too often become an excuse to see only fragmentation.
+Gon(Gan)-speaking areas do not have a single, clearly recognised standard pronunciation. They lack the commercial reach often associated with Cantonese, the economic base of Wu varieties, the familiar cultural symbols and overseas presence of Southern Min, or the dense urban networks of Sichuan. Many people who speak Gon(Gan), or grew up in a Gon(Gan)-speaking area, have only a hazy sense of it as a language: it may be called “Jiangxi speech”, or treated as one of many indistinct local ways of speaking. The commonplace observation that speech changes from village to village has too often become an excuse to see only fragmentation.
 
-Across the region, language shift has been rapid. Local speech has frequently been treated as rustic, backward, or improper, and Mandarin has displaced it in family life and education. Yet replacement is never so clean. People educated first in Mandarin may still carry deep Gan patterns into pronunciation, everyday vocabulary, and writing; what emerges can be neither a secure command of Mandarin nor an unbroken command of the language of home.
+Across the region, language shift has been rapid. Local speech has frequently been treated as rustic, backward, or improper, and Mandarin has displaced it in family life and education. Yet replacement is never so clean. People educated first in Mandarin may still carry deep Gon(Gan) patterns into pronunciation, everyday vocabulary, and writing; what emerges can be neither a secure command of Mandarin nor an unbroken command of the language of home.
 
-The examples matter. A Gan expression such as `好 X` (literally “good X”, used as an intensifier) may be “corrected” in school to Mandarin `很 X` (“very X”). A speaker may write `紧` (*jǐn*) for “always”, reflecting the `尽` in `尽管`—a word that in standard Mandarin means “although”—or use `嘎` (*gà*) as a sentence-initial particle. These are not errors to be replaced by convenient English equivalents: they are traces of how Gan structures thought and expression inside Chinese writing. Some younger people of Nanchang background now struggle even to understand Nanchang Gan or distinguish it from neighbouring varieties; that degree of language loss is itself unusual and consequential.
+The examples matter. A Gon(Gan) expression such as `好 X` (literally “good X”, used as an intensifier) may be “corrected” in school to Mandarin `很 X` (“very X”). A speaker may write `紧` (*jǐn*) for “always”, reflecting the `尽` in `尽管`—a word that in standard Mandarin means “although”—or use `嘎` (*gà*) as a sentence-initial particle. These are not errors to be replaced by convenient English equivalents: they are traces of how Gon(Gan) structures thought and expression inside Chinese writing. Some younger people of Lancong(Nanchang) background now struggle even to understand Lancong(Nanchang) Gon(Gan) or distinguish it from neighbouring varieties; that degree of language loss is itself unusual and consequential.
 
-When reports warn that much of the world’s linguistic diversity may disappear this century, Chinese-speaking communities may assume that the warning concerns someone else. But the languages spoken at home and in one’s hometown can disappear as well. With them go social memory, local ways of speaking, and the texture of past life. Preserving and extending the written life of Gan is one small part of protecting that diversity.
+When reports warn that much of the world’s linguistic diversity may disappear this century, Chinese-speaking communities may assume that the warning concerns someone else. But the languages spoken at home and in one’s hometown can disappear as well. With them go social memory, local ways of speaking, and the texture of past life. Preserving and extending the written life of Gon(Gan) is one small part of protecting that diversity.
+
+
+## Contributors and contact
+
+1. Dongche Xiye Editorial Department. Project planning and the Fenni(Fenyi) dictionary. <https://github.com/ComeRainOrComeShine>
+2. Doohaey. Input-method framework and the Lancong(Nanchang) dictionary. Email: doohaey@gmail.com
