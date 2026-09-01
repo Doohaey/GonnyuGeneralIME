@@ -23,6 +23,7 @@ Rime schema repositories for Lancong(Nanchang) and Fenni(Fenyi). Other installat
 
 - [Overview](#overview)
   - [What it provides](#what-it-provides)
+- [See Gan in action](#see-gan-in-action)
 - [Installation](#installation)
   - [macOS](#macos)
   - [iOS](#ios)
@@ -66,6 +67,37 @@ Beyond the dictionaries themselves, the input method currently provides:
 - Compatible input and clear annotation for literary and colloquial readings, newer and older readings, and other alternate pronunciations.
 
 The project currently maintains two regional dictionaries: urban Lancong(Nanchang) and Fenni(Fenyi) County in Xinyu. More localities are welcome. Contributions that expand and correct the dictionaries are welcome.
+
+## See Gan in action
+
+<sub>The examples below use Nanchang Gan.</sub>
+
+### Gan and Mandarin, side by side
+
+Type in Gan and see related Mandarin words at the same time. Recognise, confirm, and choose the word you want in one glance.
+
+![Gan and Mandarin candidates together](images/selection/goxiet.png)
+
+### Mandarin Pinyin, straight to Gan
+
+Have the Mandarin word in mind first? Type its familiar Pinyin and find the Gan expression right away.
+
+![Type Gan text with Mandarin Pinyin](images/selection/yitiandaowan.png)
+
+### Literary or colloquial — clear at a glance
+
+Gan everyday speech and written expression can sound different. The input method lays both readings out clearly, so your writing always fits the moment.
+
+![Literary and colloquial reading example: miangnit](images/selection/miangnit.png)
+
+![Literary and colloquial reading example: minceu](images/selection/minceu.png)
+
+### Every Gan reading welcome, old and new
+
+Alternate Gan pronunciations, including older and newer patterns, are all ready for input and lookup. Type the Gan you know, your way.
+
+![Compatibility with alternate, older, and newer pronunciations](images/selection/xiuji.png)
+
 
 ## Installation
 
