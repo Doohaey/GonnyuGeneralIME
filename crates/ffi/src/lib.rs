@@ -317,7 +317,7 @@ unsafe fn pipeline_create(
         (None, false) => {
             set_last_error("no embedded resources or manifest path available");
             return STATUS_INVALID_ARGUMENT;
-        },
+        }
     };
 
     let resource = match requested_region {
@@ -735,7 +735,10 @@ mod tests {
     fn last_error_is_consumed_after_reading() {
         clear_last_error();
         set_last_error("resource deployment failed: denied");
-        assert_eq!(take_last_error().as_deref(), Some("resource deployment failed: denied"));
+        assert_eq!(
+            take_last_error().as_deref(),
+            Some("resource deployment failed: denied")
+        );
         assert_eq!(take_last_error(), None);
     }
 }
