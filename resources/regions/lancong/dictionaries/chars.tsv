@@ -831,7 +831,6 @@
 圯	i5	yi4	yi2	赣			74046		
 地	tʰi6	ti5	di4	赣			370541		
 圹	kʰuɔŋ3	kuong3	kuang4	赣			70305		
-场	tsʰɔŋ2	cong2	chang3	赣			154865		
 场	tsʰɔŋ3	cong3	chang3	赣			145000		
 圾	sat7	sat6	ji1	赣			101059		
 址	tsɿ3	zi3	zhi3	赣			120000		
@@ -1788,7 +1787,7 @@
 拜	pai5	bai4	bai4	赣			120000		
 拟	ȵi3	ni3	ni3	赣			130000		
 拢	luŋ3	lung3	long3	赣			350000		
-拣	kan3	gan3	jian3	赣			120000		
+拣	kan3	gan3	jian3	赣	挑	tieu1	122340		
 拥	iuŋ3	yung3	yong1	赣			120000		
 拦	lan5	lan4	lan2	赣			120000		
 拧	ȵin3	nin3	ning2	赣			156343		
@@ -2082,7 +2081,7 @@
 昨	tsʰɔʔ8	cok7	zuo2	赣			120000		
 昨	tsʰoʔ7	cok6	zuo2	赣			120000		
 昭	tsɛu1	zeu1	zhao1	赣			120000		
-是	sɿ6	si5	shi4	赣			1046991		
+是	sɿ6	si5	shi4	赣			1046991		本1
 昱	yt7	yut6	yu4	赣			77184		
 昴	mau3	mau3	mao3	赣			77169		
 昵	ȵit7	nit6	ni4	赣			74682		
@@ -2391,7 +2390,6 @@
 榨	tsa5	za4	zha4	赣			120000		
 榭	ɕia6	xia5	xie4	赣			74572		
 榴	liu5	liu4	liu2	赣			120000		
-榷	kɔʔ7	gok6	que4	赣			78082		
 榻	tʰat7	tat6	ta4	赣			72139		
 槁	kʰau3	kau3	gao3	赣			70598		
 槊	sɔʔ7	sok6	shuo4	赣			70653		
@@ -3224,7 +3222,6 @@
 瓣	pan6	ban5	ban4	赣			120000		
 瓣	pʰæn6	pan5	ban4	赣			120000		
 瓤	lɔŋ5	long4	rang2	赣			120000		
-瓦	ŋa6	nga5	wa3	赣			170000		
 瓮	uŋ5	wung4	weng4	赣			79626		
 瓯	ŋiɛu1	ngieu1	ou1	赣			90000		
 瓴	lin5	lin4	ling2	赣			71681		
@@ -3676,7 +3673,7 @@
 突	tʰɨt7	tet6	tu1	赣			185000		老1
 突	tʰuət7	tuet6	tu1	赣			185000		
 窃	tɕʰiɛt7	qiet6	qie4	赣			120000		
-窄	tsɛt7	zet6	zhai3	赣			125000		
+窄	tsɛt7	zet6	zhai3	赣			125000		老1
 窅	ŋau1	ngau1	yao3	赣			14445		
 窈	ieu3	yeu3	yao3	赣			71490		
 窍	tɕʰiɛu3	qieu3	qiao4	赣			120000		
@@ -5102,8 +5099,8 @@
 费	fɨi5	fei4	fei4	赣			170000		
 贺	ho6	ho5	he4	赣			120000		
 贻	i5	yi4	yi2	赣			102216		
-贼	tsʰɛt8	cet7	zei2	赣			120000		
-贼	tsʰɛt7	cet6	zei2	赣			120000	骗	
+贼	tsʰɛt8	cet7	zei2	赣			134902		
+贼	tsʰɛt7	cet6	zei2	赣			134902	骗	
 贽	tsɿ5	zi4	zhi4	赣			70713		
 贾	ka3	ga3	jia3	赣			120000		
 贿	fɨi3	fei3	hui4	赣			102979		
@@ -10100,7 +10097,7 @@
 哊	yt7	yut6	you4	赣			5288		
 哏	hen2	hen2	gen2	赣			5442		
 哐	kʰuɔŋ1	kuong1	kuang1	赣			4465		
-哒	tat7	dat6	da2	赣			4749		
+哒	tat7	dat6	da2	赣			127890		
 哚	to3	do3	duo3	赣			5945		
 哜	tɕʰi6	qi5	ji4	赣			5887		
 哞	meu5	meu4	mou1	赣			5545		
@@ -10201,12 +10198,12 @@
 嗢	uat7	wat6	wa4	赣			4166		
 嗢	ut7	wut6	wa4	赣			5622		
 嗨	hai1	hai1	hai1	赣			5596		
-嗯	ŋien1	ngien1	n2	赣			4026		
+嗯	ŋ̍0	ng0	n2	赣			123456		
 嗳	oi1	oi1	ai1	赣			5295		
 嗵	tʰuŋ1	tung1	tong1	赣			5113		
 嗸	ŋau5	ngau4	ao2	赣			5974		
 嗺	tsui3	zui3	zui1	赣			5839		
-嗻	tsa5	za4	zhe1	赣			5219		
+嗻	tse3	ze3	zhe1	赣	哄/骗	hong3/pian4	145679		
 嗼	met7	met6	mo4	赣			4336		
 嗼	mɔʔ7	mok6	mo4	赣			5677		
 嗿	tʰan3	tan3	tan3	赣			5669		
@@ -11663,7 +11660,7 @@
 撸	lu5	lu4	lu1	赣			4612		
 撽	tɕʰieu3	qieu3	qiao4	赣			4440		
 擀	kon3	gon3	gan3	赣			4089		
-擆	tsɔʔ7	zok6	zhuo2	赣			4110		
+擆	tɔʔ7	dok6	zhuo2	赣	指敲	zhi3 qiao1	123082		
 擌	set7	set6	se4	赣			4264		
 擖	kʰat7	kat6	ka1	赣			5087		
 擗	pʰit7	pit6	pi3	赣			4438		
