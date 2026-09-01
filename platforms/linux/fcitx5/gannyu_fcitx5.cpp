@@ -101,7 +101,7 @@ std::string chineseFullwidthSymbol(int sym) {
 
 // Parse the retrieve() JSON array preserving order. Each candidate becomes a
 // commit text plus a small-font comment: the annotation field when present,
-// or a [官] fallback tag for Mandarin-only words without an annotation.
+// or a [义] fallback tag for Mandarin-only words without an annotation.
 static std::string extractStringField(const std::string &scope, const std::string &marker) {
     std::string result;
     size_t pos = scope.find(marker);
@@ -148,7 +148,7 @@ std::vector<RankedItem> parseRankedItems(const std::string &json) {
                 comment = scope.substr(annotationStart, annotationEnd - annotationStart);
             }
         } else if (scope.find("\"mandarin_only\":true") != std::string::npos) {
-            comment = "[官]";
+            comment = "[义]";
         }
         int consumed = 0;
         const std::string consumedMarker = "\"consumed_bytes\":";

@@ -135,7 +135,7 @@ fn mandarin_word_suffix(headword: &str, related_entries: &[&DictionaryEntry]) ->
     if words.is_empty() {
         None
     } else {
-        Some(format!("[官]{}", words.join("/")))
+        Some(format!("[义]{}", words.join("/")))
     }
 }
 
@@ -220,18 +220,18 @@ fn gan_annotation_impl(
     if parts.is_empty() {
         None
     } else {
-        Some(format!("[赣]{}", parts.join("/")))
+        Some(format!("[习用]{}", parts.join("/")))
     }
 }
 
-/// Build a `[官话词]` annotation: the Mandarin-word tag followed by the entry's
+/// Build a `[不习用]` annotation: the Mandarin-word tag followed by the entry's
 /// own Gan reading (if any) and then the native Gan equivalent(s) (if any).
 fn guan_hua_ci_annotation(
     own_reading: Option<String>,
     gan_reverse: Option<String>,
 ) -> Option<String> {
     let parts: Vec<&str> = [
-        Some("[官话词]"),
+        Some("[不习用]"),
         own_reading.as_deref(),
         gan_reverse.as_deref(),
     ]
@@ -295,7 +295,7 @@ fn annotation_for_entry(
     append_associated_suffix(dictionary, &entry.headword, annotation)
 }
 
-/// Generate a `[官话词]` candidate for the Mandarin-equivalent of a Gan entry.
+/// Generate a `[不习用]` candidate for the Mandarin-equivalent of a Gan entry.
 ///
 /// Returns `None` if the entry has no `mandarin_word` distinct from its own headword.
 fn mandarin_word_candidates_for_gan_entry(

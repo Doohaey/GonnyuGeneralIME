@@ -27,7 +27,7 @@ def test_builds_rime_dictionary_annotations_and_relations(tmp_path: Path) -> Non
     assert counts["fuzzy_spellings"] > 0
     assert "䁐牛\tGyang Gniu\t156320" in dictionary
     assert "䁐牛\tying niu\t156320" in dictionary
-    assert '["䁐牛"] = "yang4 niu4 [官]放牛"' in data
+    assert '["䁐牛"] = "yang4 niu4 [义]放牛"' in data
     assert '  ["我"] = "ngo3",' in data
     assert '  ["们"] = "men4",' in data
     assert '  ["嗰"] = "go0",' in data

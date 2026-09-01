@@ -581,7 +581,7 @@ fn print_ranked(item: &RankedCandidate) {
     } else if let Some(reading) = &item.reading {
         format!("{} ({})", item.text, reading)
     } else if item.mandarin_only {
-        format!("{}[官]", item.text)
+        format!("{}[义]", item.text)
     } else {
         item.text.clone()
     };

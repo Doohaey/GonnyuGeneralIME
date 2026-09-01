@@ -348,7 +348,7 @@ def build_metadata(entries: list[Entry]) -> tuple[dict[str, str], dict[str, list
         is_mandarin = any(entry.category == "官" for entry in word_entries) or word in mandarin_to_gan
         parts: list[str] = []
         if is_mandarin:
-            parts.append("[官话词]")
+            parts.append("[不习用]")
             if own:
                 parts.append(own)
             reverse = []
@@ -356,13 +356,13 @@ def build_metadata(entries: list[Entry]) -> tuple[dict[str, str], dict[str, list
                 reading = aggregate(gan)
                 reverse.append(f"{gan}（{reading}）" if reading else gan)
             if reverse:
-                parts.append("[赣]" + "/".join(reverse))
+                parts.append("[习用]" + "/".join(reverse))
         else:
             if own:
                 parts.append(own)
             mandarins = list(dict.fromkeys(gan_to_mandarin.get(word, [])))
             if mandarins:
-                parts.append("[官]" + "/".join(mandarins))
+                parts.append("[义]" + "/".join(mandarins))
         linked = sorted(associates.get(word, set()))
         if linked:
             parts.append("[联]" + "/".join(linked))

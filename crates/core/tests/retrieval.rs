@@ -117,8 +117,8 @@ fn gan_pinyin_annotation_carries_tone_class() {
     let tones = tone_values();
     let result = retrieve(&dictionary, &fuzzy, &tones, "qu");
     let qu = result.iter().find(|item| item.text == "渠").unwrap();
-    // IPA tone value 21 maps to tone class 5. 渠 has mandarin_word=他 so annotation includes [官]他.
-    assert_eq!(qu.annotation.as_deref(), Some("qu5 [官]他"));
+    // IPA tone value 21 maps to tone class 5. 渠 has mandarin_word=他 so annotation includes [义]他.
+    assert_eq!(qu.annotation.as_deref(), Some("qu5 [义]他"));
     assert!(!qu.mandarin_only);
 }
 
@@ -128,11 +128,11 @@ fn mandarin_only_entry_is_tagged() {
     let fuzzy = sample_fuzzy();
     let tones = tone_values();
     // 哪 is a Mandarin-only entry with no native Gan equivalent; it gets the
-    // [官话词] tag with no further reading or reverse annotation.
+    // [不习用] tag with no further reading or reverse annotation.
     let result = retrieve(&dictionary, &fuzzy, &tones, "na3");
     let mandarin = result.iter().find(|item| item.text == "哪").unwrap();
     assert!(mandarin.mandarin_only);
-    assert_eq!(mandarin.annotation.as_deref(), Some("[官话词]"));
+    assert_eq!(mandarin.annotation.as_deref(), Some("[不习用]"));
 }
 
 #[test]
@@ -149,7 +149,7 @@ fn mandarin_word_is_inserted_behind_gan_word() {
     let mandarin = &result[mandarin_index];
     assert_eq!(
         mandarin.annotation.as_deref(),
-        Some("[官话词] [赣]渠（qu5）/佢（qu5）")
+        Some("[不习用] [习用]渠（qu5）/佢（qu5）")
     );
 }
 
@@ -171,7 +171,7 @@ fn annotation_shows_bidirectional_associated_words() {
     let qingcai = result.iter().find(|item| item.text == "青菜").unwrap();
     assert_eq!(
         qingcai.annotation.as_deref(),
-        Some("qiang cai [官]蔬菜, [联]小菜/白菜/菜蔬")
+        Some("qiang cai [义]蔬菜, [联]小菜/白菜/菜蔬")
     );
 
     let reverse = retrieve(&dictionary, &fuzzy, &tones, "sieu cai");
@@ -192,7 +192,7 @@ fn multi_mandarin_counterparts_expand_annotations_and_candidates() {
 
     let gan = retrieve(&dictionary, &fuzzy, &tones, "qiangcai");
     let qingcai = gan.iter().find(|item| item.text == "青菜").unwrap();
-    assert_eq!(qingcai.annotation.as_deref(), Some("qiang cai [官]蔬菜/菜"));
+    assert_eq!(qingcai.annotation.as_deref(), Some("qiang cai [义]蔬菜/菜"));
     assert!(gan.iter().any(|item| item.text == "蔬菜"));
     assert!(gan.iter().any(|item| item.text == "菜"));
 
@@ -200,7 +200,7 @@ fn multi_mandarin_counterparts_expand_annotations_and_candidates() {
     let qingcai_from_cai = reverse.iter().find(|item| item.text == "青菜").unwrap();
     assert_eq!(
         qingcai_from_cai.annotation.as_deref(),
-        Some("qiang cai [官]蔬菜/菜")
+        Some("qiang cai [义]蔬菜/菜")
     );
 }
 
@@ -997,6 +997,6 @@ fn retrieval_candidate_order_and_json_contract_stay_stable() {
     let result = retrieve(&sample_dictionary(), &sample_fuzzy(), &tone_values(), "qu");
     assert_eq!(
         serde_json::to_string(&result).unwrap(),
-        r#"[{"text":"渠","annotation":"qu5 [官]他","ipa":"tɕʰy21","layer":"gannyu-exact","mandarin_only":false,"weight":5.0225,"reading":"qu","mandarin_reading":"qu2"},{"text":"他","annotation":"[官话词] [赣]渠（qu5）/佢（qu5）","ipa":null,"layer":"gannyu-exact","mandarin_only":false,"weight":5.0},{"text":"去","annotation":"qu1","ipa":"tɕʰy42","layer":"gannyu-exact","mandarin_only":false,"weight":5.0135,"reading":"qu","mandarin_reading":"qu4"},{"text":"佢","annotation":"qu5 [官]他","ipa":"tɕʰy21","layer":"gannyu-exact","mandarin_only":false,"weight":5.00045,"reading":"qu","mandarin_reading":"qu2"}]"#
+        r#"[{"text":"渠","annotation":"qu5 [义]他","ipa":"tɕʰy21","layer":"gannyu-exact","mandarin_only":false,"weight":5.0225,"reading":"qu","mandarin_reading":"qu2"},{"text":"他","annotation":"[不习用] [习用]渠（qu5）/佢（qu5）","ipa":null,"layer":"gannyu-exact","mandarin_only":false,"weight":5.0},{"text":"去","annotation":"qu1","ipa":"tɕʰy42","layer":"gannyu-exact","mandarin_only":false,"weight":5.0135,"reading":"qu","mandarin_reading":"qu4"},{"text":"佢","annotation":"qu5 [义]他","ipa":"tɕʰy21","layer":"gannyu-exact","mandarin_only":false,"weight":5.00045,"reading":"qu","mandarin_reading":"qu2"}]"#
     );
 }
