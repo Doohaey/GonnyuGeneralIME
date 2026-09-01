@@ -13,7 +13,7 @@ Currently supports: **Lancong(Nanchang) and Fenni(Fenyi)**. More localities are 
 
 Rime schema repositories for Lancong(Nanchang) and Fenni(Fenyi). Other installation options are available in the [Installation](#installation) section below.
 
-## Test version 0.2.4-pre.3
+## Test version 0.2.4-pre.4
 
 - chore: Renamed Gan–Mandarin correspondence subheadings to mark customary usage.
 - feat(dict): Added reference material for the Wucheng dictionary.
@@ -21,31 +21,38 @@ Rime schema repositories for Lancong(Nanchang) and Fenni(Fenyi). Other installat
 
 ## Contents
 
-- [Overview](#overview)
-  - [What it provides](#what-it-provides)
-- [See Gan in action](#see-gan-in-action)
-- [Installation](#installation)
-  - [macOS](#macos)
-  - [iOS](#ios)
-  - [Android](#android)
-  - [Windows](#windows)
-  - [Linux: Fcitx5](#linux-fcitx5)
-  - [Linux: IBus](#linux-ibus)
-  - [Rime](#rime)
-- [The Gon-pin Romanisation](#the-gon-pin-romanisation)
-  - [Initials](#initials)
-  - [Finals](#finals)
-    - [Open finals](#open-finals)
-    - [Front-vowel finals](#front-vowel-finals)
-    - [Rounded finals](#rounded-finals)
-    - [Rounded front-vowel finals](#rounded-front-vowel-finals)
-    - [Syllabic nasals](#syllabic-nasals)
-    - [Other segments](#other-segments)
-  - [Lancong(Nanchang) tones](#lancongnanchang-tones)
-- [Sources](#sources)
-  - [Acknowledgements](#acknowledgements)
-- [Why Gon(Gan) Chinese Matters](#why-gongan-chinese-matters)
-- [Contributors and contact](#contributors-and-contact)
+- [GonnyuGeneralIME — A General Gon(Gan) Chinese Input Method](#gonnyugeneralime--a-general-gongan-chinese-input-method)
+  - [Test version 0.2.4-pre.4](#test-version-024-pre4)
+  - [Contents](#contents)
+  - [Overview](#overview)
+    - [What it provides](#what-it-provides)
+  - [See Gan in action](#see-gan-in-action)
+    - [Gan and Mandarin, side by side](#gan-and-mandarin-side-by-side)
+    - [Mandarin Pinyin, straight to Gan](#mandarin-pinyin-straight-to-gan)
+    - [Literary or colloquial — clear at a glance](#literary-or-colloquial--clear-at-a-glance)
+    - [Every Gan reading welcome, old and new](#every-gan-reading-welcome-old-and-new)
+  - [Installation](#installation)
+    - [macOS](#macos)
+    - [iOS](#ios)
+    - [Android](#android)
+    - [Windows](#windows)
+    - [Linux: Fcitx5](#linux-fcitx5)
+    - [Linux: IBus](#linux-ibus)
+    - [Rime](#rime)
+  - [The Gon-pin Romanisation](#the-gon-pin-romanisation)
+    - [Initials](#initials)
+    - [Finals](#finals)
+      - [Open finals](#open-finals)
+      - [Front-vowel finals](#front-vowel-finals)
+      - [Rounded finals](#rounded-finals)
+      - [Rounded front-vowel finals](#rounded-front-vowel-finals)
+      - [Syllabic nasals](#syllabic-nasals)
+      - [Other segments](#other-segments)
+    - [Lancong(Nanchang) tones](#lancongnanchang-tones)
+  - [Sources](#sources)
+    - [Acknowledgements](#acknowledgements)
+  - [Why Gon(Gan) Chinese Matters](#why-gongan-chinese-matters)
+  - [Contributors and contact](#contributors-and-contact)
 
 ## Overview
 
