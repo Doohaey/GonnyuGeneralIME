@@ -6,6 +6,12 @@
     <string name="resource_ready">语言资源就绪，可以开始使用。</string>
     <string name="resource_ready_region">语言资源就绪，当前地区：%1$s。</string>
     <string name="resource_failed_region">%1$s 地区资源预加载失败，请重试。</string>
+    <string name="resource_failed_detail_title">资源预加载失败</string>
+    <string name="resource_failed_detail">地区：%1$s\n\n错误详情：\n%2$s</string>
+    <string name="resource_failed_detail_missing">未取得原生错误详情。</string>
+    <string name="copy_action">复制</string>
+    <string name="copy_success">错误详情已复制。</string>
+    <string name="close_action">关闭</string>
     <string name="resource_failed">语言资源加载失败，请尝试重新安装。</string>
     <string name="region_load_failed">地区列表加载失败，请重新安装后重试。</string>
     <string name="region_label">地区方案</string>

@@ -2,6 +2,8 @@ package io.gannyu.input
 
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
@@ -13,6 +15,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.Spinner
 import android.widget.TextView
+import android.widget.Toast
 
 class SetupActivity : Activity() {
     private var regions: List<GannyuInputMethodService.RegionOption> = emptyList()
@@ -86,16 +89,36 @@ class SetupActivity : Activity() {
             return
         }
         setLoading(true, getString(R.string.region_loading, region.nameZh))
-        GannyuInputMethodService.preloadSelectedRegionAsync(this, region.id) { success ->
+        GannyuInputMethodService.preloadSelectedRegionAsync(this, region.id) { success, detail ->
             runOnUiThread {
                 setLoading(false, "")
                 if (success) {
                     updateReadyState(region.nameZh)
                 } else {
                     statusView.text = getString(R.string.resource_failed_region, region.nameZh)
+                    showPreloadFailure(region, detail)
                 }
             }
         }
+    }
+
+    private fun showPreloadFailure(region: GannyuInputMethodService.RegionOption, detail: String?) {
+        val report = getString(
+            R.string.resource_failed_detail,
+            region.displayLabel,
+            detail?.ifBlank { null } ?: getString(R.string.resource_failed_detail_missing),
+        )
+        AlertDialog.Builder(this)
+            .setTitle(R.string.resource_failed_detail_title)
+            .setMessage(report)
+            .setNegativeButton(R.string.close_action, null)
+            .setPositiveButton(R.string.copy_action) { _, _ ->
+                getSystemService(ClipboardManager::class.java)?.setPrimaryClip(
+                    ClipData.newPlainText("Gannyu preload error", report),
+                )
+                Toast.makeText(this, R.string.copy_success, Toast.LENGTH_SHORT).show()
+            }
+            .show()
     }
 
     private fun showClearChoices() {

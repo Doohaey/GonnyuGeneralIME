@@ -13,6 +13,8 @@ int gannyu_pipeline_create(const char *manifest_path,
                          const char *region_id,
                          GannyuPipelineHandle **out_handle);
 
+int gannyu_last_error(char **out_error);
+
 int gannyu_pipeline_compose(GannyuPipelineHandle *handle,
                           const char *input,
                           char **out_json);

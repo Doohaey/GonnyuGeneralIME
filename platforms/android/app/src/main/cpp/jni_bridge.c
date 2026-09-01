@@ -49,6 +49,18 @@ Java_io_gannyu_input_GannyuInputMethodService_nativeCreate(
 }
 
 JNIEXPORT jstring JNICALL
+Java_io_gannyu_input_GannyuInputMethodService_nativeLastError(
+    JNIEnv* env,
+    jobject thiz
+) {
+    (void)thiz;
+    char* out = NULL;
+    int status = gannyu_last_error(&out);
+    if (status != 0 || out == NULL) return NULL;
+    return copy_out_string(env, out);
+}
+
+JNIEXPORT jstring JNICALL
 Java_io_gannyu_input_GannyuInputMethodService_nativeRegionList(
     JNIEnv* env,
     jobject thiz,

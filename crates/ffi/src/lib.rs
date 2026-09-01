@@ -2,6 +2,7 @@ use chacha20poly1305::aead::{Aead, KeyInit};
 use chacha20poly1305::{XChaCha20Poly1305, XNonce};
 use gannyu_input_core::{default_region_entry, load_region_from_manifest, InputPipeline};
 use parking_lot::Mutex;
+use std::cell::RefCell;
 use std::ffi::{CStr, CString};
 use std::fs;
 use std::io;
@@ -73,6 +74,45 @@ const STATUS_OK: c_int = 0;
 const STATUS_INVALID_ARGUMENT: c_int = 1;
 const STATUS_LOAD_FAILURE: c_int = 2;
 const STATUS_SERIALIZE_FAILURE: c_int = 3;
+
+thread_local! {
+    static LAST_ERROR: RefCell<Option<String>> = const { RefCell::new(None) };
+}
+
+fn clear_last_error() {
+    LAST_ERROR.with(|slot| *slot.borrow_mut() = None);
+}
+
+fn set_last_error(message: impl Into<String>) {
+    LAST_ERROR.with(|slot| *slot.borrow_mut() = Some(message.into()));
+}
+
+fn take_last_error() -> Option<String> {
+    LAST_ERROR.with(|slot| slot.borrow_mut().take())
+}
+
+fn load_failure(stage: &str, error: impl std::fmt::Display) -> c_int {
+    set_last_error(format!("{stage}: {error}"));
+    STATUS_LOAD_FAILURE
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn gannyu_last_error(out_error: *mut *mut c_char) -> c_int {
+    if out_error.is_null() {
+        return STATUS_INVALID_ARGUMENT;
+    }
+    *out_error = ptr::null_mut();
+    let Some(message) = take_last_error() else {
+        return STATUS_OK;
+    };
+    match CString::new(message) {
+        Ok(value) => {
+            *out_error = value.into_raw();
+            STATUS_OK
+        }
+        Err(_) => STATUS_SERIALIZE_FAILURE,
+    }
+}
 
 unsafe fn cstr_to_str<'a>(value: *const c_char) -> Option<&'a str> {
     if value.is_null() {
@@ -224,7 +264,17 @@ pub unsafe extern "C" fn gannyu_pipeline_create(
     region_id: *const c_char,
     out_handle: *mut *mut GannyuPipelineHandle,
 ) -> c_int {
+    clear_last_error();
+    pipeline_create(manifest_path, region_id, out_handle)
+}
+
+unsafe fn pipeline_create(
+    manifest_path: *const c_char,
+    region_id: *const c_char,
+    out_handle: *mut *mut GannyuPipelineHandle,
+) -> c_int {
     if out_handle.is_null() {
+        set_last_error("invalid output handle");
         return STATUS_INVALID_ARGUMENT;
     }
     *out_handle = ptr::null_mut();
@@ -232,12 +282,14 @@ pub unsafe extern "C" fn gannyu_pipeline_create(
     // Anti-debug / anti-Frida: refuse to deploy resources when a debugger or
     // tracer is attached. This blocks the easiest dynamic-analysis shortcuts.
     if antidebug::debugger_present() {
+        set_last_error("debugger or tracer detected");
         return STATUS_LOAD_FAILURE;
     }
 
     // Whole-set integrity check: refuse to load if any embedded blob was
     // swapped or modified.
     if !embedded_resource_paths().is_empty() && !verify_resource_integrity() {
+        set_last_error("embedded resource integrity check failed");
         return STATUS_LOAD_FAILURE;
     }
 
@@ -256,31 +308,34 @@ pub unsafe extern "C" fn gannyu_pipeline_create(
         (_, true) => {
             let deployed = match deploy_embedded_resources(requested_region) {
                 Ok(t) => t,
-                Err(_) => return STATUS_LOAD_FAILURE,
+                Err(error) => return load_failure("embedded resource deployment failed", error),
             };
             let m = deployed.temp.path().join(obfstr!("manifest.toml"));
             (Some(deployed), m)
         }
         (Some(p), false) => (None, p.clone()),
-        (None, false) => return STATUS_INVALID_ARGUMENT,
+        (None, false) => {
+            set_last_error("no embedded resources or manifest path available");
+            return STATUS_INVALID_ARGUMENT;
+        },
     };
 
     let resource = match requested_region {
         Some(value) => match load_region_from_manifest(&manifest, value) {
             Ok(resource) => resource,
-            Err(_) => return STATUS_LOAD_FAILURE,
+            Err(error) => return load_failure("region manifest load failed", error),
         },
         None => match default_region_entry(&manifest) {
             Ok(entry) => match load_region_from_manifest(&manifest, &entry.id) {
                 Ok(resource) => resource,
-                Err(_) => return STATUS_LOAD_FAILURE,
+                Err(error) => return load_failure("default region manifest load failed", error),
             },
-            Err(_) => return STATUS_LOAD_FAILURE,
+            Err(error) => return load_failure("default region selection failed", error),
         },
     };
     let pipeline = match InputPipeline::load(&resource) {
         Ok(value) => value,
-        Err(_) => return STATUS_LOAD_FAILURE,
+        Err(error) => return load_failure("dictionary pipeline load failed", error),
     };
     // The pipeline has now loaded all dictionary/slang/hints data into memory.
     if let Some(d) = &deployed {
@@ -675,5 +730,12 @@ mod tests {
             &RESOURCE_INTEGRITY_TAG[..],
             "tampered blob must produce a different HMAC"
         );
+    }
+    #[test]
+    fn last_error_is_consumed_after_reading() {
+        clear_last_error();
+        set_last_error("resource deployment failed: denied");
+        assert_eq!(take_last_error().as_deref(), Some("resource deployment failed: denied"));
+        assert_eq!(take_last_error(), None);
     }
 }

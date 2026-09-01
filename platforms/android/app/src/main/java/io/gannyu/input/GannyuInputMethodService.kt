@@ -43,6 +43,7 @@ class GannyuInputMethodService : InputMethodService() {
     private var symbolPage = false
 
     external fun nativeCreate(manifestPath: String?, regionId: String?, dataDir: String): Long
+    external fun nativeLastError(): String?
     external fun nativeRegionList(manifestPath: String?): String?
     external fun nativeRetrieve(handle: Long, input: String): String?
     external fun nativeFormatPreedit(handle: Long, input: String, consumedBytes: Int): String?
@@ -74,6 +75,10 @@ class GannyuInputMethodService : InputMethodService() {
         fun nativeRegionListStatic(manifest: String?): String? {
             return GannyuInputMethodService().nativeRegionList(manifest)
         }
+
+
+        @JvmStatic
+        fun nativeLastErrorStatic(): String? = GannyuInputMethodService().nativeLastError()
 
         @JvmStatic
         fun selectedRegionId(context: Context): String? =
@@ -126,13 +131,14 @@ class GannyuInputMethodService : InputMethodService() {
         fun preloadSelectedRegionAsync(
             context: Context,
             regionId: String? = selectedRegionId(context),
-            onComplete: ((Boolean) -> Unit)? = null,
+            onComplete: ((Boolean, String?) -> Unit)? = null,
         ) {
             val desiredRegion = normalizeRegionId(regionId)
             Thread {
                 try {
                     val handle = nativeCreateStatic(null, desiredRegion, context.filesDir.absolutePath)
-                    Log.i(TAG, "preload: region=${desiredRegion ?: "(default)"} handle=$handle")
+                    val errorDetail = if (handle == 0L) nativeLastErrorStatic() else null
+                    Log.i(TAG, "preload handle=" + handle)
                     if (handle != 0L) {
                         synchronized(preloadLock) {
                             if (preloadedHandle != 0L) {
@@ -142,13 +148,13 @@ class GannyuInputMethodService : InputMethodService() {
                             preloadedRegionId = desiredRegion
                             preloadLock.notifyAll()
                         }
-                        onComplete?.invoke(true)
+                        onComplete?.invoke(true, null)
                         return@Thread
                     }
-                    onComplete?.invoke(false)
+                    onComplete?.invoke(false, errorDetail.orEmpty().ifBlank { "native pipeline creation returned no detail" })
                 } catch (e: Exception) {
                     Log.e(TAG, "preload failed", e)
-                    onComplete?.invoke(false)
+                    onComplete?.invoke(false, e.stackTraceToString())
                 }
             }.start()
         }
