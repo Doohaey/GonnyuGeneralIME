@@ -13,10 +13,10 @@ Currently supports: **Lancong(Nanchang) and Fenni(Fenyi)**. More localities are 
 
 Rime schema repositories for Lancong(Nanchang) and Fenni(Fenyi). Other installation options are available in the [Installation](#installation) section below.
 
-## Test version 0.2.3
+## Test version 0.2.4-pre.1
 
-- dict: Updated and corrected a batch of dictionary entries.
-- feat: Added a tutorial.
+- chore: Renamed Gan–Mandarin correspondence subheadings to mark customary usage.
+- feat(dict): Added reference material for the Wucheng dictionary.
 
 ## Contents
 
