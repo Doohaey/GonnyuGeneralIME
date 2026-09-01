@@ -153,7 +153,7 @@ For macOS Squirrel, copy the archive contents into `~/Library/Rime/`, redeploy, 
 
 ## The Gon-pin Romanisation
 
-**Data note:** The project actively maintains the visible `gon-pin` implementation. The IPA data behind the dictionary resources comes from varied and uneven sources, and is not yet guaranteed as a scholarly reference dataset.
+**Data note:** We focus on maintaining the accuracy of the romanisation in the dictionary files, but cannot yet guarantee the consistency or accuracy of the IPA data, because it is only imported as an aid during dictionary construction and is unrelated to user-visible input.
 
 The spelling system is intended to represent Gon(Gan) pronunciation while remaining as close as practical to the conventions of Hanyu Pinyin. To make typing easier and to accommodate mergers in newer varieties, some spellings deliberately accept more than one phoneme in a strict phonological sense.
 
