@@ -75,6 +75,7 @@ class GannyuInputMethodService : InputMethodService() {
         @Volatile private var staticHandle: Long = 0
         @Volatile private var staticRegionId: String? = null
         @Volatile private var preloadedRegionId: String? = null
+        private val nativeBridge = NativePipelineBridge()
 
         @JvmStatic
         fun nativeCreateStatic(manifest: String?, region: String?, dataDir: String): Long {
