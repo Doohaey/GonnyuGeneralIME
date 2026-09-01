@@ -36,6 +36,7 @@ Java_io_gannyu_input_GannyuInputMethodService_nativeCreate(
          data_dir_c ? data_dir_c : "(null)");
     if (data_dir_c && data_dir_c[0] != '\0') {
         setenv("GANNYU_DATA_HOME", data_dir_c, 1);
+        setenv("TMPDIR", data_dir_c, 1);
     }
     GannyuPipelineHandle* handle = NULL;
     LOGI("nativeCreate: calling gannyu_pipeline_create...");
