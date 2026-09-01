@@ -4,6 +4,7 @@ from platforms.rime.build import (
     Entry,
     annotated_reading,
     build,
+    build_metadata,
     build_new_old,
     build_paired_readings,
     entry_codes,
@@ -47,6 +48,14 @@ def test_builds_rime_dictionary_annotations_and_relations(tmp_path: Path) -> Non
     assert "- xform/^F//" in schema
     assert "@FUZZY_ALGEBRA@" not in schema
     assert (tmp_path / "default.custom.yaml").is_file()
+
+
+def test_rime_mandarin_only_annotation_includes_dialect_reading() -> None:
+    annotations, _, _ = build_metadata([
+        Entry("混混", "", "fen5 fen5", "hun4 hun4", "官", "", 100, "", ""),
+    ])
+
+    assert annotations["混混"] == "[不习用] fen5 fen5"
 
 
 def test_rime_heteronym_word_annotation_marks_only_second_reading() -> None:

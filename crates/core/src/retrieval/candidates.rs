@@ -224,8 +224,27 @@ fn gan_annotation_impl(
     }
 }
 
-/// Build a `[不习用]` annotation: the Mandarin-word tag followed by the entry's
-/// own Gan reading (if any) and then the native Gan equivalent(s) (if any).
+/// Choose the usual Gan reading first, then fall back to a Mandarin-only entry's
+/// own dialect reading so every `[不习用]` candidate has a pronunciation.
+fn mandarin_candidate_reading(
+    entries: &[&DictionaryEntry],
+    tone_values: &HashMap<String, u8>,
+    new_old_map: &HashMap<char, (String, String)>,
+    heteronym_chars: &HashSet<char>,
+    paired_readings: &HashMap<char, Vec<PairedReading>>,
+) -> Option<String> {
+    aggregate_annotation(entries, tone_values, new_old_map, heteronym_chars, paired_readings).or_else(|| {
+        entries
+            .iter()
+            .find(|entry| entry.is_mandarin_only())
+            .and_then(|entry| {
+                annotated_gan_pinyin(entry, tone_values, new_old_map, heteronym_chars, paired_readings)
+            })
+    })
+}
+
+/// Build a `[不习用]` annotation: the usage tag followed by the entry's own
+/// reading (if any) and then the native Gan equivalent(s) (if any).
 fn guan_hua_ci_annotation(
     own_reading: Option<String>,
     gan_reverse: Option<String>,
@@ -250,17 +269,13 @@ fn annotation_for_entry(
     let related_entries = dictionary.by_headword(&entry.headword);
     let annotation =
         if mandarin_only || !dictionary.by_mandarin_word_text(&entry.headword).is_empty() {
-            let own_reading = if mandarin_only {
-                None
-            } else {
-                aggregate_annotation(
-                    &related_entries,
-                    tone_values,
-                    &dictionary.new_old_map,
-                    &dictionary.heteronym_chars,
-                    &dictionary.paired_readings,
-                )
-            };
+            let own_reading = mandarin_candidate_reading(
+                &related_entries,
+                tone_values,
+                &dictionary.new_old_map,
+                &dictionary.heteronym_chars,
+                &dictionary.paired_readings,
+            );
             let gan_reverse =
                 gan_annotation_for_mandarin_entry(dictionary, &entry.headword, tone_values);
             guan_hua_ci_annotation(own_reading, gan_reverse)
@@ -306,7 +321,7 @@ fn mandarin_word_candidates_for_gan_entry(
     let mut candidates = Vec::new();
     for mw in distinct_mandarin_words(&gan_entry.headword, &gan_entry.mandarin_word) {
         let mw_related = dictionary.by_headword(&mw);
-        let own_reading = aggregate_annotation(
+        let own_reading = mandarin_candidate_reading(
             &mw_related,
             tone_values,
             &dictionary.new_old_map,

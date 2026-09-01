@@ -132,7 +132,7 @@ fn mandarin_only_entry_is_tagged() {
     let result = retrieve(&dictionary, &fuzzy, &tones, "na3");
     let mandarin = result.iter().find(|item| item.text == "哪").unwrap();
     assert!(mandarin.mandarin_only);
-    assert_eq!(mandarin.annotation.as_deref(), Some("[不习用]"));
+    assert_eq!(mandarin.annotation.as_deref(), Some("[不习用] na"));
 }
 
 #[test]

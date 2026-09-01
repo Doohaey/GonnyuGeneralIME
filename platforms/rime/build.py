@@ -320,10 +320,10 @@ def build_metadata(entries: list[Entry]) -> tuple[dict[str, str], dict[str, list
     new_old, heteronyms = build_new_old(entries)
     paired_readings = build_paired_readings(entries)
 
-    def aggregate(word: str) -> str:
+    def aggregate(word: str, include_mandarin: bool = False) -> str:
         displays: dict[str, int] = {}
         for entry in by_word.get(word, []):
-            if entry.category == "官":
+            if entry.category == "官" and not include_mandarin:
                 continue
             display = annotated_reading(entry, new_old, heteronyms, paired_readings)
             if display:
@@ -344,8 +344,10 @@ def build_metadata(entries: list[Entry]) -> tuple[dict[str, str], dict[str, list
     all_words = set(by_word) | set(mandarin_to_gan)
     for word in all_words:
         word_entries = by_word.get(word, [])
-        own = aggregate(word)
         is_mandarin = any(entry.category == "官" for entry in word_entries) or word in mandarin_to_gan
+        own = aggregate(word)
+        if is_mandarin and not own:
+            own = aggregate(word, include_mandarin=True)
         parts: list[str] = []
         if is_mandarin:
             parts.append("[不习用]")
