@@ -177,3 +177,28 @@ Java_io_gannyu_input_GannyuInputMethodService_nativeDestroy(JNIEnv* env, jobject
     (void)thiz;
     gannyu_pipeline_destroy((void*)(intptr_t)handle);
 }
+
+JNIEXPORT jlong JNICALL
+Java_io_gannyu_input_NativePipelineBridge_nativeCreate(JNIEnv* env, jobject thiz, jstring manifest, jstring region, jstring data_dir) {
+    return Java_io_gannyu_input_GannyuInputMethodService_nativeCreate(env, thiz, manifest, region, data_dir);
+}
+
+JNIEXPORT jstring JNICALL
+Java_io_gannyu_input_NativePipelineBridge_nativeLastError(JNIEnv* env, jobject thiz) {
+    return Java_io_gannyu_input_GannyuInputMethodService_nativeLastError(env, thiz);
+}
+
+JNIEXPORT jstring JNICALL
+Java_io_gannyu_input_NativePipelineBridge_nativeRegionList(JNIEnv* env, jobject thiz, jstring manifest) {
+    return Java_io_gannyu_input_GannyuInputMethodService_nativeRegionList(env, thiz, manifest);
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_gannyu_input_NativePipelineBridge_nativeUserDataClear(JNIEnv* env, jobject thiz, jlong handle, jint scope) {
+    return Java_io_gannyu_input_GannyuInputMethodService_nativeUserDataClear(env, thiz, handle, scope);
+}
+
+JNIEXPORT void JNICALL
+Java_io_gannyu_input_NativePipelineBridge_nativeDestroy(JNIEnv* env, jobject thiz, jlong handle) {
+    Java_io_gannyu_input_GannyuInputMethodService_nativeDestroy(env, thiz, handle);
+}

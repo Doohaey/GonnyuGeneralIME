@@ -14,6 +14,16 @@ import android.widget.TextView
 import org.json.JSONArray
 import org.json.JSONObject
 
+private class NativePipelineBridge {
+    init { System.loadLibrary("gannyu_input_jni") }
+
+    external fun nativeCreate(manifestPath: String?, regionId: String?, dataDir: String): Long
+    external fun nativeLastError(): String?
+    external fun nativeRegionList(manifestPath: String?): String?
+    external fun nativeUserDataClear(handle: Long, scope: Int): Boolean
+    external fun nativeDestroy(handle: Long)
+}
+
 class GannyuInputMethodService : InputMethodService() {
     private data class RankedCandidate(
         val text: String,
@@ -68,17 +78,17 @@ class GannyuInputMethodService : InputMethodService() {
 
         @JvmStatic
         fun nativeCreateStatic(manifest: String?, region: String?, dataDir: String): Long {
-            return GannyuInputMethodService().nativeCreate(manifest, region, dataDir)
+            return nativeBridge.nativeCreate(manifest, region, dataDir)
         }
 
         @JvmStatic
         fun nativeRegionListStatic(manifest: String?): String? {
-            return GannyuInputMethodService().nativeRegionList(manifest)
+            return nativeBridge.nativeRegionList(manifest)
         }
 
 
         @JvmStatic
-        fun nativeLastErrorStatic(): String? = GannyuInputMethodService().nativeLastError()
+        fun nativeLastErrorStatic(): String? = nativeBridge.nativeLastError()
 
         @JvmStatic
         fun selectedRegionId(context: Context): String? =
@@ -106,13 +116,12 @@ class GannyuInputMethodService : InputMethodService() {
                     if (staticHandle != 0L) handles += staticHandle
                     if (preloadedHandle != 0L) handles += preloadedHandle
                     if (handles.isNotEmpty()) {
-                        val service = GannyuInputMethodService()
-                        handles.all { service.nativeUserDataClear(it, scope) }
+                        handles.all { nativeBridge.nativeUserDataClear(it, scope) }
                     } else {
                         val region = selectedRegionId(context)
                         val handle = nativeCreateStatic(null, region, context.filesDir.absolutePath)
                         if (handle == 0L) false else {
-                            val cleared = GannyuInputMethodService().nativeUserDataClear(handle, scope)
+                            val cleared = nativeBridge.nativeUserDataClear(handle, scope)
                             if (cleared) {
                                 preloadedHandle = handle
                                 preloadedRegionId = normalizeRegionId(region)
@@ -174,7 +183,7 @@ class GannyuInputMethodService : InputMethodService() {
 
         private fun destroyHandle(handle: Long) {
             if (handle != 0L) {
-                GannyuInputMethodService().nativeDestroy(handle)
+                nativeBridge.nativeDestroy(handle)
             }
         }
 
