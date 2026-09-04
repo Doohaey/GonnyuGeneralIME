@@ -595,7 +595,8 @@ private:
     std::vector<std::string> menuRegionIds_;
 };
 
-class GannyuTextService : public ITfTextInputProcessorEx, public ITfThreadMgrEventSink, public ITfKeyEventSink {
+class GannyuTextService : public ITfTextInputProcessorEx, public ITfThreadMgrEventSink,
+                          public ITfKeyEventSink, public ITfActiveLanguageProfileNotifySink {
 public:
     GannyuTextService() : refs_(1) {
         g_moduleRefs.fetch_add(1);
@@ -638,6 +639,8 @@ public:
             *ppv = static_cast<ITfThreadMgrEventSink *>(this);
         } else if (IsEqualIID(riid, IID_ITfKeyEventSink)) {
             *ppv = static_cast<ITfKeyEventSink *>(this);
+        } else if (IsEqualIID(riid, IID_ITfActiveLanguageProfileNotifySink)) {
+            *ppv = static_cast<ITfActiveLanguageProfileNotifySink *>(this);
         }
         if (!*ppv) {
             return E_NOINTERFACE;
@@ -672,6 +675,8 @@ public:
         ITfSource *source = nullptr;
         if (SUCCEEDED(threadMgr_->QueryInterface(IID_ITfSource, reinterpret_cast<void **>(&source))) && source) {
             source->AdviseSink(IID_ITfThreadMgrEventSink, static_cast<ITfThreadMgrEventSink *>(this), &thmgrCookie_);
+            source->AdviseSink(IID_ITfActiveLanguageProfileNotifySink,
+                               static_cast<ITfActiveLanguageProfileNotifySink *>(this), &profileCookie_);
             source->Release();
         }
 
@@ -717,7 +722,8 @@ public:
         if (threadMgr_) {
             ITfSource *source = nullptr;
             if (SUCCEEDED(threadMgr_->QueryInterface(IID_ITfSource, reinterpret_cast<void **>(&source))) && source) {
-                source->UnadviseSink(thmgrCookie_);
+                if (thmgrCookie_ != TF_INVALID_COOKIE) source->UnadviseSink(thmgrCookie_);
+                if (profileCookie_ != TF_INVALID_COOKIE) source->UnadviseSink(profileCookie_);
                 source->Release();
             }
             threadMgr_->Release();
@@ -726,6 +732,20 @@ public:
         SetActiveContext(nullptr);
         clientId_ = TF_CLIENTID_NULL;
         thmgrCookie_ = TF_INVALID_COOKIE;
+        profileCookie_ = TF_INVALID_COOKIE;
+        return S_OK;
+    }
+
+    STDMETHODIMP OnActivated(REFCLSID clsid, REFGUID guidProfile, BOOL activated) override {
+        if (!IsEqualCLSID(clsid, CLSID_GannyuTextService) ||
+            !IsEqualGUID(guidProfile, GannyuProfileGuid)) {
+            return S_OK;
+        }
+        if (activated) {
+            if (EnsureStatusBar()) UpdateStatusBar();
+        } else if (statusWindow_) {
+            ShowWindow(statusWindow_, SW_HIDE);
+        }
         return S_OK;
     }
 
@@ -1843,6 +1863,7 @@ private:
     ITfContext *activeContext_ = nullptr;
     TfClientId clientId_ = TF_CLIENTID_NULL;
     DWORD thmgrCookie_ = TF_INVALID_COOKIE;
+    DWORD profileCookie_ = TF_INVALID_COOKIE;
     GannyuPipelineHandle *pipeline_ = nullptr;
     GannyuRegionButton *langBarButton_ = nullptr;
     bool langBarItemAdded_ = false;

@@ -24,6 +24,21 @@ def test_windows_toolbar_stays_visible_without_candidates() -> None:
     assert "drawButton(englishMode_ ? L\"英\" : L\"中\", englishButtonRect_);" in source
 
 
+def test_windows_toolbar_tracks_active_input_profile() -> None:
+    source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
+    callback = source.split("STDMETHODIMP OnActivated(", 1)[1].split("STDMETHODIMP OnInitDocumentMgr", 1)[0]
+    focus_callback = source.split("STDMETHODIMP OnSetFocus(BOOL", 1)[1].split("STDMETHODIMP OnTestKeyDown", 1)[0]
+    assert "public ITfActiveLanguageProfileNotifySink" in source
+    assert "IID_ITfActiveLanguageProfileNotifySink" in source
+    assert "CLSID_GannyuTextService" in callback
+    assert "GannyuProfileGuid" in callback
+    assert "if (activated)" in callback
+    assert "UpdateStatusBar()" in callback
+    assert "ShowWindow(statusWindow_, SW_HIDE)" in callback
+    assert "profileCookie_" in source
+    assert "statusWindow_" not in focus_callback
+
+
 def test_windows_toolbar_clicks_use_drawn_button_rectangles() -> None:
     source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
     assert "auto drawButton" in source
