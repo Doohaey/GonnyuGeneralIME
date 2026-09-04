@@ -13,16 +13,16 @@ Currently supports: **Lancong(Nanchang) and Fenni(Fenyi)**. More localities are 
 
 Rime schema repositories for Lancong(Nanchang) and Fenni(Fenyi). Other installation options are available in the [Installation](#installation) section below.
 
-## Test version 0.2.4-pre.4
+## Test version 0.2.4-pre.5
 
-- chore: Renamed Gan–Mandarin correspondence subheadings to mark customary usage.
-- feat(dict): Added reference material for the Wucheng dictionary.
-- fix: Resolved Android dictionary loading.
+- feat(dict): Expanded the Lancong lexicon, reading relationships, and frequency data.
+- fix(windows): Hide the toolbar after switching input methods while keeping it visible whenever GonnyuGeneralIME is active.
+- docs: Refined the Chinese and English feature showcase and installation guidance.
 
 ## Contents
 
 - [GonnyuGeneralIME — A General Gon(Gan) Chinese Input Method](#gonnyugeneralime--a-general-gongan-chinese-input-method)
-  - [Test version 0.2.4-pre.4](#test-version-024-pre4)
+  - [Test version 0.2.4-pre.5](#test-version-024-pre5)
   - [Contents](#contents)
   - [Overview](#overview)
     - [What it provides](#what-it-provides)
