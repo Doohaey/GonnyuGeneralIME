@@ -27,6 +27,8 @@ Rime schema repositories for Lancong(Nanchang) and Fenni(Fenyi). Other installat
   - [Overview](#overview)
     - [What it provides](#what-it-provides)
   - [See Gan in action](#see-gan-in-action)
+    - [No learning needed, type by instinct](#no-learning-needed-type-by-instinct)
+    - [Broad vocabulary, local life in full, rare characters no longer a barrier](#broad-vocabulary-local-life-in-full-rare-characters-no-longer-a-barrier)
     - [Gan and Mandarin, side by side](#gan-and-mandarin-side-by-side)
     - [Mandarin Pinyin, straight to Gan](#mandarin-pinyin-straight-to-gan)
     - [Literary or colloquial — clear at a glance](#literary-or-colloquial--clear-at-a-glance)
@@ -78,6 +80,19 @@ The project currently maintains two regional dictionaries: urban Lancong(Nanchan
 ## See Gan in action
 
 <sub>The examples below use Nanchang Gan.</sub>
+
+### No learning needed, type by instinct
+
+Know Mandarin Pinyin and start typing right away. Enter a familiar Pinyin spelling, and the input method finds the corresponding Gan reading without requiring a separate input scheme.
+
+![No learning needed, type by instinct](images/selection/yue.png)
+
+### Broad vocabulary, local life in full, rare characters no longer a barrier
+
+Over 20,000 Chinese characters, including extensive coverage of Unicode Extension B with theoretical readings derived from rhyme dictionaries; over 100,000 words; abundant idiomatic local expressions; and distinctive pronunciations for place names. The dictionary goes far beyond a bare list of character readings.
+
+![Broad coverage of local expressions](images/selection/yongxyuot.png)
+![Distinctive pronunciation for the place name Youkou](images/selection/xiukieu.png)
 
 ### Gan and Mandarin, side by side
 
