@@ -6,7 +6,7 @@
 
 **一键安装/简单易用/日常可用的赣语输入法，会拼音就能使用，方言拼音与普通话兼容支持。不会说赣语也能用来玩！用赣语思维也可以轻松大段输出普通话文本（比如本文）！**
 
-**现已支持全平台快捷安装以及各平台Rime安装包。**
+**现已支持全平台快捷安装（apk, windows installer等等）以及各平台Rime安装包。**
 
 [![Rime 南昌话](https://img.shields.io/badge/Rime-%E5%8D%97%E6%98%8C%E8%AF%9D-0969da?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Doohaey/GonnyuGeneralIME-Rime-Lancong)
 [![Rime 分宜话](https://img.shields.io/badge/Rime-%E5%88%86%E5%AE%9C%E8%AF%9D-8250df?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Doohaey/GonnyuGeneralIME-Rime-Fenni)
