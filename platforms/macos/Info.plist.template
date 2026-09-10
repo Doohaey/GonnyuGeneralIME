@@ -40,8 +40,10 @@
                 </array>
                 <key>tsInputModeIsVisibleKey</key>
                 <true/>
+                <key>tsInputModeDefaultStateKey</key>
+                <true/>
                 <key>tsInputModePrimaryInScriptKey</key>
-                <false/>
+                <true/>
                 <key>tsInputModeScriptKey</key>
                 <string>smUnicode</string>
             </dict>
