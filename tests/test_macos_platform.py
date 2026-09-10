@@ -37,6 +37,9 @@ def test_macos_package_declares_host_and_smoke_targets() -> None:
     assert "GannyuInputController" in (
         ROOT / "platforms/macos/Info.plist.template"
     ).read_text(encoding="utf-8")
+    assert "tsInputMethodCharacterRepertoireKey" in (
+        ROOT / "platforms/macos/Info.plist.template"
+    ).read_text(encoding="utf-8")
     assert "@objc(GannyuInputController)" in (
         ROOT / "platforms/macos/Sources/GannyuInputMethodHost/GannyuInputController.swift"
     ).read_text(encoding="utf-8")

@@ -35,7 +35,7 @@
     </dict>
     <key>InputMethodServerControllerClass</key>
     <string>GannyuInputController</string>
-    <key>InputMethodSupportedLanguages</key>
+    <key>tsInputMethodCharacterRepertoireKey</key>
     <array>
         <string>zh-Hans</string>
     </array>
