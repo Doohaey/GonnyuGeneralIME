@@ -7,13 +7,20 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_macos_platform_exposes_build_and_smoke_entrypoints() -> None:
     build_script = (ROOT / "platforms/macos/build.sh").read_text(encoding="utf-8")
     smoke_script = (ROOT / "platforms/macos/smoke.sh").read_text(encoding="utf-8")
+    bundle_smoke_script = (ROOT / "platforms/macos/bundle_smoke.sh").read_text(encoding="utf-8")
     host_script = (ROOT / "platforms/macos/run_host.sh").read_text(encoding="utf-8")
+    install_script = (ROOT / "platforms/macos/install_local.sh").read_text(encoding="utf-8")
 
     assert 'cargo build -p gannyu-input-ffi --release' in build_script
     assert 'swift build --package-path "$script_dir" -c release' in build_script
+    assert "Info.plist.template" in build_script
+    assert "GannyuInputMethod.app" in build_script
     assert "GannyuMacOSSmoke" in smoke_script
     assert "--manifest" in smoke_script
-    assert "GannyuInputMethodHost" in host_script
+    assert "plutil -lint" in bundle_smoke_script
+    assert "GANNYU_IMK_SELFTEST=1" in bundle_smoke_script
+    assert 'Contents/MacOS/GannyuInputMethodHost' in host_script
+    assert "~/Library/Input Methods" in install_script or 'Library/Input Methods' in install_script
 
 
 def test_macos_package_declares_host_and_smoke_targets() -> None:
@@ -26,4 +33,10 @@ def test_macos_package_declares_host_and_smoke_targets() -> None:
     ).read_text(encoding="utf-8")
     assert '#include "../../../../crates/ffi/include/gannyu_input.h"' in (
         ROOT / "platforms/macos/Sources/CGannyuInput/gannyu_input.h"
+    ).read_text(encoding="utf-8")
+    assert "GannyuInputController" in (
+        ROOT / "platforms/macos/Info.plist.template"
+    ).read_text(encoding="utf-8")
+    assert "@objc(GannyuInputController)" in (
+        ROOT / "platforms/macos/Sources/GannyuInputMethodHost/GannyuInputController.swift"
     ).read_text(encoding="utf-8")

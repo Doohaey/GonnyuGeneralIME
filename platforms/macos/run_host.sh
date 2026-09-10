@@ -14,4 +14,4 @@ fi
 export GANNYU_MANIFEST="${GANNYU_MANIFEST:-$repo_root/resources/manifest.toml}"
 
 bash "$script_dir/build.sh"
-swift run --package-path "$script_dir" -c release GannyuInputMethodHost
+"${GANNYU_MACOS_APP_BUNDLE:-$repo_root/build/macos/GannyuInputMethod.app}/Contents/MacOS/GannyuInputMethodHost"
