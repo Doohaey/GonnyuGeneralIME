@@ -48,6 +48,7 @@ pub struct PhonologyFiles {
 
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, Eq)]
 pub struct DictionaryFiles {
+    pub default_words: Option<String>,
     pub feature_words: Option<String>,
     pub candidates: Option<String>,
     pub associations: Option<String>,
@@ -153,6 +154,7 @@ impl RegionConfig {
             self.phonology.pronunciations.as_deref(),
             self.phonology.fuzzy_map.as_deref(),
             self.dictionaries.candidates.as_deref(),
+            self.dictionaries.default_words.as_deref(),
             self.dictionaries.feature_words.as_deref(),
             self.dictionaries.associations.as_deref(),
             self.dictionaries.slang.as_deref(),

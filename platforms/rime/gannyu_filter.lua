@@ -24,6 +24,7 @@ end
 local function related(source, text, quality, data)
   local candidate = Candidate("gannyu_relation", source.start, source._end, text, data.annotations[text] or "")
   candidate.quality = quality
+  candidate.preedit = source.preedit
   return candidate
 end
 

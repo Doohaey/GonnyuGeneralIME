@@ -22,6 +22,10 @@ fn region_resource_files_exist() {
     let resource =
         load_region_from_manifest(MANIFEST_PATH, "lancong").expect("region resource should load");
     assert_eq!(resource.config.region.name_zh, "南昌");
+    assert_eq!(
+        resource.config.dictionaries.default_words.as_deref(),
+        Some("dictionaries/default_words.txt")
+    );
 }
 
 #[test]

@@ -1,7 +1,7 @@
 use fst::MapBuilder;
 use gannyu_input_core::{Dictionary, Manifest, RegionConfig};
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 use std::error::Error;
 use std::fs::File;
 use std::io::{BufWriter, Write};
@@ -88,6 +88,7 @@ fn included(path: &str) -> bool {
         || path == "fuzzy_scheme.tsv"
         || path.ends_with("/region.toml")
         || path.ends_with("/phonology/syllables.jsonl")
+        || path.ends_with("/dictionaries/default_words.txt")
 }
 
 fn copy_resources(source: &Path, output: &Path, relative: &Path) -> BuildResult<()> {
@@ -109,6 +110,41 @@ fn copy_resources(source: &Path, output: &Path, relative: &Path) -> BuildResult<
             std::fs::create_dir_all(parent)?;
         }
         std::fs::copy(entry.path(), destination)?;
+    }
+    Ok(())
+}
+
+fn validate_default_words(
+    region_id: &str,
+    region_base: &Path,
+    region: &RegionConfig,
+    dictionary: &Dictionary,
+) -> BuildResult<()> {
+    let Some(relative) = region.dictionaries.default_words.as_deref() else {
+        return Ok(());
+    };
+    let path = region_base.join(relative);
+    let content = std::fs::read_to_string(&path)?;
+    let mut seen = HashSet::new();
+    for line in content.lines() {
+        let word = line.trim();
+        if word.is_empty() {
+            continue;
+        }
+        if !seen.insert(word) {
+            return Err(format!(
+                "[{region_id}] duplicate default word {word} in {}",
+                path.display()
+            )
+            .into());
+        }
+        if dictionary.by_headword(word).is_empty() {
+            return Err(format!(
+                "[{region_id}] default word {word} is missing from dictionary in {}",
+                path.display()
+            )
+            .into());
+        }
     }
     Ok(())
 }
@@ -145,6 +181,7 @@ pub fn build(resources: &Path, output: &Path) -> BuildResult<u32> {
         }
 
         let mut dictionary = Dictionary::load_split_tsvs_uncached(&paths)?;
+        validate_default_words(&region_entry.id, region_base, &region, &dictionary)?;
         let count = dictionary.entries().len();
         eprintln!(
             "gonnyu-resource-build: [{}] loaded {count} entries",
@@ -222,6 +259,11 @@ mod tests {
         std::fs::write(source.join("frequency/base.jsonl"), "").unwrap();
         std::fs::write(source.join("regions/test/region.toml"), "").unwrap();
         std::fs::write(source.join("regions/test/phonology/syllables.jsonl"), "").unwrap();
+        std::fs::write(
+            source.join("regions/test/dictionaries/default_words.txt"),
+            "我\n",
+        )
+        .unwrap();
         std::fs::write(source.join("regions/test/dictionaries/words.tsv"), "").unwrap();
         std::fs::create_dir_all(&output).unwrap();
 
@@ -232,6 +274,9 @@ mod tests {
         assert!(output.join("regions/test/region.toml").is_file());
         assert!(output
             .join("regions/test/phonology/syllables.jsonl")
+            .is_file());
+        assert!(output
+            .join("regions/test/dictionaries/default_words.txt")
             .is_file());
         assert!(!output.join("regions/test/dictionaries/words.tsv").exists());
         std::fs::remove_dir_all(root).unwrap();

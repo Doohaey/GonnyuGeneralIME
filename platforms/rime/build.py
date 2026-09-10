@@ -115,6 +115,21 @@ def load_entries(region: str) -> tuple[str, list[Entry]]:
     return config["region"]["name_zh"], rows
 
 
+def load_default_words(region_dir: Path, config: dict, entries: list[Entry]) -> tuple[str, ...]:
+    relative = config.get("dictionaries", {}).get("default_words")
+    if not relative:
+        return ()
+    path = region_dir / relative
+    words = tuple(line.strip() for line in path.read_text(encoding="utf-8").splitlines() if line.strip())
+    if len(words) != len(set(words)):
+        raise ValueError(f"duplicate default word: {path}")
+    known = {entry.word for entry in entries}
+    missing = [word for word in words if word not in known]
+    if missing:
+        raise ValueError(f"default words missing from dictionary in {path}: {', '.join(missing)}")
+    return words
+
+
 def build_new_old(entries: list[Entry]) -> tuple[dict[str, tuple[str, str]], dict[str, tuple[str, str]]]:
     groups: dict[tuple[str, str], list[Entry]] = defaultdict(list)
     for entry in entries:
@@ -459,12 +474,25 @@ def write_dictionary(path: Path, entries: list[Entry], region: str) -> int:
     return len(records)
 
 
+def build_default_codes(entries: list[Entry], words: tuple[str, ...]) -> dict[str, list[str]]:
+    selected = set(words)
+    paired_readings = build_paired_readings(entries)
+    codes: dict[str, set[str]] = defaultdict(set)
+    for entry in entries:
+        if entry.word not in selected:
+            continue
+        for code in entry_codes(entry, paired_readings):
+            codes[entry.word].add(" ".join(part.removeprefix("G") for part in code.split()))
+    return {word: sorted(codes[word]) for word in words}
+
+
 def write_lua_data(
     path: Path,
     annotations: dict[str, str],
     readings: dict[str, str],
     before: dict[str, list[str]],
     after: dict[str, list[str]],
+    defaults: dict[str, list[str]],
 ) -> None:
     def table_map(values: dict[str, str]) -> str:
         return "\n".join(f"  [{lua_quote(key)}] = {lua_quote(value)}," for key, value in sorted(values.items()))
@@ -482,6 +510,7 @@ def write_lua_data(
         f" readings = {{\n{table_map(readings)}\n }},\n"
         f" before = {{\n{list_map(before)}\n }},\n"
         f" after = {{\n{list_map(after)}\n }},\n"
+        f" defaults = {{\n{list_map(defaults)}\n }},\n"
         "}\n",
         encoding="utf-8",
     )
@@ -497,6 +526,7 @@ def build(region: str, output: Path, display_name: str = "short") -> dict[str, i
     region_dir = ROOT / "resources" / "regions" / region
     with (region_dir / "region.toml").open("rb") as handle:
         config = tomllib.load(handle)
+    default_words = load_default_words(region_dir, config, entries)
     rules = load_rules((region_dir / config["phonology"]["fuzzy_map"]).resolve())
     canonical = {
         strip_tone(reading)
@@ -510,8 +540,17 @@ def build(region: str, output: Path, display_name: str = "short") -> dict[str, i
     annotations, before, after = build_metadata(entries)
     readings = build_preferred_readings(entries)
     schema_id = f"gannyu_{region}"
-    write_lua_data(output / "lua" / f"{schema_id}_data.lua", annotations, readings, before, after)
+    write_lua_data(
+        output / "lua" / f"{schema_id}_data.lua",
+        annotations,
+        readings,
+        before,
+        after,
+        build_default_codes(entries, default_words),
+    )
     shutil.copy2(PLATFORM_DIR / "gannyu_filter.lua", output / "lua" / "gannyu_filter.lua")
+    for name in ("gannyu_default_processor.lua", "gannyu_default_translator.lua"):
+        shutil.copy2(PLATFORM_DIR / name, output / "lua" / name)
     schema = (PLATFORM_DIR / "gannyu.schema.yaml").read_text(encoding="utf-8")
     label = f"赣语－{region_name}" if display_name == "apple" else region_name[:1]
     schema = (
@@ -529,6 +568,7 @@ def build(region: str, output: Path, display_name: str = "short") -> dict[str, i
         "annotations": len(annotations),
         "readings": len(readings),
         "relations": len(before) + len(after),
+        "default_words": len(default_words),
         "fuzzy_spellings": len(algebra) - 2,
     }
 

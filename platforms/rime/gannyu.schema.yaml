@@ -15,6 +15,7 @@ switches:
 
 engine:
   processors:
+    - lua_processor@*gannyu_default_processor
     - ascii_composer
     - recognizer
     - key_binder
@@ -31,6 +32,7 @@ engine:
     - fallback_segmentor
   translators:
     - punct_translator
+    - lua_translator@*gannyu_default_translator
     - script_translator
   filters:
     - lua_filter@*gannyu_filter

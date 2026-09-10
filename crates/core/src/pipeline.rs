@@ -76,6 +76,7 @@ pub struct InputPipeline {
     hints: MandarinHintBook,
     pronunciation: PronunciationBook,
     dictionary: Dictionary,
+    default_words: Vec<String>,
     fuzzy: FuzzyMap,
     tone_values: HashMap<String, u8>,
     user_dict: UserDictionary,
@@ -92,6 +93,7 @@ pub enum PipelineError {
     MandarinHint(crate::mandarin_hints::MandarinHintError),
     Dictionary(crate::dictionary::DictionaryError),
     Syllable(SyllableError),
+    DefaultWords(String),
 }
 
 impl Display for PipelineError {
@@ -103,6 +105,7 @@ impl Display for PipelineError {
             PipelineError::MandarinHint(error) => write!(formatter, "{error}"),
             PipelineError::Dictionary(error) => write!(formatter, "{error}"),
             PipelineError::Syllable(error) => write!(formatter, "{error}"),
+            PipelineError::DefaultWords(error) => write!(formatter, "{error}"),
         }
     }
 }
@@ -151,6 +154,39 @@ fn file_has_content(path: &Path) -> bool {
         .unwrap_or(false)
 }
 
+fn load_default_words(
+    resource: &RegionResource,
+    dictionary: &Dictionary,
+) -> Result<Vec<String>, PipelineError> {
+    let Some(relative) = resource.config.dictionaries.default_words.as_deref() else {
+        return Ok(Vec::new());
+    };
+    let path = resource.root.join(relative);
+    let content = std::fs::read_to_string(&path).map_err(ResourceError::Io)?;
+    let mut words = Vec::new();
+    let mut seen = std::collections::HashSet::new();
+    for line in content.lines() {
+        let word = line.trim();
+        if word.is_empty() {
+            continue;
+        }
+        if !seen.insert(word.to_string()) {
+            return Err(PipelineError::DefaultWords(format!(
+                "duplicate default word {word} in {}",
+                path.display()
+            )));
+        }
+        if dictionary.by_headword(word).is_empty() {
+            return Err(PipelineError::DefaultWords(format!(
+                "default word {word} is missing from dictionary in {}",
+                path.display()
+            )));
+        }
+        words.push(word.to_string());
+    }
+    Ok(words)
+}
+
 impl InputPipeline {
     pub fn empty() -> InputPipeline {
         InputPipeline {
@@ -158,6 +194,7 @@ impl InputPipeline {
             hints: MandarinHintBook::empty(),
             pronunciation: PronunciationBook::empty(),
             dictionary: Dictionary::empty(),
+            default_words: Vec::new(),
             fuzzy: FuzzyMap {
                 entries: Vec::new(),
             },
@@ -189,6 +226,7 @@ impl InputPipeline {
                 .collect();
             let index_dir = Some(resource.root.join("indexes"));
             pipeline.dictionary = Dictionary::load_split_tsvs(&paths, index_dir.as_deref())?;
+            pipeline.default_words = load_default_words(resource, &pipeline.dictionary)?;
         }
         // Build auxiliary indices from dictionary in parallel.
         if !pipeline.dictionary.is_empty() {
@@ -471,12 +509,47 @@ impl InputPipeline {
         self.dictionary.entries().len()
     }
 
+    fn default_candidates(&self) -> Vec<RankedCandidate> {
+        let mut entries: Vec<_> = self
+            .default_words
+            .iter()
+            .flat_map(|word| self.dictionary.by_headword(word))
+            .collect();
+        entries.sort_by_key(|entry| {
+            (
+                std::cmp::Reverse(
+                    self.frequency_boosts
+                        .get(&entry.headword)
+                        .copied()
+                        .unwrap_or(0),
+                ),
+                std::cmp::Reverse(entry.frequency.unwrap_or(0)),
+                self.dictionary.entry_id(entry).unwrap_or(usize::MAX),
+            )
+        });
+        let mut seen = std::collections::HashSet::new();
+        entries
+            .into_iter()
+            .filter(|entry| seen.insert(entry.headword.clone()))
+            .map(|entry| {
+                crate::retrieval::gan_candidate(
+                    &self.dictionary,
+                    entry,
+                    crate::retrieval::RetrievalLayer::GannyuExact,
+                    &self.tone_values,
+                )
+            })
+            .collect()
+    }
+
     pub fn retrieve(&self, input: &str) -> Vec<RankedCandidate> {
         const MAX_CANDIDATES: usize = 100;
         let normalized = crate::dictionary::normalize_pinyin(input);
         let has_separator = normalized.contains(' ') || normalized.contains('\'');
         let cache = self.pair_cache();
-        let mut candidates = if has_separator {
+        let mut candidates = if input.is_empty() {
+            self.default_candidates()
+        } else if has_separator {
             retrieve_with_manual_segments(
                 &self.dictionary,
                 &self.fuzzy,
@@ -1000,5 +1073,54 @@ mod tests {
         assert!(pipeline.clear_user_data(true, false));
         assert!(!pipeline.user_dict.contains("测试词"));
         assert!(!pipeline.frequency_boosts.is_empty());
+    }
+    #[test]
+    fn empty_input_uses_configured_dictionary_hits_and_existing_boost_order() {
+        let mut pipeline = pipeline_with_temp_user_dict();
+        let entry =
+            |headword: &str, pinyin: &str, frequency: u64| crate::dictionary::DictionaryEntry {
+                headword: headword.to_string(),
+                ipa: String::new(),
+                dialect_pinyin: pinyin.to_string(),
+                mandarin_pinyin: String::new(),
+                category: "赣".to_string(),
+                mandarin_word: String::new(),
+                mandarin_word_pinyin: String::new(),
+                frequency: Some(frequency),
+                synonyms: String::new(),
+                entry_index: 0,
+                new_old: String::new(),
+            };
+        pipeline.dictionary.extend_from_entries([
+            entry("我", "ngo", 100_000),
+            entry("你", "n", 200_000),
+            entry("南昌", "lan cong", 300_000),
+        ]);
+        pipeline.default_words = vec!["我".to_string(), "你".to_string()];
+
+        let initial: Vec<_> = pipeline
+            .retrieve("")
+            .into_iter()
+            .map(|item| item.text)
+            .collect();
+        assert_eq!(initial, ["你", "我"]);
+        assert!(!initial.contains(&"南昌".to_string()));
+
+        pipeline.frequency_boosts.insert("我".to_string(), 20_000);
+        let learned: Vec<_> = pipeline
+            .retrieve("")
+            .into_iter()
+            .map(|item| item.text)
+            .collect();
+        assert_eq!(learned, ["我", "你"]);
+
+        let typed: Vec<_> = pipeline
+            .retrieve("lan cong")
+            .into_iter()
+            .map(|item| item.text)
+            .collect();
+        assert!(typed.contains(&"南昌".to_string()));
+        assert!(!typed.contains(&"我".to_string()));
+        assert!(!typed.contains(&"你".to_string()));
     }
 }

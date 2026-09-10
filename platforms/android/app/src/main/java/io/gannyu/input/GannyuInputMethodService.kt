@@ -527,7 +527,7 @@ class GannyuInputMethodService : InputMethodService() {
     private fun refreshCandidates() {
         if (!::candidateBar.isInitialized) return
         candidateBar.removeAllViews()
-        if (!pipelineReady || pipelineHandle == 0L || composing.isEmpty()) {
+        if (!pipelineReady || pipelineHandle == 0L) {
             Log.w(TAG, "refreshCandidates SKIP ready=$pipelineReady handle=$pipelineHandle composing='$composing'")
             lastCandidates = emptyList(); return
         }
@@ -537,7 +537,7 @@ class GannyuInputMethodService : InputMethodService() {
     }
 
     private fun postUpdateCandidates() {
-        if (::candidateBar.isInitialized && composing.isNotEmpty()) candidateBar.post { renderState() }
+        if (::candidateBar.isInitialized) candidateBar.post { renderState() }
     }
 
     private fun renderCandidateBar() {

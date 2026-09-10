@@ -4,11 +4,13 @@ from platforms.rime.build import (
     Entry,
     annotated_reading,
     build,
+    build_default_codes,
     build_metadata,
     build_new_old,
     build_paired_readings,
     entry_codes,
     build_preferred_readings,
+    load_default_words,
     load_entries,
 )
 from platforms.rime.fuzzy import compile_algebra, load_rules, normalize
@@ -25,6 +27,7 @@ def test_builds_rime_dictionary_annotations_and_relations(tmp_path: Path) -> Non
     schema = (tmp_path / "gannyu_lancong.schema.yaml").read_text(encoding="utf-8")
 
     assert counts["dictionary_records"] > counts["entries"]
+    assert counts["default_words"] == 8
     assert counts["fuzzy_spellings"] > 0
     assert "䁐牛\tGyang Gniu\t156320" in dictionary
     assert "䁐牛\tying niu\t156320" in dictionary
@@ -38,7 +41,18 @@ def test_builds_rime_dictionary_annotations_and_relations(tmp_path: Path) -> Non
         if "\t" in line
         for character in line.split("\t")[1]
     )
+    defaults = data.split(" defaults = {", 1)[1]
+    assert '["南昌"]' not in defaults
     assert '["䁐牛"] = {"放牛"}' in data
+    assert '["我"] = {"ngo", "wo"}' in data
+    assert "\t`\t" not in dictionary
+    assert "lua_processor@*gannyu_default_processor" in schema
+    assert "lua_translator@*gannyu_default_translator" in schema
+    assert (tmp_path / "lua" / "gannyu_default_processor.lua").is_file()
+    assert (tmp_path / "lua" / "gannyu_default_translator.lua").is_file()
+    assert (tmp_path / "lua" / "gannyu_default_translator.lua").read_text(
+        encoding="utf-8"
+    ).rstrip().endswith("return M")
     assert "dictionary: gannyu_lancong" in schema
     assert "schema_id: gannyu_lancong" in schema
     assert "name: 南" in schema
@@ -173,6 +187,22 @@ def test_builds_separate_fenni_schema(tmp_path: Path) -> None:
     assert (tmp_path / "lua" / "gannyu_fenni_data.lua").is_file()
 
 
+def test_default_words_resolve_to_normal_dictionary_codes() -> None:
+    import tomllib
+
+    region_dir = Path(__file__).resolve().parents[1] / "resources" / "regions" / "fenni"
+    with (region_dir / "region.toml").open("rb") as handle:
+        config = tomllib.load(handle)
+    _, entries = load_entries("fenni")
+    words = load_default_words(region_dir, config, entries)
+    codes = build_default_codes(entries, words)
+
+    assert words == ("我", "你", "渠", "许", "个", "啊", "嘎")
+    assert set(codes) == set(words)
+    assert "ngo" in codes["我"]
+    assert all("`" not in code for values in codes.values() for code in values)
+
+
 def test_sentence_readings_use_highest_frequency_toned_character_entries() -> None:
     _, entries = load_entries("lancong")
     readings = build_preferred_readings(entries)
@@ -264,6 +294,7 @@ def test_rime_installers_discover_regions_from_build_output() -> None:
         content = (Path(__file__).resolve().parents[1] / "platforms/rime" / name).read_text(encoding="utf-8")
         assert "gannyu_*.schema.yaml" in content
         assert "gannyu_*_data.lua" in content
+        assert "gannyu_default_*.lua" in content
         assert 'build.py" --list-regions' in content
         assert "gannyu_lancong" not in content
         assert "gannyu_fenni" not in content
