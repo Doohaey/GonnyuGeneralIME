@@ -40,3 +40,20 @@ def test_macos_package_declares_host_and_smoke_targets() -> None:
     assert "@objc(GannyuInputController)" in (
         ROOT / "platforms/macos/Sources/GannyuInputMethodHost/GannyuInputController.swift"
     ).read_text(encoding="utf-8")
+
+
+def test_macos_controller_wires_minimal_input_loop() -> None:
+    controller = (
+        ROOT / "platforms/macos/Sources/GannyuInputMethodHost/GannyuInputController.swift"
+    ).read_text(encoding="utf-8")
+    engine = (
+        ROOT / "platforms/macos/Sources/GannyuMacOSSupport/GannyuEngine.swift"
+    ).read_text(encoding="utf-8")
+
+    assert "override func inputText" in controller
+    assert "override func didCommand" in controller
+    assert "commitCandidate(at: 0" in controller
+    assert "client.insertText" in controller
+    assert "client.setMarkedText" in controller
+    assert "retrieveCandidates" in engine
+    assert "formatPreedit" in engine
