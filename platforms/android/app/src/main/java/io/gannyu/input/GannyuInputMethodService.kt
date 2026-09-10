@@ -42,6 +42,7 @@ class GannyuInputMethodService : InputMethodService() {
     private var pipelineHandle: Long = 0
     private var pipelineReady: Boolean = false
     private lateinit var preeditView: TextView
+    private lateinit var cacheTag: TextView
     private lateinit var candidateScroll: HorizontalScrollView
     private lateinit var candidateBar: LinearLayout
     private lateinit var keyboardRows: LinearLayout
@@ -234,7 +235,6 @@ class GannyuInputMethodService : InputMethodService() {
         private const val KEY_BG        = 0xFFF0F0F0.toInt()
         private const val KEY_BG_ACTION = 0xFFD0D8E0.toInt()
         private const val KEY_TEXT      = 0xFF222222.toInt()
-        private const val CANDIDATE_BG  = 0xFFE8ECF0.toInt()
 
         init { System.loadLibrary("gannyu_input_jni") }
     }
@@ -257,6 +257,7 @@ class GannyuInputMethodService : InputMethodService() {
         candidateScroll = root.findViewById(R.id.candidateScroll)
         candidateBar = root.findViewById(R.id.candidateBar)
         keyboardRows = root.findViewById(R.id.keyboardRows)
+        cacheTag = root.findViewById(R.id.cacheTag)
         renderKeyboard()
         renderState()
         return root
@@ -284,6 +285,18 @@ class GannyuInputMethodService : InputMethodService() {
         // Input view is being finished (e.g., switching to another IME) — clear UI and composing state
         resetState(clearAccumulated = true)
         super.onFinishInputView(finishingInput)
+    }
+
+    override fun onUpdateSelection(
+        oldSelStart: Int,
+        oldSelEnd: Int,
+        newSelStart: Int,
+        newSelEnd: Int,
+        candidatesStart: Int,
+        candidatesEnd: Int,
+    ) {
+        super.onUpdateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd, candidatesStart, candidatesEnd)
+        if (::preeditView.isInitialized) renderPreedit()
     }
 
     override fun onWindowHidden() {
@@ -375,7 +388,7 @@ class GannyuInputMethodService : InputMethodService() {
             orientation = LinearLayout.HORIZONTAL
             layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { bottomMargin = gap }
         }
-        r3.addView(keyBtn(KeySpec("\u21E7", 1.3f), gap))
+        r3.addView(keyBtn(KeySpec("分词", 1.3f), gap))
         ROW_3_LETTERS.forEach { r3.addView(keyBtn(it, gap)) }
         r3.addView(keyBtn(KeySpec("\u232B", 1.5f), gap))
         keyboardRows.addView(r3)
@@ -420,6 +433,7 @@ class GannyuInputMethodService : InputMethodService() {
             key.label == "\u232B"                        -> handleBackspace()
             key.label == "\u21B5"                        -> handleEnter()
             key.label == "\u7A7A\u683C"                  -> handleSpace()
+            key.label == "分词"                            -> appendInput('\'')
             key.label == "123"                           -> { symbolPage = true; renderKeyboard() }
             key.label == "\u62FC"                        -> { symbolPage = false; renderKeyboard() }
             key.label == "\u201C"                       -> appendInput('“')
@@ -445,16 +459,11 @@ class GannyuInputMethodService : InputMethodService() {
     private fun handleBackspace() {
         if (composing.isNotEmpty()) {
             composing.deleteCharAt(composing.length - 1)
-            if (composing.isEmpty()) {
-                clearAccumulatedSelection()
-                currentInputConnection?.setComposingText("", 1)
-            } else {
-                currentInputConnection?.setComposingText(composing.toString(), 1)
-            }
+            if (composing.isEmpty()) clearAccumulatedSelection()
             renderState()
             return
         }
-        currentInputConnection?.deleteSurroundingText(1, 0)
+        currentInputConnection?.deleteSurroundingTextInCodePoints(1, 0)
     }
 
     private fun handleSpace() {
@@ -499,7 +508,6 @@ class GannyuInputMethodService : InputMethodService() {
     private fun resetState(clearAccumulated: Boolean) {
         composing.clear(); lastCandidates = emptyList()
         if (clearAccumulated) clearAccumulatedSelection()
-        currentInputConnection?.finishComposingText()
         if (::preeditView.isInitialized) renderState()
     }
 
@@ -507,21 +515,34 @@ class GannyuInputMethodService : InputMethodService() {
 
     private fun renderState() {
         if (!::preeditView.isInitialized) return
-        if (::candidateBar.isInitialized) { refreshCandidates(); renderCandidateBar() }
         renderPreedit()
+        if (::candidateBar.isInitialized) refreshCandidates()
+        renderCacheTag()
+        if (::candidateBar.isInitialized) renderCandidateBar()
     }
 
     private fun renderPreedit() {
         if (!::preeditView.isInitialized) return
-        if (composing.isEmpty()) {
-            preeditView.text = getString(R.string.preedit_hint); preeditView.setTextColor(0xFF999999.toInt())
-            currentInputConnection?.finishComposingText(); return
-        }
         preeditView.setTextColor(0xFF222222.toInt())
-        preeditView.text = segmentedBufferForDisplay(
+        val connection = currentInputConnection
+        if (connection == null) {
+            preeditView.text = getString(R.string.preedit_hint)
+            preeditView.setTextColor(0xFF999999.toInt())
+            return
+        }
+        val before = connection.getTextBeforeCursor(24, 0)?.toString().orEmpty()
+        val selected = connection.getSelectedText(0)?.toString().orEmpty()
+        val after = connection.getTextAfterCursor(24, 0)?.toString().orEmpty()
+        preeditView.text = "$before│$selected$after"
+    }
+
+    private fun renderCacheTag() {
+        if (!::cacheTag.isInitialized) return
+        val display = if (composing.isEmpty()) "" else segmentedBufferForDisplay(
             composing.toString(), lastCandidates.firstOrNull()?.consumedBytes ?: 0
         )
-        currentInputConnection?.setComposingText(preeditView.text, 1)
+        cacheTag.visibility = if (display.isEmpty()) View.GONE else View.VISIBLE
+        if (display.isNotEmpty()) cacheTag.text = display
     }
 
     private fun refreshCandidates() {
@@ -541,8 +562,10 @@ class GannyuInputMethodService : InputMethodService() {
     }
 
     private fun renderCandidateBar() {
-        if (!::candidateBar.isInitialized || lastCandidates.isEmpty()) return
+        if (!::candidateBar.isInitialized) return
         candidateBar.removeAllViews()
+        candidateBar.setPadding(dp(4), 0, dp(4), 0)
+        if (lastCandidates.isEmpty()) return
         lastCandidates.forEachIndexed { index, c ->
             val cv = CandidateView(this, c, index)
             candidateBar.addView(cv)
@@ -561,18 +584,17 @@ class GannyuInputMethodService : InputMethodService() {
 
         init {
             orientation = VERTICAL
-            setBackgroundColor(CANDIDATE_BG)
-            setPadding(dp(10), dp(6), dp(10), dp(6))
-            minimumWidth = dp(56)
+            setPadding(dp(12), dp(6), dp(12), dp(6))
+            minimumWidth = dp(48)
             layoutParams = LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT
             ).apply {
-                if (index < lastCandidates.size - 1) marginEnd = dp(4)
+                if (index < lastCandidates.size - 1) marginEnd = dp(6)
             }
 
             addView(TextView(context).apply {
                 text = candidate.text
-                textSize = 18f; setTextColor(0xFF222222.toInt())
+                textSize = 18f; setTextColor(if (index == 0) 0xFFC94747.toInt() else 0xFF222222.toInt())
                 gravity = android.view.Gravity.CENTER_HORIZONTAL
             })
 

@@ -23,32 +23,55 @@
         android:fontFamily="sans-serif-medium"
         android:background="#FFFFFF"
         android:layout_marginStart="10dp"
-        android:layout_marginEnd="10dp"
-        android:layout_marginBottom="4dp" />
+        android:layout_marginEnd="10dp" />
 
-    <HorizontalScrollView
-        android:id="@+id/candidateScroll"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:minHeight="60dp"
-        android:fillViewport="false"
-        android:scrollbars="horizontal"
-        android:fadingEdge="horizontal"
-        android:fadeScrollbars="false"
         android:layout_marginStart="10dp"
-        android:layout_marginEnd="10dp"
-        android:layout_marginBottom="6dp"
-        android:overScrollMode="always">
+        android:layout_marginEnd="10dp">
 
-        <LinearLayout
-            android:id="@+id/candidateBar"
+        <HorizontalScrollView
+            android:id="@+id/candidateScroll"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="60dp"
+            android:fillViewport="false"
+            android:scrollbars="horizontal"
+            android:fadingEdge="horizontal"
+            android:fadeScrollbars="false"
+            android:background="#FFFFFF"
+            android:overScrollMode="always">
+
+            <LinearLayout
+                android:id="@+id/candidateBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp" />
+        </HorizontalScrollView>
+
+        <TextView
+            android:id="@+id/cacheTag"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingStart="4dp"
-            android:paddingEnd="4dp" />
-    </HorizontalScrollView>
+            android:layout_gravity="start|top"
+            android:layout_marginStart="6dp"
+            android:translationY="-12dp"
+            android:alpha="0.82"
+            android:background="#FAE2E2"
+            android:elevation="4dp"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp"
+            android:textColor="#9D4B4B"
+            android:textSize="13sp"
+            android:visibility="gone" />
+    </FrameLayout>
 
     <LinearLayout
         android:id="@+id/keyboardRows"
