@@ -1,4 +1,5 @@
 import AppKit
+import Carbon.HIToolbox
 import InputMethodKit
 import GannyuMacOSSupport
 
@@ -12,9 +13,20 @@ final class GannyuInputController: IMKInputController {
         )
     }()
     private var buffer = ""
+    private var bufferCursor = 0
     private var cachedText = ""
     private var currentCandidates: [GannyuRetrievedCandidate] = []
     private var isActive = false
+    private lazy var candidatesWindow: IMKCandidates? = {
+        guard let server = server() else {
+            return nil
+        }
+        let window = IMKCandidates(server: server, panelType: kIMKSingleRowSteppingCandidatePanel)
+        window?.setAttributes([
+            IMKCandidatesSendServerKeyEventFirst: NSNumber(value: true),
+        ])
+        return window
+    }()
 
     override init!(server: IMKServer!, delegate: Any!, client inputClient: Any!) {
         super.init(server: server, delegate: delegate, client: inputClient)
@@ -52,31 +64,88 @@ final class GannyuInputController: IMKInputController {
         clearComposition(client: sender)
     }
 
+    @objc(handleEvent:client:)
+    override func handle(_ event: NSEvent!, client sender: Any!) -> Bool {
+        guard let event, event.type == .keyDown else {
+            return false
+        }
+
+        let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        if !modifiers.intersection([.command, .control, .function]).isEmpty {
+            return false
+        }
+
+        switch Int(event.keyCode) {
+        case kVK_LeftArrow:
+            guard hasComposition else {
+                return false
+            }
+            moveCursor(by: -1)
+            updateComposition()
+            return true
+        case kVK_RightArrow:
+            guard hasComposition else {
+                return false
+            }
+            moveCursor(by: 1)
+            updateComposition()
+            return true
+        case kVK_Delete:
+            return handleDelete(client: sender)
+        case kVK_Escape:
+            guard hasComposition else {
+                return false
+            }
+            clearComposition(client: sender)
+            return true
+        case kVK_Space, kVK_Return, kVK_ANSI_KeypadEnter:
+            guard hasComposition else {
+                return false
+            }
+            commitCandidate(at: 0, client: sender)
+            return true
+        default:
+            break
+        }
+
+        let input = event.charactersIgnoringModifiers ?? event.characters ?? ""
+        if let index = candidateIndex(for: input) {
+            guard hasComposition, index < currentCandidates.count else {
+                return false
+            }
+            commitCandidate(at: index, client: sender)
+            return true
+        }
+
+        return processText(input, client: sender)
+    }
+
     private func processText(_ string: String!, client sender: Any!) -> Bool {
         guard let string else {
             return false
         }
-        if string.isEmpty {
+        let normalized = string.lowercased()
+        if normalized.isEmpty {
             return false
         }
-        if string == " " || string == "\r" || string == "\n" {
+        if normalized == " " || normalized == "\r" || normalized == "\n" {
             guard !buffer.isEmpty else {
                 return false
             }
             commitCandidate(at: 0, client: sender)
             return true
         }
-        if let index = candidateIndex(for: string) {
+        if let index = candidateIndex(for: normalized) {
             guard !buffer.isEmpty, index < currentCandidates.count else {
                 return false
             }
             commitCandidate(at: index, client: sender)
             return true
         }
-        guard shouldAppend(string) else {
+        guard shouldAppend(normalized) else {
             return false
         }
-        buffer.append(contentsOf: string.lowercased())
+        insertTextIntoBuffer(normalized)
         refreshCandidates(client: sender)
         return true
     }
@@ -87,22 +156,17 @@ final class GannyuInputController: IMKInputController {
             return false
         }
         if aSelector == #selector(NSResponder.deleteBackward(_:)) {
-            guard !buffer.isEmpty else {
-                return false
-            }
-            buffer.removeLast()
-            refreshCandidates(client: sender)
-            return true
+            return handleDelete(client: sender)
         }
         if aSelector == #selector(NSResponder.cancelOperation(_:)) {
-            guard !buffer.isEmpty else {
+            guard hasComposition else {
                 return false
             }
             clearComposition(client: sender)
             return true
         }
         if aSelector == #selector(NSResponder.insertNewline(_:)) || aSelector == #selector(NSResponder.insertTab(_:)) {
-            guard !buffer.isEmpty else {
+            guard hasComposition else {
                 return false
             }
             commitCandidate(at: 0, client: sender)
@@ -116,13 +180,20 @@ final class GannyuInputController: IMKInputController {
         guard !buffer.isEmpty || !cachedText.isEmpty else {
             return ""
         }
-        let reading = (try? engine?.formatPreedit(buffer)) ?? buffer
+        let reading = currentPreeditDisplay()
         return cachedText.isEmpty ? reading : "\(cachedText)  \(reading)"
     }
 
     @objc(originalString:)
     override func originalString(_ sender: Any!) -> NSAttributedString! {
         NSAttributedString(string: cachedText + buffer)
+    }
+
+    @objc(selectionRange)
+    override func selectionRange() -> NSRange {
+        let prefix = String(buffer.prefix(bufferCursor))
+        let prefixDisplay = (try? engine?.formatPreedit(prefix)) ?? prefix
+        return NSRange(location: composedPrefixLength + nsLength(of: prefixDisplay), length: 0)
     }
 
     @objc(candidates:)
@@ -153,19 +224,35 @@ final class GannyuInputController: IMKInputController {
 
     @objc(candidateSelected:)
     override func candidateSelected(_ candidateString: NSAttributedString!) {
-        guard let candidateString else {
+        let selectedIndex = candidatesWindow?.selectedCandidate() ?? NSNotFound
+        if selectedIndex != NSNotFound, currentCandidates.indices.contains(selectedIndex) {
+            commitCandidate(at: selectedIndex, client: client())
             return
         }
-        commitText(candidateString.string, client: client())
+        guard
+            let candidateString,
+            let index = currentCandidates.firstIndex(where: { $0.text == candidateString.string })
+        else {
+            return
+        }
+        commitCandidate(at: index, client: client())
     }
 
     private func refreshCandidates(client sender: Any!) {
+        bufferCursor = min(max(bufferCursor, 0), buffer.count)
         currentCandidates = (try? engine?.retrieveCandidates(buffer)) ?? []
         if buffer.isEmpty {
             clearMarkedText(client: sender)
+            hideCandidates()
             return
         }
         updateComposition()
+        if currentCandidates.isEmpty {
+            hideCandidates()
+            return
+        }
+        candidatesWindow?.update()
+        candidatesWindow?.show(kIMKLocateCandidatesBelowHint)
     }
 
     private func commitCandidate(at index: Int, client sender: Any!) {
@@ -175,6 +262,7 @@ final class GannyuInputController: IMKInputController {
         let count = max(0, min(candidate.consumedBytes, buffer.utf8.count))
         if count > 0 && count < buffer.utf8.count {
             buffer = String(decoding: buffer.utf8.dropFirst(count), as: UTF8.self)
+            bufferCursor = max(0, bufferCursor - count)
             refreshCandidates(client: sender)
             return
         }
@@ -184,21 +272,27 @@ final class GannyuInputController: IMKInputController {
     private func commitText(_ text: String, client sender: Any!) {
         guard let client = sender as? NSTextInputClient else {
             buffer = ""
+            bufferCursor = 0
             currentCandidates = []
+            hideCandidates()
             return
         }
         client.insertText(text, replacementRange: NSRange(location: NSNotFound, length: 0))
         buffer = ""
+        bufferCursor = 0
         cachedText = ""
         currentCandidates = []
         clearMarkedText(client: client)
+        hideCandidates()
     }
 
     private func clearComposition(client sender: Any!) {
         buffer = ""
+        bufferCursor = 0
         cachedText = ""
         currentCandidates = []
         clearMarkedText(client: sender)
+        hideCandidates()
     }
 
     private func clearMarkedText(client sender: Any!) {
@@ -214,6 +308,64 @@ final class GannyuInputController: IMKInputController {
                 || CharacterSet.uppercaseLetters.contains($0)
                 || $0 == "'"
         }
+    }
+
+    private var hasComposition: Bool {
+        !buffer.isEmpty || !cachedText.isEmpty
+    }
+
+    private var composedPrefixLength: Int {
+        guard !cachedText.isEmpty, !buffer.isEmpty else {
+            return nsLength(of: cachedText)
+        }
+        return nsLength(of: cachedText) + 2
+    }
+
+    private func handleDelete(client sender: Any!) -> Bool {
+        guard hasComposition else {
+            return false
+        }
+        if !cachedText.isEmpty, bufferCursor == 0 {
+            cachedText.removeLast()
+            if buffer.isEmpty && cachedText.isEmpty {
+                clearComposition(client: sender)
+                return true
+            }
+            refreshCandidates(client: sender)
+            return true
+        }
+        guard bufferCursor > 0 else {
+            return true
+        }
+        let end = buffer.index(buffer.startIndex, offsetBy: bufferCursor)
+        let start = buffer.index(before: end)
+        buffer.removeSubrange(start..<end)
+        bufferCursor -= 1
+        refreshCandidates(client: sender)
+        return true
+    }
+
+    private func insertTextIntoBuffer(_ text: String) {
+        let insertionIndex = buffer.index(buffer.startIndex, offsetBy: bufferCursor)
+        buffer.insert(contentsOf: text, at: insertionIndex)
+        bufferCursor += text.count
+    }
+
+    private func moveCursor(by delta: Int) {
+        bufferCursor = min(max(bufferCursor + delta, 0), buffer.count)
+    }
+
+    private func currentPreeditDisplay() -> String {
+        let consumedBytes = currentCandidates.first?.consumedBytes ?? 0
+        return (try? engine?.formatPreedit(buffer, consumedBytes: consumedBytes)) ?? buffer
+    }
+
+    private func hideCandidates() {
+        candidatesWindow?.hide()
+    }
+
+    private func nsLength(of string: String) -> Int {
+        (string as NSString).length
     }
 
     private func candidateIndex(for string: String) -> Int? {
@@ -235,8 +387,10 @@ final class GannyuInputController: IMKInputController {
     @objc private func regionDidChange() {
         engine = nil
         buffer = ""
+        bufferCursor = 0
         cachedText = ""
         currentCandidates = []
+        hideCandidates()
     }
 
     @objc private func selectRegionFromMenu(_ sender: Any?) {
