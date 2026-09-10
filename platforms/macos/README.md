@@ -52,4 +52,4 @@ bash share/platforms/macos/run_host.sh
 bash share/platforms/macos/install_local.sh
 ```
 
-脚本优先使用钥匙串内的 Apple Development 身份签名（也可用 `GANNYU_MACOS_SIGN_IDENTITY` 指定），复制到 `~/Library/Input Methods/`，再调用 macOS 的 Text Input Source Services 完成登记。完成后重新打开“系统设置 → 键盘 → 输入法”即可添加；不需要注销或重启。
+脚本优先使用钥匙串内的 Apple Development 身份签名（也可用 `GANNYU_MACOS_SIGN_IDENTITY` 指定），复制到 `~/Library/Input Methods/`，调用 macOS 的 Text Input Source Services 完成登记，并把主输入法与赣语模式写入当前用户的启用列表。完成后重新打开“系统设置 → 键盘 → 输入法”即可使用；不需要注销或重启。
