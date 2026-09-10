@@ -13,14 +13,15 @@ Currently supports: **Lancong(Nanchang) and Fenni(Fenyi)**. More localities are 
 
 Rime schema repositories for Lancong(Nanchang) and Fenni(Fenyi). Other installation options are available in the [Installation](#installation) section below.
 
-## Test version 0.2.4-pre.7
+## Test version 0.2.4-pre.8
 
-- fix(rime): Fix space key committing the first default candidate instead of inserting a literal space.
+- fix(rime): Enable default candidates only on mobile front ends and show 10 candidates per desktop page.
+- feat(android): Use a compact red candidate layout with an independent input cache and a segmentation key.
 
 ## Contents
 
 - [GonnyuGeneralIME — A General Gon(Gan) Chinese Input Method](#gonnyugeneralime--a-general-gongan-chinese-input-method)
-  - [Test version 0.2.4-pre.7](#test-version-024-pre7)
+  - [Test version 0.2.4-pre.8](#test-version-024-pre8)
   - [Contents](#contents)
   - [Overview](#overview)
     - [What it provides](#what-it-provides)
