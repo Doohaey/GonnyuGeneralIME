@@ -90,6 +90,14 @@ final class GannyuInputController: IMKInputController {
             break
         }
 
+        if let index = candidateIndex(forKeyCode: Int(event.keyCode)) {
+            guard hasComposition, index < currentCandidates.count else {
+                return false
+            }
+            commitCandidate(at: index, client: sender)
+            return true
+        }
+
         let input = event.charactersIgnoringModifiers ?? event.characters ?? ""
         if let index = candidateIndex(for: input) {
             guard hasComposition, index < currentCandidates.count else {
@@ -364,6 +372,33 @@ final class GannyuInputController: IMKInputController {
             return nil
         }
         return value - 1
+    }
+
+    private func candidateIndex(forKeyCode keyCode: Int) -> Int? {
+        switch keyCode {
+        case kVK_ANSI_1, kVK_ANSI_Keypad1:
+            return 0
+        case kVK_ANSI_2, kVK_ANSI_Keypad2:
+            return 1
+        case kVK_ANSI_3, kVK_ANSI_Keypad3:
+            return 2
+        case kVK_ANSI_4, kVK_ANSI_Keypad4:
+            return 3
+        case kVK_ANSI_5, kVK_ANSI_Keypad5:
+            return 4
+        case kVK_ANSI_6, kVK_ANSI_Keypad6:
+            return 5
+        case kVK_ANSI_7, kVK_ANSI_Keypad7:
+            return 6
+        case kVK_ANSI_8, kVK_ANSI_Keypad8:
+            return 7
+        case kVK_ANSI_9, kVK_ANSI_Keypad9:
+            return 8
+        case kVK_ANSI_0, kVK_ANSI_Keypad0:
+            return 9
+        default:
+            return nil
+        }
     }
 
     @objc private func regionDidChange() {
