@@ -8,11 +8,19 @@ final class GannyuInputController: IMKInputController {
         let env = ProcessInfo.processInfo.environment
         return try? GannyuEngine(
             manifestPath: env["GANNYU_MANIFEST"],
-            regionID: env["GANNYU_REGION_ID"]
+            regionID: env["GANNYU_REGION_ID"] ?? GannyuRegionStore.shared.current.rawValue
         )
     }()
     private var buffer = ""
+    private var cachedText = ""
     private var currentCandidates: [GannyuRetrievedCandidate] = []
+
+    override init!(server: IMKServer!, delegate: Any!, client inputClient: Any!) {
+        super.init(server: server, delegate: delegate, client: inputClient)
+        NotificationCenter.default.addObserver(self, selector: #selector(regionDidChange), name: GannyuRegionStore.didChange, object: nil)
+    }
+
+    deinit { NotificationCenter.default.removeObserver(self) }
 
     @objc(inputText:client:)
     override func inputText(_ string: String!, client sender: Any!) -> Bool {
@@ -76,15 +84,16 @@ final class GannyuInputController: IMKInputController {
 
     @objc(composedString:)
     override func composedString(_ sender: Any!) -> Any! {
-        guard !buffer.isEmpty else {
+        guard !buffer.isEmpty || !cachedText.isEmpty else {
             return ""
         }
-        return (try? engine?.formatPreedit(buffer)) ?? buffer
+        let reading = (try? engine?.formatPreedit(buffer)) ?? buffer
+        return cachedText.isEmpty ? reading : "\(cachedText)  \(reading)"
     }
 
     @objc(originalString:)
     override func originalString(_ sender: Any!) -> NSAttributedString! {
-        NSAttributedString(string: buffer)
+        NSAttributedString(string: cachedText + buffer)
     }
 
     @objc(candidates:)
@@ -118,8 +127,16 @@ final class GannyuInputController: IMKInputController {
     }
 
     private func commitCandidate(at index: Int, client sender: Any!) {
-        let text = currentCandidates.indices.contains(index) ? currentCandidates[index].text : buffer
-        commitText(text, client: sender)
+        guard currentCandidates.indices.contains(index) else { return }
+        let candidate = currentCandidates[index]
+        cachedText += candidate.text
+        let count = max(0, min(candidate.consumedBytes, buffer.utf8.count))
+        if count > 0 && count < buffer.utf8.count {
+            buffer = String(decoding: buffer.utf8.dropFirst(count), as: UTF8.self)
+            refreshCandidates(client: sender)
+            return
+        }
+        commitText(cachedText, client: sender)
     }
 
     private func commitText(_ text: String, client sender: Any!) {
@@ -130,12 +147,14 @@ final class GannyuInputController: IMKInputController {
         }
         client.insertText(text, replacementRange: NSRange(location: NSNotFound, length: 0))
         buffer = ""
+        cachedText = ""
         currentCandidates = []
         clearMarkedText(client: client)
     }
 
     private func clearComposition(client sender: Any!) {
         buffer = ""
+        cachedText = ""
         currentCandidates = []
         clearMarkedText(client: sender)
     }
@@ -169,5 +188,12 @@ final class GannyuInputController: IMKInputController {
             return nil
         }
         return value - 1
+    }
+
+    @objc private func regionDidChange() {
+        engine = nil
+        buffer = ""
+        cachedText = ""
+        currentCandidates = []
     }
 }

@@ -5,6 +5,46 @@ public struct GannyuRetrievedCandidate: Decodable {
     public let text: String
     public let annotation: String
     public let reading: String?
+    public let consumedBytes: Int
+
+    private enum CodingKeys: String, CodingKey {
+        case text, annotation, reading
+        case consumedBytes = "consumed_bytes"
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        text = try container.decode(String.self, forKey: .text)
+        annotation = try container.decode(String.self, forKey: .annotation)
+        reading = try container.decodeIfPresent(String.self, forKey: .reading)
+        consumedBytes = try container.decodeIfPresent(Int.self, forKey: .consumedBytes) ?? text.utf8.count
+    }
+}
+
+public enum GannyuRegion: String, CaseIterable {
+    case lancong
+    case fenni
+
+    public var label: String {
+        switch self {
+        case .lancong: "南昌"
+        case .fenni: "分宜"
+        }
+    }
+}
+
+public final class GannyuRegionStore {
+    public static let shared = GannyuRegionStore()
+    public static let didChange = Notification.Name("org.doohaey.gonnyu.regionDidChange")
+    private let key = "org.doohaey.gonnyu.region"
+
+    public var current: GannyuRegion {
+        get { GannyuRegion(rawValue: UserDefaults.standard.string(forKey: key) ?? "") ?? .lancong }
+        set {
+            UserDefaults.standard.set(newValue.rawValue, forKey: key)
+            NotificationCenter.default.post(name: Self.didChange, object: newValue)
+        }
+    }
 }
 
 public enum GannyuEngineError: Error, CustomStringConvertible {

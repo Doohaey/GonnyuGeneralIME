@@ -42,6 +42,31 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             fputs("failed to start host: \(error)\n", stderr)
             NSApp.terminate(nil)
         }
+        installMenu()
+    }
+
+    private func installMenu() {
+        let menu = NSMenu(title: "Gonnyu")
+        let regionMenu = NSMenu(title: "地区")
+        for region in GannyuRegion.allCases {
+            let item = NSMenuItem(title: region.label, action: #selector(selectRegion(_:)), keyEquivalent: "")
+            item.target = self
+            item.representedObject = region.rawValue
+            item.state = region == GannyuRegionStore.shared.current ? .on : .off
+            regionMenu.addItem(item)
+        }
+        let regionItem = NSMenuItem(title: "地区", action: nil, keyEquivalent: "")
+        regionItem.submenu = regionMenu
+        menu.addItem(regionItem)
+        menu.addItem(.separator())
+        menu.addItem(withTitle: "Gonnyu 输入法", action: nil, keyEquivalent: "")
+        NSApp.mainMenu = menu
+    }
+
+    @objc private func selectRegion(_ sender: NSMenuItem) {
+        guard let raw = sender.representedObject as? String, let region = GannyuRegion(rawValue: raw) else { return }
+        GannyuRegionStore.shared.current = region
+        installMenu()
     }
 }
 
