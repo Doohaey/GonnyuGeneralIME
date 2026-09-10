@@ -1,0 +1,5 @@
+module CGannyuInput [system] {
+    header "../../../crates/ffi/include/gannyu_input.h"
+    link "gannyu_input_ffi"
+    export *
+}
