@@ -5,7 +5,7 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>zh-Hans</string>
     <key>CFBundleDisplayName</key>
-    <string>Gannyu Input Method</string>
+    <string>Gonnyu Input Method</string>
     <key>CFBundleExecutable</key>
     <string>GannyuInputMethodHost</string>
     <key>CFBundleIdentifier</key>
@@ -22,24 +22,61 @@
     <string>????</string>
     <key>CFBundleVersion</key>
     <string>@VERSION@</string>
+    <key>ComponentInputModeDict</key>
+    <dict>
+        <key>tsInputModeListKey</key>
+        <dict>
+            <key>@BUNDLE_ID@.Gan</key>
+            <dict>
+                <key>TISInputSourceID</key>
+                <string>@BUNDLE_ID@.Gan</string>
+                <key>TISIntendedLanguage</key>
+                <string>zh-Hans</string>
+                <key>tsInputModeCharacterRepertoireKey</key>
+                <array>
+                    <string>Hans</string>
+                    <string>Hani</string>
+                    <string>Han</string>
+                </array>
+                <key>tsInputModeIsVisibleKey</key>
+                <true/>
+                <key>tsInputModePrimaryInScriptKey</key>
+                <false/>
+                <key>tsInputModeScriptKey</key>
+                <string>smUnicode</string>
+            </dict>
+        </dict>
+        <key>tsVisibleInputModeOrderedArrayKey</key>
+        <array>
+            <string>@BUNDLE_ID@.Gan</string>
+        </array>
+    </dict>
     <key>InputMethodConnectionName</key>
     <string>@CONNECTION_NAME@</string>
-    <key>InputMethodExtension</key>
-    <true/>
     <key>InputMethodLocalizedName</key>
     <dict>
         <key>en</key>
-        <string>Gannyu Input Method</string>
+        <string>Gonnyu Input Method</string>
         <key>zh-Hans</key>
-        <string>赣语输入法</string>
+        <string>Gonnyu 赣语输入法</string>
     </dict>
     <key>InputMethodServerControllerClass</key>
     <string>GannyuInputController</string>
+    <key>InputMethodServerDelegateClass</key>
+    <string>GannyuInputController</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>13.0</string>
+    <key>TISInputSourceID</key>
+    <string>@BUNDLE_ID@</string>
     <key>tsInputMethodCharacterRepertoireKey</key>
     <array>
-        <string>zh-Hans</string>
+        <string>Hans</string>
+        <string>Hani</string>
+        <string>Han</string>
     </array>
     <key>LSBackgroundOnly</key>
+    <true/>
+    <key>LSUIElement</key>
     <true/>
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>

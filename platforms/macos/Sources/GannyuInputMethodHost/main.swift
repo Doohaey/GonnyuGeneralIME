@@ -1,4 +1,5 @@
 import AppKit
+import Carbon
 import Foundation
 import InputMethodKit
 import GannyuMacOSSupport
@@ -9,10 +10,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func startup() throws {
         let env = ProcessInfo.processInfo.environment
+        if env["GANNYU_REGISTER_INPUT_SOURCE"] == "1" {
+            let status = TISRegisterInputSource(Bundle.main.bundleURL as CFURL)
+            guard status == noErr else {
+                throw NSError(
+                    domain: "org.doohaey.GonnyuInputMethod",
+                    code: Int(status),
+                    userInfo: [NSLocalizedDescriptionKey: "TISRegisterInputSource failed: \(status)"]
+                )
+            }
+            print("registered input source: \(Bundle.main.bundleURL.path)")
+        }
         let manifest = env["GANNYU_MANIFEST"]
         let region = env["GANNYU_REGION_ID"]
-        let connection = env["GANNYU_IMK_CONNECTION"] ?? "org.doohaey.gannyu.inputmethod.connection"
-        let bundleID = env["GANNYU_IMK_BUNDLE_ID"] ?? "org.doohaey.GannyuInputMethod"
+        let bundleID = env["GANNYU_IMK_BUNDLE_ID"] ?? "org.doohaey.inputmethod.gonnyu.native"
+        let connection = env["GANNYU_IMK_CONNECTION"] ?? "\(bundleID)_Connection"
 
         engine = try GannyuEngine(manifestPath: manifest, regionID: region)
         server = IMKServer(name: connection, bundleIdentifier: bundleID)

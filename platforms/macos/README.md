@@ -20,7 +20,7 @@ cargo --version
 ./build.sh macos
 ```
 
-脚本会先编译 Rust FFI 静态库，再构建 `GannyuInputMethodHost` 与 `GannyuMacOSSmoke`，随后组装 `share/build/macos/GannyuInputMethod.app`。
+脚本会先编译 Rust FFI 静态库，再构建 `GannyuInputMethodHost` 与 `GannyuMacOSSmoke`，随后组装 `share/build/macos/GonnyuInputMethod.app`。
 
 ## smoke 测试
 
@@ -52,4 +52,4 @@ bash share/platforms/macos/run_host.sh
 bash share/platforms/macos/install_local.sh
 ```
 
-脚本将 app bundle 复制到 `~/Library/Input Methods/`，用于后续系统注册测试。
+脚本优先使用钥匙串内的 Apple Development 身份签名（也可用 `GANNYU_MACOS_SIGN_IDENTITY` 指定），复制到 `~/Library/Input Methods/`，再调用 macOS 的 Text Input Source Services 完成登记。完成后重新打开“系统设置 → 键盘 → 输入法”即可添加；不需要注销或重启。

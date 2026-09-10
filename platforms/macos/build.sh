@@ -4,9 +4,9 @@ set -euo pipefail
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "$script_dir/../.." && pwd)"
 test_env="$script_dir/test_local.env"
-bundle_id="${GANNYU_IMK_BUNDLE_ID:-org.doohaey.GannyuInputMethod}"
+bundle_id="${GANNYU_IMK_BUNDLE_ID:-org.doohaey.inputmethod.gonnyu.native}"
 connection_name="${GANNYU_IMK_CONNECTION:-${bundle_id}_Connection}"
-bundle_root="${GANNYU_MACOS_APP_BUNDLE:-$repo_root/build/macos/GannyuInputMethod.app}"
+bundle_root="${GANNYU_MACOS_APP_BUNDLE:-$repo_root/build/macos/GonnyuInputMethod.app}"
 plist_template="$script_dir/Info.plist.template"
 
 if [[ "$(uname -s)" != "Darwin" ]]; then
@@ -62,5 +62,14 @@ template = template.replace("@BUNDLE_ID@", sys.argv[4])
 template = template.replace("@CONNECTION_NAME@", sys.argv[5])
 Path(sys.argv[2]).write_text(template, encoding="utf-8")
 PYTHON
+
+# Prefer an Apple Development identity for local TIS registration. Release
+# packaging can override this with its Developer ID identity.
+signing_identity="${GANNYU_MACOS_SIGN_IDENTITY:-}"
+if [[ -z "$signing_identity" ]]; then
+  signing_identity="$(security find-identity -v -p codesigning 2>/dev/null | awk '/"Apple Development:/{ print $2; exit }')"
+fi
+codesign --force --deep --sign "${signing_identity:--}" "$bundle_root"
+codesign --verify --deep --strict "$bundle_root"
 
 echo "packaged $bundle_root"
