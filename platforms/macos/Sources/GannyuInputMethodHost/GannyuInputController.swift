@@ -101,6 +101,19 @@ final class GannyuInputController: IMKInputController {
         currentCandidates.map(\.text)
     }
 
+    @objc(menu)
+    override func menu() -> NSMenu! {
+        let menu = NSMenu(title: "Gonnyu")
+        for region in GannyuRegion.allCases {
+            let item = NSMenuItem(title: region.label, action: #selector(selectRegionFromMenu(_:)), keyEquivalent: "")
+            item.target = self
+            item.representedObject = region.rawValue
+            item.state = region == GannyuRegionStore.shared.current ? .on : .off
+            menu.addItem(item)
+        }
+        return menu
+    }
+
     @objc(commitComposition:)
     override func commitComposition(_ sender: Any!) {
         guard !buffer.isEmpty else {
@@ -195,5 +208,18 @@ final class GannyuInputController: IMKInputController {
         buffer = ""
         cachedText = ""
         currentCandidates = []
+    }
+
+    @objc private func selectRegionFromMenu(_ sender: Any?) {
+        let item: NSMenuItem?
+        if let menuItem = sender as? NSMenuItem {
+            item = menuItem
+        } else if let info = sender as? [AnyHashable: Any] {
+            item = info[kIMKCommandMenuItemName] as? NSMenuItem
+        } else {
+            item = nil
+        }
+        guard let raw = item?.representedObject as? String, let region = GannyuRegion(rawValue: raw) else { return }
+        GannyuRegionStore.shared.current = region
     }
 }
