@@ -73,7 +73,7 @@ fn macos_traced() -> bool {
 
     let pid = std::process::id() as i32;
     let mut mib = [KERN_PROC, KERN_PROC_PID, pid, 0];
-    let mut info = std::mem::zeroed::<MacProcInfo>();
+    let mut info = unsafe { std::mem::zeroed::<MacProcInfo>() };
     let mut size = std::mem::size_of::<MacProcInfo>() as usize;
     // SAFETY: sysctl writes into `info` which is a valid zeroed buffer.
     let ret = unsafe {

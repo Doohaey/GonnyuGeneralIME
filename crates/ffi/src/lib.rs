@@ -161,7 +161,7 @@ fn deploy_embedded_path(
     加密器: &XChaCha20Poly1305,
     temp: &tempfile::TempDir,
     path: &str,
-    fds: &mut Vec<std::fs::File>,
+    _fds: &mut Vec<std::fs::File>,
 ) -> io::Result<()> {
     let Some(blob) = embedded_resource(path) else {
         return Err(io::Error::new(
@@ -181,7 +181,7 @@ fn deploy_embedded_path(
         let fd = std::os::unix::io::AsRawFd::as_raw_fd(&file);
         std::fs::remove_file(&output)?;
         std::os::unix::fs::symlink(format!("/proc/self/fd/{fd}"), &output)?;
-        fds.push(file);
+        _fds.push(file);
     }
     Ok(())
 }

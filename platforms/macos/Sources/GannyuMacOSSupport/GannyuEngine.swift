@@ -1,10 +1,10 @@
 import Foundation
 import CGannyuInput
 
-enum GannyuEngineError: Error, CustomStringConvertible {
+public enum GannyuEngineError: Error, CustomStringConvertible {
     case status(Int32, String)
 
-    var description: String {
+    public var description: String {
         switch self {
         case let .status(code, message):
             return "ffi status \(code): \(message)"
@@ -12,11 +12,11 @@ enum GannyuEngineError: Error, CustomStringConvertible {
     }
 }
 
-final class GannyuEngine {
-    private var handle: UnsafeMutablePointer<GannyuPipelineHandle>?
+public final class GannyuEngine {
+    private var handle: OpaquePointer?
 
-    init(manifestPath: String?, regionID: String?) throws {
-        var created: UnsafeMutablePointer<GannyuPipelineHandle>?
+    public init(manifestPath: String?, regionID: String?) throws {
+        var created: OpaquePointer?
         let status = withOptionalCString(manifestPath) { manifest in
             withOptionalCString(regionID) { region in
                 gannyu_pipeline_create(manifest, region, &created)
@@ -34,20 +34,20 @@ final class GannyuEngine {
         }
     }
 
-    func entryCount() -> Int32 {
+    public func entryCount() -> Int32 {
         guard let handle else {
             return -1
         }
         return gannyu_pipeline_entry_count(handle)
     }
 
-    func retrieve(_ input: String) throws -> String {
+    public func retrieve(_ input: String) throws -> String {
         try jsonCall(input) { handle, text, out in
             gannyu_pipeline_retrieve(handle, text, out)
         }
     }
 
-    func compose(_ input: String) throws -> String {
+    public func compose(_ input: String) throws -> String {
         try jsonCall(input) { handle, text, out in
             gannyu_pipeline_compose(handle, text, out)
         }
@@ -55,7 +55,7 @@ final class GannyuEngine {
 
     private func jsonCall(
         _ input: String,
-        run: (UnsafeMutablePointer<GannyuPipelineHandle>, UnsafePointer<CChar>, UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>) -> Int32
+        run: (OpaquePointer?, UnsafePointer<CChar>, UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>) -> Int32
     ) throws -> String {
         guard let handle else {
             throw GannyuEngineError.status(-1, "pipeline not initialized")

@@ -24,3 +24,6 @@ def test_macos_package_declares_host_and_smoke_targets() -> None:
     assert 'link "gannyu_input_ffi"' in (
         ROOT / "platforms/macos/Sources/CGannyuInput/module.modulemap"
     ).read_text(encoding="utf-8")
+    assert '#include "../../../../crates/ffi/include/gannyu_input.h"' in (
+        ROOT / "platforms/macos/Sources/CGannyuInput/gannyu_input.h"
+    ).read_text(encoding="utf-8")
