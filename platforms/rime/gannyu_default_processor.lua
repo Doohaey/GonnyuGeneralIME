@@ -24,8 +24,7 @@ function M.func(key, env)
     return 2
   end
   local repr = key:repr()
-  if repr == "space"
-    or repr:match("^[0-9]$")
+  if repr:match("^[0-9]$")
     or repr == "Left"
     or repr == "Right"
     or repr == "Up"
