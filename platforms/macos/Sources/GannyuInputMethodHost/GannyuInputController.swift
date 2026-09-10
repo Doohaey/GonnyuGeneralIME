@@ -21,9 +21,20 @@ final class GannyuInputController: IMKInputController {
         guard let server = server() else {
             return nil
         }
-        let window = IMKCandidates(server: server, panelType: kIMKSingleRowSteppingCandidatePanel)
+        let window = IMKCandidates(server: server, panelType: kIMKSingleColumnScrollingCandidatePanel)
         window?.setAttributes([
             IMKCandidatesSendServerKeyEventFirst: NSNumber(value: true),
+        ])
+        window?.setSelectionKeys([
+            NSNumber(value: kVK_ANSI_1),
+            NSNumber(value: kVK_ANSI_2),
+            NSNumber(value: kVK_ANSI_3),
+            NSNumber(value: kVK_ANSI_4),
+            NSNumber(value: kVK_ANSI_5),
+            NSNumber(value: kVK_ANSI_6),
+            NSNumber(value: kVK_ANSI_7),
+            NSNumber(value: kVK_ANSI_8),
+            NSNumber(value: kVK_ANSI_9),
         ])
         return window
     }()
@@ -219,6 +230,23 @@ final class GannyuInputController: IMKInputController {
         commitCandidate(at: index, client: client())
     }
 
+    @objc(candidateSelectionChanged:)
+    override func candidateSelectionChanged(_ candidateString: NSAttributedString!) {
+        let selectedIndex = candidatesWindow?.selectedCandidate() ?? NSNotFound
+        if selectedIndex != NSNotFound, currentCandidates.indices.contains(selectedIndex) {
+            showAnnotation(for: currentCandidates[selectedIndex])
+            return
+        }
+        guard
+            let candidateString,
+            let index = currentCandidates.firstIndex(where: { $0.text == candidateString.string })
+        else {
+            hideAnnotation()
+            return
+        }
+        showAnnotation(for: currentCandidates[index])
+    }
+
     private func refreshCandidates(client sender: Any!) {
         bufferCursor = min(max(bufferCursor, 0), buffer.count)
         currentCandidates = (try? engine?.retrieveCandidates(buffer)) ?? []
@@ -234,6 +262,7 @@ final class GannyuInputController: IMKInputController {
         }
         candidatesWindow?.update()
         candidatesWindow?.show(kIMKLocateCandidatesBelowHint)
+        showAnnotation(for: currentCandidates[0])
     }
 
     private func commitCandidate(at index: Int, client sender: Any!) {
@@ -351,11 +380,39 @@ final class GannyuInputController: IMKInputController {
     }
 
     private func hideCandidates() {
+        hideAnnotation()
         candidatesWindow?.hide()
     }
 
     private func nsLength(of string: String) -> Int {
         (string as NSString).length
+    }
+
+    private func showAnnotation(for candidate: GannyuRetrievedCandidate) {
+        guard let text = annotationText(for: candidate), !text.isEmpty else {
+            hideAnnotation()
+            return
+        }
+        let attributed = NSAttributedString(
+            string: text,
+            attributes: [
+                .font: NSFont.systemFont(ofSize: NSFont.smallSystemFontSize),
+                .foregroundColor: NSColor.secondaryLabelColor,
+            ]
+        )
+        candidatesWindow?.showAnnotation(attributed)
+    }
+
+    private func hideAnnotation() {
+        candidatesWindow?.hideChild()
+    }
+
+    private func annotationText(for candidate: GannyuRetrievedCandidate) -> String? {
+        let annotation = candidate.annotation.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !annotation.isEmpty {
+            return annotation
+        }
+        return candidate.reading?.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private func candidateIndex(for string: String) -> Int? {
