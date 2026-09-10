@@ -56,6 +56,7 @@ def test_builds_rime_dictionary_annotations_and_relations(tmp_path: Path) -> Non
     assert "dictionary: gannyu_lancong" in schema
     assert "schema_id: gannyu_lancong" in schema
     assert "name: 南" in schema
+    assert "menu:\n  page_size: 10" in schema
     assert "0123456789" not in schema
     assert "fuzz/^G" in schema
     assert "- xform/^G//" in schema
@@ -217,6 +218,19 @@ def test_lua_filter_rebuilds_sentence_readings_and_cleans_internal_marker() -> N
 
     assert "sentence_reading(candidate.text, data)" in source
     assert ':gsub("^G", ""):gsub(" G", " ")' in source
+
+
+def test_default_candidates_are_guarded_to_mobile_rime_frontends() -> None:
+    source = (
+        Path(__file__).resolve().parents[1] / "platforms" / "rime" / "gannyu_default_processor.lua"
+    ).read_text(encoding="utf-8")
+
+    assert 'distribution == "trime"' in source
+    assert 'distribution == "hamster"' in source
+    assert 'distribution == "irime"' in source
+    assert 'user_data:find("/data/user/", 1, true)' in source
+    assert 'user_data:find("/var/mobile/", 1, true)' in source
+    assert "if not is_mobile_rime() then" in source
 
 
 def test_fuzzy_rules_keep_core_directions_and_non_chainable_boundary() -> None:

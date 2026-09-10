@@ -1,5 +1,16 @@
 local marker = "`"
 
+local function is_mobile_rime()
+  local distribution = (rime_api:get_distribution_code_name() or ""):lower()
+  if distribution == "trime" or distribution == "hamster" or distribution == "irime" then
+    return true
+  end
+  local user_data = (rime_api:get_user_data_dir() or ""):lower()
+  return user_data:find("/data/user/", 1, true)
+    or user_data:find("/data/data/", 1, true)
+    or user_data:find("/var/mobile/", 1, true)
+end
+
 local function arm(env, context)
   context = context or env.engine.context
   if not env.suppress and not context:get_option("ascii_mode") and context.input == "" then
@@ -38,6 +49,9 @@ function M.func(key, env)
 end
 
 function M.init(env)
+  if not is_mobile_rime() then
+    return
+  end
   env.suppress = false
   local context = env.engine.context
   env.update_connection = context.update_notifier:connect(function(updated)

@@ -51,6 +51,9 @@ translator:
   enable_completion: true
   spelling_hints: 8
 
+menu:
+  page_size: 10
+
 punctuator:
   import_preset: default
 
