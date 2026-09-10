@@ -14,6 +14,7 @@ final class GannyuInputController: IMKInputController {
     private var buffer = ""
     private var cachedText = ""
     private var currentCandidates: [GannyuRetrievedCandidate] = []
+    private var isActive = false
 
     override init!(server: IMKServer!, delegate: Any!, client inputClient: Any!) {
         super.init(server: server, delegate: delegate, client: inputClient)
@@ -24,6 +25,34 @@ final class GannyuInputController: IMKInputController {
 
     @objc(inputText:client:)
     override func inputText(_ string: String!, client sender: Any!) -> Bool {
+        processText(string, client: sender)
+    }
+
+    // InputMethodKit offers this event path when an input method does not ship a
+    // key-binding dictionary.  Without it, printable keys fall through to the
+    // client and Gonnyu appears to be an English keyboard.
+    @objc(inputText:key:modifiers:client:)
+    override func inputText(_ string: String!, key keyCode: Int, modifiers flags: Int, client sender: Any!) -> Bool {
+        // Keep command/control shortcuts with the focused application.
+        let shortcutModifiers = NSEvent.ModifierFlags(rawValue: UInt(flags))
+        if !shortcutModifiers.intersection([.command, .control, .function]).isEmpty {
+            return false
+        }
+        return processText(string, client: sender)
+    }
+
+    @objc(activateServer:)
+    override func activateServer(_ sender: Any!) {
+        isActive = true
+    }
+
+    @objc(deactivateServer:)
+    override func deactivateServer(_ sender: Any!) {
+        isActive = false
+        clearComposition(client: sender)
+    }
+
+    private func processText(_ string: String!, client sender: Any!) -> Bool {
         guard let string else {
             return false
         }
