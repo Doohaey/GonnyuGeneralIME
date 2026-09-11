@@ -59,6 +59,7 @@ def test_windows_registers_its_ui_less_candidate_capabilities() -> None:
 
 def test_windows_search_provider_wiring_is_present() -> None:
     source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
+    categories = source.split("static const GUID kSupportedCategories[]", 1)[1].split("};", 1)[0]
     assert "ITfFnSearchCandidateProvider" in source
     assert "ITfFunctionProvider" in source
     assert "ITfCandidateList" in source

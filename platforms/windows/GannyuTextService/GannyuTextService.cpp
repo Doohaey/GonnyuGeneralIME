@@ -36,6 +36,9 @@ static const GUID GannyuProfileGuid =
 // {7A6B9C40-4A1F-4D58-8B2E-9A1C7D3A2F12}
 static const GUID GannyuRegionButtonGuid =
     {0x7a6b9c40, 0x4a1f, 0x4d58, {0x8b, 0x2e, 0x9a, 0x1c, 0x7d, 0x3a, 0x2f, 0x12}};
+// Stable identity for the candidate UI element instance type.
+static const GUID GannyuCandidateUiGuid =
+    {0x7a6b9c41, 0x4a1f, 0x4d58, {0x8b, 0x2e, 0x9a, 0x1c, 0x7d, 0x3a, 0x2f, 0x13}};
 static constexpr LANGID kLangId = 0x0804;
 static constexpr wchar_t kTextServiceDescription[] = L"\u8D63\u8BED\u8F93\u5165\u6CD5";
 static constexpr wchar_t kCandidateWindowClass[] = L"GannyuCandidateWindow";
@@ -143,7 +146,12 @@ public:
     STDMETHODIMP_(ULONG) Release() override { LONG refs = InterlockedDecrement(&refs_); if (!refs) delete this; return static_cast<ULONG>(refs); }
     STDMETHODIMP GetType(GUID *type) override { if (!type) return E_INVALIDARG; *type = CLSID_GannyuTextService; return S_OK; }
     STDMETHODIMP GetDescription(BSTR *description) override { if (!description) return E_INVALIDARG; *description = SysAllocString(L"Gonnyu Search Candidates"); return *description ? S_OK : E_OUTOFMEMORY; }
-    STDMETHODIMP GetFunction(REFGUID, REFIID riid, IUnknown **function) override { if (!function) return E_INVALIDARG; *function = nullptr; return search_ ? search_->QueryInterface(riid, reinterpret_cast<void **>(function)) : E_NOINTERFACE; }
+    STDMETHODIMP GetFunction(REFGUID guid, REFIID riid, IUnknown **function) override {
+        if (!function) return E_INVALIDARG;
+        *function = nullptr;
+        if (!IsEqualGUID(guid, GUID_NULL) || !IsEqualIID(riid, IID_ITfFnSearchCandidateProvider)) return E_NOINTERFACE;
+        return search_ ? search_->QueryInterface(riid, reinterpret_cast<void **>(function)) : E_NOINTERFACE;
+    }
 private:
     LONG refs_; ITfFnSearchCandidateProvider *search_;
 };
@@ -153,10 +161,13 @@ private:
 class GannyuCandidateListUiElement final : public ITfCandidateListUIElementBehavior,
                                             public ITfIntegratableCandidateListUIElement {
 public:
-    GannyuCandidateListUiElement(const std::vector<CandidateItem> *items, size_t *selection,
+    GannyuCandidateListUiElement(ITfContext *context, const std::vector<CandidateItem> *items, size_t *selection,
                                  std::function<void(size_t)> finalize,
-                                 std::function<void()> abort)
-        : refs_(1), items_(items), selection_(selection), finalize_(std::move(finalize)), abort_(std::move(abort)) {}
+                                 std::function<void()> abort,
+                                 std::function<void()> finalizeExact)
+        : refs_(1), context_(context), items_(items), selection_(selection), finalize_(std::move(finalize)),
+          abort_(std::move(abort)), finalizeExact_(std::move(finalizeExact)) { if (context_) context_->AddRef(); }
+    ~GannyuCandidateListUiElement() { if (context_) context_->Release(); }
 
     STDMETHODIMP QueryInterface(REFIID riid, void **ppv) override {
         if (!ppv) return E_POINTER;
@@ -175,11 +186,15 @@ public:
     STDMETHODIMP_(ULONG) AddRef() override { return static_cast<ULONG>(InterlockedIncrement(&refs_)); }
     STDMETHODIMP_(ULONG) Release() override { LONG refs = InterlockedDecrement(&refs_); if (!refs) delete this; return static_cast<ULONG>(refs); }
     STDMETHODIMP GetDescription(BSTR *value) override { if (!value) return E_POINTER; *value = SysAllocString(L"Gonnyu candidates"); return *value ? S_OK : E_OUTOFMEMORY; }
-    STDMETHODIMP GetGUID(GUID *value) override { if (!value) return E_POINTER; *value = GUID_TFCAT_TIP_KEYBOARD; return S_OK; }
+    STDMETHODIMP GetGUID(GUID *value) override { if (!value) return E_POINTER; *value = GannyuCandidateUiGuid; return S_OK; }
     STDMETHODIMP Show(BOOL show) override { shown_ = show; return S_OK; }
     STDMETHODIMP IsShown(BOOL *show) override { if (!show) return E_POINTER; *show = shown_; return S_OK; }
     STDMETHODIMP GetUpdatedFlags(DWORD *flags) override { if (!flags) return E_POINTER; *flags = TF_CLUIE_STRING | TF_CLUIE_COUNT | TF_CLUIE_SELECTION | TF_CLUIE_PAGEINDEX | TF_CLUIE_CURRENTPAGE; return S_OK; }
-    STDMETHODIMP GetDocumentMgr(ITfDocumentMgr **manager) override { if (!manager) return E_POINTER; *manager = nullptr; return E_NOTIMPL; }
+    STDMETHODIMP GetDocumentMgr(ITfDocumentMgr **manager) override {
+        if (!manager) return E_POINTER;
+        *manager = nullptr;
+        return context_ ? context_->GetDocumentMgr(manager) : E_FAIL;
+    }
     STDMETHODIMP GetCount(UINT *count) override { if (!count) return E_POINTER; *count = items_ ? static_cast<UINT>(items_->size()) : 0; return S_OK; }
     STDMETHODIMP GetSelection(UINT *index) override { if (!index) return E_POINTER; if (!items_ || !selection_ || *selection_ >= items_->size()) return S_FALSE; *index = static_cast<UINT>(*selection_); return S_OK; }
     STDMETHODIMP GetString(UINT index, BSTR *value) override { if (!value) return E_POINTER; *value = nullptr; if (!items_ || index >= items_->size()) return E_INVALIDARG; *value = SysAllocString((*items_)[index].text.c_str()); return *value ? S_OK : E_OUTOFMEMORY; }
@@ -193,9 +208,9 @@ public:
     STDMETHODIMP GetSelectionStyle(TfIntegratableCandidateListSelectionStyle *style) override { if (!style) return E_POINTER; *style = STYLE_ACTIVE_SELECTION; return S_OK; }
     STDMETHODIMP OnKeyDown(WPARAM, LPARAM, BOOL *eaten) override { if (!eaten) return E_POINTER; *eaten = FALSE; return S_OK; }
     STDMETHODIMP ShowCandidateNumbers(BOOL *) override { return S_OK; }
-    STDMETHODIMP FinalizeExactCompositionString() override { abort_(); return S_OK; }
+    STDMETHODIMP FinalizeExactCompositionString() override { if (finalizeExact_) finalizeExact_(); return S_OK; }
 private:
-    LONG refs_; const std::vector<CandidateItem> *items_; size_t *selection_; std::function<void(size_t)> finalize_; std::function<void()> abort_; BOOL shown_ = FALSE;
+    LONG refs_; ITfContext *context_; const std::vector<CandidateItem> *items_; size_t *selection_; std::function<void(size_t)> finalize_; std::function<void()> abort_; std::function<void()> finalizeExact_; BOOL shown_ = FALSE;
 };
 
 int ScaleForDpi(int value, UINT dpi) {
@@ -1457,9 +1472,15 @@ private:
         if (candidates_.empty()) { EndCandidateUiElement(); return; }
         if (!candidateUi_) {
             candidateUi_ = new (std::nothrow) GannyuCandidateListUiElement(
-                &candidates_, &selectedIndex_,
+                activeContext_, &candidates_, &selectedIndex_,
                 [this](size_t index) { if (activeContext_) CommitSelectedCandidate(activeContext_, index); },
-                [this]() { Reset(); });
+                [this]() { Reset(); },
+                [this]() {
+                    if (activeContext_ && !buffer_.empty()) {
+                        CommitText(activeContext_, Utf8ToWide(buffer_));
+                    }
+                    Reset();
+                });
             if (!candidateUi_) return;
             BOOL show = TRUE;
             if (FAILED(uiElementMgr_->BeginUIElement(candidateUi_, &show, &candidateUiId_))) {
