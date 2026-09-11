@@ -34,22 +34,11 @@ function M.func(key, env)
   if context.input ~= marker or key:release() then
     return 2
   end
-  local repr = key:repr()
-  -- The mobile default menu is only an idle-state prompt.  Letting a digit
-  -- reach `selector` while its marker is active selects that menu's first
-  -- candidate before the frontend receives the digit.
-  if repr:match("^[0-9]$") then
-    clear_marker(env, context)
-    return 2
-  end
-  if repr == "Left"
-    or repr == "Right"
-    or repr == "Up"
-    or repr == "Down"
-    or repr == "Page_Up"
-    or repr == "Page_Down" then
-    return 2
-  end
+  -- The mobile default menu is an idle-state prompt, not a keyboard-selectable
+  -- composition.  In particular, mobile frontends can use modified arrows to
+  -- switch to a symbol layer; leaving the marker active lets the next symbol
+  -- key reach `selector` and commit the first default candidate.  Dismiss the
+  -- prompt for every key press.  Touch selection is unaffected.
   clear_marker(env, context)
   return 2
 end
