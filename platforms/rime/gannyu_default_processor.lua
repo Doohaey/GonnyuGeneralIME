@@ -48,10 +48,10 @@ function M.func(key, env)
   end
   -- The mobile default menu is an idle-state prompt, not a keyboard-selectable
   -- composition.  Dismiss it for every key press and keep it dismissed until
-  -- a real composition starts.  Returning kNoop is required to let the
-  -- frontend receive symbols, so the unhandled-key notifier cannot re-arm it.
+  -- a real composition starts.  Reject the key after clearing the marker so
+  -- it bypasses selector and is delivered directly to the frontend.
   dismiss_marker(env, context)
-  return 2
+  return 0
 end
 
 function M.init(env)
