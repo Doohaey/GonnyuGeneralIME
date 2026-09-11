@@ -233,6 +233,18 @@ def test_default_candidates_are_guarded_to_mobile_rime_frontends() -> None:
     assert "if not is_mobile_rime() then" in source
 
 
+def test_mobile_default_candidates_do_not_capture_numeric_keys() -> None:
+    source = (
+        Path(__file__).resolve().parents[1] / "platforms" / "rime" / "gannyu_default_processor.lua"
+    ).read_text(encoding="utf-8")
+
+    digit_branch = source.split('if repr:match("^[0-9]$") then', 1)[1].split(
+        'if repr == "Left"', 1
+    )[0]
+    assert "clear_marker(env, context)" in digit_branch
+    assert "return 2" in digit_branch
+
+
 def test_fuzzy_rules_keep_core_directions_and_non_chainable_boundary() -> None:
     rules = load_rules(RULES_PATH)
 

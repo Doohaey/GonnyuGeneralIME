@@ -35,8 +35,14 @@ function M.func(key, env)
     return 2
   end
   local repr = key:repr()
-  if repr:match("^[0-9]$")
-    or repr == "Left"
+  -- The mobile default menu is only an idle-state prompt.  Letting a digit
+  -- reach `selector` while its marker is active selects that menu's first
+  -- candidate before the frontend receives the digit.
+  if repr:match("^[0-9]$") then
+    clear_marker(env, context)
+    return 2
+  end
+  if repr == "Left"
     or repr == "Right"
     or repr == "Up"
     or repr == "Down"
