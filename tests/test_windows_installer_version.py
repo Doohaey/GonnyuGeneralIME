@@ -59,15 +59,24 @@ def test_installer_uses_strict_msi_upgrade_ordering() -> None:
 
 _PS_SNIPPET = """\
 $v = '{cargo_ver}'
-if($v -match '^(\\d+)\\.(\\d+)\\.(\\d+)-pre\\.(\\d+)$'){{
-  $major=[int]$Matches[1];$minor=[int]$Matches[2];$patch=[int]$Matches[3];$n=[int]$Matches[4]
-  if($n -ge 1000 -or ($patch*1001+$n) -gt 65535){{exit 1}}
-  Write-Output ($major+'.'+$minor+'.'+($patch*1001+$n)+'|'+$major+'.'+$minor+'.'+$patch+'.'+$n)
-}} elseif($v -match '^(\\d+)\\.(\\d+)\\.(\\d+)$'){{
-  $major=[int]$Matches[1];$minor=[int]$Matches[2];$patch=[int]$Matches[3]
-  if(($patch*1001+1000) -gt 65535){{exit 1}}
-  Write-Output ($major+'.'+$minor+'.'+($patch*1001+1000)+'|'+$major+'.'+$minor+'.'+$patch+'.65535')
-}} else{{exit 1}}
+$pre = [regex]::Match($v, '^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-pre\\.(?<sequence>\\d+)$')
+if($pre.Success){{
+  $major=[int]$pre.Groups['major'].Value;$minor=[int]$pre.Groups['minor'].Value;$patch=[int]$pre.Groups['patch'].Value;$n=[int]$pre.Groups['sequence'].Value
+  $build=$patch*1001+$n
+  if($n -ge 1000 -or $build -gt 65535){{exit 1}}
+  $msiVersion='{0}.{1}.{2}' -f $major,$minor,$build
+  $bundleVersion='{0}.{1}.{2}.{3}' -f $major,$minor,$patch,$n
+  Write-Output ($msiVersion+'|'+$bundleVersion)
+}} else {{
+  $stable = [regex]::Match($v, '^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$')
+  if(!$stable.Success){{exit 1}}
+  $major=[int]$stable.Groups['major'].Value;$minor=[int]$stable.Groups['minor'].Value;$patch=[int]$stable.Groups['patch'].Value
+  $build=$patch*1001+1000
+  if($build -gt 65535){{exit 1}}
+  $msiVersion='{0}.{1}.{2}' -f $major,$minor,$build
+  $bundleVersion='{0}.{1}.{2}.65535' -f $major,$minor,$patch
+  Write-Output ($msiVersion+'|'+$bundleVersion)
+}}
 """
 
 
