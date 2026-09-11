@@ -13,7 +13,14 @@ end
 
 local function arm(env, context)
   context = context or env.engine.context
-  if not env.suppress and not context:get_option("ascii_mode") and context.input == "" then
+  if env.suppress then
+    return
+  end
+  if context.input ~= "" then
+    env.idle_dismissed = false
+    return
+  end
+  if not env.idle_dismissed and not context:get_option("ascii_mode") then
     context:push_input(marker)
   end
 end
@@ -27,6 +34,11 @@ local function clear_marker(env, context)
   env.suppress = false
 end
 
+local function dismiss_marker(env, context)
+  env.idle_dismissed = true
+  clear_marker(env, context)
+end
+
 local M = {}
 
 function M.func(key, env)
@@ -35,11 +47,10 @@ function M.func(key, env)
     return 2
   end
   -- The mobile default menu is an idle-state prompt, not a keyboard-selectable
-  -- composition.  In particular, mobile frontends can use modified arrows to
-  -- switch to a symbol layer; leaving the marker active lets the next symbol
-  -- key reach `selector` and commit the first default candidate.  Dismiss the
-  -- prompt for every key press.  Touch selection is unaffected.
-  clear_marker(env, context)
+  -- composition.  Dismiss it for every key press and keep it dismissed until
+  -- a real composition starts.  Returning kNoop is required to let the
+  -- frontend receive symbols, so the unhandled-key notifier cannot re-arm it.
+  dismiss_marker(env, context)
   return 2
 end
 
@@ -48,11 +59,9 @@ function M.init(env)
     return
   end
   env.suppress = false
+  env.idle_dismissed = false
   local context = env.engine.context
   env.update_connection = context.update_notifier:connect(function(updated)
-    arm(env, updated)
-  end)
-  env.unhandled_connection = context.unhandled_key_notifier:connect(function(updated)
     arm(env, updated)
   end)
   env.option_connection = context.option_update_notifier:connect(function(updated, option)
@@ -63,17 +72,16 @@ function M.init(env)
       clear_marker(env, updated)
     else
       clear_marker(env, updated)
+      env.idle_dismissed = false
       arm(env, updated)
     end
   end)
+  arm(env, context)
 end
 
 function M.fini(env)
   if env.update_connection then
     env.update_connection:disconnect()
-  end
-  if env.unhandled_connection then
-    env.unhandled_connection:disconnect()
   end
   if env.option_connection then
     env.option_connection:disconnect()

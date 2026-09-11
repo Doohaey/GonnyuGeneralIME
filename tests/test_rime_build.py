@@ -245,6 +245,17 @@ def test_mobile_default_candidates_are_dismissed_before_any_key_reaches_selector
     assert 'repr:match("^[0-9]$")' not in handler
 
 
+def test_mobile_default_candidates_do_not_rearm_after_unhandled_symbols() -> None:
+    source = (
+        Path(__file__).resolve().parents[1] / "platforms" / "rime" / "gannyu_default_processor.lua"
+    ).read_text(encoding="utf-8")
+
+    assert "env.idle_dismissed = true" in source
+    assert "if not env.idle_dismissed and not context:get_option(\"ascii_mode\") then" in source
+    assert "unhandled_key_notifier" not in source
+    assert "arm(env, context)" in source
+
+
 def test_fuzzy_rules_keep_core_directions_and_non_chainable_boundary() -> None:
     rules = load_rules(RULES_PATH)
 
