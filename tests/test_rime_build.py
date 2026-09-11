@@ -51,7 +51,7 @@ def test_builds_rime_dictionary_annotations_and_relations(tmp_path: Path) -> Non
     assert "dictionary: gannyu_lancong" in schema
     assert "schema_id: gannyu_lancong" in schema
     assert "name: 南" in schema
-    assert "menu:\n  page_size: 10" in schema
+    assert "menu:\n  page_size: 9" in schema
     assert "0123456789" not in schema
     assert "fuzz/^G" in schema
     assert "- xform/^G//" in schema

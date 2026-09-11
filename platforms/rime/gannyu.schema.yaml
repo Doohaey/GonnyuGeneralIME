@@ -50,7 +50,7 @@ translator:
   spelling_hints: 8
 
 menu:
-  page_size: 10
+  page_size: 9
 
 punctuator:
   import_preset: default
