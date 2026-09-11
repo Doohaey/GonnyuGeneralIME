@@ -53,3 +53,12 @@ def test_android_candidate_bar_keeps_cache_out_of_the_editor() -> None:
     assert "setComposingText" not in source
     assert 'android:id="@+id/cacheTag"' in layout
     assert 'android:translationY="-12dp"' in layout
+
+
+def test_android_symbol_page_clears_composition_and_writes_symbols_literally() -> None:
+    source = (ROOT / "platforms/android/app/src/main/java/io/gannyu/input/GannyuInputMethodService.kt").read_text(encoding="utf-8")
+
+    assert 'key.label == "123"                           -> { resetState(clearAccumulated = true); symbolPage = true; renderKeyboard() }' in source
+    assert "key.label == \"\\u201C\"" not in source
+    assert "key.label == \"\\u201D\"" not in source
+    assert "else                                         -> currentInputConnection?.commitText(key.label, 1)" in source

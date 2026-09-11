@@ -434,10 +434,11 @@ class GannyuInputMethodService : InputMethodService() {
             key.label == "\u21B5"                        -> handleEnter()
             key.label == "\u7A7A\u683C"                  -> handleSpace()
             key.label == "分词"                            -> appendInput('\'')
-            key.label == "123"                           -> { symbolPage = true; renderKeyboard() }
+            // Entering the symbol page must not carry a pending candidate into
+            // the next key.  Symbol keys are literal input, never a candidate
+            // selection action.
+            key.label == "123"                           -> { resetState(clearAccumulated = true); symbolPage = true; renderKeyboard() }
             key.label == "\u62FC"                        -> { symbolPage = false; renderKeyboard() }
-            key.label == "\u201C"                       -> appendInput('“')
-            key.label == "\u201D"                       -> appendInput('”')
             key.isLetter                                 -> appendInput(key.label.single())
             key.label in PUNCT_AFTER_COMPOSE             -> { maybeCommitComposing(); currentInputConnection?.commitText(key.label, 1) }
             else                                         -> currentInputConnection?.commitText(key.label, 1)
