@@ -15,7 +15,9 @@ codesign --verify --deep --strict "$target_bundle"
 GANNYU_REGISTER_INPUT_SOURCE=1 GANNYU_IMK_SELFTEST=1 \
   "$target_bundle/Contents/MacOS/GannyuInputMethodHost"
 bundle_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$target_bundle/Contents/Info.plist")"
-if ! defaults read com.apple.HIToolbox AppleEnabledInputSources 2>/dev/null | grep -Fq "$bundle_id"; then
+if ! defaults export com.apple.HIToolbox - \
+  | plutil -extract AppleEnabledInputSources xml1 -o - - \
+  | grep -Fq "<string>$bundle_id</string>"; then
   defaults write com.apple.HIToolbox AppleEnabledInputSources -array-add \
     "<dict><key>Bundle ID</key><string>$bundle_id</string><key>InputSourceKind</key><string>Keyboard Input Method</string></dict>"
   defaults write com.apple.HIToolbox AppleEnabledInputSources -array-add \

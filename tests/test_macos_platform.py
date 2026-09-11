@@ -21,6 +21,8 @@ def test_macos_platform_exposes_build_and_smoke_entrypoints() -> None:
     assert "GANNYU_IMK_SELFTEST=1" in bundle_smoke_script
     assert 'Contents/MacOS/GannyuInputMethodHost' in host_script
     assert "~/Library/Input Methods" in install_script or 'Library/Input Methods' in install_script
+    assert "defaults export com.apple.HIToolbox" in install_script
+    assert "<string>$bundle_id</string>" in install_script
 
 
 def test_macos_package_declares_host_and_smoke_targets() -> None:
