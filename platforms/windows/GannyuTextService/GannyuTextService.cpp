@@ -82,6 +82,72 @@ struct CandidateItem {
     ULONG consumedBytes = 0;
 };
 
+class GannyuCandidateString final : public ITfCandidateString {
+public:
+    GannyuCandidateString(ULONG index, std::wstring text) : refs_(1), index_(index), text_(std::move(text)) {}
+    STDMETHODIMP QueryInterface(REFIID riid, void **ppv) override { if (!ppv) return E_POINTER; *ppv = nullptr; if (IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_ITfCandidateString)) { *ppv = static_cast<ITfCandidateString *>(this); AddRef(); return S_OK; } return E_NOINTERFACE; }
+    STDMETHODIMP_(ULONG) AddRef() override { return static_cast<ULONG>(InterlockedIncrement(&refs_)); }
+    STDMETHODIMP_(ULONG) Release() override { LONG refs = InterlockedDecrement(&refs_); if (!refs) delete this; return static_cast<ULONG>(refs); }
+    STDMETHODIMP GetString(BSTR *value) override { if (!value) return E_INVALIDARG; *value = SysAllocString(text_.c_str()); return *value ? S_OK : E_OUTOFMEMORY; }
+    STDMETHODIMP GetIndex(ULONG *index) override { if (!index) return E_INVALIDARG; *index = index_; return S_OK; }
+private:
+    LONG refs_; ULONG index_; std::wstring text_;
+};
+
+class GannyuCandidateEnumerator final : public IEnumTfCandidates {
+public:
+    explicit GannyuCandidateEnumerator(std::vector<std::wstring> values, ULONG position = 0) : refs_(1), values_(std::move(values)), position_(position) {}
+    STDMETHODIMP QueryInterface(REFIID riid, void **ppv) override { if (!ppv) return E_POINTER; *ppv = nullptr; if (IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_IEnumTfCandidates)) { *ppv = static_cast<IEnumTfCandidates *>(this); AddRef(); return S_OK; } return E_NOINTERFACE; }
+    STDMETHODIMP_(ULONG) AddRef() override { return static_cast<ULONG>(InterlockedIncrement(&refs_)); }
+    STDMETHODIMP_(ULONG) Release() override { LONG refs = InterlockedDecrement(&refs_); if (!refs) delete this; return static_cast<ULONG>(refs); }
+    STDMETHODIMP Next(ULONG count, ITfCandidateString **items, ULONG *fetched) override { if (!items || !fetched) return E_INVALIDARG; *fetched = 0; while (*fetched < count && position_ < values_.size()) { items[*fetched] = new (std::nothrow) GannyuCandidateString(static_cast<ULONG>(position_), values_[position_++]); if (!items[*fetched]) return E_OUTOFMEMORY; ++*fetched; } return *fetched == count ? S_OK : S_FALSE; }
+    STDMETHODIMP Skip(ULONG count) override { position_ = std::min(values_.size(), position_ + count); return position_ < values_.size() ? S_OK : S_FALSE; }
+    STDMETHODIMP Reset() override { position_ = 0; return S_OK; }
+    STDMETHODIMP Clone(IEnumTfCandidates **enumerator) override { if (!enumerator) return E_INVALIDARG; *enumerator = new (std::nothrow) GannyuCandidateEnumerator(values_, position_); return *enumerator ? S_OK : E_OUTOFMEMORY; }
+private:
+    LONG refs_; std::vector<std::wstring> values_; size_t position_;
+};
+
+class GannyuCandidateList final : public ITfCandidateList {
+public:
+    explicit GannyuCandidateList(std::vector<std::wstring> values) : refs_(1), values_(std::move(values)) {}
+    STDMETHODIMP QueryInterface(REFIID riid, void **ppv) override { if (!ppv) return E_POINTER; *ppv = nullptr; if (IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_ITfCandidateList)) { *ppv = static_cast<ITfCandidateList *>(this); AddRef(); return S_OK; } return E_NOINTERFACE; }
+    STDMETHODIMP_(ULONG) AddRef() override { return static_cast<ULONG>(InterlockedIncrement(&refs_)); }
+    STDMETHODIMP_(ULONG) Release() override { LONG refs = InterlockedDecrement(&refs_); if (!refs) delete this; return static_cast<ULONG>(refs); }
+    STDMETHODIMP EnumCandidates(IEnumTfCandidates **enumerator) override { if (!enumerator) return E_INVALIDARG; *enumerator = new (std::nothrow) GannyuCandidateEnumerator(values_); return *enumerator ? S_OK : E_OUTOFMEMORY; }
+    STDMETHODIMP GetCandidate(ULONG index, ITfCandidateString **candidate) override { if (!candidate) return E_INVALIDARG; *candidate = nullptr; if (index >= values_.size()) return E_FAIL; *candidate = new (std::nothrow) GannyuCandidateString(index, values_[index]); return *candidate ? S_OK : E_OUTOFMEMORY; }
+    STDMETHODIMP GetCandidateNum(ULONG *count) override { if (!count) return E_INVALIDARG; *count = static_cast<ULONG>(values_.size()); return S_OK; }
+    STDMETHODIMP SetResult(ULONG, TfCandidateResult) override { return S_OK; }
+private:
+    LONG refs_; std::vector<std::wstring> values_;
+};
+
+class GannyuSearchCandidateProvider final : public ITfFnSearchCandidateProvider {
+public:
+    explicit GannyuSearchCandidateProvider(std::function<std::vector<std::wstring>(const std::wstring &)> retrieve) : refs_(1), retrieve_(std::move(retrieve)) {}
+    STDMETHODIMP QueryInterface(REFIID riid, void **ppv) override { if (!ppv) return E_POINTER; *ppv = nullptr; if (IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_ITfFnSearchCandidateProvider)) { *ppv = static_cast<ITfFnSearchCandidateProvider *>(this); AddRef(); return S_OK; } return E_NOINTERFACE; }
+    STDMETHODIMP_(ULONG) AddRef() override { return static_cast<ULONG>(InterlockedIncrement(&refs_)); }
+    STDMETHODIMP_(ULONG) Release() override { LONG refs = InterlockedDecrement(&refs_); if (!refs) delete this; return static_cast<ULONG>(refs); }
+    STDMETHODIMP GetSearchCandidates(BSTR query, BSTR, ITfCandidateList **list) override { if (!list) return E_INVALIDARG; *list = nullptr; if (!query || !retrieve_) return S_FALSE; auto values = retrieve_(query); if (values.empty()) return S_FALSE; *list = new (std::nothrow) GannyuCandidateList(std::move(values)); return *list ? S_OK : E_OUTOFMEMORY; }
+    STDMETHODIMP SetResult(BSTR, BSTR, BSTR) override { return S_OK; }
+private:
+    LONG refs_; std::function<std::vector<std::wstring>(const std::wstring &)> retrieve_;
+};
+
+class GannyuFunctionProvider final : public ITfFunctionProvider {
+public:
+    explicit GannyuFunctionProvider(ITfFnSearchCandidateProvider *search) : refs_(1), search_(search) { if (search_) search_->AddRef(); }
+    ~GannyuFunctionProvider() { if (search_) search_->Release(); }
+    STDMETHODIMP QueryInterface(REFIID riid, void **ppv) override { if (!ppv) return E_POINTER; *ppv = nullptr; if (IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_ITfFunctionProvider)) { *ppv = static_cast<ITfFunctionProvider *>(this); AddRef(); return S_OK; } return E_NOINTERFACE; }
+    STDMETHODIMP_(ULONG) AddRef() override { return static_cast<ULONG>(InterlockedIncrement(&refs_)); }
+    STDMETHODIMP_(ULONG) Release() override { LONG refs = InterlockedDecrement(&refs_); if (!refs) delete this; return static_cast<ULONG>(refs); }
+    STDMETHODIMP GetType(GUID *type) override { if (!type) return E_INVALIDARG; *type = CLSID_GannyuTextService; return S_OK; }
+    STDMETHODIMP GetDescription(BSTR *description) override { if (!description) return E_INVALIDARG; *description = SysAllocString(L"Gonnyu Search Candidates"); return *description ? S_OK : E_OUTOFMEMORY; }
+    STDMETHODIMP GetFunction(REFGUID, REFIID riid, IUnknown **function) override { if (!function) return E_INVALIDARG; *function = nullptr; return search_ ? search_->QueryInterface(riid, reinterpret_cast<void **>(function)) : E_NOINTERFACE; }
+private:
+    LONG refs_; ITfFnSearchCandidateProvider *search_;
+};
+
 // TSF view of the existing candidate model.  UI-less hosts (including Windows
 // Search) receive this object instead of being forced to discover our HWND.
 class GannyuCandidateListUiElement final : public ITfCandidateListUIElementBehavior,
@@ -663,6 +729,18 @@ public:
             SaveRegionId(regionId_);
         }
         EnsurePipeline();
+        searchProvider_ = new (std::nothrow) GannyuSearchCandidateProvider([this](const std::wstring &query) {
+            std::vector<std::wstring> values;
+            if (!pipeline_) return values;
+            const std::string input = WideToUtf8(query);
+            char *json = nullptr;
+            if (gannyu_pipeline_retrieve(pipeline_, input.c_str(), &json) == 0 && json) {
+                for (const auto &candidate : ParseCandidates(json)) values.push_back(candidate.text);
+                gannyu_string_destroy(json);
+            }
+            return values;
+        });
+        if (searchProvider_) functionProvider_ = new (std::nothrow) GannyuFunctionProvider(searchProvider_);
         langBarButton_ = new (std::nothrow) GannyuRegionButton(this);
     }
 
@@ -676,6 +754,8 @@ public:
         }
         SetActiveContext(nullptr);
         DestroyCandidateWindow();
+        ReleaseUnknown(functionProvider_);
+        ReleaseUnknown(searchProvider_);
         g_moduleRefs.fetch_sub(1);
     }
 
@@ -734,6 +814,13 @@ public:
         if (SUCCEEDED(threadMgr_->QueryInterface(IID_ITfKeystrokeMgr, reinterpret_cast<void **>(&keystrokeMgr_))) && keystrokeMgr_) {
             keystrokeMgr_->AdviseKeyEventSink(clientId_, static_cast<ITfKeyEventSink *>(this), TRUE);
         }
+        if (functionProvider_) {
+            ITfSourceSingle *single = nullptr;
+            if (SUCCEEDED(threadMgr_->QueryInterface(IID_ITfSourceSingle, reinterpret_cast<void **>(&single))) && single) {
+                single->AdviseSingleSink(clientId_, IID_ITfFunctionProvider, functionProvider_);
+                single->Release();
+            }
+        }
         threadMgr_->QueryInterface(IID_ITfUIElementMgr, reinterpret_cast<void **>(&uiElementMgr_));
         if (langBarButton_ && regionIds_.size() > 1) {
             ITfLangBarItemMgr *langBarMgr = nullptr;
@@ -770,6 +857,13 @@ public:
             keystrokeMgr_->UnadviseKeyEventSink(clientId_);
             keystrokeMgr_->Release();
             keystrokeMgr_ = nullptr;
+        }
+        if (functionProvider_ && threadMgr_) {
+            ITfSourceSingle *single = nullptr;
+            if (SUCCEEDED(threadMgr_->QueryInterface(IID_ITfSourceSingle, reinterpret_cast<void **>(&single))) && single) {
+                single->UnadviseSingleSink(clientId_, IID_ITfFunctionProvider);
+                single->Release();
+            }
         }
         EndCandidateUiElement();
         ReleaseUnknown(uiElementMgr_);
@@ -1957,6 +2051,8 @@ private:
     DWORD thmgrCookie_ = TF_INVALID_COOKIE;
     DWORD profileCookie_ = TF_INVALID_COOKIE;
     GannyuPipelineHandle *pipeline_ = nullptr;
+    GannyuSearchCandidateProvider *searchProvider_ = nullptr;
+    GannyuFunctionProvider *functionProvider_ = nullptr;
     GannyuRegionButton *langBarButton_ = nullptr;
     bool langBarItemAdded_ = false;
     std::string regionId_;

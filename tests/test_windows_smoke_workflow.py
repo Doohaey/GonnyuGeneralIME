@@ -55,6 +55,16 @@ def test_windows_registers_its_ui_less_candidate_capabilities() -> None:
     assert "GUID_TFCAT_TIP_KEYBOARD" in categories
     assert "GUID_TFCAT_TIPCAP_UIELEMENTENABLED" in categories
     assert "GUID_TFCAT_TIPCAP_IMMERSIVESUPPORT" in categories
+
+
+def test_windows_search_provider_wiring_is_present() -> None:
+    source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
+    assert "ITfFnSearchCandidateProvider" in source
+    assert "ITfFunctionProvider" in source
+    assert "ITfCandidateList" in source
+    assert "IEnumTfCandidates" in source
+    assert "AdviseSingleSink(clientId_, IID_ITfFunctionProvider" in source
+    assert "GetSearchCandidates" in source
     for unsupported in (
         "GUID_TFCAT_TIPCAP_SECUREMODE",
         "GUID_TFCAT_TIPCAP_COMLESS",
