@@ -20,31 +20,18 @@ if not defined GANNYU_RESOURCE_KEY (
 rem Convert Cargo semver to Windows installer versions.
 rem  Stable  X.Y.Z        -> MSI X.Y.Z,       Bundle X.Y.Z.0
 rem  Pre     X.Y.Z-pre.N  -> MSI X.Y.(Z-1),   Bundle X.Y.(Z-1).N  (requires Z > 0)
-set "PS_TEMP=%TEMP%\gannyu_ver_%RANDOM%"
-(
-  echo $v = '%GONNYU_VERSION%'
-  echo if ($v -match '^^(\d+)\.(\d+)\.(\d+)-pre\.(\d+)$') {
-  echo   $z = [int]$Matches[3]
-  echo   if ($z -eq 0) { [Console]::Error.WriteLine('Pre-release on patch 0: ' + $v + '. Use X.Y.1-pre.N.'); exit 1 }
-  echo   $b = '{0}.{1}.{2}' -f $Matches[1], $Matches[2], ($z - 1)
-  echo   ('{0}|{1}.{2}' -f $b, $b, $Matches[4])
-  echo } elseif ($v -match '^^(\d+\.\d+\.\d+)$') {
-  echo   ($v + '|' + $v + '.0')
-  echo } else {
-  echo   [Console]::Error.WriteLine('Unexpected version: ' + $v); exit 1
-  echo }
-) > "%PS_TEMP%.ps1"
-powershell -NoProfile -ExecutionPolicy Bypass -File "%PS_TEMP%.ps1" > "%PS_TEMP%.out"
+set "PS_OUT=%TEMP%\gannyu_ver_%RANDOM%.out"
+powershell -NoProfile -Command "$v='%GONNYU_VERSION%'; if($v -match '^(\d+)\.(\d+)\.(\d+)-pre\.(\d+)$'){$z=[int]$Matches[3]; if($z -eq 0){exit 1}; $b=('{0}.{1}.{2}' -f $Matches[1],$Matches[2],($z-1)); Write-Output ('{0}|{1}.{2}' -f $b,$b,$Matches[4])} elseif($v -match '^\d+\.\d+\.\d+$'){Write-Output ($v+'|'+$v+'.0')} else{exit 1}" > "%PS_OUT%"
 if errorlevel 1 (
-  del "%PS_TEMP%.ps1" "%PS_TEMP%.out" >nul 2>nul
+  del "%PS_OUT%" >nul 2>nul
   echo Failed to compute installer version from GONNYU_VERSION=%GONNYU_VERSION%.
   exit /b 1
 )
-for /f "tokens=1,2 delims=|" %%a in ('type "%PS_TEMP%.out"') do (
+for /f "tokens=1,2 delims=|" %%a in ('type "%PS_OUT%"') do (
   set "MSI_PRODUCT_VERSION=%%a"
   set "BUNDLE_PRODUCT_VERSION=%%b"
 )
-del "%PS_TEMP%.ps1" "%PS_TEMP%.out" >nul 2>nul
+del "%PS_OUT%" >nul 2>nul
 if not defined MSI_PRODUCT_VERSION (
   echo Installer version computation yielded no output for GONNYU_VERSION=%GONNYU_VERSION%.
   exit /b 1
