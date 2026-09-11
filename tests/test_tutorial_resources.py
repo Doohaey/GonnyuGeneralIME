@@ -68,3 +68,4 @@ def test_android_symbol_page_clears_composition_and_writes_symbols_literally() -
     assert "BACKSPACE_INITIAL_DELAY_MS" in source
     assert "BACKSPACE_REPEAT_INTERVAL_MS" in source
     assert "stopBackspaceRepeat()" in source
+    assert 'r4.addView(keyBtn(KeySpec("\\u62FC", 1.2f), gap)); r4.addView(keyBtn(KeySpec("\\uFF08", 1f), gap))' in source
