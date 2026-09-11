@@ -39,7 +39,9 @@ def test_builds_rime_dictionary_annotations_and_relations(tmp_path: Path) -> Non
         for character in line.split("\t")[1]
     )
     assert '["䁐牛"] = {"放牛"}' in data
-    assert '["我"] = {"ngo", "wo"}' in data
+    # Associations contain related headwords, not reading spellings.  Keep this
+    # regression check tied to the canonical 南昌 relation in the source data.
+    assert '["我"] = {"咱"}' in data
     assert "\t`\t" not in dictionary
     assert " defaults = {" not in data
     assert "gannyu_default_processor" not in schema
