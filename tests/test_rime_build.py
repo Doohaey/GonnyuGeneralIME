@@ -240,7 +240,7 @@ def test_mobile_default_candidates_are_dismissed_before_any_key_reaches_selector
 
     handler = source.split("function M.func(key, env)", 1)[1].split("function M.init", 1)[0]
     assert "key:release()" in handler
-    assert "clear_marker(env, context)" in handler
+    assert "dismiss_marker(env, context)" in handler
     assert 'repr == "Up"' not in handler
     assert 'repr:match("^[0-9]$")' not in handler
 
