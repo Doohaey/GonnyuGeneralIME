@@ -68,6 +68,7 @@ pub struct GannyuPipelineHandle {
     _resource_fds: Vec<std::fs::File>,
     manifest_path: Option<String>,
     region_id: Option<String>,
+    user_data_dir: Option<String>,
 }
 
 const STATUS_OK: c_int = 0;
@@ -265,12 +266,24 @@ pub unsafe extern "C" fn gannyu_pipeline_create(
     out_handle: *mut *mut GannyuPipelineHandle,
 ) -> c_int {
     clear_last_error();
-    pipeline_create(manifest_path, region_id, out_handle)
+    pipeline_create(manifest_path, region_id, ptr::null(), out_handle)
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn gannyu_pipeline_create_with_user_data_dir(
+    manifest_path: *const c_char,
+    region_id: *const c_char,
+    user_data_dir: *const c_char,
+    out_handle: *mut *mut GannyuPipelineHandle,
+) -> c_int {
+    clear_last_error();
+    pipeline_create(manifest_path, region_id, user_data_dir, out_handle)
 }
 
 unsafe fn pipeline_create(
     manifest_path: *const c_char,
     region_id: *const c_char,
+    user_data_dir: *const c_char,
     out_handle: *mut *mut GannyuPipelineHandle,
 ) -> c_int {
     if out_handle.is_null() {
@@ -298,6 +311,9 @@ unsafe fn pipeline_create(
     let caller_manifest = requested_manifest.as_ref().map(PathBuf::from);
     let requested_region = cstr_to_str(region_id).filter(|value| !value.is_empty());
     let requested_region_id = requested_region.map(str::to_owned);
+    let requested_user_data_dir = cstr_to_str(user_data_dir)
+        .filter(|value| !value.is_empty())
+        .map(str::to_owned);
 
     // Determine manifest path and optional temp dir:
     // 1. Caller-provided valid manifest → use filesystem (dev mode)
@@ -333,7 +349,10 @@ unsafe fn pipeline_create(
             Err(error) => return load_failure("default region selection failed", error),
         },
     };
-    let pipeline = match InputPipeline::load(&resource) {
+    let pipeline = match InputPipeline::load_with_user_data_dir(
+        &resource,
+        requested_user_data_dir.as_deref().map(PathBuf::from).as_deref(),
+    ) {
         Ok(value) => value,
         Err(error) => return load_failure("dictionary pipeline load failed", error),
     };
@@ -351,6 +370,7 @@ unsafe fn pipeline_create(
         _resource_fds: resource_fds,
         manifest_path: requested_manifest,
         region_id: requested_region_id,
+        user_data_dir: requested_user_data_dir,
     });
     *out_handle = Box::into_raw(handle);
     STATUS_OK
@@ -597,12 +617,19 @@ pub unsafe extern "C" fn gannyu_pipeline_user_data_clear(
         .region_id
         .as_ref()
         .map(|value| CString::new(value.as_str()).unwrap());
+    let user_data_dir = current
+        .user_data_dir
+        .as_ref()
+        .map(|value| CString::new(value.as_str()).unwrap());
     let mut replacement = ptr::null_mut();
-    let status = gannyu_pipeline_create(
+    let status = gannyu_pipeline_create_with_user_data_dir(
         manifest
             .as_ref()
             .map_or(ptr::null(), |value| value.as_ptr()),
         region.as_ref().map_or(ptr::null(), |value| value.as_ptr()),
+        user_data_dir
+            .as_ref()
+            .map_or(ptr::null(), |value| value.as_ptr()),
         &mut replacement,
     );
     if status != STATUS_OK || replacement.is_null() {
@@ -618,6 +645,7 @@ pub unsafe extern "C" fn gannyu_pipeline_user_data_clear(
     current._resource_fds = replacement._resource_fds;
     current.manifest_path = replacement.manifest_path;
     current.region_id = replacement.region_id;
+    current.user_data_dir = replacement.user_data_dir;
     STATUS_OK
 }
 

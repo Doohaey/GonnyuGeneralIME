@@ -189,6 +189,14 @@ fn load_default_words(
 
 impl InputPipeline {
     pub fn empty() -> InputPipeline {
+        Self::empty_with_user_data_dir(None)
+    }
+
+    fn empty_with_user_data_dir(user_data_dir: Option<&Path>) -> InputPipeline {
+        let user_dict = match user_data_dir {
+            Some(directory) => UserDictionary::load_or_create_at(directory.join("user_dictionary.tsv")),
+            None => UserDictionary::load_or_create(),
+        };
         InputPipeline {
             slang: SlangBook::empty(),
             hints: MandarinHintBook::empty(),
@@ -199,7 +207,7 @@ impl InputPipeline {
                 entries: Vec::new(),
             },
             tone_values: HashMap::new(),
-            user_dict: UserDictionary::load_or_create(),
+            user_dict,
             frequency_boosts: HashMap::new(),
             boosts_path: PathBuf::new(),
             sentence_prefix_cache: RefCell::new(HashMap::new()),
@@ -207,7 +215,14 @@ impl InputPipeline {
     }
 
     pub fn load(resource: &RegionResource) -> Result<InputPipeline, PipelineError> {
-        let mut pipeline = InputPipeline::empty();
+        Self::load_with_user_data_dir(resource, None)
+    }
+
+    pub fn load_with_user_data_dir(
+        resource: &RegionResource,
+        user_data_dir: Option<&Path>,
+    ) -> Result<InputPipeline, PipelineError> {
+        let mut pipeline = InputPipeline::empty_with_user_data_dir(user_data_dir);
 
         // Load dictionary from the configured split files.
         let dict_files: Vec<&str> = [
@@ -936,6 +951,23 @@ mod tests {
         pipeline.user_dict = UserDictionary::empty_at(path);
         pipeline.boosts_path = PathBuf::new();
         pipeline
+    }
+
+    #[test]
+    fn explicit_user_data_directory_controls_user_dictionary_path() {
+        let directory = std::env::temp_dir().join(format!(
+            "gannyu_user_data_{}_{}",
+            std::process::id(),
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        let pipeline = InputPipeline::empty_with_user_data_dir(Some(&directory));
+        assert_eq!(
+            pipeline.user_dict.path(),
+            directory.join("user_dictionary.tsv").as_path()
+        );
     }
 
     #[test]

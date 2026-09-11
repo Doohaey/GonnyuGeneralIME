@@ -9,7 +9,9 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
         let window = UIWindow(frame: UIScreen.main.bounds)
-        window.rootViewController = UINavigationController(rootViewController: RegionSettingsViewController())
+        window.rootViewController = UINavigationController(
+            rootViewController: RegionSettingsViewController(style: .insetGrouped)
+        )
         window.makeKeyAndVisible()
         self.window = window
         return true

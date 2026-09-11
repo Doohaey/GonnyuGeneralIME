@@ -65,7 +65,10 @@ const USER_DICT_HEADER: &str =
 
 impl UserDictionary {
     pub fn load_or_create() -> Self {
-        let path = default_user_dict_path();
+        Self::load_or_create_at(default_user_dict_path())
+    }
+
+    pub fn load_or_create_at(path: PathBuf) -> Self {
         let mut entries = HashMap::new();
         if path.exists() {
             if let Ok(content) = fs::read_to_string(&path) {

@@ -13,10 +13,17 @@ def test_ios_platform_declares_host_app_keyboard_extension_and_build_entrypoint(
     assert "GannyuKeyboard" in project
     assert "com.apple.product-type.app-extension" in project
     assert "Embed Keyboard Extension" in project
+    assert "GannyuInput/Info.plist" in project
+    assert "GannyuKeyboard/Info.plist" in project
+    assert "PRODUCT_NAME = GonnyuInputMethod" in project
+    assert "PRODUCT_NAME = GonnyuKeyboard" in project
+    assert "files = (A00000000000000000000003, A00000000000000000000004, );" in project
     assert "aarch64-apple-ios" in build
     assert "aarch64-apple-ios-sim" in build
     assert "x86_64-apple-ios" in build
     assert "-create-xcframework" in build
+    assert "lipo -create" in build
+    assert "generic/platform=iOS" in build
     assert "archive" in build
     assert "DEVELOPMENT_TEAM" in build
     assert "GANNYU_APP_GROUP" in build
@@ -32,10 +39,12 @@ def test_ios_keyboard_and_host_share_manifest_driven_region_selection() -> None:
     assert "UserDefaults(suiteName: group)" in support
     assert "?? .standard" not in support
     assert "regions.contains(where:" in support
-    assert "GannyuAppleEngine(regionID: selected)" in keyboard
+    assert "GannyuAppleEngine(" in keyboard
+    assert "userDataDirectory: store.userDataDirectory" in keyboard
     assert "store.select(region.id, in: regions)" in host
     assert "com.apple.keyboard-service" in extension_info
     assert "RequestsOpenAccess" in extension_info
+    assert "<true/>" in extension_info
 
 
 def test_ios_keyboard_keeps_symbol_input_outside_candidate_selection() -> None:
@@ -60,3 +69,21 @@ def test_ios_keyboard_matches_android_composition_and_default_candidate_rules() 
     assert "candidate.consumedBytes" in keyboard
     assert "saveAccumulatedUserWord()" in keyboard
     assert "gannyu_pipeline_user_dict_add" in support
+    assert "gannyu_pipeline_create_with_user_data_dir" in support
+    assert "containerURL" in support
+    assert "userDataDirectory" in support
+
+
+def test_ios_host_matches_android_user_data_controls() -> None:
+    host = (IOS / "Sources" / "GannyuInput" / "RegionSettingsViewController.swift").read_text(
+        encoding="utf-8"
+    )
+    support = (IOS / "Sources" / "GannyuAppleSupport" / "GannyuAppleEngine.swift").read_text(
+        encoding="utf-8"
+    )
+
+    assert "GannyuAppleUserDataScope" in support
+    assert "gannyu_pipeline_user_data_clear" in support
+    assert "清空用户词" in host
+    assert "清空学习词频" in host
+    assert "清空全部用户数据" in host

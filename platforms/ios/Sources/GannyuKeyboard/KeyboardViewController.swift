@@ -84,17 +84,20 @@ final class KeyboardViewController: UIInputViewController {
             keyboardStack.removeArrangedSubview($0)
             $0.removeFromSuperview()
         }
-        let rows = symbolPage
-            ? [
+        let rows: [[String]]
+        if symbolPage {
+            rows = [
                 ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
                 ["【", "】", "“", "”", "〈", "〉", "《", "》", "：", "；"],
                 ["，", "、", "。", "？", "！", "…", "—", "～", "·", "／"],
             ]
-            : [
+        } else {
+            rows = [
                 "qwertyuiop".map(String.init),
                 "asdfghjkl".map(String.init),
                 ["分词"] + "zxcvbnm".map(String.init) + ["⌫"],
             ]
+        }
         for row in rows {
             keyboardStack.addArrangedSubview(keyRow(row))
         }
@@ -286,7 +289,10 @@ final class KeyboardViewController: UIInputViewController {
         guard let loadedRegions = try? GannyuAppleEngine.regions() else { return }
         regions = loadedRegions
         guard let selected = store.currentID(in: regions), force || selected != regionID else { return }
-        engine = try? GannyuAppleEngine(regionID: selected)
+        engine = try? GannyuAppleEngine(
+            regionID: selected,
+            userDataDirectory: store.userDataDirectory
+        )
         regionID = selected
         buffer = ""
         clearLearningState()

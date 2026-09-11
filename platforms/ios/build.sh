@@ -30,15 +30,19 @@ done
 
 ffi_root="$output_root/GannyuInputFFI.xcframework"
 headers_root="$output_root/ffi-headers"
+simulator_library="$output_root/libgannyu_input_ffi-simulator.a"
 rm -rf "$ffi_root"
 rm -rf "$headers_root"
 mkdir -p "$headers_root"
 cp "$repo_root/crates/ffi/include/gannyu_input.h" "$headers_root/"
 cp "$script_dir/Sources/CGannyuInput/module.modulemap" "$headers_root/"
+lipo -create \
+  "$repo_root/target/aarch64-apple-ios-sim/release/libgannyu_input_ffi.a" \
+  "$repo_root/target/x86_64-apple-ios/release/libgannyu_input_ffi.a" \
+  -output "$simulator_library"
 xcodebuild -create-xcframework \
   -library "$repo_root/target/aarch64-apple-ios/release/libgannyu_input_ffi.a" -headers "$headers_root" \
-  -library "$repo_root/target/aarch64-apple-ios-sim/release/libgannyu_input_ffi.a" -headers "$headers_root" \
-  -library "$repo_root/target/x86_64-apple-ios/release/libgannyu_input_ffi.a" -headers "$headers_root" \
+  -library "$simulator_library" -headers "$headers_root" \
   -output "$ffi_root"
 
 xcodebuild \
@@ -46,6 +50,7 @@ xcodebuild \
   -scheme GannyuInput \
   -configuration Release \
   -sdk iphoneos \
+  -destination 'generic/platform=iOS' \
   -xcconfig "$signing_config" \
   -archivePath "$output_root/GannyuInput.xcarchive" \
   archive

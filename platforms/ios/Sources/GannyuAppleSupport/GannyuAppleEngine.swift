@@ -38,13 +38,21 @@ public enum GannyuAppleEngineError: Error {
     case ffi(Int32, String)
 }
 
+public enum GannyuAppleUserDataScope: Int32 {
+    case words = 1
+    case frequencies = 2
+    case all = 3
+}
+
 public final class GannyuAppleEngine {
     private var handle: OpaquePointer?
 
-    public init(regionID: String) throws {
+    public init(regionID: String, userDataDirectory: URL) throws {
         var created: OpaquePointer?
         let status = regionID.withCString { region in
-            gannyu_pipeline_create(nil, region, &created)
+            userDataDirectory.path.withCString { dataDirectory in
+                gannyu_pipeline_create_with_user_data_dir(nil, region, dataDirectory, &created)
+            }
         }
         guard status == gannyu_ffi_status_ok(), let created else {
             throw GannyuAppleEngineError.ffi(status, Self.lastError())
@@ -116,6 +124,16 @@ public final class GannyuAppleEngine {
         }
     }
 
+    public func clearUserData(_ scope: GannyuAppleUserDataScope) throws {
+        guard let handle else {
+            throw GannyuAppleEngineError.ffi(-1, "pipeline is unavailable")
+        }
+        let status = gannyu_pipeline_user_data_clear(handle, scope.rawValue)
+        guard status == gannyu_ffi_status_ok() else {
+            throw GannyuAppleEngineError.ffi(status, Self.lastError())
+        }
+    }
+
     private static func lastError() -> String {
         var output: UnsafeMutablePointer<CChar>?
         guard gannyu_last_error(&output) == gannyu_ffi_status_ok(), let output else {
@@ -130,13 +148,25 @@ public final class GannyuAppleRegionStore {
     public static let didChange = Notification.Name("org.doohaey.gonnyu.apple.regionDidChange")
     private let key = "org.doohaey.gonnyu.region"
     private let defaults: UserDefaults
+    public let userDataDirectory: URL
 
     public init(bundle: Bundle = .main) {
         guard let group = bundle.object(forInfoDictionaryKey: "GannyuAppGroupIdentifier") as? String,
-              let defaults = UserDefaults(suiteName: group) else {
+              let defaults = UserDefaults(suiteName: group),
+              let container = FileManager.default.containerURL(
+                  forSecurityApplicationGroupIdentifier: group
+              ) else {
             preconditionFailure("GannyuAppGroupIdentifier must resolve to an App Group")
         }
         self.defaults = defaults
+        self.userDataDirectory = container
+            .appendingPathComponent("Library", isDirectory: true)
+            .appendingPathComponent("Application Support", isDirectory: true)
+            .appendingPathComponent("GonnyuInputMethod", isDirectory: true)
+        try? FileManager.default.createDirectory(
+            at: userDataDirectory,
+            withIntermediateDirectories: true
+        )
     }
 
     public func currentID(in regions: [GannyuAppleRegion]) -> String? {
