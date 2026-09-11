@@ -38,7 +38,6 @@
     - [Android](#android)
     - [Windows](#windows)
     - [Linux：Fcitx5](#linuxfcitx5)
-    - [Linux：IBus](#linuxibus)
     - [Rime](#rime)
   - [本输入法采用的赣语拼音方案](#本输入法采用的赣语拼音方案)
     - [声母](#声母)
@@ -153,18 +152,6 @@ cd GonnyuGeneralIME-版本号-fcitx5
 ```
 
 重启 Fcitx5（`fcitx5 -r`）或注销后重新登录，并在 `fcitx5-configtool` 中添加“Gannyu Gan / 赣语”。
-
-### Linux：IBus
-
-下载 `GonnyuGeneralIME-版本号-ibus.tar.gz`，解压后运行包内安装程序：
-
-```sh
-tar -xzf GonnyuGeneralIME-版本号-ibus.tar.gz
-cd GonnyuGeneralIME-版本号-ibus
-./install.sh
-```
-
-运行 `ibus-daemon -drx`（或重启 IBus），然后在 `ibus-setup` 的输入法列表添加“Gannyu Gan”。
 
 ### Rime
 

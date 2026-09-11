@@ -5,7 +5,6 @@ ROOT = Path(__file__).resolve().parents[1]
 WORKFLOWS = (
     "android.yml",
     "fcitx5.yml",
-    "ibus.yml",
     "rime.yml",
     "windows.yml",
 )
@@ -26,7 +25,7 @@ def test_release_workflow_uses_tagged_workspace_version() -> None:
     assert "scripts/" not in content
     assert "actions/setup-python@v5" in content
     assert "platforms/rime/build.py --list-regions" in content
-    assert '"$((4 + ${#regions[@]}))"' in content
+    assert '"$((3 + ${#regions[@]}))"' in content
     assert "GonnyuGeneralIME-${{ steps.product.outputs.version }}-*" in content
     assert "rime-${region}.zip" in content
     assert 'gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1' in content
@@ -35,11 +34,10 @@ def test_release_workflow_uses_tagged_workspace_version() -> None:
     assert 'gh release create "$GITHUB_REF_NAME" release-assets/*' in content
     assert "--prerelease" not in content
 
-def test_linux_workflows_run_isolated_installer_smoke_tests() -> None:
-    for name in ("fcitx5.yml", "ibus.yml"):
-        content = (ROOT / ".github/workflows" / name).read_text(encoding="utf-8")
-        assert 'DESTDIR="$smoke_root/root" bash "$smoke_root/install.sh"' in content
-        assert 'tar -xzf "$artifact" -C "$smoke_root"' in content
+def test_fcitx5_workflow_runs_an_isolated_installer_smoke_test() -> None:
+    content = (ROOT / ".github/workflows/fcitx5.yml").read_text(encoding="utf-8")
+    assert 'DESTDIR="$smoke_root/root" bash "$smoke_root/install.sh"' in content
+    assert 'tar -xzf "$artifact" -C "$smoke_root"' in content
 
 def test_android_workflow_runs_installation_smoke_test() -> None:
     content = (ROOT / ".github/workflows" / "android.yml").read_text(encoding="utf-8")
@@ -63,6 +61,5 @@ def test_platform_builds_accept_prerelease_versions() -> None:
     android = (ROOT / "platforms/android/app/build.gradle.kts").read_text(encoding="utf-8")
     assert 'productVersion.substringBefore("-")' in android
 
-    for platform in ("fcitx5", "ibus"):
-        cmake = (ROOT / f"platforms/linux/{platform}/CMakeLists.txt").read_text(encoding="utf-8")
-        assert "(-[0-9A-Za-z.-]+)?" in cmake
+    cmake = (ROOT / "platforms/linux/fcitx5/CMakeLists.txt").read_text(encoding="utf-8")
+    assert "(-[0-9A-Za-z.-]+)?" in cmake
