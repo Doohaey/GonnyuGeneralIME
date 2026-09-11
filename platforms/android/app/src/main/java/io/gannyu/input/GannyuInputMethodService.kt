@@ -416,7 +416,7 @@ class GannyuInputMethodService : InputMethodService() {
         val r4 = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT) }
         r4.addView(keyBtn(KeySpec("\u62FC", 1.2f), gap)); r4.addView(keyBtn(KeySpec("\uFF08", 1f), gap)); r4.addView(keyBtn(KeySpec("\uFF09", 1f), gap))
         r4.addView(keyBtn(KeySpec("\u7A7A\u683C", 3f), gap))
-        r4.addView(keyBtn(KeySpec("\u201C", 1f), gap)); r4.addView(keyBtn(KeySpec("\u232B", 1.5f), gap))
+        r4.addView(keyBtn(KeySpec("\u232B", 1.5f), gap))
         r4.addView(keyBtn(KeySpec("\u21B5", 1.6f), gap))
         keyboardRows.addView(r4)
     }
