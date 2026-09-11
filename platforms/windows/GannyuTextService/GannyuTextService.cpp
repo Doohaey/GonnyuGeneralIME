@@ -131,6 +131,7 @@ public:
     STDMETHODIMP QueryInterface(REFIID riid, void **ppv) override { if (!ppv) return E_POINTER; *ppv = nullptr; if (IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_ITfFnSearchCandidateProvider)) { *ppv = static_cast<ITfFnSearchCandidateProvider *>(this); AddRef(); return S_OK; } return E_NOINTERFACE; }
     STDMETHODIMP_(ULONG) AddRef() override { return static_cast<ULONG>(InterlockedIncrement(&refs_)); }
     STDMETHODIMP_(ULONG) Release() override { LONG refs = InterlockedDecrement(&refs_); if (!refs) delete this; return static_cast<ULONG>(refs); }
+    STDMETHODIMP GetDisplayName(BSTR *name) override { if (!name) return E_INVALIDARG; *name = SysAllocString(L"Gonnyu Search Candidates"); return *name ? S_OK : E_OUTOFMEMORY; }
     STDMETHODIMP GetSearchCandidates(BSTR query, BSTR, ITfCandidateList **list) override { if (!list) return E_INVALIDARG; *list = nullptr; if (!query || !retrieve_) return S_FALSE; auto values = retrieve_(query); if (values.empty()) return S_FALSE; *list = new (std::nothrow) GannyuCandidateList(std::move(values)); return *list ? S_OK : E_OUTOFMEMORY; }
     STDMETHODIMP SetResult(BSTR, BSTR, BSTR) override { return S_OK; }
 private:
