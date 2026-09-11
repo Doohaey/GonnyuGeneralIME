@@ -47,12 +47,6 @@ static constexpr size_t kVisibleCandidateCount = 9;
 static constexpr size_t kMaxDisplayCharacters = 30;
 static const GUID kSupportedCategories[] = {
     GUID_TFCAT_TIP_KEYBOARD,
-    GUID_TFCAT_TIPCAP_UIELEMENTENABLED,
-    GUID_TFCAT_TIPCAP_SECUREMODE,
-    GUID_TFCAT_TIPCAP_COMLESS,
-    GUID_TFCAT_TIPCAP_INPUTMODECOMPARTMENT,
-    GUID_TFCAT_TIPCAP_IMMERSIVESUPPORT,
-    GUID_TFCAT_TIPCAP_SYSTRAYSUPPORT,
 };
 
 static std::atomic<LONG> g_moduleRefs{0};

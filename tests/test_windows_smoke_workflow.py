@@ -48,6 +48,22 @@ def test_windows_final_text_commit_allows_tsf_default_composition() -> None:
     assert "            0," in session
 
 
+def test_windows_only_registers_tsf_capabilities_that_it_implements() -> None:
+    source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
+    categories = source.split("static const GUID kSupportedCategories[]", 1)[1].split("};", 1)[0]
+
+    assert "GUID_TFCAT_TIP_KEYBOARD" in categories
+    for unsupported in (
+        "GUID_TFCAT_TIPCAP_UIELEMENTENABLED",
+        "GUID_TFCAT_TIPCAP_SECUREMODE",
+        "GUID_TFCAT_TIPCAP_COMLESS",
+        "GUID_TFCAT_TIPCAP_INPUTMODECOMPARTMENT",
+        "GUID_TFCAT_TIPCAP_IMMERSIVESUPPORT",
+        "GUID_TFCAT_TIPCAP_SYSTRAYSUPPORT",
+    ):
+        assert unsupported not in categories
+
+
 def test_windows_toolbar_clicks_use_drawn_button_rectangles() -> None:
     source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
     assert "auto drawButton" in source
