@@ -31,8 +31,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             ?? Bundle.main.object(forInfoDictionaryKey: "InputMethodConnectionName") as? String
             ?? "\(bundleID)_Connection"
 
+        guard NSClassFromString("GannyuInputController") != nil else {
+            throw NSError(
+                domain: "org.doohaey.GonnyuInputMethod",
+                code: 2,
+                userInfo: [NSLocalizedDescriptionKey: "GannyuInputController is not available to InputMethodKit"]
+            )
+        }
+        guard let server = IMKServer(name: connection, bundleIdentifier: bundleID) else {
+            throw NSError(
+                domain: "org.doohaey.GonnyuInputMethod",
+                code: 3,
+                userInfo: [NSLocalizedDescriptionKey: "IMKServer could not register connection: \(connection)"]
+            )
+        }
+
         engine = try GannyuEngine(manifestPath: manifest, regionID: region)
-        server = IMKServer(name: connection, bundleIdentifier: bundleID)
+        self.server = server
+        if UserDefaults.standard.bool(forKey: "GannyuIMKDiagnostics") {
+            NSLog("[GonnyuIMK] server-ready")
+        }
         let count = engine?.entryCount() ?? -1
         print("GannyuInputMethodHost ready")
         print("manifest=\(manifest ?? "(embedded)")")

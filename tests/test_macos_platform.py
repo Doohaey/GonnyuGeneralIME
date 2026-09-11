@@ -15,6 +15,8 @@ def test_macos_platform_exposes_build_and_smoke_entrypoints() -> None:
     assert 'swift build --package-path "$script_dir" -c release' in build_script
     assert "Info.plist.template" in build_script
     assert "GonnyuInputMethod.app" in build_script
+    assert 'requested_signing_identity="${GANNYU_MACOS_SIGN_IDENTITY:-}"' in build_script
+    assert 'export GANNYU_MACOS_SIGN_IDENTITY="$requested_signing_identity"' in build_script
     assert "GannyuMacOSSmoke" in smoke_script
     assert "--manifest" in smoke_script
     assert "plutil -lint" in bundle_smoke_script
@@ -22,7 +24,12 @@ def test_macos_platform_exposes_build_and_smoke_entrypoints() -> None:
     assert 'Contents/MacOS/GannyuInputMethodHost' in host_script
     assert "~/Library/Input Methods" in install_script or 'Library/Input Methods' in install_script
     assert "defaults export com.apple.HIToolbox" in install_script
-    assert "<string>$bundle_id</string>" in install_script
+    assert 'mktemp -d "${TMPDIR:-/private/tmp}/gonnyu-imk-install.XXXXXX"' in install_script
+    assert 'trap \'rm -rf "$staging_dir"\' EXIT' in install_script
+    assert 'lsregister" -u "$bundle"' in install_script
+    assert 'lsregister" -f "$target_bundle"' in install_script
+    assert 'mode_id="$bundle_id.Gan"' in install_script
+    assert "<string>$mode_id</string>" in install_script
 
 
 def test_macos_package_declares_host_and_smoke_targets() -> None:
@@ -39,7 +46,15 @@ def test_macos_package_declares_host_and_smoke_targets() -> None:
     assert "GannyuInputController" in (
         ROOT / "platforms/macos/Info.plist.template"
     ).read_text(encoding="utf-8")
+    host = (ROOT / "platforms/macos/Sources/GannyuInputMethodHost/main.swift").read_text(
+        encoding="utf-8"
+    )
+    assert "guard let server = IMKServer" in host
+    assert "self.server = server" in host
     assert "tsInputMethodCharacterRepertoireKey" in (
+        ROOT / "platforms/macos/Info.plist.template"
+    ).read_text(encoding="utf-8")
+    assert "<key>LSBackgroundOnly</key>" not in (
         ROOT / "platforms/macos/Info.plist.template"
     ).read_text(encoding="utf-8")
     assert "@objc(GannyuInputController)" in (
@@ -56,6 +71,12 @@ def test_macos_controller_wires_minimal_input_loop() -> None:
     ).read_text(encoding="utf-8")
 
     assert "override func inputText" in controller
+    assert "override func handle" in controller
+    assert "@objc(handleEvent:client:)" in controller
+    assert "override func recognizedEvents" in controller
+    assert ".keyDown, .flagsChanged" in controller
+    assert "GannyuIMKDiagnostics" in controller
+    assert "kVK_ANSI_KeypadEnter" in controller
     assert "override func didCommand" in controller
     assert "commitCandidate(at: 0" in controller
     assert "client.insertText" in controller

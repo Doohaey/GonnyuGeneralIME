@@ -8,6 +8,7 @@ bundle_id="${GANNYU_IMK_BUNDLE_ID:-org.doohaey.inputmethod.gonnyu.native}"
 connection_name="${GANNYU_IMK_CONNECTION:-${bundle_id}_Connection}"
 bundle_root="${GANNYU_MACOS_APP_BUNDLE:-$repo_root/build/macos/GonnyuInputMethod.app}"
 plist_template="$script_dir/Info.plist.template"
+requested_signing_identity="${GANNYU_MACOS_SIGN_IDENTITY:-}"
 
 if [[ "$(uname -s)" != "Darwin" ]]; then
   echo "this builder must run on macOS" >&2
@@ -18,6 +19,9 @@ if [[ -f "$test_env" ]]; then
   set -a
   source "$test_env"
   set +a
+fi
+if [[ -n "$requested_signing_identity" ]]; then
+  export GANNYU_MACOS_SIGN_IDENTITY="$requested_signing_identity"
 fi
 
 if [[ -z "${GANNYU_RESOURCE_KEY:-}" ]]; then

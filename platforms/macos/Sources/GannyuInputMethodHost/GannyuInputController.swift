@@ -5,6 +5,7 @@ import GannyuMacOSSupport
 
 @objc(GannyuInputController)
 final class GannyuInputController: IMKInputController {
+    private static let diagnosticsPreference = "GannyuIMKDiagnostics"
     private lazy var engine: GannyuEngine? = {
         let env = ProcessInfo.processInfo.environment
         do {
@@ -53,6 +54,7 @@ final class GannyuInputController: IMKInputController {
 
     override init!(server: IMKServer!, delegate: Any!, client inputClient: Any!) {
         super.init(server: server, delegate: delegate, client: inputClient)
+        logDiagnostic("controller-created")
         NotificationCenter.default.addObserver(self, selector: #selector(regionDidChange), name: GannyuRegionStore.didChange, object: nil)
     }
 
@@ -61,17 +63,82 @@ final class GannyuInputController: IMKInputController {
     @objc(activateServer:)
     override func activateServer(_ sender: Any!) {
         isActive = true
+        logDiagnostic("controller-activated")
     }
 
     @objc(deactivateServer:)
     override func deactivateServer(_ sender: Any!) {
         isActive = false
+        logDiagnostic("controller-deactivated")
         clearComposition(client: sender)
     }
 
     @objc(inputText:client:)
     override func inputText(_ string: String!, client sender: Any!) -> Bool {
         return processText(string, client: sender)
+    }
+
+    // This input method does not ship a macOS key-binding dictionary.  Therefore
+    // normal key-down events must be received from Text Services Manager directly;
+    // otherwise the active application receives them as plain Latin text before
+    // `inputText(_:client:)` can compose them.
+    @objc(handleEvent:client:)
+    override func handle(_ event: NSEvent!, client sender: Any!) -> Bool {
+        guard let event else {
+            return false
+        }
+        logDiagnostic("event-received type=\(event.type.rawValue)")
+        guard event.type == .keyDown else {
+            return false
+        }
+
+        let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        if modifiers.contains(.command)
+            || modifiers.contains(.control)
+            || modifiers.contains(.option)
+            || modifiers.contains(.function) {
+            return false
+        }
+
+        switch Int(event.keyCode) {
+        case kVK_Delete, kVK_ForwardDelete:
+            return handleDelete(client: sender)
+        case kVK_Escape:
+            guard hasComposition else { return false }
+            clearComposition(client: sender)
+            return true
+        case kVK_Return, kVK_ANSI_KeypadEnter:
+            return commitRawBuffer(client: sender)
+        case kVK_Tab:
+            guard hasComposition else { return false }
+            return commitSelectedCandidate(client: sender)
+        case kVK_LeftArrow:
+            guard hasComposition else { return false }
+            return selectCandidate(by: -1)
+        case kVK_RightArrow:
+            guard hasComposition else { return false }
+            return selectCandidate(by: 1)
+        case kVK_UpArrow:
+            guard hasComposition else { return false }
+            return changeCandidatePage(by: -1, client: sender)
+        case kVK_DownArrow:
+            guard hasComposition else { return false }
+            return changeCandidatePage(by: 1, client: sender)
+        default:
+            break
+        }
+
+        guard let characters = event.characters, !characters.isEmpty else {
+            return false
+        }
+        return processText(characters, client: sender)
+    }
+
+    // Explicitly request the event classes handled above. Mature InputMethodKit
+    // frontends (including Squirrel and McBopomofo) declare this instead of
+    // relying on the framework's legacy default event mask.
+    override func recognizedEvents(_ sender: Any!) -> Int {
+        Int(NSEvent.EventTypeMask([.keyDown, .flagsChanged]).rawValue)
     }
 
     @objc(didCommandBySelector:client:)
@@ -130,6 +197,13 @@ final class GannyuInputController: IMKInputController {
         insertTextIntoBuffer(normalized)
         refreshCandidates(client: sender)
         return true
+    }
+
+    private func logDiagnostic(_ message: String) {
+        guard UserDefaults.standard.bool(forKey: Self.diagnosticsPreference) else {
+            return
+        }
+        NSLog("[GonnyuIMK] %@", message)
     }
 
     @objc(composedString:)

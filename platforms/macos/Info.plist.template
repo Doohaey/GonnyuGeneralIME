@@ -74,8 +74,6 @@
         <string>Hani</string>
         <string>Han</string>
     </array>
-    <key>LSBackgroundOnly</key>
-    <true/>
     <key>LSUIElement</key>
     <true/>
     <key>NSPrincipalClass</key>
