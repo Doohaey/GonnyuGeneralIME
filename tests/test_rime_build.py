@@ -241,9 +241,17 @@ def test_mobile_default_candidates_are_dismissed_before_any_key_reaches_selector
     handler = source.split("function M.func(key, env)", 1)[1].split("function M.init", 1)[0]
     assert "key:release()" in handler
     assert "dismiss_marker(env, context)" in handler
-    assert "return 0" in handler
+    # All keys must return kNoop (2) so letters still reach the speller.
+    # dismiss_marker sets idle_dismissed=true before clearing, so the
+    # update_notifier cannot re-arm the marker during the same key event.
+    assert "return 2" in handler
     assert 'repr == "Up"' not in handler
-    assert 'repr:match("^[0-9]$")' not in handler
+    # kRejected (0) must not be used: it signals "key unhandled" to the
+    # frontend, causing letters to bypass the speller and be output directly.
+    assert "return 0" not in handler
+    # kAccepted (1) must not be used for digits: it would consume the key
+    # and prevent the digit from being delivered to the text field.
+    assert "return 1" not in handler
 
 
 def test_mobile_default_candidates_do_not_rearm_after_unhandled_symbols() -> None:
