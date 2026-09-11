@@ -20,9 +20,9 @@ mkdir -p "$user_dir/lua"
 for schema in "$output_dir"/gannyu_*.schema.yaml; do install -m 0644 "$schema" "$user_dir/"; done
 install -m 0644 "$output_dir"/gannyu_*.dict.yaml "$user_dir/"
 install -m 0644 "$output_dir/lua/gannyu_filter.lua" "$user_dir/lua/gannyu_filter.lua"
-install -m 0644 "$output_dir"/lua/gannyu_default_*.lua "$user_dir/lua/"
 for data in "$output_dir"/lua/gannyu_*_data.lua; do install -m 0644 "$data" "$user_dir/lua/"; done
-rm -f "$user_dir/gannyu.schema.yaml" "$user_dir/lua/gannyu_data.lua" "$user_dir/build/gannyu.schema.yaml"
+rm -f "$user_dir/gannyu.schema.yaml" "$user_dir/lua/gannyu_data.lua" "$user_dir/build/gannyu.schema.yaml" \
+  "$user_dir/lua/gannyu_default_processor.lua" "$user_dir/lua/gannyu_default_translator.lua"
 
 if [[ ! -e "$user_dir/default.custom.yaml" ]] || grep -q "schema: gannyu$" "$user_dir/default.custom.yaml"; then
   install -m 0644 "$output_dir/default.custom.yaml" "$user_dir/default.custom.yaml"
