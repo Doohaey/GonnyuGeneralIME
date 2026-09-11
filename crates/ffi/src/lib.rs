@@ -351,7 +351,10 @@ unsafe fn pipeline_create(
     };
     let pipeline = match InputPipeline::load_with_user_data_dir(
         &resource,
-        requested_user_data_dir.as_deref().map(PathBuf::from).as_deref(),
+        requested_user_data_dir
+            .as_deref()
+            .map(PathBuf::from)
+            .as_deref(),
     ) {
         Ok(value) => value,
         Err(error) => return load_failure("dictionary pipeline load failed", error),

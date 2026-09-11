@@ -194,7 +194,9 @@ impl InputPipeline {
 
     fn empty_with_user_data_dir(user_data_dir: Option<&Path>) -> InputPipeline {
         let user_dict = match user_data_dir {
-            Some(directory) => UserDictionary::load_or_create_at(directory.join("user_dictionary.tsv")),
+            Some(directory) => {
+                UserDictionary::load_or_create_at(directory.join("user_dictionary.tsv"))
+            }
             None => UserDictionary::load_or_create(),
         };
         InputPipeline {
