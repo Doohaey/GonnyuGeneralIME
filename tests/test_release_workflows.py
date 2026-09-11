@@ -29,6 +29,9 @@ def test_release_workflow_uses_tagged_workspace_version() -> None:
     assert '"$((4 + ${#regions[@]}))"' in content
     assert "GonnyuGeneralIME-${{ steps.product.outputs.version }}-*" in content
     assert "rime-${region}.zip" in content
+    assert 'gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1' in content
+    assert 'gh release upload "$GITHUB_REF_NAME" release-assets/* --clobber' in content
+    assert 'gh release edit "$GITHUB_REF_NAME"' in content
     assert 'gh release create "$GITHUB_REF_NAME" release-assets/*' in content
     assert "--prerelease" not in content
 

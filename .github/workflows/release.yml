@@ -63,4 +63,9 @@ jobs:
             END { if (!found) exit 1 }
           " README.md > release-notes.md
           test -s release-notes.md
-          gh release create "$GITHUB_REF_NAME" release-assets/* --title "GonnyuGeneralIME ${PRODUCT_VERSION}" --notes-file release-notes.md
+          if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" release-assets/* --clobber
+            gh release edit "$GITHUB_REF_NAME" --title "GonnyuGeneralIME ${PRODUCT_VERSION}" --notes-file release-notes.md
+          else
+            gh release create "$GITHUB_REF_NAME" release-assets/* --title "GonnyuGeneralIME ${PRODUCT_VERSION}" --notes-file release-notes.md
+          fi
