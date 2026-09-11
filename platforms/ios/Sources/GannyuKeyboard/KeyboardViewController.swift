@@ -134,6 +134,13 @@ final class KeyboardViewController: UIInputViewController {
             commitRawBuffer()
             textDocumentProxy.insertText("\n")
         case "123":
+            // Clear any in-progress composition so the default candidate (or any
+            // accumulated input) is not accidentally committed when the first
+            // symbol/digit is pressed on the numeric sub-keyboard.
+            buffer = ""
+            candidates = []
+            clearLearningState()
+            render()
             symbolPage = true
             renderKeyboard()
         case "ABC":
@@ -149,7 +156,6 @@ final class KeyboardViewController: UIInputViewController {
             textDocumentProxy.insertText(key)
         default:
             if symbolPage {
-                commitComposingIfNeeded()
                 textDocumentProxy.insertText(key)
             } else {
                 append(key)
