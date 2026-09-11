@@ -53,6 +53,7 @@ class GannyuInputMethodService : InputMethodService() {
     private val accumulatedMandarinReading = mutableListOf<String>()
     private var lastCandidates: List<RankedCandidate> = emptyList()
     private var symbolPage = false
+    private var englishMode = false
     private val backspaceRepeatHandler = Handler(Looper.getMainLooper())
     private val backspaceRepeat = object : Runnable {
         override fun run() {
@@ -402,7 +403,7 @@ class GannyuInputMethodService : InputMethodService() {
         r3.addView(keyBtn(KeySpec("\u232B", 1.5f), gap))
         keyboardRows.addView(r3)
         val r4 = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT) }
-        r4.addView(keyBtn(KeySpec("123", 1.2f), gap)); r4.addView(keyBtn(KeySpec("\uFF0C", 1f), gap))
+        r4.addView(keyBtn(KeySpec(if (englishMode) "\u4E2D" else "\u82F1", 1.1f), gap)); r4.addView(keyBtn(KeySpec("123", 1.2f), gap)); r4.addView(keyBtn(KeySpec("\uFF0C", 1f), gap))
         r4.addView(keyBtn(KeySpec("\u7A7A\u683C", 4.5f), gap))
         r4.addView(keyBtn(KeySpec("\u3002", 1f), gap)); r4.addView(keyBtn(KeySpec("\u21B5", 1.8f), gap))
         keyboardRows.addView(r4)
@@ -459,13 +460,14 @@ class GannyuInputMethodService : InputMethodService() {
             key.label == "\u232B"                        -> handleBackspace()
             key.label == "\u21B5"                        -> handleEnter()
             key.label == "\u7A7A\u683C"                  -> handleSpace()
+            key.label == "\u82F1" || key.label == "\u4E2D" -> { resetState(clearAccumulated = true); englishMode = !englishMode; renderKeyboard() }
             key.label == "分词"                            -> appendInput('\'')
             // Entering the symbol page must not carry a pending candidate into
             // the next key.  Symbol keys are literal input, never a candidate
             // selection action.
             key.label == "123"                           -> { resetState(clearAccumulated = true); symbolPage = true; renderKeyboard() }
             key.label == "\u62FC"                        -> { symbolPage = false; renderKeyboard() }
-            key.isLetter                                 -> appendInput(key.label.single())
+            key.isLetter                                 -> if (englishMode) currentInputConnection?.commitText(key.label, 1) else appendInput(key.label.single())
             key.label in PUNCT_AFTER_COMPOSE             -> { maybeCommitComposing(); currentInputConnection?.commitText(key.label, 1) }
             else                                         -> currentInputConnection?.commitText(key.label, 1)
         }

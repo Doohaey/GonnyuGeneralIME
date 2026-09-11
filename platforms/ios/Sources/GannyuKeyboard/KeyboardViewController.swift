@@ -11,6 +11,7 @@ final class KeyboardViewController: UIInputViewController {
     private var accumulatedReadings: [String] = []
     private var accumulatedMandarinReadings: [String] = []
     private var symbolPage = false
+    private var englishMode = false
     private var backspaceTimer: Timer?
     private let preeditLabel = UILabel()
     private let candidateScroll = UIScrollView()
@@ -105,7 +106,7 @@ final class KeyboardViewController: UIInputViewController {
         }
         keyboardStack.addArrangedSubview(keyRow(symbolPage
             ? ["🌐", "拼", "（", "）", "空格", "“", "⌫", "⏎"]
-            : ["🌐", "123", "，", "空格", "。", "⏎"]))
+            : ["🌐", englishMode ? "中" : "英", "123", "，", "空格", "。", "⏎"]))
     }
 
     private func keyRow(_ labels: [String]) -> UIStackView {
@@ -135,6 +136,13 @@ final class KeyboardViewController: UIInputViewController {
             advanceToNextInputMode()
         case "⌫":
             deleteBackward()
+        case "英", "中":
+            buffer = ""
+            candidates = []
+            clearLearningState()
+            englishMode.toggle()
+            render()
+            renderKeyboard()
         case "空格":
             handleSpace()
         case "⏎":
@@ -163,6 +171,8 @@ final class KeyboardViewController: UIInputViewController {
             textDocumentProxy.insertText(key)
         default:
             if symbolPage {
+                textDocumentProxy.insertText(key)
+            } else if englishMode {
                 textDocumentProxy.insertText(key)
             } else {
                 append(key)
