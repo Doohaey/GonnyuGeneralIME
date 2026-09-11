@@ -17,6 +17,7 @@
 
 - fix(windows): 修复 Windows 安装器预发布版本升级。
 - fix(rime): 修复 Rime 手机端符号输入触发默认候选。
+- feat(windows): 接入 TSF UI-less 候选协议，支持由系统搜索等宿主接管候选显示。
 
 ## 目录
 

@@ -48,17 +48,17 @@ def test_windows_final_text_commit_allows_tsf_default_composition() -> None:
     assert "            0," in session
 
 
-def test_windows_only_registers_tsf_capabilities_that_it_implements() -> None:
+def test_windows_registers_its_ui_less_candidate_capabilities() -> None:
     source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
     categories = source.split("static const GUID kSupportedCategories[]", 1)[1].split("};", 1)[0]
 
     assert "GUID_TFCAT_TIP_KEYBOARD" in categories
+    assert "GUID_TFCAT_TIPCAP_UIELEMENTENABLED" in categories
+    assert "GUID_TFCAT_TIPCAP_IMMERSIVESUPPORT" in categories
     for unsupported in (
-        "GUID_TFCAT_TIPCAP_UIELEMENTENABLED",
         "GUID_TFCAT_TIPCAP_SECUREMODE",
         "GUID_TFCAT_TIPCAP_COMLESS",
         "GUID_TFCAT_TIPCAP_INPUTMODECOMPARTMENT",
-        "GUID_TFCAT_TIPCAP_IMMERSIVESUPPORT",
         "GUID_TFCAT_TIPCAP_SYSTRAYSUPPORT",
     ):
         assert unsupported not in categories

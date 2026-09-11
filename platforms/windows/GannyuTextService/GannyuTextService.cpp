@@ -3,6 +3,7 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <ctfutb.h>
+#include <ctffunc.h>
 #include <msctf.h>
 #include <olectl.h>
 #include <shellapi.h>
@@ -12,6 +13,7 @@
 #include <algorithm>
 #include <atomic>
 #include <cwctype>
+#include <functional>
 #include <iterator>
 #include <new>
 #include <string>
@@ -47,6 +49,8 @@ static constexpr size_t kVisibleCandidateCount = 9;
 static constexpr size_t kMaxDisplayCharacters = 30;
 static const GUID kSupportedCategories[] = {
     GUID_TFCAT_TIP_KEYBOARD,
+    GUID_TFCAT_TIPCAP_UIELEMENTENABLED,
+    GUID_TFCAT_TIPCAP_IMMERSIVESUPPORT,
 };
 
 static std::atomic<LONG> g_moduleRefs{0};
@@ -76,6 +80,56 @@ struct CandidateItem {
     std::wstring reading;
     std::wstring mandarinReading;
     ULONG consumedBytes = 0;
+};
+
+// TSF view of the existing candidate model.  UI-less hosts (including Windows
+// Search) receive this object instead of being forced to discover our HWND.
+class GannyuCandidateListUiElement final : public ITfCandidateListUIElementBehavior,
+                                            public ITfIntegratableCandidateListUIElement {
+public:
+    GannyuCandidateListUiElement(const std::vector<CandidateItem> *items, size_t *selection,
+                                 std::function<void(size_t)> finalize,
+                                 std::function<void()> abort)
+        : refs_(1), items_(items), selection_(selection), finalize_(std::move(finalize)), abort_(std::move(abort)) {}
+
+    STDMETHODIMP QueryInterface(REFIID riid, void **ppv) override {
+        if (!ppv) return E_POINTER;
+        *ppv = nullptr;
+        if (IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_ITfUIElement))
+            *ppv = static_cast<ITfUIElement *>(static_cast<ITfCandidateListUIElementBehavior *>(this));
+        else if (IsEqualIID(riid, IID_ITfCandidateListUIElement))
+            *ppv = static_cast<ITfCandidateListUIElement *>(this);
+        else if (IsEqualIID(riid, IID_ITfCandidateListUIElementBehavior))
+            *ppv = static_cast<ITfCandidateListUIElementBehavior *>(this);
+        else if (IsEqualIID(riid, IID_ITfIntegratableCandidateListUIElement))
+            *ppv = static_cast<ITfIntegratableCandidateListUIElement *>(this);
+        if (!*ppv) return E_NOINTERFACE;
+        AddRef(); return S_OK;
+    }
+    STDMETHODIMP_(ULONG) AddRef() override { return static_cast<ULONG>(InterlockedIncrement(&refs_)); }
+    STDMETHODIMP_(ULONG) Release() override { LONG refs = InterlockedDecrement(&refs_); if (!refs) delete this; return static_cast<ULONG>(refs); }
+    STDMETHODIMP GetDescription(BSTR *value) override { if (!value) return E_POINTER; *value = SysAllocString(L"Gonnyu candidates"); return *value ? S_OK : E_OUTOFMEMORY; }
+    STDMETHODIMP GetGUID(GUID *value) override { if (!value) return E_POINTER; *value = GUID_TFCAT_TIP_KEYBOARD; return S_OK; }
+    STDMETHODIMP Show(BOOL show) override { shown_ = show; return S_OK; }
+    STDMETHODIMP IsShown(BOOL *show) override { if (!show) return E_POINTER; *show = shown_; return S_OK; }
+    STDMETHODIMP GetUpdatedFlags(DWORD *flags) override { if (!flags) return E_POINTER; *flags = TF_CLUIE_STRING | TF_CLUIE_COUNT | TF_CLUIE_SELECTION | TF_CLUIE_PAGEINDEX | TF_CLUIE_CURRENTPAGE; return S_OK; }
+    STDMETHODIMP GetDocumentMgr(ITfDocumentMgr **manager) override { if (!manager) return E_POINTER; *manager = nullptr; return E_NOTIMPL; }
+    STDMETHODIMP GetCount(UINT *count) override { if (!count) return E_POINTER; *count = items_ ? static_cast<UINT>(items_->size()) : 0; return S_OK; }
+    STDMETHODIMP GetSelection(UINT *index) override { if (!index) return E_POINTER; if (!items_ || !selection_ || *selection_ >= items_->size()) return S_FALSE; *index = static_cast<UINT>(*selection_); return S_OK; }
+    STDMETHODIMP GetString(UINT index, BSTR *value) override { if (!value) return E_POINTER; *value = nullptr; if (!items_ || index >= items_->size()) return E_INVALIDARG; *value = SysAllocString((*items_)[index].text.c_str()); return *value ? S_OK : E_OUTOFMEMORY; }
+    STDMETHODIMP GetPageIndex(UINT *index, UINT size, UINT *count) override { if (!count) return E_POINTER; *count = 1; if (index && size) index[0] = 0; return (!index || size) ? S_OK : E_INVALIDARG; }
+    STDMETHODIMP SetPageIndex(UINT *, UINT) override { return S_OK; }
+    STDMETHODIMP GetCurrentPage(UINT *page) override { if (!page) return E_POINTER; *page = 0; return S_OK; }
+    STDMETHODIMP SetSelection(UINT index) override { if (!items_ || !selection_ || index >= items_->size()) return E_INVALIDARG; *selection_ = index; return S_OK; }
+    STDMETHODIMP Finalize() override { if (!selection_) return E_FAIL; finalize_(*selection_); return S_OK; }
+    STDMETHODIMP Abort() override { abort_(); return S_OK; }
+    STDMETHODIMP SetIntegrationStyle(GUID) override { return S_OK; }
+    STDMETHODIMP GetSelectionStyle(TfIntegratableCandidateListSelectionStyle *style) override { if (!style) return E_POINTER; *style = STYLE_ACTIVE_SELECTION; return S_OK; }
+    STDMETHODIMP OnKeyDown(WPARAM, LPARAM, BOOL *eaten) override { if (!eaten) return E_POINTER; *eaten = FALSE; return S_OK; }
+    STDMETHODIMP ShowCandidateNumbers(BOOL *) override { return S_OK; }
+    STDMETHODIMP FinalizeExactCompositionString() override { abort_(); return S_OK; }
+private:
+    LONG refs_; const std::vector<CandidateItem> *items_; size_t *selection_; std::function<void(size_t)> finalize_; std::function<void()> abort_; BOOL shown_ = FALSE;
 };
 
 int ScaleForDpi(int value, UINT dpi) {
@@ -680,6 +734,7 @@ public:
         if (SUCCEEDED(threadMgr_->QueryInterface(IID_ITfKeystrokeMgr, reinterpret_cast<void **>(&keystrokeMgr_))) && keystrokeMgr_) {
             keystrokeMgr_->AdviseKeyEventSink(clientId_, static_cast<ITfKeyEventSink *>(this), TRUE);
         }
+        threadMgr_->QueryInterface(IID_ITfUIElementMgr, reinterpret_cast<void **>(&uiElementMgr_));
         if (langBarButton_ && regionIds_.size() > 1) {
             ITfLangBarItemMgr *langBarMgr = nullptr;
             if (SUCCEEDED(threadMgr_->QueryInterface(IID_ITfLangBarItemMgr, reinterpret_cast<void **>(&langBarMgr))) && langBarMgr) {
@@ -716,6 +771,9 @@ public:
             keystrokeMgr_->Release();
             keystrokeMgr_ = nullptr;
         }
+        EndCandidateUiElement();
+        ReleaseUnknown(uiElementMgr_);
+        uiElementMgr_ = nullptr;
         if (threadMgr_) {
             ITfSource *source = nullptr;
             if (SUCCEEDED(threadMgr_->QueryInterface(IID_ITfSource, reinterpret_cast<void **>(&source))) && source) {
@@ -1296,7 +1354,35 @@ private:
             selectedIndex_ = 0;
         }
         RefreshPreeditDisplay();
+        UpdateCandidateUiElement();
         UpdateCandidateWindow();
+    }
+
+    void UpdateCandidateUiElement() {
+        if (!uiElementMgr_) return;
+        if (candidates_.empty()) { EndCandidateUiElement(); return; }
+        if (!candidateUi_) {
+            candidateUi_ = new (std::nothrow) GannyuCandidateListUiElement(
+                &candidates_, &selectedIndex_,
+                [this](size_t index) { if (activeContext_) CommitSelectedCandidate(activeContext_, index); },
+                [this]() { Reset(); });
+            if (!candidateUi_) return;
+            BOOL show = TRUE;
+            if (FAILED(uiElementMgr_->BeginUIElement(candidateUi_, &show, &candidateUiId_))) {
+                candidateUi_->Release(); candidateUi_ = nullptr; return;
+            }
+            candidateUiShown_ = show;
+        }
+        if (!candidateUiShown_) uiElementMgr_->UpdateUIElement(candidateUiId_);
+    }
+
+    void EndCandidateUiElement() {
+        if (!candidateUi_) return;
+        if (uiElementMgr_) uiElementMgr_->EndUIElement(candidateUiId_);
+        candidateUi_->Release();
+        candidateUi_ = nullptr;
+        candidateUiId_ = TF_INVALID_UIELEMENTID;
+        candidateUiShown_ = FALSE;
     }
 
     bool TryGetContextViewWindow(HWND *window) const {
@@ -1550,6 +1636,10 @@ private:
     }
 
     void UpdateCandidateWindow() {
+        if (candidateUi_ && !candidateUiShown_) {
+            HideCandidateWindow();
+            return;
+        }
         if (buffer_.empty()) {
             HideCandidateWindow();
             return;
@@ -1765,6 +1855,7 @@ private:
         candidates_.clear();
         preeditDisplay_.clear();
         selectedIndex_ = 0;
+        EndCandidateUiElement();
         HideCandidateWindow();
     }
 
@@ -1857,6 +1948,10 @@ private:
     LONG refs_;
     ITfThreadMgr *threadMgr_ = nullptr;
     ITfKeystrokeMgr *keystrokeMgr_ = nullptr;
+    ITfUIElementMgr *uiElementMgr_ = nullptr;
+    GannyuCandidateListUiElement *candidateUi_ = nullptr;
+    DWORD candidateUiId_ = TF_INVALID_UIELEMENTID;
+    BOOL candidateUiShown_ = FALSE;
     ITfContext *activeContext_ = nullptr;
     TfClientId clientId_ = TF_CLIENTID_NULL;
     DWORD thmgrCookie_ = TF_INVALID_COOKIE;
