@@ -5,31 +5,42 @@ public struct GannyuRetrievedCandidate: Decodable {
     public let text: String
     public let annotation: String
     public let reading: String?
+    public let mandarinReading: String?
     public let consumedBytes: Int
 
     private enum CodingKeys: String, CodingKey {
         case text, annotation, reading
+        case mandarinReading = "mandarin_reading"
         case consumedBytes = "consumed_bytes"
     }
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         text = try container.decode(String.self, forKey: .text)
-        annotation = try container.decode(String.self, forKey: .annotation)
+        annotation = try container.decodeIfPresent(String.self, forKey: .annotation) ?? ""
         reading = try container.decodeIfPresent(String.self, forKey: .reading)
+        mandarinReading = try container.decodeIfPresent(String.self, forKey: .mandarinReading)
         consumedBytes = try container.decodeIfPresent(Int.self, forKey: .consumedBytes) ?? text.utf8.count
     }
 }
 
-public enum GannyuRegion: String, CaseIterable {
-    case lancong
-    case fenni
+public struct GannyuRegion: Decodable, Equatable {
+    public let id: String
+    public let nameZh: String
 
-    public var label: String {
-        switch self {
-        case .lancong: "南昌"
-        case .fenni: "分宜"
-        }
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case nameZh = "name_zh"
+    }
+
+    public static let fallback = [
+        GannyuRegion(id: "lancong", nameZh: "南昌"),
+        GannyuRegion(id: "fenni", nameZh: "分宜"),
+    ]
+
+    public init(id: String, nameZh: String) {
+        self.id = id
+        self.nameZh = nameZh
     }
 }
 
@@ -38,10 +49,10 @@ public final class GannyuRegionStore {
     public static let didChange = Notification.Name("org.doohaey.gonnyu.regionDidChange")
     private let key = "org.doohaey.gonnyu.region"
 
-    public var current: GannyuRegion {
-        get { GannyuRegion(rawValue: UserDefaults.standard.string(forKey: key) ?? "") ?? .lancong }
+    public var currentID: String {
+        get { UserDefaults.standard.string(forKey: key) ?? "lancong" }
         set {
-            UserDefaults.standard.set(newValue.rawValue, forKey: key)
+            UserDefaults.standard.set(newValue, forKey: key)
             NotificationCenter.default.post(name: Self.didChange, object: newValue)
         }
     }
@@ -96,6 +107,36 @@ public final class GannyuEngine {
     public func retrieveCandidates(_ input: String) throws -> [GannyuRetrievedCandidate] {
         let data = Data(try retrieve(input).utf8)
         return try JSONDecoder().decode([GannyuRetrievedCandidate].self, from: data)
+    }
+
+    public static func availableRegions(manifestPath: String?) throws -> [GannyuRegion] {
+        var output: UnsafeMutablePointer<CChar>?
+        let status = withOptionalCString(manifestPath) { manifest in
+            gannyu_region_list(manifest, &output)
+        }
+        guard status == gannyu_ffi_status_ok(), let output else {
+            throw GannyuEngineError.status(status, lastErrorMessage())
+        }
+        defer { gannyu_string_destroy(output) }
+        return try JSONDecoder().decode([GannyuRegion].self, from: Data(String(cString: output).utf8))
+    }
+
+    public func boostUserWord(_ text: String) {
+        guard let handle else { return }
+        text.withCString { headword in
+            _ = gannyu_pipeline_user_dict_boost(handle, headword, nil)
+        }
+    }
+
+    public func saveUserWord(_ text: String, reading: String, mandarinReading: String?) {
+        guard let handle, text.count >= 2, !reading.isEmpty else { return }
+        text.withCString { headword in
+            reading.withCString { pinyin in
+                withOptionalCString(mandarinReading) { mandarin in
+                    _ = gannyu_pipeline_user_dict_add(handle, headword, pinyin, mandarin, nil)
+                }
+            }
+        }
     }
 
     public func compose(_ input: String) throws -> String {

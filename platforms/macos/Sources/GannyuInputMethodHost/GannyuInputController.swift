@@ -7,15 +7,25 @@ import GannyuMacOSSupport
 final class GannyuInputController: IMKInputController {
     private lazy var engine: GannyuEngine? = {
         let env = ProcessInfo.processInfo.environment
-        return try? GannyuEngine(
-            manifestPath: env["GANNYU_MANIFEST"],
-            regionID: env["GANNYU_REGION_ID"] ?? GannyuRegionStore.shared.current.rawValue
-        )
+        do {
+            return try GannyuEngine(
+                manifestPath: env["GANNYU_MANIFEST"],
+                regionID: env["GANNYU_REGION_ID"] ?? GannyuRegionStore.shared.currentID
+            )
+        } catch {
+            return nil
+        }
     }()
     private var buffer = ""
     private var bufferCursor = 0
-    private var cachedText = ""
     private var currentCandidates: [GannyuRetrievedCandidate] = []
+    private var currentCandidateDisplays: [NSAttributedString] = []
+    private var candidateIdentifierToIndex: [Int: Int] = [:]
+    private var displayedCandidateIndices: [Int] = []
+    private var candidatePage = 0
+    private var accumulatedText = ""
+    private var accumulatedReading = ""
+    private var accumulatedMandarinReading = ""
     private var isActive = false
     private lazy var candidatesWindow: IMKCandidates? = {
         guard let server = server() else {
@@ -24,6 +34,7 @@ final class GannyuInputController: IMKInputController {
         let window = IMKCandidates(server: server, panelType: kIMKSingleColumnScrollingCandidatePanel)
         window?.setAttributes([
             IMKCandidatesSendServerKeyEventFirst: NSNumber(value: true),
+            NSAttributedString.Key.font.rawValue: NSFont.systemFont(ofSize: 18),
         ])
         window?.setSelectionKeys([
             NSNumber(value: kVK_ANSI_1),
@@ -57,68 +68,37 @@ final class GannyuInputController: IMKInputController {
         clearComposition(client: sender)
     }
 
-    @objc(handleEvent:client:)
-    override func handle(_ event: NSEvent!, client sender: Any!) -> Bool {
-        guard let event, event.type == .keyDown else {
+    @objc(inputText:client:)
+    override func inputText(_ string: String!, client sender: Any!) -> Bool {
+        return processText(string, client: sender)
+    }
+
+    @objc(didCommandBySelector:client:)
+    override func didCommand(by selector: Selector!, client sender: Any!) -> Bool {
+        guard let selector else {
             return false
         }
-
-        let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
-        if !modifiers.intersection([.command, .control, .function]).isEmpty {
-            return false
-        }
-
-        switch Int(event.keyCode) {
-        case kVK_LeftArrow:
-            guard hasComposition else {
-                return false
-            }
-            moveCursor(by: -1)
-            updateComposition()
-            return true
-        case kVK_RightArrow:
-            guard hasComposition else {
-                return false
-            }
-            moveCursor(by: 1)
-            updateComposition()
-            return true
-        case kVK_Delete:
+        switch NSStringFromSelector(selector) {
+        case "deleteBackward:":
             return handleDelete(client: sender)
-        case kVK_Escape:
-            guard hasComposition else {
-                return false
-            }
+        case "moveLeft:", "moveBackward:":
+            guard hasComposition else { return false }
+            return selectCandidate(by: -1)
+        case "moveRight:", "moveForward:":
+            guard hasComposition else { return false }
+            return selectCandidate(by: 1)
+        case "cancelOperation:":
+            guard hasComposition else { return false }
             clearComposition(client: sender)
             return true
-        case kVK_Space, kVK_Return, kVK_ANSI_KeypadEnter:
-            guard hasComposition else {
-                return false
-            }
-            commitCandidate(at: 0, client: sender)
-            return true
+        case "insertNewline:", "insertLineBreak:":
+            return commitRawBuffer(client: sender)
+        case "insertTab:":
+            guard hasComposition else { return false }
+            return commitSelectedCandidate(client: sender)
         default:
-            break
+            return false
         }
-
-        if let index = candidateIndex(forKeyCode: Int(event.keyCode)) {
-            guard hasComposition, index < currentCandidates.count else {
-                return false
-            }
-            commitCandidate(at: index, client: sender)
-            return true
-        }
-
-        let input = event.charactersIgnoringModifiers ?? event.characters ?? ""
-        if let index = candidateIndex(for: input) {
-            guard hasComposition, index < currentCandidates.count else {
-                return false
-            }
-            commitCandidate(at: index, client: sender)
-            return true
-        }
-
-        return processText(input, client: sender)
     }
 
     private func processText(_ string: String!, client sender: Any!) -> Bool {
@@ -129,7 +109,7 @@ final class GannyuInputController: IMKInputController {
         if normalized.isEmpty {
             return false
         }
-        if normalized == " " || normalized == "\r" || normalized == "\n" {
+        if normalized == " " {
             guard !buffer.isEmpty else {
                 return false
             }
@@ -144,7 +124,7 @@ final class GannyuInputController: IMKInputController {
             return true
         }
         guard shouldAppend(normalized) else {
-            return false
+            return processSymbol(normalized, client: sender)
         }
         insertTextIntoBuffer(normalized)
         refreshCandidates(client: sender)
@@ -153,23 +133,22 @@ final class GannyuInputController: IMKInputController {
 
     @objc(composedString:)
     override func composedString(_ sender: Any!) -> Any! {
-        guard !buffer.isEmpty || !cachedText.isEmpty else {
+        guard !buffer.isEmpty else {
             return ""
         }
-        let reading = currentPreeditDisplay()
-        return cachedText.isEmpty ? reading : "\(cachedText)  \(reading)"
+        return currentPreeditDisplay()
     }
 
     @objc(originalString:)
     override func originalString(_ sender: Any!) -> NSAttributedString! {
-        NSAttributedString(string: cachedText + buffer)
+        NSAttributedString(string: buffer)
     }
 
     @objc(selectionRange)
     override func selectionRange() -> NSRange {
         let prefix = String(buffer.prefix(bufferCursor))
         let prefixDisplay = (try? engine?.formatPreedit(prefix)) ?? prefix
-        return NSRange(location: composedPrefixLength + nsLength(of: prefixDisplay), length: 0)
+        return NSRange(location: nsLength(of: prefixDisplay), length: 0)
     }
 
     @objc(replacementRange)
@@ -186,17 +165,17 @@ final class GannyuInputController: IMKInputController {
 
     @objc(candidates:)
     override func candidates(_ sender: Any!) -> [Any]! {
-        currentCandidates.map(\.text)
+        currentCandidateDisplays
     }
 
     @objc(menu)
     override func menu() -> NSMenu! {
         let menu = NSMenu(title: "Gonnyu")
-        for region in GannyuRegion.allCases {
-            let item = NSMenuItem(title: region.label, action: #selector(selectRegionFromMenu(_:)), keyEquivalent: "")
+        for region in availableRegions {
+            let item = NSMenuItem(title: region.nameZh, action: #selector(selectRegionFromMenu(_:)), keyEquivalent: "")
             item.target = self
-            item.representedObject = region.rawValue
-            item.state = region == GannyuRegionStore.shared.current ? .on : .off
+            item.representedObject = region.id
+            item.state = region.id == GannyuRegionStore.shared.currentID ? .on : .off
             menu.addItem(item)
         }
         return menu
@@ -204,11 +183,7 @@ final class GannyuInputController: IMKInputController {
 
     @objc(commitComposition:)
     override func commitComposition(_ sender: Any!) {
-        guard hasComposition else {
-            return
-        }
-        if buffer.isEmpty {
-            commitText(cachedText, client: sender)
+        guard !buffer.isEmpty else {
             return
         }
         commitCandidate(at: 0, client: sender)
@@ -216,15 +191,7 @@ final class GannyuInputController: IMKInputController {
 
     @objc(candidateSelected:)
     override func candidateSelected(_ candidateString: NSAttributedString!) {
-        let selectedIndex = candidatesWindow?.selectedCandidate() ?? NSNotFound
-        if selectedIndex != NSNotFound, currentCandidates.indices.contains(selectedIndex) {
-            commitCandidate(at: selectedIndex, client: client())
-            return
-        }
-        guard
-            let candidateString,
-            let index = currentCandidates.firstIndex(where: { $0.text == candidateString.string })
-        else {
+        guard let index = candidateIndex(forCandidateSelection: candidateString) else {
             return
         }
         commitCandidate(at: index, client: client())
@@ -232,15 +199,7 @@ final class GannyuInputController: IMKInputController {
 
     @objc(candidateSelectionChanged:)
     override func candidateSelectionChanged(_ candidateString: NSAttributedString!) {
-        let selectedIndex = candidatesWindow?.selectedCandidate() ?? NSNotFound
-        if selectedIndex != NSNotFound, currentCandidates.indices.contains(selectedIndex) {
-            showAnnotation(for: currentCandidates[selectedIndex])
-            return
-        }
-        guard
-            let candidateString,
-            let index = currentCandidates.firstIndex(where: { $0.text == candidateString.string })
-        else {
+        guard let index = candidateIndex(forCandidateSelection: candidateString) else {
             hideAnnotation()
             return
         }
@@ -249,59 +208,84 @@ final class GannyuInputController: IMKInputController {
 
     private func refreshCandidates(client sender: Any!) {
         bufferCursor = min(max(bufferCursor, 0), buffer.count)
-        currentCandidates = (try? engine?.retrieveCandidates(buffer)) ?? []
+        do {
+            currentCandidates = try engine?.retrieveCandidates(buffer) ?? []
+        } catch {
+            currentCandidates = []
+        }
+        currentCandidateDisplays = currentCandidates.map(candidateDisplay(for:))
+        candidateIdentifierToIndex = [:]
+        candidatePage = 0
         if !hasComposition {
             clearMarkedText(client: sender)
             hideCandidates()
             return
         }
-        updateComposition()
+        updateComposition(client: sender)
         if currentCandidates.isEmpty {
             hideCandidates()
             return
         }
-        candidatesWindow?.update()
-        candidatesWindow?.show(kIMKLocateCandidatesBelowHint)
-        showAnnotation(for: currentCandidates[0])
+        showCandidatePage()
+        if let first = currentCandidates.first {
+            showAnnotation(for: first)
+        }
     }
 
     private func commitCandidate(at index: Int, client sender: Any!) {
         guard currentCandidates.indices.contains(index) else { return }
         let candidate = currentCandidates[index]
-        cachedText += candidate.text
+        recordCandidateSelection(candidate)
         let count = max(0, min(candidate.consumedBytes, buffer.utf8.count))
         if count > 0 && count < buffer.utf8.count {
+            insertCommittedText(candidate.text, client: sender)
             buffer = String(decoding: buffer.utf8.dropFirst(count), as: UTF8.self)
-            bufferCursor = max(0, bufferCursor - count)
+            bufferCursor = buffer.count
             refreshCandidates(client: sender)
             return
         }
-        commitText(cachedText, client: sender)
+        commitText(candidate.text, client: sender)
     }
 
-    private func commitText(_ text: String, client sender: Any!) {
+    private func commitText(_ text: String, client sender: Any!, saveLearning: Bool = true) {
         guard let client = sender as? NSTextInputClient else {
             buffer = ""
             bufferCursor = 0
-            cachedText = ""
             currentCandidates = []
+            currentCandidateDisplays = []
+            candidateIdentifierToIndex = [:]
             hideCandidates()
             return
         }
         client.insertText(text, replacementRange: currentReplacementRange(for: client))
+        if saveLearning {
+            saveAccumulatedUserWord()
+        } else {
+            clearLearningState()
+        }
         buffer = ""
         bufferCursor = 0
-        cachedText = ""
         currentCandidates = []
+        currentCandidateDisplays = []
+        candidateIdentifierToIndex = [:]
+        displayedCandidateIndices = []
         clearMarkedText(client: client)
         hideCandidates()
+    }
+
+    private var availableRegions: [GannyuRegion] {
+        let manifest = ProcessInfo.processInfo.environment["GANNYU_MANIFEST"]
+        return (try? GannyuEngine.availableRegions(manifestPath: manifest)) ?? GannyuRegion.fallback
     }
 
     private func clearComposition(client sender: Any!) {
         buffer = ""
         bufferCursor = 0
-        cachedText = ""
         currentCandidates = []
+        currentCandidateDisplays = []
+        candidateIdentifierToIndex = [:]
+        displayedCandidateIndices = []
+        clearLearningState()
         clearMarkedText(client: sender)
         hideCandidates()
     }
@@ -313,6 +297,18 @@ final class GannyuInputController: IMKInputController {
         client.unmarkText()
     }
 
+    private func updateComposition(client sender: Any!) {
+        guard let client = sender as? NSTextInputClient, hasComposition else {
+            return
+        }
+        let display = currentPreeditDisplay()
+        client.setMarkedText(
+            display,
+            selectedRange: NSRange(location: nsLength(of: display), length: 0),
+            replacementRange: currentReplacementRange(for: client)
+        )
+    }
+
     private func shouldAppend(_ string: String) -> Bool {
         string.unicodeScalars.allSatisfy {
             CharacterSet.lowercaseLetters.contains($0)
@@ -321,29 +317,68 @@ final class GannyuInputController: IMKInputController {
         }
     }
 
-    private var hasComposition: Bool {
-        !buffer.isEmpty || !cachedText.isEmpty
+    private func processSymbol(_ symbol: String, client sender: Any!) -> Bool {
+        guard !symbol.isEmpty else { return false }
+        if hasComposition {
+            if let selected = selectedCandidateIndex() ?? firstCandidateIndexOnPage() {
+                commitCandidate(at: selected, client: sender)
+            } else {
+                _ = commitRawBuffer(client: sender)
+            }
+        }
+        let output = chinesePunctuation(for: symbol) ?? symbol
+        guard let client = sender as? NSTextInputClient else { return false }
+        client.insertText(output, replacementRange: client.selectedRange())
+        return true
     }
 
-    private var composedPrefixLength: Int {
-        guard !cachedText.isEmpty, !buffer.isEmpty else {
-            return nsLength(of: cachedText)
+    private func chinesePunctuation(for symbol: String) -> String? {
+        [
+            ",": "，", ".": "。", "\\": "、", ";": "；", ":": "：", "?": "？", "!": "！",
+            "(": "（", ")": "）", "[": "【", "]": "】", "<": "《", ">": "》", "\"": "“",
+            "~": "～", "-": "－",
+        ][symbol]
+    }
+
+    private var hasComposition: Bool {
+        !buffer.isEmpty
+    }
+
+    private func commitRawBuffer(client sender: Any!) -> Bool {
+        guard hasComposition else { return false }
+        commitText(buffer, client: sender, saveLearning: false)
+        return true
+    }
+
+    private func recordCandidateSelection(_ candidate: GannyuRetrievedCandidate) {
+        engine?.boostUserWord(candidate.text)
+        accumulatedText += candidate.text
+        if let reading = candidate.reading, !reading.isEmpty {
+            accumulatedReading += accumulatedReading.isEmpty ? reading : " \(reading)"
         }
-        return nsLength(of: cachedText) + 2
+        if let reading = candidate.mandarinReading, !reading.isEmpty {
+            accumulatedMandarinReading += accumulatedMandarinReading.isEmpty ? reading : " \(reading)"
+        }
+    }
+
+    private func saveAccumulatedUserWord() {
+        engine?.saveUserWord(
+            accumulatedText,
+            reading: accumulatedReading,
+            mandarinReading: accumulatedMandarinReading.isEmpty ? nil : accumulatedMandarinReading
+        )
+        clearLearningState()
+    }
+
+    private func clearLearningState() {
+        accumulatedText = ""
+        accumulatedReading = ""
+        accumulatedMandarinReading = ""
     }
 
     private func handleDelete(client sender: Any!) -> Bool {
         guard hasComposition else {
             return false
-        }
-        if !cachedText.isEmpty, bufferCursor == 0 {
-            cachedText.removeLast()
-            if buffer.isEmpty && cachedText.isEmpty {
-                clearComposition(client: sender)
-                return true
-            }
-            refreshCandidates(client: sender)
-            return true
         }
         guard bufferCursor > 0 else {
             return true
@@ -367,7 +402,7 @@ final class GannyuInputController: IMKInputController {
     }
 
     private func currentPreeditDisplay() -> String {
-        let consumedBytes = currentCandidates.first?.consumedBytes ?? 0
+        let consumedBytes = firstCandidateIndexOnPage().map { currentCandidates[$0].consumedBytes } ?? 0
         return (try? engine?.formatPreedit(buffer, consumedBytes: consumedBytes)) ?? buffer
     }
 
@@ -379,6 +414,68 @@ final class GannyuInputController: IMKInputController {
         return client.selectedRange()
     }
 
+    private func insertCommittedText(_ text: String, client sender: Any!) {
+        guard let client = sender as? NSTextInputClient else {
+            return
+        }
+        client.insertText(text, replacementRange: currentReplacementRange(for: client))
+    }
+
+    private func showCandidatePage() {
+        displayedCandidateIndices = candidatePageRange()
+        candidatesWindow?.setCandidateData(displayedCandidateIndices.map { currentCandidateDisplays[$0] })
+        candidatesWindow?.update()
+        candidatesWindow?.show(kIMKLocateCandidatesBelowHint)
+        rebuildCandidateIdentifierMap()
+    }
+
+    private func candidatePageRange() -> [Int] {
+        let start = candidatePage * 9
+        guard start < currentCandidates.count else { return [] }
+        return Array(start..<min(start + 9, currentCandidates.count))
+    }
+
+    private func changeCandidatePage(by delta: Int, client sender: Any!) -> Bool {
+        guard hasComposition, !currentCandidates.isEmpty else { return false }
+        let next = candidatePage + delta
+        guard next >= 0, next < (currentCandidates.count + 8) / 9 else { return true }
+        candidatePage = next
+        showCandidatePage()
+        updateComposition(client: sender)
+        return true
+    }
+
+    private func selectCandidate(by delta: Int) -> Bool {
+        guard hasComposition, !displayedCandidateIndices.isEmpty, let candidatesWindow else { return false }
+        let current = selectedCandidateIndex() ?? displayedCandidateIndices[0]
+        guard let offset = displayedCandidateIndices.firstIndex(of: current) else { return false }
+        let next = (offset + delta + displayedCandidateIndices.count) % displayedCandidateIndices.count
+        let identifier = candidatesWindow.candidateStringIdentifier(currentCandidateDisplays[displayedCandidateIndices[next]])
+        guard identifier != NSNotFound else { return false }
+        return candidatesWindow.selectCandidate(withIdentifier: identifier)
+    }
+
+    private func firstCandidateIndexOnPage() -> Int? {
+        displayedCandidateIndices.first
+    }
+
+    private func rebuildCandidateIdentifierMap() {
+        guard let candidatesWindow else {
+            candidateIdentifierToIndex = [:]
+            return
+        }
+        candidateIdentifierToIndex = Dictionary(
+            uniqueKeysWithValues: displayedCandidateIndices.compactMap { index in
+                let display = currentCandidateDisplays[index]
+                let identifier = candidatesWindow.candidateStringIdentifier(display)
+                guard identifier != NSNotFound else {
+                    return nil
+                }
+                return (identifier, index)
+            }
+        )
+    }
+
     private func hideCandidates() {
         hideAnnotation()
         candidatesWindow?.hide()
@@ -388,19 +485,28 @@ final class GannyuInputController: IMKInputController {
         (string as NSString).length
     }
 
-    private func showAnnotation(for candidate: GannyuRetrievedCandidate) {
-        guard let text = annotationText(for: candidate), !text.isEmpty else {
-            hideAnnotation()
-            return
-        }
-        let attributed = NSAttributedString(
-            string: text,
+    private func candidateDisplay(for candidate: GannyuRetrievedCandidate) -> NSAttributedString {
+        let display = NSMutableAttributedString(
+            string: candidate.text,
             attributes: [
-                .font: NSFont.systemFont(ofSize: NSFont.smallSystemFontSize),
-                .foregroundColor: NSColor.secondaryLabelColor,
+                .font: NSFont.systemFont(ofSize: 18),
+                .foregroundColor: NSColor.labelColor,
             ]
         )
-        candidatesWindow?.showAnnotation(attributed)
+        if let annotation = annotationText(for: candidate), !annotation.isEmpty {
+            display.append(NSAttributedString(
+                string: "\n\(annotation.replacingOccurrences(of: "\n", with: " "))",
+                attributes: [
+                    .font: NSFont.systemFont(ofSize: NSFont.smallSystemFontSize),
+                    .foregroundColor: NSColor.secondaryLabelColor,
+                ]
+            ))
+        }
+        return display
+    }
+
+    private func showAnnotation(for _: GannyuRetrievedCandidate) {
+        hideAnnotation()
     }
 
     private func hideAnnotation() {
@@ -423,15 +529,17 @@ final class GannyuInputController: IMKInputController {
             return nil
         }
         if scalar == "0" {
-            return 9
+            return displayedCandidateIndices.count > 9 ? displayedCandidateIndices[9] : nil
         }
         guard let value = Int(string), value > 0 else {
             return nil
         }
-        return value - 1
+        let offset = value - 1
+        guard displayedCandidateIndices.indices.contains(offset) else { return nil }
+        return displayedCandidateIndices[offset]
     }
 
-    private func candidateIndex(forKeyCode keyCode: Int) -> Int? {
+    private func candidateLineNumber(forKeyCode keyCode: Int) -> Int? {
         switch keyCode {
         case kVK_ANSI_1, kVK_ANSI_Keypad1:
             return 0
@@ -458,12 +566,94 @@ final class GannyuInputController: IMKInputController {
         }
     }
 
+    private func commitSelectedCandidate(client sender: Any!) -> Bool {
+        guard let index = selectedCandidateIndex() else {
+            return false
+        }
+        commitCandidate(at: index, client: sender)
+        return true
+    }
+
+    private func commitCandidateAtDisplayedLine(_ lineNumber: Int, client sender: Any!) -> Bool {
+        guard
+            let candidatesWindow,
+            candidatesWindow.isVisible(),
+            let index = candidateIndexForDisplayedLine(lineNumber)
+        else {
+            if currentCandidates.indices.contains(lineNumber) {
+                commitCandidate(at: lineNumber, client: sender)
+                return true
+            }
+            return false
+        }
+        let identifier = candidatesWindow.candidateIdentifier(atLineNumber: lineNumber)
+        guard identifier != NSNotFound else {
+            return false
+        }
+        _ = candidatesWindow.selectCandidate(withIdentifier: identifier)
+        commitCandidate(at: index, client: sender)
+        return true
+    }
+
+    private func candidateIndexForDisplayedLine(_ lineNumber: Int) -> Int? {
+        guard
+            let candidatesWindow,
+            candidatesWindow.isVisible()
+        else {
+            return currentCandidates.indices.contains(lineNumber) ? lineNumber : nil
+        }
+        let identifier = candidatesWindow.candidateIdentifier(atLineNumber: lineNumber)
+        guard identifier != NSNotFound else {
+            return nil
+        }
+        return candidateIndex(forCandidateIdentifier: identifier)
+    }
+
+    private func candidateIndex(forCandidateIdentifier identifier: Int) -> Int? {
+        guard identifier != NSNotFound else {
+            return nil
+        }
+        if let index = candidateIdentifierToIndex[identifier] {
+            return index
+        }
+        return nil
+    }
+
+    private func selectedCandidateIndex() -> Int? {
+        guard let candidatesWindow else {
+            return nil
+        }
+        let identifier = candidatesWindow.selectedCandidate()
+        if let index = candidateIndex(forCandidateIdentifier: identifier) {
+            return index
+        }
+        return candidateIndex(forDisplayedCandidateText: candidatesWindow.selectedCandidateString()?.string)
+    }
+
+    private func candidateIndex(forCandidateSelection candidateString: NSAttributedString?) -> Int? {
+        if let index = selectedCandidateIndex() {
+            return index
+        }
+        return candidateIndex(forDisplayedCandidateText: candidateString?.string)
+    }
+
+    private func candidateIndex(forDisplayedCandidateText text: String?) -> Int? {
+        guard let text else {
+            return nil
+        }
+        if let index = displayedCandidateIndices.first(where: { currentCandidateDisplays[$0].string == text }) {
+            return index
+        }
+        return currentCandidates.firstIndex(where: { $0.text == text })
+    }
+
     @objc private func regionDidChange() {
         engine = nil
         buffer = ""
         bufferCursor = 0
-        cachedText = ""
         currentCandidates = []
+        currentCandidateDisplays = []
+        candidateIdentifierToIndex = [:]
         hideCandidates()
     }
 
@@ -476,7 +666,7 @@ final class GannyuInputController: IMKInputController {
         } else {
             item = nil
         }
-        guard let raw = item?.representedObject as? String, let region = GannyuRegion(rawValue: raw) else { return }
-        GannyuRegionStore.shared.current = region
+        guard let raw = item?.representedObject as? String else { return }
+        GannyuRegionStore.shared.currentID = raw
     }
 }

@@ -69,7 +69,11 @@ signing_identity="${GANNYU_MACOS_SIGN_IDENTITY:-}"
 if [[ -z "$signing_identity" ]]; then
   signing_identity="$(security find-identity -v -p codesigning 2>/dev/null | awk '/"Apple Development:/{ print $2; exit }')"
 fi
-codesign --force --deep --sign "${signing_identity:--}" "$bundle_root"
+if [[ "$signing_identity" == "Developer ID Application:"* ]]; then
+  codesign --force --deep --options runtime --timestamp --sign "$signing_identity" "$bundle_root"
+else
+  codesign --force --deep --sign "${signing_identity:--}" "$bundle_root"
+fi
 codesign --verify --deep --strict "$bundle_root"
 
 echo "packaged $bundle_root"

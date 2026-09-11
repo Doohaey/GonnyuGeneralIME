@@ -64,8 +64,6 @@
     </dict>
     <key>InputMethodServerControllerClass</key>
     <string>GannyuInputController</string>
-    <key>InputMethodServerDelegateClass</key>
-    <string>GannyuInputController</string>
     <key>LSMinimumSystemVersion</key>
     <string>13.0</string>
     <key>TISInputSourceID</key>

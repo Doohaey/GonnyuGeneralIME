@@ -11,6 +11,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func startup() throws {
         let env = ProcessInfo.processInfo.environment
+        let bundleID = env["GANNYU_IMK_BUNDLE_ID"]
+            ?? Bundle.main.bundleIdentifier
+            ?? "org.doohaey.inputmethod.gonnyu.native"
         if env["GANNYU_REGISTER_INPUT_SOURCE"] == "1" {
             let status = TISRegisterInputSource(Bundle.main.bundleURL as CFURL)
             guard status == noErr else {
@@ -24,8 +27,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         let manifest = env["GANNYU_MANIFEST"]
         let region = env["GANNYU_REGION_ID"]
-        let bundleID = env["GANNYU_IMK_BUNDLE_ID"] ?? "org.doohaey.inputmethod.gonnyu.native"
-        let connection = env["GANNYU_IMK_CONNECTION"] ?? "\(bundleID)_Connection"
+        let connection = env["GANNYU_IMK_CONNECTION"]
+            ?? Bundle.main.object(forInfoDictionaryKey: "InputMethodConnectionName") as? String
+            ?? "\(bundleID)_Connection"
 
         engine = try GannyuEngine(manifestPath: manifest, regionID: region)
         server = IMKServer(name: connection, bundleIdentifier: bundleID)
@@ -49,23 +53,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func installStatusItem() {
         let item = statusItem ?? NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         let menu = NSMenu(title: "Gonnyu 地区")
-        for region in GannyuRegion.allCases {
-            let item = NSMenuItem(title: region.label, action: #selector(selectRegion(_:)), keyEquivalent: "")
+        let manifest = ProcessInfo.processInfo.environment["GANNYU_MANIFEST"]
+        let regions = (try? GannyuEngine.availableRegions(manifestPath: manifest)) ?? GannyuRegion.fallback
+        for region in regions {
+            let item = NSMenuItem(title: region.nameZh, action: #selector(selectRegion(_:)), keyEquivalent: "")
             item.target = self
-            item.representedObject = region.rawValue
-            item.state = region == GannyuRegionStore.shared.current ? .on : .off
+            item.representedObject = region.id
+            item.state = region.id == GannyuRegionStore.shared.currentID ? .on : .off
             menu.addItem(item)
         }
         menu.addItem(.separator())
         menu.addItem(withTitle: "Gonnyu 输入法", action: nil, keyEquivalent: "")
-        item.button?.title = "赣·\(GannyuRegionStore.shared.current.label)"
+        let currentLabel = regions.first(where: { $0.id == GannyuRegionStore.shared.currentID })?.nameZh
+            ?? GannyuRegionStore.shared.currentID
+        item.button?.title = "赣·\(currentLabel)"
         item.menu = menu
         statusItem = item
     }
 
     @objc private func selectRegion(_ sender: NSMenuItem) {
-        guard let raw = sender.representedObject as? String, let region = GannyuRegion(rawValue: raw) else { return }
-        GannyuRegionStore.shared.current = region
+        guard let raw = sender.representedObject as? String else { return }
+        GannyuRegionStore.shared.currentID = raw
         installStatusItem()
     }
 }
