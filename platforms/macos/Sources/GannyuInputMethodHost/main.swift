@@ -26,7 +26,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             print("registered input source: \(Bundle.main.bundleURL.path)")
         }
         let manifest = env["GANNYU_MANIFEST"]
-        let region = env["GANNYU_REGION_ID"]
+        let region = env["GANNYU_REGION_ID"] ?? GannyuRegionStore.shared.currentID(manifestPath: manifest)
         let connection = env["GANNYU_IMK_CONNECTION"]
             ?? Bundle.main.object(forInfoDictionaryKey: "InputMethodConnectionName") as? String
             ?? "\(bundleID)_Connection"
@@ -54,18 +54,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let item = statusItem ?? NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         let menu = NSMenu(title: "Gonnyu 地区")
         let manifest = ProcessInfo.processInfo.environment["GANNYU_MANIFEST"]
-        let regions = (try? GannyuEngine.availableRegions(manifestPath: manifest)) ?? GannyuRegion.fallback
+        let regions = (try? GannyuEngine.availableRegions(manifestPath: manifest)) ?? []
+        let currentID = GannyuRegionStore.shared.currentID(manifestPath: manifest)
         for region in regions {
             let item = NSMenuItem(title: region.nameZh, action: #selector(selectRegion(_:)), keyEquivalent: "")
             item.target = self
             item.representedObject = region.id
-            item.state = region.id == GannyuRegionStore.shared.currentID ? .on : .off
+            item.state = region.id == currentID ? .on : .off
             menu.addItem(item)
         }
         menu.addItem(.separator())
         menu.addItem(withTitle: "Gonnyu 输入法", action: nil, keyEquivalent: "")
-        let currentLabel = regions.first(where: { $0.id == GannyuRegionStore.shared.currentID })?.nameZh
-            ?? GannyuRegionStore.shared.currentID
+        let currentLabel = regions.first(where: { $0.id == currentID })?.nameZh ?? "未加载"
         item.button?.title = "赣·\(currentLabel)"
         item.menu = menu
         statusItem = item
@@ -73,7 +73,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func selectRegion(_ sender: NSMenuItem) {
         guard let raw = sender.representedObject as? String else { return }
-        GannyuRegionStore.shared.currentID = raw
+        _ = GannyuRegionStore.shared.select(
+            raw,
+            manifestPath: ProcessInfo.processInfo.environment["GANNYU_MANIFEST"]
+        )
         installStatusItem()
     }
 }

@@ -10,7 +10,8 @@ final class GannyuInputController: IMKInputController {
         do {
             return try GannyuEngine(
                 manifestPath: env["GANNYU_MANIFEST"],
-                regionID: env["GANNYU_REGION_ID"] ?? GannyuRegionStore.shared.currentID
+                regionID: env["GANNYU_REGION_ID"]
+                    ?? GannyuRegionStore.shared.currentID(manifestPath: env["GANNYU_MANIFEST"])
             )
         } catch {
             return nil
@@ -171,11 +172,12 @@ final class GannyuInputController: IMKInputController {
     @objc(menu)
     override func menu() -> NSMenu! {
         let menu = NSMenu(title: "Gonnyu")
+        let manifest = ProcessInfo.processInfo.environment["GANNYU_MANIFEST"]
         for region in availableRegions {
             let item = NSMenuItem(title: region.nameZh, action: #selector(selectRegionFromMenu(_:)), keyEquivalent: "")
             item.target = self
             item.representedObject = region.id
-            item.state = region.id == GannyuRegionStore.shared.currentID ? .on : .off
+            item.state = region.id == GannyuRegionStore.shared.currentID(manifestPath: manifest) ? .on : .off
             menu.addItem(item)
         }
         return menu
@@ -275,7 +277,7 @@ final class GannyuInputController: IMKInputController {
 
     private var availableRegions: [GannyuRegion] {
         let manifest = ProcessInfo.processInfo.environment["GANNYU_MANIFEST"]
-        return (try? GannyuEngine.availableRegions(manifestPath: manifest)) ?? GannyuRegion.fallback
+        return (try? GannyuEngine.availableRegions(manifestPath: manifest)) ?? []
     }
 
     private func clearComposition(client sender: Any!) {
@@ -667,6 +669,9 @@ final class GannyuInputController: IMKInputController {
             item = nil
         }
         guard let raw = item?.representedObject as? String else { return }
-        GannyuRegionStore.shared.currentID = raw
+        _ = GannyuRegionStore.shared.select(
+            raw,
+            manifestPath: ProcessInfo.processInfo.environment["GANNYU_MANIFEST"]
+        )
     }
 }

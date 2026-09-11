@@ -33,11 +33,6 @@ public struct GannyuRegion: Decodable, Equatable {
         case nameZh = "name_zh"
     }
 
-    public static let fallback = [
-        GannyuRegion(id: "lancong", nameZh: "南昌"),
-        GannyuRegion(id: "fenni", nameZh: "分宜"),
-    ]
-
     public init(id: String, nameZh: String) {
         self.id = id
         self.nameZh = nameZh
@@ -49,12 +44,27 @@ public final class GannyuRegionStore {
     public static let didChange = Notification.Name("org.doohaey.gonnyu.regionDidChange")
     private let key = "org.doohaey.gonnyu.region"
 
-    public var currentID: String {
-        get { UserDefaults.standard.string(forKey: key) ?? "lancong" }
-        set {
-            UserDefaults.standard.set(newValue, forKey: key)
-            NotificationCenter.default.post(name: Self.didChange, object: newValue)
+    public func currentID(manifestPath: String?) -> String? {
+        guard let regions = try? GannyuEngine.availableRegions(manifestPath: manifestPath),
+              let first = regions.first else {
+            return nil
         }
+        let stored = UserDefaults.standard.string(forKey: key)
+        let resolved = regions.contains(where: { $0.id == stored }) ? stored! : first.id
+        if stored != resolved {
+            UserDefaults.standard.set(resolved, forKey: key)
+        }
+        return resolved
+    }
+
+    public func select(_ regionID: String, manifestPath: String?) -> Bool {
+        guard let regions = try? GannyuEngine.availableRegions(manifestPath: manifestPath),
+              regions.contains(where: { $0.id == regionID }) else {
+            return false
+        }
+        UserDefaults.standard.set(regionID, forKey: key)
+        NotificationCenter.default.post(name: Self.didChange, object: regionID)
+        return true
     }
 }
 

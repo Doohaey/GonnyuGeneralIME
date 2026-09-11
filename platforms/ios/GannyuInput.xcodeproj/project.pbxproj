@@ -1,0 +1,53 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {};
+	objectVersion = 56;
+	objects = {
+		A00000000000000000000001 = {isa = PBXBuildFile; fileRef = A00000000000000000000011; };
+		A00000000000000000000002 = {isa = PBXBuildFile; fileRef = A00000000000000000000012; };
+		A00000000000000000000003 = {isa = PBXBuildFile; fileRef = A00000000000000000000013; };
+		A00000000000000000000004 = {isa = PBXBuildFile; fileRef = A00000000000000000000014; };
+		A00000000000000000000005 = {isa = PBXBuildFile; fileRef = A00000000000000000000015; };
+		A00000000000000000000006 = {isa = PBXBuildFile; fileRef = A00000000000000000000016; };
+		A00000000000000000000007 = {isa = PBXBuildFile; fileRef = A00000000000000000000017; };
+		A00000000000000000000008 = {isa = PBXBuildFile; fileRef = A00000000000000000000018; };
+		A00000000000000000000009 = {isa = PBXBuildFile; fileRef = A00000000000000000000019; };
+		A0000000000000000000000A = {isa = PBXBuildFile; fileRef = A0000000000000000000001A; };
+		A0000000000000000000000B = {isa = PBXBuildFile; fileRef = A0000000000000000000001B; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		A00000000000000000000011 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		A00000000000000000000012 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionSettingsViewController.swift; sourceTree = "<group>"; };
+		A00000000000000000000013 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardViewController.swift; sourceTree = "<group>"; };
+		A00000000000000000000014 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GannyuAppleEngine.swift; sourceTree = "<group>"; };
+		A00000000000000000000015 = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A00000000000000000000016 = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = GannyuInput.entitlements; sourceTree = "<group>"; };
+		A00000000000000000000017 = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A00000000000000000000018 = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = GannyuKeyboard.entitlements; sourceTree = "<group>"; };
+		A00000000000000000000019 = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = ../../build/ios/GannyuInputFFI.xcframework; sourceTree = SOURCE_ROOT; };
+		A0000000000000000000001A = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/Signing.xcconfig; sourceTree = SOURCE_ROOT; };
+		A0000000000000000000001B = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; path = GannyuKeyboard.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		A0000000000000000000001C = {isa = PBXFileReference; explicitFileType = wrapper.application; path = GannyuInput.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A00000000000000000000020 = {isa = PBXGroup; children = (A00000000000000000000021, A00000000000000000000022, A00000000000000000000023, A00000000000000000000019, A00000000000000000000024, ); sourceTree = "<group>"; };
+		A00000000000000000000021 = {isa = PBXGroup; path = Sources/GannyuInput; sourceTree = SOURCE_ROOT; children = (A00000000000000000000011, A00000000000000000000012, A00000000000000000000015, A00000000000000000000016, ); };
+		A00000000000000000000022 = {isa = PBXGroup; path = Sources/GannyuKeyboard; sourceTree = SOURCE_ROOT; children = (A00000000000000000000013, A00000000000000000000017, A00000000000000000000018, ); };
+		A00000000000000000000023 = {isa = PBXGroup; path = Sources/GannyuAppleSupport; sourceTree = SOURCE_ROOT; children = (A00000000000000000000014, ); };
+		A00000000000000000000024 = {isa = PBXGroup; name = Products; children = (A0000000000000000000001C, A0000000000000000000001B, ); sourceTree = "<group>"; };
+		A00000000000000000000030 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000009, ); runOnlyForDeploymentPostprocessing = 0; };
+		A00000000000000000000031 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (A0000000000000000000000A, ); runOnlyForDeploymentPostprocessing = 0; };
+		A00000000000000000000040 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000001, A00000000000000000000002, A00000000000000000000004, ); runOnlyForDeploymentPostprocessing = 0; };
+		A00000000000000000000041 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000003, A00000000000000000000005, ); runOnlyForDeploymentPostprocessing = 0; };
+		A00000000000000000000050 = {isa = PBXCopyFilesBuildPhase; buildActionMask = 2147483647; dstPath = ""; dstSubfolderSpec = 13; files = (A0000000000000000000000B, ); name = "Embed Keyboard Extension"; runOnlyForDeploymentPostprocessing = 0; };
+		A00000000000000000000060 = {isa = PBXNativeTarget; buildConfigurationList = A00000000000000000000070; buildPhases = (A00000000000000000000040, A00000000000000000000030, A00000000000000000000050, ); buildRules = (); dependencies = (A00000000000000000000080, ); name = GannyuInput; productName = GannyuInput; productReference = A0000000000000000000001C; productType = "com.apple.product-type.application"; };
+		A00000000000000000000061 = {isa = PBXNativeTarget; buildConfigurationList = A00000000000000000000071; buildPhases = (A00000000000000000000041, A00000000000000000000031, ); buildRules = (); dependencies = (); name = GannyuKeyboard; productName = GannyuKeyboard; productReference = A0000000000000000000001B; productType = "com.apple.product-type.app-extension"; };
+		A00000000000000000000080 = {isa = PBXTargetDependency; target = A00000000000000000000061; targetProxy = A00000000000000000000081; };
+		A00000000000000000000081 = {isa = PBXContainerItemProxy; containerPortal = A00000000000000000000090; proxyType = 1; remoteGlobalIDString = A00000000000000000000061; remoteInfo = GannyuKeyboard; };
+		A00000000000000000000070 = {isa = XCConfigurationList; buildConfigurations = (A00000000000000000000072, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		A00000000000000000000071 = {isa = XCConfigurationList; buildConfigurations = (A00000000000000000000073, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		A00000000000000000000072 = {isa = XCBuildConfiguration; baseConfigurationReference = A0000000000000000000001A; buildSettings = { CODE_SIGN_ENTITLEMENTS = GannyuInput/GannyuInput.entitlements; CURRENT_PROJECT_VERSION = 1; INFOPLIST_FILE = GannyuInput/Info.plist; IPHONEOS_DEPLOYMENT_TARGET = 16.0; MARKETING_VERSION = 0.2.4; PRODUCT_BUNDLE_IDENTIFIER = "$(GANNYU_APP_BUNDLE_IDENTIFIER)"; SDKROOT = iphoneos; SWIFT_VERSION = 5.10; }; name = Release; };
+		A00000000000000000000073 = {isa = XCBuildConfiguration; baseConfigurationReference = A0000000000000000000001A; buildSettings = { CODE_SIGN_ENTITLEMENTS = GannyuKeyboard/GannyuKeyboard.entitlements; CURRENT_PROJECT_VERSION = 1; INFOPLIST_FILE = GannyuKeyboard/Info.plist; IPHONEOS_DEPLOYMENT_TARGET = 16.0; MARKETING_VERSION = 0.2.4; PRODUCT_BUNDLE_IDENTIFIER = "$(GANNYU_KEYBOARD_BUNDLE_IDENTIFIER)"; SDKROOT = iphoneos; SWIFT_VERSION = 5.10; }; name = Release; };
+		A00000000000000000000091 = {isa = XCBuildConfiguration; buildSettings = { IPHONEOS_DEPLOYMENT_TARGET = 16.0; }; name = Release; };
+		A00000000000000000000092 = {isa = XCConfigurationList; buildConfigurations = (A00000000000000000000091, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		A00000000000000000000090 = {isa = PBXProject; attributes = { LastUpgradeCheck = 1600; TargetAttributes = { A00000000000000000000061 = { ProvisioningStyle = Automatic; }; A00000000000000000000060 = { ProvisioningStyle = Automatic; }; }; }; buildConfigurationList = A00000000000000000000092; compatibilityVersion = "Xcode 14.0"; developmentRegion = en; hasScannedForEncodings = 0; knownRegions = (en, "zh-Hans", Base, ); mainGroup = A00000000000000000000020; productRefGroup = A00000000000000000000024; projectDirPath = ""; projectRoot = ""; targets = (A00000000000000000000060, A00000000000000000000061, ); };
+	};
+	rootObject = A00000000000000000000090;
+}

@@ -1,0 +1,4 @@
+DEVELOPMENT_TEAM = YOUR_TEAM_ID
+GANNYU_APP_GROUP = group.org.doohaey.gonnyu
+GANNYU_APP_BUNDLE_IDENTIFIER = org.doohaey.gonnyu
+GANNYU_KEYBOARD_BUNDLE_IDENTIFIER = org.doohaey.gonnyu.keyboard

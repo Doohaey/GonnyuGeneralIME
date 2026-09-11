@@ -14,7 +14,7 @@ def test_macos_platform_exposes_build_and_smoke_entrypoints() -> None:
     assert 'cargo build -p gannyu-input-ffi --release' in build_script
     assert 'swift build --package-path "$script_dir" -c release' in build_script
     assert "Info.plist.template" in build_script
-    assert "GannyuInputMethod.app" in build_script
+    assert "GonnyuInputMethod.app" in build_script
     assert "GannyuMacOSSmoke" in smoke_script
     assert "--manifest" in smoke_script
     assert "plutil -lint" in bundle_smoke_script
@@ -60,3 +60,15 @@ def test_macos_controller_wires_minimal_input_loop() -> None:
     assert "client.setMarkedText" in controller
     assert "retrieveCandidates" in engine
     assert "formatPreedit" in engine
+    assert "currentID(manifestPath:" in engine
+    assert "GannyuRegion.fallback" not in controller
+
+
+def test_macos_region_selection_is_validated_against_embedded_catalog() -> None:
+    engine = (
+        ROOT / "platforms/macos/Sources/GannyuMacOSSupport/GannyuEngine.swift"
+    ).read_text(encoding="utf-8")
+
+    assert "availableRegions(manifestPath:" in engine
+    assert "regions.contains(where:" in engine
+    assert "UserDefaults.standard.set(resolved" in engine
