@@ -729,7 +729,8 @@ private:
 };
 
 class GannyuTextService : public ITfTextInputProcessorEx, public ITfThreadMgrEventSink,
-                          public ITfKeyEventSink, public ITfActiveLanguageProfileNotifySink {
+                          public ITfKeyEventSink, public ITfActiveLanguageProfileNotifySink,
+                          public ITfFunctionProvider {
 public:
     GannyuTextService() : refs_(1) {
         g_moduleRefs.fetch_add(1);
@@ -788,6 +789,8 @@ public:
             *ppv = static_cast<ITfKeyEventSink *>(this);
         } else if (IsEqualIID(riid, IID_ITfActiveLanguageProfileNotifySink)) {
             *ppv = static_cast<ITfActiveLanguageProfileNotifySink *>(this);
+        } else if (IsEqualIID(riid, IID_ITfFunctionProvider)) {
+            *ppv = static_cast<ITfFunctionProvider *>(this);
         }
         if (!*ppv) {
             return E_NOINTERFACE;
@@ -804,6 +807,18 @@ public:
             delete this;
         }
         return static_cast<ULONG>(refs);
+    }
+
+    STDMETHODIMP GetType(GUID *type) override {
+        return functionProvider_ ? functionProvider_->GetType(type) : E_NOINTERFACE;
+    }
+
+    STDMETHODIMP GetDescription(BSTR *description) override {
+        return functionProvider_ ? functionProvider_->GetDescription(description) : E_NOINTERFACE;
+    }
+
+    STDMETHODIMP GetFunction(REFGUID guid, REFIID riid, IUnknown **function) override {
+        return functionProvider_ ? functionProvider_->GetFunction(guid, riid, function) : E_NOINTERFACE;
     }
 
     STDMETHODIMP Activate(ITfThreadMgr *mgr, TfClientId clientId) override {
