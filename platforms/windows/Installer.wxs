@@ -8,7 +8,6 @@
     Scope="perMachine"
     Language="2052">
     <MajorUpgrade
-      AllowSameVersionUpgrades="yes"
       DowngradeErrorMessage="A newer version of GonnyuGeneralIME is already installed." />
     <MediaTemplate EmbedCab="yes" />
 
