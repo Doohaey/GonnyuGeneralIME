@@ -52,7 +52,9 @@ def test_android_candidate_bar_keeps_cache_out_of_the_editor() -> None:
     assert "onUpdateSelection(" in source
     assert "setComposingText" not in source
     assert 'android:id="@+id/cacheTag"' in layout
-    assert 'android:translationY="-12dp"' in layout
+    assert 'android:id="@+id/preeditView"' not in layout
+    assert 'android:translationY="-12dp"' not in layout
+    assert "getTextBeforeCursor" not in source
 
 
 def test_android_symbol_page_clears_composition_and_writes_symbols_literally() -> None:

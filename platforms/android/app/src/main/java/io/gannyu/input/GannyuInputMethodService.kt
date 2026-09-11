@@ -41,7 +41,6 @@ class GannyuInputMethodService : InputMethodService() {
 
     private var pipelineHandle: Long = 0
     private var pipelineReady: Boolean = false
-    private lateinit var preeditView: TextView
     private lateinit var cacheTag: TextView
     private lateinit var candidateScroll: HorizontalScrollView
     private lateinit var candidateBar: LinearLayout
@@ -253,7 +252,6 @@ class GannyuInputMethodService : InputMethodService() {
 
     override fun onCreateInputView(): View {
         val root = LayoutInflater.from(this).inflate(R.layout.input_view, null)
-        preeditView = root.findViewById(R.id.preeditView)
         candidateScroll = root.findViewById(R.id.candidateScroll)
         candidateBar = root.findViewById(R.id.candidateBar)
         keyboardRows = root.findViewById(R.id.keyboardRows)
@@ -296,7 +294,6 @@ class GannyuInputMethodService : InputMethodService() {
         candidatesEnd: Int,
     ) {
         super.onUpdateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd, candidatesStart, candidatesEnd)
-        if (::preeditView.isInitialized) renderPreedit()
     }
 
     override fun onWindowHidden() {
@@ -509,32 +506,16 @@ class GannyuInputMethodService : InputMethodService() {
     private fun resetState(clearAccumulated: Boolean) {
         composing.clear(); lastCandidates = emptyList()
         if (clearAccumulated) clearAccumulatedSelection()
-        if (::preeditView.isInitialized) renderState()
+        if (::candidateBar.isInitialized) renderState()
     }
 
     // ===== UI rendering =====
 
     private fun renderState() {
-        if (!::preeditView.isInitialized) return
-        renderPreedit()
+        if (!::candidateBar.isInitialized) return
         if (::candidateBar.isInitialized) refreshCandidates()
         renderCacheTag()
         if (::candidateBar.isInitialized) renderCandidateBar()
-    }
-
-    private fun renderPreedit() {
-        if (!::preeditView.isInitialized) return
-        preeditView.setTextColor(0xFF222222.toInt())
-        val connection = currentInputConnection
-        if (connection == null) {
-            preeditView.text = getString(R.string.preedit_hint)
-            preeditView.setTextColor(0xFF999999.toInt())
-            return
-        }
-        val before = connection.getTextBeforeCursor(24, 0)?.toString().orEmpty()
-        val selected = connection.getSelectedText(0)?.toString().orEmpty()
-        val after = connection.getTextAfterCursor(24, 0)?.toString().orEmpty()
-        preeditView.text = "$before│$selected$after"
     }
 
     private fun renderCacheTag() {
