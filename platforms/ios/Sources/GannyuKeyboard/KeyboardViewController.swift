@@ -102,7 +102,7 @@ final class KeyboardViewController: UIInputViewController {
             keyboardStack.addArrangedSubview(keyRow(row))
         }
         keyboardStack.addArrangedSubview(keyRow(symbolPage
-            ? ["🌐", "（", "）", "空格", "“", "⏎", "拼"]
+            ? ["🌐", "（", "）", "空格", "“", "⌫", "⏎", "拼"]
             : ["🌐", "123", "，", "空格", "。", "⏎"]))
     }
 

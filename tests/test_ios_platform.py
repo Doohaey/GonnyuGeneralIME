@@ -53,6 +53,7 @@ def test_ios_keyboard_keeps_symbol_input_outside_candidate_selection() -> None:
     assert "private var symbolPage = false" in keyboard
     assert "symbolPage = true" in keyboard
     assert "symbolPage = false" in keyboard
+    assert '? ["🌐", "（", "）", "空格", "“", "⌫", "⏎", "拼"]' in keyboard
     assert "textDocumentProxy.insertText(key)" in keyboard
 
 

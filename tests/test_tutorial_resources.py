@@ -64,3 +64,4 @@ def test_android_symbol_page_clears_composition_and_writes_symbols_literally() -
     assert "key.label == \"\\u201C\"" not in source
     assert "key.label == \"\\u201D\"" not in source
     assert "else                                         -> currentInputConnection?.commitText(key.label, 1)" in source
+    assert 'KeySpec("\\u232B", 1.5f)' in source
