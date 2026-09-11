@@ -398,7 +398,10 @@ public:
         ITfRange *range = nullptr;
         hr = insert->InsertTextAtSelection(
             editCookie,
-            TF_IAS_NO_DEFAULT_COMPOSITION,
+            // This is a final text commit. Do not suppress TSF's default
+            // composition: TF_IAS_NO_DEFAULT_COMPOSITION requires the TIP to
+            // create and own a composition before the edit lock is released.
+            0,
             text_.c_str(),
             static_cast<LONG>(text_.size()),
             &range

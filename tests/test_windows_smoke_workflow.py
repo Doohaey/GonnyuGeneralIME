@@ -39,6 +39,15 @@ def test_windows_toolbar_tracks_active_input_profile() -> None:
     assert "statusWindow_" not in focus_callback
 
 
+def test_windows_final_text_commit_allows_tsf_default_composition() -> None:
+    source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
+    session = source.split("class InsertTextEditSession", 1)[1].split("class SelectionRectEditSession", 1)[0]
+
+    assert "InsertTextAtSelection(" in session
+    assert "TF_IAS_NO_DEFAULT_COMPOSITION" not in session.replace("// composition: TF_IAS_NO_DEFAULT_COMPOSITION", "")
+    assert "            0," in session
+
+
 def test_windows_toolbar_clicks_use_drawn_button_rectangles() -> None:
     source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
     assert "auto drawButton" in source
