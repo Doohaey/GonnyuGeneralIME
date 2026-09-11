@@ -1,16 +1,19 @@
 """Tests for the Windows installer version mapping in build_installer.bat.
 
-build_installer.bat converts a Cargo semver string to two 4-part Windows
-installer versions (MSI and Bundle):
-  Stable  X.Y.Z       -> MSI=X.Y.Z,    Bundle=X.Y.Z.0
-  Pre     X.Y.Z-pre.N -> MSI=X.Y.Z-1,  Bundle=X.Y.Z-1.N   (patch Z > 0)
+build_installer.bat converts a Cargo semver string to two Windows installer
+versions (MSI and Bundle):
 
-The MSI version uses only the first three components (Windows Installer
-ignores the fourth), so all pre-releases of the same patch share an MSI
-version one minor lower than the stable.  Installer.wxs carries
-AllowSameVersionUpgrades="yes" so that direct MSI reinstalls between
-pre-releases also work.  The Bundle (Burn) version uses all four components
-and therefore distinguishes every pre-release number correctly.
+  Stable  X.Y.Z       -> MSI=X.Y.Z,   Bundle=X.Y.Z.65535
+  Pre     X.Y.Z-pre.N -> MSI=X.Y.Z,   Bundle=X.Y.Z.N   (N < 65535)
+
+All pre-releases of the same base version share the same MSI version.
+Installer.wxs carries AllowSameVersionUpgrades="yes" so direct MSI
+installs within the same version series work too.
+
+Bundle ordering:  pre.N < pre.M (N<M) < stable (65535)
+
+The 65535 sentinel for stable is not user-visible but ensures a stable
+release always beats every possible pre-release in upgrade comparisons.
 """
 
 from __future__ import annotations
@@ -31,19 +34,17 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def _installer_versions(cargo_version: str) -> tuple[str, str]:
     """Return (msi_version, bundle_version) for the given Cargo version string."""
-    pre = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)-pre\.(\d+)", cargo_version)
+    pre = re.fullmatch(r"(\d+\.\d+\.\d+)-pre\.(\d+)", cargo_version)
     if pre:
-        major, minor, patch, n = (int(pre[i]) for i in (1, 2, 3, 4))
-        if patch == 0:
+        base, n = pre[1], int(pre[2])
+        if n >= 65535:
             raise ValueError(
-                f"Pre-release on patch 0 not supported: {cargo_version}. "
-                "Use X.Y.1-pre.N instead."
+                f"Pre-release number must be < 65535: {cargo_version}"
             )
-        base = f"{major}.{minor}.{patch - 1}"
         return base, f"{base}.{n}"
     stable = re.fullmatch(r"\d+\.\d+\.\d+", cargo_version)
     if stable:
-        return cargo_version, f"{cargo_version}.0"
+        return cargo_version, f"{cargo_version}.65535"
     raise ValueError(f"Unexpected version format: {cargo_version}")
 
 
@@ -58,12 +59,12 @@ def _as_ints(version: str) -> tuple[int, ...]:
 
 def test_pre_release_msi_version() -> None:
     msi, _ = _installer_versions("0.2.4-pre.8")
-    assert msi == "0.2.3"
+    assert msi == "0.2.4"
 
 
 def test_pre_release_bundle_version() -> None:
     _, bundle = _installer_versions("0.2.4-pre.8")
-    assert bundle == "0.2.3.8"
+    assert bundle == "0.2.4.8"
 
 
 def test_upgrade_ordering_between_pre_releases() -> None:
@@ -82,19 +83,32 @@ def test_upgrade_ordering_pre_to_stable() -> None:
 def test_stable_msi_and_bundle_versions() -> None:
     msi, bundle = _installer_versions("0.2.4")
     assert msi == "0.2.4"
-    assert bundle == "0.2.4.0"
+    assert bundle == "0.2.4.65535"
 
 
 def test_cross_minor_ordering() -> None:
-    """pre-releases of the next minor version should be above the current stable."""
+    """Stable X.Y should be below pre-releases of X.Y+1."""
     _, b_stable = _installer_versions("0.2.4")
     _, b_pre = _installer_versions("0.2.5-pre.1")
     assert _as_ints(b_stable) < _as_ints(b_pre)
 
 
-def test_patch_zero_pre_release_raises() -> None:
-    with pytest.raises(ValueError, match="patch 0"):
-        _installer_versions("0.3.0-pre.1")
+def test_patch_zero_pre_release_works() -> None:
+    """pre-releases on patch 0 are valid (0.3.0-pre.N)."""
+    msi, bundle = _installer_versions("0.3.0-pre.1")
+    assert msi == "0.3.0"
+    assert bundle == "0.3.0.1"
+
+
+def test_migration_from_broken_old_install() -> None:
+    """First fixed release (pre.10) must appear as an upgrade over old broken installs.
+
+    Old installers produced Bundle ≈ X.Y.Z.0 (WiX stripped the -pre.N suffix).
+    The new formula gives Bundle X.Y.Z.N (N > 0), so it is a proper upgrade.
+    """
+    _, bundle_old = "0.2.4", "0.2.4.0"  # What old WiX produced
+    _, bundle_new = _installer_versions("0.2.4-pre.10")
+    assert _as_ints(bundle_new) > _as_ints(bundle_old)
 
 
 # ---------------------------------------------------------------------------
@@ -113,23 +127,20 @@ def test_installer_wxs_allows_same_version_upgrades() -> None:
 
 _PS_SNIPPET = """\
 $v = '{cargo_ver}'
-if ($v -match '^(\\d+)\\.(\\d+)\\.(\\d+)-pre\\.(\\d+)$') {{
-  $z = [int]$Matches[3]
-  if ($z -eq 0) {{ [Console]::Error.WriteLine('Pre-release on patch 0: ' + $v + '. Use X.Y.1-pre.N.'); exit 1 }}
-  $b = '{{0}}.{{1}}.{{2}}' -f $Matches[1], $Matches[2], ($z - 1)
-  ('{{0}}|{{1}}.{{2}}' -f $b, $b, $Matches[4])
-}} elseif ($v -match '^(\\d+\\.\\d+\\.\\d+)$') {{
-  ($v + '|' + $v + '.0')
-}} else {{
-  [Console]::Error.WriteLine('Unexpected version: ' + $v); exit 1
-}}
+if($v -match '^(\\d+\\.\\d+\\.\\d+)-pre\\.(\\d+)$'){{
+  $n=[int]$Matches[2]; if($n -ge 65535){{exit 1}}
+  Write-Output ($Matches[1]+'|'+$Matches[1]+'.'+$n)
+}} elseif($v -match '^\\d+\\.\\d+\\.\\d+$'){{
+  Write-Output ($v+'|'+$v+'.65535')
+}} else{{exit 1}}
 """
 
 _PS_CASES: list[tuple[str, tuple[str, str]]] = [
-    ("0.2.4-pre.8", ("0.2.3", "0.2.3.8")),
-    ("0.2.4-pre.9", ("0.2.3", "0.2.3.9")),
-    ("0.2.4", ("0.2.4", "0.2.4.0")),
-    ("1.2.3-pre.15", ("1.2.2", "1.2.2.15")),
+    ("0.2.4-pre.8", ("0.2.4", "0.2.4.8")),
+    ("0.2.4-pre.10", ("0.2.4", "0.2.4.10")),
+    ("0.2.4", ("0.2.4", "0.2.4.65535")),
+    ("1.2.3-pre.15", ("1.2.3", "1.2.3.15")),
+    ("0.3.0-pre.1", ("0.3.0", "0.3.0.1")),
 ]
 
 
@@ -153,3 +164,4 @@ def test_powershell_snippet_matches_formula(
     assert result.returncode == 0, f"PS script failed: {result.stderr}"
     msi, bundle = result.stdout.strip().split("|")
     assert (msi, bundle) == expected
+

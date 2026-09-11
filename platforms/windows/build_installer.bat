@@ -18,10 +18,11 @@ if not defined GANNYU_RESOURCE_KEY (
   exit /b 1
 )
 rem Convert Cargo semver to Windows installer versions.
-rem  Stable  X.Y.Z        -> MSI X.Y.Z,       Bundle X.Y.Z.0
-rem  Pre     X.Y.Z-pre.N  -> MSI X.Y.(Z-1),   Bundle X.Y.(Z-1).N  (requires Z > 0)
+rem  Stable  X.Y.Z       -> MSI X.Y.Z,   Bundle X.Y.Z.65535
+rem  Pre     X.Y.Z-pre.N -> MSI X.Y.Z,   Bundle X.Y.Z.N   (N must be < 65535)
+rem Bundle fourth component keeps ordering: pre.N < pre.M (N<M) < stable (65535)
 set "PS_OUT=%TEMP%\gannyu_ver_%RANDOM%.out"
-powershell -NoProfile -Command "$v='%GONNYU_VERSION%'; if($v -match '^(\d+)\.(\d+)\.(\d+)-pre\.(\d+)$'){$z=[int]$Matches[3]; if($z -eq 0){exit 1}; $b=('{0}.{1}.{2}' -f $Matches[1],$Matches[2],($z-1)); Write-Output ('{0}|{1}.{2}' -f $b,$b,$Matches[4])} elseif($v -match '^\d+\.\d+\.\d+$'){Write-Output ($v+'|'+$v+'.0')} else{exit 1}" > "%PS_OUT%"
+powershell -NoProfile -Command "$v='%GONNYU_VERSION%'; if($v -match '^(\d+\.\d+\.\d+)-pre\.(\d+)$'){$n=[int]$Matches[2]; if($n -ge 65535){exit 1}; Write-Output ($Matches[1]+'|'+$Matches[1]+'.'+$n)} elseif($v -match '^\d+\.\d+\.\d+$'){Write-Output ($v+'|'+$v+'.65535')} else{exit 1}" > "%PS_OUT%"
 if errorlevel 1 (
   del "%PS_OUT%" >nul 2>nul
   echo Failed to compute installer version from GONNYU_VERSION=%GONNYU_VERSION%.
