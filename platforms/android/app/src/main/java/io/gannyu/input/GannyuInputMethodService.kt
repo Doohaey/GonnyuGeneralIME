@@ -2,6 +2,8 @@ package io.gannyu.input
 
 import android.content.Context
 import android.inputmethodservice.InputMethodService
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -51,6 +53,13 @@ class GannyuInputMethodService : InputMethodService() {
     private val accumulatedMandarinReading = mutableListOf<String>()
     private var lastCandidates: List<RankedCandidate> = emptyList()
     private var symbolPage = false
+    private val backspaceRepeatHandler = Handler(Looper.getMainLooper())
+    private val backspaceRepeat = object : Runnable {
+        override fun run() {
+            handleBackspace()
+            backspaceRepeatHandler.postDelayed(this, BACKSPACE_REPEAT_INTERVAL_MS)
+        }
+    }
 
     external fun nativeCreate(manifestPath: String?, regionId: String?, dataDir: String): Long
     external fun nativeLastError(): String?
@@ -234,6 +243,8 @@ class GannyuInputMethodService : InputMethodService() {
         private const val KEY_BG        = 0xFFF0F0F0.toInt()
         private const val KEY_BG_ACTION = 0xFFD0D8E0.toInt()
         private const val KEY_TEXT      = 0xFF222222.toInt()
+        private const val BACKSPACE_INITIAL_DELAY_MS = 380L
+        private const val BACKSPACE_REPEAT_INTERVAL_MS = 55L
 
         init { System.loadLibrary("gannyu_input_jni") }
     }
@@ -244,6 +255,7 @@ class GannyuInputMethodService : InputMethodService() {
     }
 
     override fun onDestroy() {
+        stopBackspaceRepeat()
         // 不销毁 pipeline——staticHandle 保持全局唯一实例
         pipelineHandle = 0
         pipelineReady = false
@@ -420,7 +432,24 @@ class GannyuInputMethodService : InputMethodService() {
         }
         setPadding(0, 0, 0, 0)
         setBackgroundColor(if (key.isLetter) KEY_BG else KEY_BG_ACTION)
-        setOnClickListener { onKey(key) }
+        if (key.label == "\u232B") {
+            setOnTouchListener { _, event ->
+                when (event.actionMasked) {
+                    MotionEvent.ACTION_DOWN -> {
+                        handleBackspace()
+                        backspaceRepeatHandler.postDelayed(backspaceRepeat, BACKSPACE_INITIAL_DELAY_MS)
+                        true
+                    }
+                    MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                        stopBackspaceRepeat()
+                        true
+                    }
+                    else -> true
+                }
+            }
+        } else {
+            setOnClickListener { onKey(key) }
+        }
     }
 
     // ===== Key handling =====
@@ -462,6 +491,10 @@ class GannyuInputMethodService : InputMethodService() {
             return
         }
         currentInputConnection?.deleteSurroundingTextInCodePoints(1, 0)
+    }
+
+    private fun stopBackspaceRepeat() {
+        backspaceRepeatHandler.removeCallbacks(backspaceRepeat)
     }
 
     private fun handleSpace() {

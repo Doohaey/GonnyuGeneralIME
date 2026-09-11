@@ -65,3 +65,6 @@ def test_android_symbol_page_clears_composition_and_writes_symbols_literally() -
     assert "key.label == \"\\u201D\"" not in source
     assert "else                                         -> currentInputConnection?.commitText(key.label, 1)" in source
     assert 'KeySpec("\\u232B", 1.5f)' in source
+    assert "BACKSPACE_INITIAL_DELAY_MS" in source
+    assert "BACKSPACE_REPEAT_INTERVAL_MS" in source
+    assert "stopBackspaceRepeat()" in source

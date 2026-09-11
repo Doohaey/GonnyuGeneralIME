@@ -11,6 +11,7 @@ final class KeyboardViewController: UIInputViewController {
     private var accumulatedReadings: [String] = []
     private var accumulatedMandarinReadings: [String] = []
     private var symbolPage = false
+    private var backspaceTimer: Timer?
     private let preeditLabel = UILabel()
     private let candidateScroll = UIScrollView()
     private let candidateStack = UIStackView()
@@ -34,6 +35,7 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     deinit {
+        stopBackspaceRepeat()
         NotificationCenter.default.removeObserver(self)
     }
 
@@ -115,7 +117,12 @@ final class KeyboardViewController: UIInputViewController {
             let button = UIButton(type: .system)
             button.setTitle(label, for: .normal)
             button.heightAnchor.constraint(greaterThanOrEqualToConstant: 40).isActive = true
-            button.addTarget(self, action: #selector(keyPressed(_:)), for: .touchUpInside)
+            if label == "⌫" {
+                button.addTarget(self, action: #selector(backspacePressed(_:)), for: .touchDown)
+                button.addTarget(self, action: #selector(stopBackspaceRepeat), for: [.touchUpInside, .touchUpOutside, .touchCancel])
+            } else {
+                button.addTarget(self, action: #selector(keyPressed(_:)), for: .touchUpInside)
+            }
             row.addArrangedSubview(button)
         }
         return row
@@ -161,6 +168,21 @@ final class KeyboardViewController: UIInputViewController {
                 append(key)
             }
         }
+    }
+
+    @objc private func backspacePressed(_ sender: UIButton) {
+        deleteBackward()
+        backspaceTimer = Timer.scheduledTimer(withTimeInterval: 0.38, repeats: false) { [weak self] _ in
+            guard let self else { return }
+            self.backspaceTimer = Timer.scheduledTimer(withTimeInterval: 0.055, repeats: true) { [weak self] _ in
+                self?.deleteBackward()
+            }
+        }
+    }
+
+    @objc private func stopBackspaceRepeat() {
+        backspaceTimer?.invalidate()
+        backspaceTimer = nil
     }
 
     private func append(_ text: String) {

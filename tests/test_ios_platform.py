@@ -54,6 +54,9 @@ def test_ios_keyboard_keeps_symbol_input_outside_candidate_selection() -> None:
     assert "symbolPage = true" in keyboard
     assert "symbolPage = false" in keyboard
     assert '? ["🌐", "（", "）", "空格", "“", "⌫", "⏎", "拼"]' in keyboard
+    assert "private var backspaceTimer: Timer?" in keyboard
+    assert "backspacePressed" in keyboard
+    assert "stopBackspaceRepeat" in keyboard
     assert "textDocumentProxy.insertText(key)" in keyboard
 
 
