@@ -15,8 +15,8 @@ Rime schema repositories for Lancong(Nanchang) and Fenni(Fenyi). Other installat
 
 ## Test version 0.2.4-pre.9
 
-- feat(apple): Share region selection, resource loading, and the base input engine between iOS and macOS.
-- fix(macos): Register the local installation against the exact Input Mode so it can be enabled directly in System Settings.
+- feat(android): Refresh the Android candidate bar UI with a denser red layout, an independent cache display, and a segmentation key.
+- fix(rime): Fix default-candidate selection so the mobile idle prompt no longer steals key input and stays dismissed correctly.
 
 ## Contents
 
