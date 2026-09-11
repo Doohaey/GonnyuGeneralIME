@@ -17,8 +17,38 @@ if not defined GANNYU_RESOURCE_KEY (
   echo Missing GANNYU_RESOURCE_KEY for release build.
   exit /b 1
 )
-set "MSI_PRODUCT_VERSION=%GONNYU_VERSION%"
-set "BUNDLE_PRODUCT_VERSION=%GONNYU_VERSION%.0"
+rem Convert Cargo semver to Windows installer versions.
+rem  Stable  X.Y.Z        -> MSI X.Y.Z,       Bundle X.Y.Z.0
+rem  Pre     X.Y.Z-pre.N  -> MSI X.Y.(Z-1),   Bundle X.Y.(Z-1).N  (requires Z > 0)
+set "PS_TEMP=%TEMP%\gannyu_ver_%RANDOM%"
+(
+  echo $v = '%GONNYU_VERSION%'
+  echo if ($v -match '^^(\d+)\.(\d+)\.(\d+)-pre\.(\d+)$') {
+  echo   $z = [int]$Matches[3]
+  echo   if ($z -eq 0) { [Console]::Error.WriteLine('Pre-release on patch 0: ' + $v + '. Use X.Y.1-pre.N.'); exit 1 }
+  echo   $b = '{0}.{1}.{2}' -f $Matches[1], $Matches[2], ($z - 1)
+  echo   ('{0}|{1}.{2}' -f $b, $b, $Matches[4])
+  echo } elseif ($v -match '^^(\d+\.\d+\.\d+)$') {
+  echo   ($v + '|' + $v + '.0')
+  echo } else {
+  echo   [Console]::Error.WriteLine('Unexpected version: ' + $v); exit 1
+  echo }
+) > "%PS_TEMP%.ps1"
+powershell -NoProfile -ExecutionPolicy Bypass -File "%PS_TEMP%.ps1" > "%PS_TEMP%.out"
+if errorlevel 1 (
+  del "%PS_TEMP%.ps1" "%PS_TEMP%.out" >nul 2>nul
+  echo Failed to compute installer version from GONNYU_VERSION=%GONNYU_VERSION%.
+  exit /b 1
+)
+for /f "tokens=1,2 delims=|" %%a in ('type "%PS_TEMP%.out"') do (
+  set "MSI_PRODUCT_VERSION=%%a"
+  set "BUNDLE_PRODUCT_VERSION=%%b"
+)
+del "%PS_TEMP%.ps1" "%PS_TEMP%.out" >nul 2>nul
+if not defined MSI_PRODUCT_VERSION (
+  echo Installer version computation yielded no output for GONNYU_VERSION=%GONNYU_VERSION%.
+  exit /b 1
+)
 set "MSI_PATH=%INSTALLER_DIR%\GonnyuGeneralIME-%GONNYU_VERSION%-windows-installer.msi"
 set "EXE_PATH=%INSTALLER_DIR%\GonnyuGeneralIME-%GONNYU_VERSION%-windows-installer.exe"
 set "RUSTFLAGS=--remap-path-prefix=%REPO_ROOT%=. -C target-feature=+crt-static %RUSTFLAGS%"

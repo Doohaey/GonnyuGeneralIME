@@ -7,7 +7,9 @@
     InstallerVersion="500"
     Scope="perMachine"
     Language="2052">
-    <MajorUpgrade DowngradeErrorMessage="A newer version of GonnyuGeneralIME is already installed." />
+    <MajorUpgrade
+      AllowSameVersionUpgrades="yes"
+      DowngradeErrorMessage="A newer version of GonnyuGeneralIME is already installed." />
     <MediaTemplate EmbedCab="yes" />
 
     <StandardDirectory Id="ProgramFiles64Folder">
