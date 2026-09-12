@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="#F5F6F8"
+    android:background="#F3F9FE"
     android:clipChildren="false"
     android:clipToPadding="false"
     android:paddingTop="6dp"
@@ -27,7 +27,7 @@
             android:scrollbars="horizontal"
             android:fadingEdge="horizontal"
             android:fadeScrollbars="false"
-            android:background="#FFFFFF"
+            android:background="#FBFDFF"
             android:overScrollMode="always">
 
             <LinearLayout
@@ -49,12 +49,12 @@
             android:translationY="-9dp"
             android:elevation="8dp"
             android:alpha="0.74"
-            android:background="#8C6D2333"
+            android:background="#B3C7E4F7"
             android:paddingStart="9dp"
             android:paddingEnd="9dp"
             android:paddingTop="2dp"
             android:paddingBottom="2dp"
-            android:textColor="#FFFFFFFF"
+            android:textColor="#FF365C78"
             android:textSize="12sp"
             android:visibility="gone" />
 

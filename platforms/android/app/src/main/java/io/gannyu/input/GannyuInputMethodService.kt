@@ -245,7 +245,8 @@ class GannyuInputMethodService : InputMethodService() {
             KeySpec("\uFF01"), KeySpec("\u2026"), KeySpec("\u2014"), KeySpec("\uFF5E"),
             KeySpec("\u00B7"), KeySpec("\uFF0F"))
 
-        private const val KEY_TEXT      = 0xFF222222.toInt()
+        private const val KEY_TEXT        = 0xFF334B5F.toInt()
+        private const val ACTION_KEY_TEXT = 0xFF274B64.toInt()
         private const val IME_SWITCH_KEY = "🌐"
         private const val BACKSPACE_INITIAL_DELAY_MS = 380L
         private const val BACKSPACE_REPEAT_INTERVAL_MS = 55L
@@ -446,7 +447,7 @@ class GannyuInputMethodService : InputMethodService() {
         }
         setPadding(0, 0, 0, 0)
         val useActionStyle = symbolPage || key.label in ACTION_KEYS
-        setTextColor(if (useActionStyle) 0xFFFFFFFF.toInt() else KEY_TEXT)
+        setTextColor(if (useActionStyle) ACTION_KEY_TEXT else KEY_TEXT)
         setBackgroundResource(if (useActionStyle) R.drawable.key_action else R.drawable.key_normal)
         if (key.label == IME_SWITCH_KEY) {
             contentDescription = "切换输入法"
@@ -663,7 +664,7 @@ class GannyuInputMethodService : InputMethodService() {
 
             addView(TextView(context).apply {
                 text = candidate.text
-                textSize = 18f; setTextColor(if (index == 0) 0xFFC94747.toInt() else 0xFF222222.toInt())
+                textSize = 18f; setTextColor(if (index == 0) 0xFF6A9DC2.toInt() else KEY_TEXT)
                 gravity = android.view.Gravity.CENTER_HORIZONTAL
             })
 
@@ -671,7 +672,7 @@ class GannyuInputMethodService : InputMethodService() {
             if (meta.isNotEmpty()) {
                 addView(TextView(context).apply {
                     text = meta
-                    textSize = 11f; setTextColor(0xFF888888.toInt())
+                    textSize = 11f; setTextColor(0xFF71879A.toInt())
                     gravity = android.view.Gravity.CENTER_HORIZONTAL
                     maxLines = 1; setSingleLine(true)
                 })
