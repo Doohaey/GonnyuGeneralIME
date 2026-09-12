@@ -167,13 +167,27 @@ private:
 class GannyuCandidateListUiElement final : public ITfCandidateListUIElementBehavior,
                                             public ITfIntegratableCandidateListUIElement {
 public:
-    GannyuCandidateListUiElement(ITfContext *context, const std::vector<CandidateItem> *items, size_t *selection,
+    GannyuCandidateListUiElement(IUnknown *owner, ITfContext *context,
+                                 const std::vector<CandidateItem> &items, size_t selection,
                                  std::function<void(size_t)> finalize,
                                  std::function<void()> abort,
                                  std::function<void()> finalizeExact)
-        : refs_(1), context_(context), items_(items), selection_(selection), finalize_(std::move(finalize)),
-          abort_(std::move(abort)), finalizeExact_(std::move(finalizeExact)) { if (context_) context_->AddRef(); }
-    ~GannyuCandidateListUiElement() { if (context_) context_->Release(); }
+        : refs_(1), owner_(owner), context_(context), items_(items), selection_(selection),
+          finalize_(std::move(finalize)), abort_(std::move(abort)), finalizeExact_(std::move(finalizeExact)) {
+        if (owner_) owner_->AddRef();
+        if (context_) context_->AddRef();
+        RebuildDefaultPages();
+    }
+    ~GannyuCandidateListUiElement() {
+        if (context_) context_->Release();
+        if (owner_) owner_->Release();
+    }
+
+    void UpdateSnapshot(const std::vector<CandidateItem> &items, size_t selection) {
+        items_ = items;
+        selection_ = selection < items_.size() ? selection : 0;
+        RebuildDefaultPages();
+    }
 
     STDMETHODIMP QueryInterface(REFIID riid, void **ppv) override {
         if (!ppv) return E_POINTER;
@@ -201,14 +215,35 @@ public:
         *manager = nullptr;
         return context_ ? context_->GetDocumentMgr(manager) : E_FAIL;
     }
-    STDMETHODIMP GetCount(UINT *count) override { if (!count) return E_POINTER; *count = items_ ? static_cast<UINT>(items_->size()) : 0; return S_OK; }
-    STDMETHODIMP GetSelection(UINT *index) override { if (!index) return E_POINTER; if (!items_ || !selection_ || *selection_ >= items_->size()) return S_FALSE; *index = static_cast<UINT>(*selection_); return S_OK; }
-    STDMETHODIMP GetString(UINT index, BSTR *value) override { if (!value) return E_POINTER; *value = nullptr; if (!items_ || index >= items_->size()) return E_INVALIDARG; *value = SysAllocString((*items_)[index].text.c_str()); return *value ? S_OK : E_OUTOFMEMORY; }
-    STDMETHODIMP GetPageIndex(UINT *index, UINT size, UINT *count) override { if (!count) return E_POINTER; *count = 1; if (index && size) index[0] = 0; return (!index || size) ? S_OK : E_INVALIDARG; }
-    STDMETHODIMP SetPageIndex(UINT *, UINT) override { return S_OK; }
-    STDMETHODIMP GetCurrentPage(UINT *page) override { if (!page) return E_POINTER; *page = 0; return S_OK; }
-    STDMETHODIMP SetSelection(UINT index) override { if (!items_ || !selection_ || index >= items_->size()) return E_INVALIDARG; *selection_ = index; return S_OK; }
-    STDMETHODIMP Finalize() override { if (!selection_) return E_FAIL; finalize_(*selection_); return S_OK; }
+    STDMETHODIMP GetCount(UINT *count) override { if (!count) return E_POINTER; *count = static_cast<UINT>(items_.size()); return S_OK; }
+    STDMETHODIMP GetSelection(UINT *index) override { if (!index) return E_POINTER; if (selection_ >= items_.size()) return S_FALSE; *index = static_cast<UINT>(selection_); return S_OK; }
+    STDMETHODIMP GetString(UINT index, BSTR *value) override { if (!value) return E_POINTER; *value = nullptr; if (index >= items_.size()) return E_INVALIDARG; *value = SysAllocString(items_[index].text.c_str()); return *value ? S_OK : E_OUTOFMEMORY; }
+    STDMETHODIMP GetPageIndex(UINT *index, UINT size, UINT *count) override {
+        if (!count) return E_POINTER;
+        *count = static_cast<UINT>(pageIndexes_.size());
+        if (!index) return S_OK;
+        if (size < pageIndexes_.size()) return E_INVALIDARG;
+        std::copy(pageIndexes_.begin(), pageIndexes_.end(), index);
+        return S_OK;
+    }
+    STDMETHODIMP SetPageIndex(UINT *index, UINT count) override {
+        if (!index || count == 0 || index[0] != 0) return E_INVALIDARG;
+        std::vector<UINT> pages(index, index + count);
+        for (size_t page = 0; page < pages.size(); ++page) {
+            if (pages[page] >= items_.size() || (page > 0 && pages[page] <= pages[page - 1])) return E_INVALIDARG;
+        }
+        pageIndexes_ = std::move(pages);
+        return S_OK;
+    }
+    STDMETHODIMP GetCurrentPage(UINT *page) override {
+        if (!page) return E_POINTER;
+        if (pageIndexes_.empty()) return E_FAIL;
+        auto next = std::upper_bound(pageIndexes_.begin(), pageIndexes_.end(), static_cast<UINT>(selection_));
+        *page = next == pageIndexes_.begin() ? 0 : static_cast<UINT>(std::distance(pageIndexes_.begin(), next) - 1);
+        return S_OK;
+    }
+    STDMETHODIMP SetSelection(UINT index) override { if (index >= items_.size()) return E_INVALIDARG; selection_ = index; return S_OK; }
+    STDMETHODIMP Finalize() override { if (selection_ >= items_.size()) return E_FAIL; finalize_(selection_); return S_OK; }
     STDMETHODIMP Abort() override { abort_(); return S_OK; }
     STDMETHODIMP SetIntegrationStyle(GUID style) override { return IsEqualGUID(style, kSearchBoxIntegrationStyleGuid) ? S_OK : E_NOTIMPL; }
     STDMETHODIMP GetSelectionStyle(TfIntegratableCandidateListSelectionStyle *style) override { if (!style) return E_POINTER; *style = STYLE_ACTIVE_SELECTION; return S_OK; }
@@ -216,7 +251,23 @@ public:
     STDMETHODIMP ShowCandidateNumbers(BOOL *show) override { if (!show) return E_POINTER; *show = TRUE; return S_OK; }
     STDMETHODIMP FinalizeExactCompositionString() override { if (finalizeExact_) finalizeExact_(); return S_OK; }
 private:
-    LONG refs_; ITfContext *context_; const std::vector<CandidateItem> *items_; size_t *selection_; std::function<void(size_t)> finalize_; std::function<void()> abort_; std::function<void()> finalizeExact_; BOOL shown_ = FALSE;
+    void RebuildDefaultPages() {
+        pageIndexes_.clear();
+        for (size_t start = 0; start < items_.size(); start += kVisibleCandidateCount) {
+            pageIndexes_.push_back(static_cast<UINT>(start));
+        }
+    }
+
+    LONG refs_;
+    IUnknown *owner_;
+    ITfContext *context_;
+    std::vector<CandidateItem> items_;
+    size_t selection_;
+    std::vector<UINT> pageIndexes_;
+    std::function<void(size_t)> finalize_;
+    std::function<void()> abort_;
+    std::function<void()> finalizeExact_;
+    BOOL shown_ = FALSE;
 };
 
 int ScaleForDpi(int value, UINT dpi) {
@@ -486,6 +537,23 @@ void ReleaseUnknown(IUnknown *value) {
     }
 }
 
+HRESULT SetSelectionAtRangeEnd(ITfContext *context, TfEditCookie editCookie, ITfRange *range) {
+    if (!context || !range) return E_INVALIDARG;
+    ITfRange *caret = nullptr;
+    HRESULT hr = range->Clone(&caret);
+    if (FAILED(hr) || !caret) return FAILED(hr) ? hr : E_FAIL;
+    hr = caret->Collapse(editCookie, TF_ANCHOR_END);
+    if (SUCCEEDED(hr)) {
+        TF_SELECTION selection{};
+        selection.range = caret;
+        selection.style.ase = TF_AE_NONE;
+        selection.style.fInterimChar = FALSE;
+        hr = context->SetSelection(editCookie, 1, &selection);
+    }
+    caret->Release();
+    return hr;
+}
+
 class InsertTextEditSession final : public ITfEditSession {
 public:
     InsertTextEditSession(ITfContext *context, std::wstring text) : refs_(1), context_(context), text_(std::move(text)) {
@@ -541,6 +609,9 @@ public:
             static_cast<LONG>(text_.size()),
             &range
         );
+        if (SUCCEEDED(hr) && range) {
+            hr = SetSelectionAtRangeEnd(context_, editCookie, range);
+        }
         ReleaseUnknown(range);
         insert->Release();
         return hr;
@@ -553,9 +624,13 @@ private:
 };
 
 struct CompositionState {
-    ~CompositionState() { ReleaseUnknown(composition); }
+    ~CompositionState() {
+        ReleaseUnknown(composition);
+        ReleaseUnknown(context);
+    }
 
     ITfComposition *composition = nullptr;
+    ITfContext *context = nullptr;
     bool terminatingInternally = false;
 };
 
@@ -622,23 +697,6 @@ public:
     }
 
 private:
-    HRESULT MoveSelectionToEnd(TfEditCookie editCookie, ITfRange *range) {
-        if (!range) return E_INVALIDARG;
-        ITfRange *caret = nullptr;
-        HRESULT hr = range->Clone(&caret);
-        if (FAILED(hr) || !caret) return FAILED(hr) ? hr : E_FAIL;
-        hr = caret->Collapse(editCookie, TF_ANCHOR_END);
-        if (SUCCEEDED(hr)) {
-            TF_SELECTION selection{};
-            selection.range = caret;
-            selection.style.ase = TF_AE_NONE;
-            selection.style.fInterimChar = FALSE;
-            hr = context_->SetSelection(editCookie, 1, &selection);
-        }
-        caret->Release();
-        return hr;
-    }
-
     HRESULT InsertFinalText(TfEditCookie editCookie) {
         ITfInsertAtSelection *insert = nullptr;
         HRESULT hr = context_->QueryInterface(IID_ITfInsertAtSelection, reinterpret_cast<void **>(&insert));
@@ -646,6 +704,9 @@ private:
         ITfRange *range = nullptr;
         hr = insert->InsertTextAtSelection(editCookie, 0, text_.c_str(),
                                            static_cast<LONG>(text_.size()), &range);
+        if (SUCCEEDED(hr) && range) {
+            hr = SetSelectionAtRangeEnd(context_, editCookie, range);
+        }
         ReleaseUnknown(range);
         insert->Release();
         return hr;
@@ -654,11 +715,12 @@ private:
     HRESULT UpdateComposition(TfEditCookie editCookie) {
         if (text_.empty()) return CancelComposition(editCookie);
         if (state_->composition) {
+            if (state_->context != context_) return TF_E_DISCONNECTED;
             ITfRange *range = nullptr;
             HRESULT hr = state_->composition->GetRange(&range);
             if (SUCCEEDED(hr) && range) {
                 hr = range->SetText(editCookie, 0, text_.c_str(), static_cast<LONG>(text_.size()));
-                if (SUCCEEDED(hr)) hr = MoveSelectionToEnd(editCookie, range);
+                if (SUCCEEDED(hr)) hr = SetSelectionAtRangeEnd(context_, editCookie, range);
             }
             ReleaseUnknown(range);
             return hr;
@@ -685,7 +747,9 @@ private:
             hr = contextComposition->StartComposition(editCookie, range, sink_, &composition);
             if (SUCCEEDED(hr) && composition) {
                 state_->composition = composition;
-                hr = MoveSelectionToEnd(editCookie, range);
+                state_->context = context_;
+                state_->context->AddRef();
+                hr = SetSelectionAtRangeEnd(context_, editCookie, range);
             } else {
                 range->SetText(editCookie, 0, L"", 0);
                 if (SUCCEEDED(hr)) hr = E_FAIL;
@@ -701,15 +765,15 @@ private:
     HRESULT FinishComposition(TfEditCookie editCookie, const wchar_t *text, LONG length) {
         ITfComposition *composition = state_->composition;
         if (!composition) return S_FALSE;
+        if (state_->context != context_) return TF_E_DISCONNECTED;
         composition->AddRef();
 
         ITfRange *range = nullptr;
         HRESULT hr = composition->GetRange(&range);
         if (SUCCEEDED(hr) && range) {
             hr = range->SetText(editCookie, 0, text, length);
-            if (SUCCEEDED(hr)) hr = MoveSelectionToEnd(editCookie, range);
+            if (SUCCEEDED(hr)) hr = SetSelectionAtRangeEnd(context_, editCookie, range);
         }
-        ReleaseUnknown(range);
 
         if (SUCCEEDED(hr)) {
             state_->terminatingInternally = true;
@@ -718,8 +782,14 @@ private:
             if (SUCCEEDED(hr) && state_->composition == composition) {
                 state_->composition->Release();
                 state_->composition = nullptr;
+                ReleaseUnknown(state_->context);
+                state_->context = nullptr;
             }
         }
+        if (SUCCEEDED(hr) && range) {
+            hr = SetSelectionAtRangeEnd(context_, editCookie, range);
+        }
+        ReleaseUnknown(range);
         composition->Release();
         return hr;
     }
@@ -1024,6 +1094,8 @@ public:
         const bool internal = compositionState_->terminatingInternally;
         compositionState_->composition->Release();
         compositionState_->composition = nullptr;
+        ReleaseUnknown(compositionState_->context);
+        compositionState_->context = nullptr;
         if (!internal) ClearInputModel();
         return S_OK;
     }
@@ -1086,10 +1158,12 @@ public:
     }
 
     STDMETHODIMP Deactivate() override {
-        Reset();
+        ResetShiftState();
+        SetActiveContext(nullptr);
         if (statusWindow_) {
             ShowWindow(statusWindow_, SW_HIDE);
         }
+        HideLoadingWindow();
         if (threadMgr_ && langBarButton_ && langBarItemAdded_) {
             ITfLangBarItemMgr *langBarMgr = nullptr;
             if (SUCCEEDED(threadMgr_->QueryInterface(IID_ITfLangBarItemMgr, reinterpret_cast<void **>(&langBarMgr))) && langBarMgr) {
@@ -1132,14 +1206,15 @@ public:
     }
 
     STDMETHODIMP OnActivated(REFCLSID clsid, REFGUID guidProfile, BOOL activated) override {
-        if (!IsEqualCLSID(clsid, CLSID_GannyuTextService) ||
-            !IsEqualGUID(guidProfile, GannyuProfileGuid)) {
-            return S_OK;
-        }
-        if (activated) {
+        const bool ownProfile = IsEqualCLSID(clsid, CLSID_GannyuTextService) &&
+                                IsEqualGUID(guidProfile, GannyuProfileGuid);
+        ResetShiftState();
+        if (ownProfile && activated) {
             if (EnsureStatusBar()) UpdateStatusBar();
-        } else if (statusWindow_) {
-            ShowWindow(statusWindow_, SW_HIDE);
+        } else {
+            SetActiveContext(nullptr);
+            if (statusWindow_) ShowWindow(statusWindow_, SW_HIDE);
+            HideLoadingWindow();
         }
         return S_OK;
     }
@@ -1148,9 +1223,8 @@ public:
     STDMETHODIMP OnUninitDocumentMgr(ITfDocumentMgr *) override { return S_OK; }
 
     STDMETHODIMP OnSetFocus(ITfDocumentMgr *, ITfDocumentMgr *) override {
-        if (!buffer_.empty() || (compositionState_ && compositionState_->composition)) {
-            Reset();
-        }
+        ResetShiftState();
+        SetActiveContext(nullptr);
         return S_OK;
     }
 
@@ -1158,8 +1232,13 @@ public:
     STDMETHODIMP OnPopContext(ITfContext *) override { return S_OK; }
 
     STDMETHODIMP OnSetFocus(BOOL foreground) override {
+        ResetShiftState();
         if (!foreground) {
-            Reset();
+            SetActiveContext(nullptr);
+            if (statusWindow_) ShowWindow(statusWindow_, SW_HIDE);
+            HideLoadingWindow();
+        } else if (EnsureStatusBar()) {
+            UpdateStatusBar();
         }
         return S_OK;
     }
@@ -1450,6 +1529,11 @@ private:
                (GetKeyState(VK_RWIN) & 0x8000) == 0;
     }
 
+    void ResetShiftState() {
+        shiftPressed_ = false;
+        shiftUsedWithOtherKey_ = false;
+    }
+
     void ToggleEnglishMode() {
         englishMode_ = !englishMode_;
         Reset();
@@ -1552,12 +1636,14 @@ private:
                     selectedIndex_ = 0;
                 }
                 RefreshPreeditDisplay();
+                UpdateCandidateUiElement();
                 UpdateCandidateWindow();
                 return true;
             }
             if (IsPageDownKey(key)) {
                 selectedIndex_ = std::min(candidates_.size() - 1, selectedIndex_ + kVisibleCandidateCount);
                 RefreshPreeditDisplay();
+                UpdateCandidateUiElement();
                 UpdateCandidateWindow();
                 return true;
             }
@@ -1567,11 +1653,13 @@ private:
                 } else {
                     --selectedIndex_;
                 }
+                UpdateCandidateUiElement();
                 UpdateCandidateWindow();
                 return true;
             }
             if (key == VK_RIGHT || key == VK_DOWN || key == VK_TAB) {
                 selectedIndex_ = (selectedIndex_ + 1) % candidates_.size();
+                UpdateCandidateUiElement();
                 UpdateCandidateWindow();
                 return true;
             }
@@ -1714,9 +1802,11 @@ private:
         }
         RefreshPreeditDisplay();
         if (uiLessMode_ && activeContext_ && !buffer_.empty()) {
+            const unsigned long long generation = contextGeneration_;
             const bool scheduled = RequestCompositionEdit(
                 activeContext_, CompositionEditAction::Update, Utf8ToWide(buffer_),
-                [this](HRESULT) {
+                [this, generation](HRESULT) {
+                    if (generation != contextGeneration_) return;
                     UpdateCandidateUiElement();
                     UpdateCandidateWindow();
                 });
@@ -1733,12 +1823,15 @@ private:
         if (!uiLessMode_) { EndCandidateUiElement(); return; }
         if (candidates_.empty()) { EndCandidateUiElement(); return; }
         if (!candidateUi_) {
+            const unsigned long long generation = contextGeneration_;
             candidateUi_ = new (std::nothrow) GannyuCandidateListUiElement(
-                activeContext_, &candidates_, &selectedIndex_,
-                [this](size_t index) { if (activeContext_) CommitSelectedCandidate(activeContext_, index); },
-                [this]() { Reset(); },
-                [this]() {
-                    if (activeContext_ && !buffer_.empty()) {
+                static_cast<ITfTextInputProcessorEx *>(this), activeContext_, candidates_, selectedIndex_,
+                [this, generation](size_t index) {
+                    if (generation == contextGeneration_ && activeContext_) CommitSelectedCandidate(activeContext_, index);
+                },
+                [this, generation]() { if (generation == contextGeneration_) Reset(); },
+                [this, generation]() {
+                    if (generation == contextGeneration_ && activeContext_ && !buffer_.empty()) {
                         if (CommitText(activeContext_, Utf8ToWide(buffer_))) Reset(false);
                     }
                 });
@@ -1748,6 +1841,8 @@ private:
                 candidateUi_->Release(); candidateUi_ = nullptr; return;
             }
             candidateUiShown_ = show;
+        } else {
+            candidateUi_->UpdateSnapshot(candidates_, selectedIndex_);
         }
         if (!candidateUiShown_) uiElementMgr_->UpdateUIElement(candidateUiId_);
     }
@@ -2029,8 +2124,13 @@ private:
         }
         EnsureFonts(dpi);
 
+        RECT anchor = AnchorRect();
         RECT workArea{};
-        if (!SystemParametersInfoW(SPI_GETWORKAREA, 0, &workArea, 0)) {
+        MONITORINFO monitorInfo{sizeof(monitorInfo)};
+        HMONITOR monitor = MonitorFromRect(&anchor, MONITOR_DEFAULTTONEAREST);
+        if (monitor && GetMonitorInfoW(monitor, &monitorInfo)) {
+            workArea = monitorInfo.rcWork;
+        } else if (!SystemParametersInfoW(SPI_GETWORKAREA, 0, &workArea, 0)) {
             workArea = RECT{0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN)};
         }
 
@@ -2085,7 +2185,6 @@ private:
         popupSize_.cx = windowWidth;
         popupSize_.cy = candidates_.empty() ? preeditRect_.bottom + outerPadding : currentTop - candidateGap + outerPadding;
 
-        RECT anchor = AnchorRect();
         int x = anchor.left;
         int y = anchor.bottom + ScaleForDpi(8, dpi);
         if (x + popupSize_.cx > workArea.right) {
@@ -2325,6 +2424,13 @@ private:
         if (context) {
             context->AddRef();
         }
+        if (activeContext_ && clientId_ != TF_CLIENTID_NULL &&
+            (!buffer_.empty() || (compositionState_ && compositionState_->composition))) {
+            RequestCompositionEdit(activeContext_, CompositionEditAction::Cancel);
+        }
+        ClearInputModel();
+        ++contextGeneration_;
+        compositionState_ = std::make_shared<CompositionState>();
         ReleaseUnknown(activeContext_);
         activeContext_ = context;
     }
@@ -2338,6 +2444,7 @@ private:
     BOOL candidateUiShown_ = FALSE;
     ITfContext *activeContext_ = nullptr;
     std::shared_ptr<CompositionState> compositionState_ = std::make_shared<CompositionState>();
+    unsigned long long contextGeneration_ = 0;
     TfClientId clientId_ = TF_CLIENTID_NULL;
     DWORD thmgrCookie_ = TF_INVALID_COOKIE;
     DWORD profileCookie_ = TF_INVALID_COOKIE;

@@ -32,11 +32,14 @@ def test_windows_toolbar_tracks_active_input_profile() -> None:
     assert "IID_ITfActiveLanguageProfileNotifySink" in source
     assert "CLSID_GannyuTextService" in callback
     assert "GannyuProfileGuid" in callback
-    assert "if (activated)" in callback
+    assert "if (ownProfile && activated)" in callback
     assert "UpdateStatusBar()" in callback
     assert "ShowWindow(statusWindow_, SW_HIDE)" in callback
     assert "profileCookie_" in source
-    assert "statusWindow_" not in focus_callback
+    assert "ResetShiftState()" in focus_callback
+    assert "SetActiveContext(nullptr)" in focus_callback
+    assert "ShowWindow(statusWindow_, SW_HIDE)" in focus_callback
+    assert "UpdateStatusBar()" in focus_callback
 
 
 def test_windows_final_text_commit_allows_tsf_default_composition() -> None:
@@ -85,6 +88,30 @@ def test_windows_ui_less_candidates_follow_searchbox_contract() -> None:
     assert "*show = TRUE" in element
 
 
+def test_windows_ui_less_candidate_pages_are_bounded_and_host_configurable() -> None:
+    source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
+    element = source.split("class GannyuCandidateListUiElement", 1)[1].split("int ScaleForDpi", 1)[0]
+
+    assert "RebuildDefaultPages()" in element
+    assert "start += kVisibleCandidateCount" in element
+    assert "std::copy(pageIndexes_.begin(), pageIndexes_.end(), index)" in element
+    assert "STDMETHODIMP SetPageIndex(UINT *index, UINT count)" in element
+    assert "std::upper_bound(pageIndexes_.begin(), pageIndexes_.end()" in element
+
+
+def test_windows_ui_less_candidate_snapshot_keeps_its_owner_alive() -> None:
+    source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
+    element = source.split("class GannyuCandidateListUiElement", 1)[1].split("int ScaleForDpi", 1)[0]
+    ui_update = source.split("void UpdateCandidateUiElement()", 1)[1].split("void EndCandidateUiElement", 1)[0]
+
+    assert "IUnknown *owner" in element
+    assert "owner_->AddRef()" in element
+    assert "ReleaseUnknown(owner_)" in element
+    assert "std::vector<CandidateItem> items_" in element
+    assert "UpdateSnapshot(candidates_, selectedIndex_)" in ui_update
+    assert "generation == contextGeneration_" in ui_update
+
+
 def test_windows_preedit_is_a_real_tsf_composition() -> None:
     source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
     session = source.split("class CompositionEditSession", 1)[1].split("class SelectionRectEditSession", 1)[0]
@@ -98,6 +125,38 @@ def test_windows_preedit_is_a_real_tsf_composition() -> None:
     assert "CompositionEditAction::Update" in source
     assert "CompositionEditAction::Commit" in source
     assert "CompositionEditAction::Cancel" in source
+
+
+def test_windows_commits_and_compositions_move_the_caret_to_the_range_end() -> None:
+    source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
+    insert = source.split("class InsertTextEditSession", 1)[1].split("struct CompositionState", 1)[0]
+    composition = source.split("class CompositionEditSession", 1)[1].split("class SelectionRectEditSession", 1)[0]
+
+    assert "HRESULT SetSelectionAtRangeEnd" in source
+    assert "TF_ANCHOR_END" in source
+    assert "SetSelectionAtRangeEnd(context_, editCookie, range)" in insert
+    assert composition.count("SetSelectionAtRangeEnd(context_, editCookie, range)") >= 4
+    assert "state_->context != context_" in composition
+
+
+def test_windows_focus_changes_isolate_composition_state_and_hide_stale_ui() -> None:
+    source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
+    context = source.split("void SetActiveContext(ITfContext *context)", 1)[1].split("LONG refs_", 1)[0]
+
+    assert "RequestCompositionEdit(activeContext_, CompositionEditAction::Cancel)" in context
+    assert "ClearInputModel()" in context
+    assert "++contextGeneration_" in context
+    assert "compositionState_ = std::make_shared<CompositionState>()" in context
+    assert "unsigned long long contextGeneration_" in source
+
+
+def test_windows_candidate_popup_uses_the_anchor_monitor_work_area() -> None:
+    source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
+    update = source.split("void UpdateCandidateWindow()", 1)[1].split("void HideCandidateWindow", 1)[0]
+
+    assert "MonitorFromRect(&anchor, MONITOR_DEFAULTTONEAREST)" in update
+    assert "workArea = monitorInfo.rcWork" in update
+    assert "anchor.top - popupSize_.cy" in update
 
 
 def test_windows_regular_apps_keep_the_native_candidate_path() -> None:
