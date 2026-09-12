@@ -27,22 +27,31 @@ def test_windows_toolbar_stays_visible_without_candidates() -> None:
 def test_windows_toolbar_tracks_active_input_profile() -> None:
     source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
     callback = source.split("STDMETHODIMP OnActivated(", 1)[1].split("STDMETHODIMP OnInitDocumentMgr", 1)[0]
+    document_focus = source.split("STDMETHODIMP OnSetFocus(ITfDocumentMgr", 1)[1].split("STDMETHODIMP OnPushContext", 1)[0]
     focus_callback = source.split("STDMETHODIMP OnSetFocus(BOOL", 1)[1].split("STDMETHODIMP OnTestKeyDown", 1)[0]
+    activation = source.split("STDMETHODIMP ActivateEx", 1)[1].split("STDMETHODIMP Deactivate", 1)[0]
+    deactivation = source.split("STDMETHODIMP Deactivate", 1)[1].split("STDMETHODIMP OnActivated", 1)[0]
     assert "public ITfActiveLanguageProfileNotifySink" in source
     assert "IID_ITfActiveLanguageProfileNotifySink" in source
     assert "CLSID_GannyuTextService" in callback
     assert "GannyuProfileGuid" in callback
     assert "if (ownProfile)" in callback
-    assert "if (profileActive_)" in callback
+    assert "if (profileActive_ && foregroundFocused_)" in callback
     assert "UpdateStatusBar()" in callback
-    assert "ShowWindow(statusWindow_, SW_HIDE)" in callback
+    assert "DestroyCandidateWindow()" in callback
     assert "profileActive_ = activated != FALSE" in callback
     assert "profileCookie_" in source
+    assert "foregroundFocused_ = IsCurrentThreadForeground()" in activation
+    assert "foregroundFocused_ && EnsureStatusBar()" in activation
+    assert "DestroyCandidateWindow()" in deactivation
+    assert "documentMgr != nullptr && IsCurrentThreadForeground()" in document_focus
+    assert "DestroyCandidateWindow()" in document_focus
     assert "ResetShiftState()" in focus_callback
     assert "SetActiveContext(nullptr)" in focus_callback
-    assert "ShowWindow(statusWindow_, SW_HIDE)" in focus_callback
+    assert "DestroyCandidateWindow()" in focus_callback
     assert "UpdateStatusBar()" in focus_callback
     assert "profileActive_ && EnsureStatusBar()" in focus_callback
+    assert "GetWindowThreadProcessId(foreground, nullptr) == GetCurrentThreadId()" in source
 
 
 def test_windows_final_text_commit_allows_tsf_default_composition() -> None:

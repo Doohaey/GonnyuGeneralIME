@@ -1113,6 +1113,7 @@ public:
         threadMgr_->AddRef();
         clientId_ = clientId;
         profileActive_ = true;
+        foregroundFocused_ = IsCurrentThreadForeground();
         uiLessMode_ = false;
         ITfThreadMgr2 *threadMgr2 = nullptr;
         if (SUCCEEDED(threadMgr_->QueryInterface(IID_ITfThreadMgr2,
@@ -1154,17 +1155,16 @@ public:
                 langBarMgr->Release();
             }
         }
-        if (EnsureStatusBar()) UpdateStatusBar();
+        if (foregroundFocused_ && EnsureStatusBar()) UpdateStatusBar();
         return S_OK;
     }
 
     STDMETHODIMP Deactivate() override {
+        profileActive_ = false;
+        foregroundFocused_ = false;
         ResetShiftState();
         SetActiveContext(nullptr);
-        if (statusWindow_) {
-            ShowWindow(statusWindow_, SW_HIDE);
-        }
-        HideLoadingWindow();
+        DestroyCandidateWindow();
         if (threadMgr_ && langBarButton_ && langBarItemAdded_) {
             ITfLangBarItemMgr *langBarMgr = nullptr;
             if (SUCCEEDED(threadMgr_->QueryInterface(IID_ITfLangBarItemMgr, reinterpret_cast<void **>(&langBarMgr))) && langBarMgr) {
@@ -1200,7 +1200,6 @@ public:
         }
         SetActiveContext(nullptr);
         clientId_ = TF_CLIENTID_NULL;
-        profileActive_ = false;
         uiLessMode_ = false;
         thmgrCookie_ = TF_INVALID_COOKIE;
         profileCookie_ = TF_INVALID_COOKIE;
@@ -1216,12 +1215,11 @@ public:
             profileActive_ = false;
         }
         ResetShiftState();
-        if (profileActive_) {
+        if (profileActive_ && foregroundFocused_) {
             if (EnsureStatusBar()) UpdateStatusBar();
-        } else {
+        } else if (!profileActive_) {
             SetActiveContext(nullptr);
-            if (statusWindow_) ShowWindow(statusWindow_, SW_HIDE);
-            HideLoadingWindow();
+            DestroyCandidateWindow();
         }
         return S_OK;
     }
@@ -1229,9 +1227,15 @@ public:
     STDMETHODIMP OnInitDocumentMgr(ITfDocumentMgr *) override { return S_OK; }
     STDMETHODIMP OnUninitDocumentMgr(ITfDocumentMgr *) override { return S_OK; }
 
-    STDMETHODIMP OnSetFocus(ITfDocumentMgr *, ITfDocumentMgr *) override {
+    STDMETHODIMP OnSetFocus(ITfDocumentMgr *documentMgr, ITfDocumentMgr *) override {
         ResetShiftState();
         SetActiveContext(nullptr);
+        foregroundFocused_ = documentMgr != nullptr && IsCurrentThreadForeground();
+        if (profileActive_ && foregroundFocused_) {
+            if (EnsureStatusBar()) UpdateStatusBar();
+        } else {
+            DestroyCandidateWindow();
+        }
         return S_OK;
     }
 
@@ -1239,15 +1243,15 @@ public:
     STDMETHODIMP OnPopContext(ITfContext *) override { return S_OK; }
 
     STDMETHODIMP OnSetFocus(BOOL foreground) override {
+        foregroundFocused_ = foreground != FALSE;
         ResetShiftState();
-        if (!foreground) {
+        if (!foregroundFocused_) {
             SetActiveContext(nullptr);
-            if (statusWindow_) ShowWindow(statusWindow_, SW_HIDE);
-            HideLoadingWindow();
+            DestroyCandidateWindow();
         } else if (profileActive_ && EnsureStatusBar()) {
             UpdateStatusBar();
-        } else if (statusWindow_) {
-            ShowWindow(statusWindow_, SW_HIDE);
+        } else {
+            DestroyCandidateWindow();
         }
         return S_OK;
     }
@@ -1541,6 +1545,11 @@ private:
     void ResetShiftState() {
         shiftPressed_ = false;
         shiftUsedWithOtherKey_ = false;
+    }
+
+    bool IsCurrentThreadForeground() const {
+        HWND foreground = GetForegroundWindow();
+        return foreground && GetWindowThreadProcessId(foreground, nullptr) == GetCurrentThreadId();
     }
 
     void ToggleEnglishMode() {
@@ -2476,6 +2485,7 @@ private:
     std::wstring loadText_;
     bool englishMode_ = false;
     bool profileActive_ = false;
+    bool foregroundFocused_ = false;
     bool uiLessMode_ = false;
     bool fullwidthPunctuation_ = true;
     bool shiftPressed_ = false;
