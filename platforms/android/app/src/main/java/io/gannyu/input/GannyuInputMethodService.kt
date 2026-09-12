@@ -54,6 +54,8 @@ class GannyuInputMethodService : InputMethodService() {
     private var lastCandidates: List<RankedCandidate> = emptyList()
     private var symbolPage = false
     private var englishMode = false
+    // One-shot state only: it is never persisted and resets after one letter.
+    private var englishShift = false
     private val backspaceRepeatHandler = Handler(Looper.getMainLooper())
     private val backspaceRepeat = object : Runnable {
         override fun run() {
@@ -241,8 +243,6 @@ class GannyuInputMethodService : InputMethodService() {
             KeySpec("\uFF01"), KeySpec("\u2026"), KeySpec("\u2014"), KeySpec("\uFF5E"),
             KeySpec("\u00B7"), KeySpec("\uFF0F"))
 
-        private const val KEY_BG        = 0xFFF0F0F0.toInt()
-        private const val KEY_BG_ACTION = 0xFFD0D8E0.toInt()
         private const val KEY_TEXT      = 0xFF222222.toInt()
         private const val BACKSPACE_INITIAL_DELAY_MS = 380L
         private const val BACKSPACE_REPEAT_INTERVAL_MS = 55L
@@ -276,6 +276,7 @@ class GannyuInputMethodService : InputMethodService() {
 
     override fun onStartInput(attribute: android.view.inputmethod.EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
+        englishShift = false
         resetState(clearAccumulated = true)
     }
 
@@ -288,12 +289,14 @@ class GannyuInputMethodService : InputMethodService() {
     }
 
     override fun onFinishInput() {
+        englishShift = false
         resetState(clearAccumulated = true)
         super.onFinishInput()
     }
 
     override fun onFinishInputView(finishingInput: Boolean) {
         // Input view is being finished (e.g., switching to another IME) — clear UI and composing state
+        englishShift = false
         resetState(clearAccumulated = true)
         super.onFinishInputView(finishingInput)
     }
@@ -311,6 +314,7 @@ class GannyuInputMethodService : InputMethodService() {
 
     override fun onWindowHidden() {
         // Window hidden (IME no longer visible) — ensure we don't keep composing spans
+        englishShift = false
         resetState(clearAccumulated = true)
         super.onWindowHidden()
     }
@@ -382,7 +386,7 @@ class GannyuInputMethodService : InputMethodService() {
 
     private fun renderKeyboard() {
         keyboardRows.removeAllViews()
-        val gap = dp(5)
+        val gap = dp(6)
         if (symbolPage) renderSymbolPage(gap) else renderPinyinPage(gap)
     }
 
@@ -398,7 +402,7 @@ class GannyuInputMethodService : InputMethodService() {
             orientation = LinearLayout.HORIZONTAL
             layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { bottomMargin = gap }
         }
-        r3.addView(keyBtn(KeySpec("分词", 1.3f), gap))
+        r3.addView(keyBtn(KeySpec(if (englishMode) "⇧" else "分词", 1.3f), gap))
         ROW_3_LETTERS.forEach { r3.addView(keyBtn(it, gap)) }
         r3.addView(keyBtn(KeySpec("\u232B", 1.5f), gap))
         keyboardRows.addView(r3)
@@ -427,12 +431,15 @@ class GannyuInputMethodService : InputMethodService() {
         keys.forEach { addView(keyBtn(it, gap)) }
     }
     private fun keyBtn(key: KeySpec, gap: Int): Button = Button(this).apply {
-        text = key.label; isAllCaps = false; textSize = 16f; setTextColor(KEY_TEXT)
+        text = if (key.isLetter && englishMode && englishShift) key.label.uppercase() else key.label
+        isAllCaps = false; textSize = 16f
         layoutParams = LinearLayout.LayoutParams(0, dp(42), key.weight).apply {
-            if (key.label != "\uFF0C" && key.label != "\u3002") marginEnd = gap
+            marginEnd = gap
         }
         setPadding(0, 0, 0, 0)
-        setBackgroundColor(if (key.isLetter) KEY_BG else KEY_BG_ACTION)
+        val useActionStyle = symbolPage || key.label in ACTION_KEYS
+        setTextColor(if (useActionStyle) 0xFFFFFFFF.toInt() else KEY_TEXT)
+        setBackgroundResource(if (useActionStyle) R.drawable.key_action else R.drawable.key_normal)
         if (key.label == "\u232B") {
             setOnTouchListener { _, event ->
                 when (event.actionMasked) {
@@ -460,20 +467,30 @@ class GannyuInputMethodService : InputMethodService() {
             key.label == "\u232B"                        -> handleBackspace()
             key.label == "\u21B5"                        -> handleEnter()
             key.label == "\u7A7A\u683C"                  -> handleSpace()
-            key.label == "\u82F1" || key.label == "\u4E2D" -> { resetState(clearAccumulated = true); englishMode = !englishMode; renderKeyboard() }
+            key.label == "\u82F1" || key.label == "\u4E2D" -> {
+                resetState(clearAccumulated = true)
+                englishMode = !englishMode
+                englishShift = false
+                renderKeyboard()
+            }
+            key.label == "⇧" && englishMode            -> { englishShift = !englishShift; renderKeyboard() }
             key.label == "分词"                            -> appendInput('\'')
             // Entering the symbol page must not carry a pending candidate into
             // the next key.  Symbol keys are literal input, never a candidate
             // selection action.
-            key.label == "123"                           -> { resetState(clearAccumulated = true); symbolPage = true; renderKeyboard() }
-            key.label == "\u62FC"                        -> { symbolPage = false; renderKeyboard() }
-            key.isLetter                                 -> if (englishMode) currentInputConnection?.commitText(key.label, 1) else appendInput(key.label.single())
+            key.label == "123"                           -> { resetState(clearAccumulated = true); englishShift = false; symbolPage = true; renderKeyboard() }
+            key.label == "\u62FC"                        -> { englishShift = false; symbolPage = false; renderKeyboard() }
+            key.isLetter                                 -> if (englishMode) {
+                currentInputConnection?.commitText(if (englishShift) key.label.uppercase() else key.label, 1)
+                if (englishShift) { englishShift = false; renderKeyboard() }
+            } else appendInput(key.label.single())
             key.label in PUNCT_AFTER_COMPOSE             -> { maybeCommitComposing(); currentInputConnection?.commitText(key.label, 1) }
             else                                         -> currentInputConnection?.commitText(key.label, 1)
         }
     }
 
     private val PUNCT_AFTER_COMPOSE = setOf("\uFF0C", "\u3002", "\uFF1F", "\uFF01", "\uFF1A", "\uFF1B", "\u3001")
+    private val ACTION_KEYS = setOf("分词", "⇧", "⌫", "中", "英", "123", "拼", "↵")
     private fun maybeCommitComposing() {
         if (composing.isNotEmpty()) {
             val first = lastCandidates.firstOrNull()

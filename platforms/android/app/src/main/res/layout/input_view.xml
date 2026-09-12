@@ -4,31 +4,19 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:background="#F5F6F8"
+    android:clipChildren="false"
+    android:clipToPadding="false"
     android:paddingTop="6dp"
     android:paddingBottom="4dp">
-
-    <TextView
-        android:id="@+id/cacheTag"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginBottom="2dp"
-        android:alpha="0.82"
-        android:background="#FAE2E2"
-        android:paddingStart="10dp"
-        android:paddingEnd="10dp"
-        android:paddingTop="3dp"
-        android:paddingBottom="3dp"
-        android:textColor="#9D4B4B"
-        android:textSize="13sp"
-        android:visibility="gone" />
 
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:minHeight="60dp"
         android:layout_marginStart="10dp"
-        android:layout_marginEnd="10dp">
+        android:layout_marginEnd="10dp"
+        android:clipChildren="false"
+        android:clipToPadding="false">
 
         <HorizontalScrollView
             android:id="@+id/candidateScroll"
@@ -51,6 +39,24 @@
                 android:paddingStart="4dp"
                 android:paddingEnd="4dp" />
         </HorizontalScrollView>
+
+        <TextView
+            android:id="@+id/cacheTag"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start|top"
+            android:layout_marginStart="6dp"
+            android:translationY="-9dp"
+            android:elevation="8dp"
+            android:alpha="0.74"
+            android:background="#8C6D2333"
+            android:paddingStart="9dp"
+            android:paddingEnd="9dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
+            android:textColor="#FFFFFFFF"
+            android:textSize="12sp"
+            android:visibility="gone" />
 
     </FrameLayout>
 
