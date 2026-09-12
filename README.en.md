@@ -13,14 +13,16 @@ Currently supports: **Lancong(Nanchang) and Fenni(Fenyi)**. More localities are 
 
 Rime schema repositories for Lancong(Nanchang) and Fenni(Fenyi). Other installation options are available in the [Installation](#installation) section below.
 
-## Test version 0.2.4-pre.10
+## Test version 0.2.4-pre.15
 
-- fix(windows): Fix the Windows installer upgrade issue where incrementing the pre-release number would corrupt both the old and new installations, requiring a manual uninstall first.
+- feat(android): Refine key spacing and the candidate Pinyin label; add one-shot English Shift, dimensional red action/symbol keys, and a standard system IME switch key at the far left.
+- feat(windows): Complete TSF UI-less search candidate support while restoring native candidate windows and composition in regular apps such as browsers and WeChat.
+- fix(ci): Repair the quality gate and Windows link checks.
 
 ## Contents
 
 - [GonnyuGeneralIME — A General Gon(Gan) Chinese Input Method](#gonnyugeneralime--a-general-gongan-chinese-input-method)
-  - [Test version 0.2.4-pre.10](#test-version-024-pre10)
+  - [Test version 0.2.4-pre.15](#test-version-024-pre15)
   - [Contents](#contents)
   - [Overview](#overview)
     - [What it provides](#what-it-provides)
