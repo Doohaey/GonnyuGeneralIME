@@ -73,10 +73,15 @@ pub struct PairedReading {
 pub struct Dictionary {
     cache_id: u64,
     entries: Vec<DictionaryEntry>,
+    dialect_compact: CompactIndex,
     dialect_index: HashMap<String, Vec<u32>>,
+    mandarin_compact: CompactIndex,
     mandarin_index: HashMap<String, Vec<u32>>,
+    mandarin_word_compact: CompactIndex,
     mandarin_word_index: HashMap<String, Vec<u32>>,
+    headword_compact: CompactIndex,
     mandarin_word_text_index: HashMap<String, Vec<u32>>,
+    mandarin_word_text_compact: CompactIndex,
     headword_index: HashMap<String, Vec<u32>>,
     syllable_index: HashMap<usize, HashMap<String, Vec<u32>>>,
     syllable_trie: crate::trie::Trie,
@@ -108,11 +113,11 @@ impl Default for Dictionary {
 struct RuntimeDictionaryCache {
     format_version: u32,
     entries: Vec<DictionaryEntry>,
-    dialect_index: HashMap<String, Vec<u32>>,
-    mandarin_index: HashMap<String, Vec<u32>>,
-    mandarin_word_index: HashMap<String, Vec<u32>>,
-    headword_index: HashMap<String, Vec<u32>>,
-    mandarin_word_text_index: HashMap<String, Vec<u32>>,
+    dialect_index: CompactIndex,
+    mandarin_index: CompactIndex,
+    mandarin_word_index: CompactIndex,
+    headword_index: CompactIndex,
+    mandarin_word_text_index: CompactIndex,
     syllable_index: HashMap<usize, HashMap<String, Vec<u32>>>,
     syllable_trie: crate::trie::Trie,
     initial_index: HashMap<usize, HashMap<char, Vec<u32>>>,
@@ -123,7 +128,72 @@ struct RuntimeDictionaryCache {
     char_readings: HashMap<String, Vec<String>>,
 }
 
-const RUNTIME_CACHE_FORMAT_VERSION: u32 = 2;
+const RUNTIME_CACHE_FORMAT_VERSION: u32 = 3;
+
+#[derive(Debug, Default, Serialize, Deserialize)]
+struct CompactIndex {
+    keys: Vec<Box<str>>,
+    offsets: Vec<u32>,
+    postings: Vec<u32>,
+}
+
+impl CompactIndex {
+    fn from_maps(base: Option<&Self>, overlay: &HashMap<String, Vec<u32>>) -> Self {
+        let mut rows: Vec<(Box<str>, Vec<u32>)> = base
+            .into_iter()
+            .flat_map(|index| {
+                index.keys.iter().enumerate().map(|(position, key)| {
+                    (
+                        key.clone(),
+                        index.postings[index.offsets[position] as usize
+                            ..index.offsets[position + 1] as usize]
+                            .to_vec(),
+                    )
+                })
+            })
+            .collect();
+        rows.extend(
+            overlay
+                .iter()
+                .map(|(key, ids)| (key.clone().into_boxed_str(), ids.clone())),
+        );
+        rows.sort_unstable_by(|left, right| left.0.cmp(&right.0));
+
+        let mut merged: Vec<(Box<str>, Vec<u32>)> = Vec::with_capacity(rows.len());
+        for (key, ids) in rows {
+            if let Some((last_key, last_ids)) = merged.last_mut() {
+                if last_key == &key {
+                    last_ids.extend(ids);
+                    continue;
+                }
+            }
+            merged.push((key, ids));
+        }
+
+        let mut compact = Self {
+            keys: Vec::with_capacity(merged.len()),
+            offsets: Vec::with_capacity(merged.len() + 1),
+            postings: Vec::new(),
+        };
+        compact.offsets.push(0);
+        for (key, ids) in merged {
+            compact.keys.push(key);
+            compact.postings.extend(ids);
+            compact
+                .offsets
+                .push(u32::try_from(compact.postings.len()).expect("index postings exceed u32"));
+        }
+        compact
+    }
+
+    fn get(&self, key: &str) -> Option<&[u32]> {
+        let position = self
+            .keys
+            .binary_search_by(|candidate| candidate.as_ref().cmp(key))
+            .ok()?;
+        Some(&self.postings[self.offsets[position] as usize..self.offsets[position + 1] as usize])
+    }
+}
 
 #[derive(Debug)]
 pub enum DictionaryError {
@@ -531,10 +601,15 @@ impl Dictionary {
         Dictionary {
             cache_id: next_dictionary_id(),
             entries: Vec::new(),
+            dialect_compact: CompactIndex::default(),
             dialect_index: HashMap::new(),
+            mandarin_compact: CompactIndex::default(),
             mandarin_index: HashMap::new(),
+            mandarin_word_compact: CompactIndex::default(),
             mandarin_word_index: HashMap::new(),
+            headword_compact: CompactIndex::default(),
             mandarin_word_text_index: HashMap::new(),
+            mandarin_word_text_compact: CompactIndex::default(),
             headword_index: HashMap::new(),
             syllable_index: HashMap::new(),
             syllable_trie: crate::trie::Trie::new(),
@@ -811,10 +886,15 @@ impl Dictionary {
         let mut dictionary = Dictionary {
             cache_id: next_dictionary_id(),
             entries,
+            dialect_compact: CompactIndex::default(),
             dialect_index,
+            mandarin_compact: CompactIndex::default(),
             mandarin_index,
+            mandarin_word_compact: CompactIndex::default(),
             mandarin_word_index,
+            headword_compact: CompactIndex::default(),
             mandarin_word_text_index,
+            mandarin_word_text_compact: CompactIndex::default(),
             headword_index,
             syllable_index,
             initial_index,
@@ -837,11 +917,26 @@ impl Dictionary {
         RuntimeDictionaryCache {
             format_version: RUNTIME_CACHE_FORMAT_VERSION,
             entries: self.entries.clone(),
-            dialect_index: self.dialect_index.clone(),
-            mandarin_index: self.mandarin_index.clone(),
-            mandarin_word_index: self.mandarin_word_index.clone(),
-            headword_index: self.headword_index.clone(),
-            mandarin_word_text_index: self.mandarin_word_text_index.clone(),
+            dialect_index: CompactIndex::from_maps(
+                Some(&self.dialect_compact),
+                &self.dialect_index,
+            ),
+            mandarin_index: CompactIndex::from_maps(
+                Some(&self.mandarin_compact),
+                &self.mandarin_index,
+            ),
+            mandarin_word_index: CompactIndex::from_maps(
+                Some(&self.mandarin_word_compact),
+                &self.mandarin_word_index,
+            ),
+            headword_index: CompactIndex::from_maps(
+                Some(&self.headword_compact),
+                &self.headword_index,
+            ),
+            mandarin_word_text_index: CompactIndex::from_maps(
+                Some(&self.mandarin_word_text_compact),
+                &self.mandarin_word_text_index,
+            ),
             syllable_index: self.syllable_index.clone(),
             syllable_trie: self.syllable_trie.clone(),
             initial_index: self.initial_index.clone(),
@@ -922,11 +1017,16 @@ impl Dictionary {
         Ok(Dictionary {
             cache_id: next_dictionary_id(),
             entries: cache.entries,
-            dialect_index: cache.dialect_index,
-            mandarin_index: cache.mandarin_index,
-            mandarin_word_index: cache.mandarin_word_index,
-            mandarin_word_text_index: cache.mandarin_word_text_index,
-            headword_index: cache.headword_index,
+            dialect_compact: cache.dialect_index,
+            dialect_index: HashMap::new(),
+            mandarin_compact: cache.mandarin_index,
+            mandarin_index: HashMap::new(),
+            mandarin_word_compact: cache.mandarin_word_index,
+            mandarin_word_index: HashMap::new(),
+            headword_compact: cache.headword_index,
+            mandarin_word_text_index: HashMap::new(),
+            mandarin_word_text_compact: cache.mandarin_word_text_index,
+            headword_index: HashMap::new(),
             syllable_index: cache.syllable_index,
             syllable_trie: cache.syllable_trie,
             initial_index: cache.initial_index,
@@ -1067,18 +1167,20 @@ impl Dictionary {
             return out;
         }
         let mut seen: HashSet<u32> = HashSet::new();
-        for index in [
-            self.dialect_index.get(&compact),
-            self.mandarin_index.get(&compact),
-            self.mandarin_word_index.get(&compact),
-        ]
-        .into_iter()
-        .flatten()
+        for id in Self::index_ids(&self.dialect_compact, &self.dialect_index, &compact)
+            .chain(Self::index_ids(
+                &self.mandarin_compact,
+                &self.mandarin_index,
+                &compact,
+            ))
+            .chain(Self::index_ids(
+                &self.mandarin_word_compact,
+                &self.mandarin_word_index,
+                &compact,
+            ))
         {
-            for &id in index {
-                if seen.insert(id) {
-                    out.push(id);
-                }
+            if seen.insert(id) {
+                out.push(id);
             }
         }
         if let Some(posting) = self.lookup_fst_postings(&compact) {
@@ -1146,6 +1248,24 @@ impl Dictionary {
 
     pub fn is_empty(&self) -> bool {
         self.entries.is_empty()
+    }
+
+    fn index_ids<'a>(
+        compact: &'a CompactIndex,
+        overlay: &'a HashMap<String, Vec<u32>>,
+        key: &str,
+    ) -> impl Iterator<Item = u32> + 'a {
+        compact
+            .get(key)
+            .into_iter()
+            .flatten()
+            .copied()
+            .chain(overlay.get(key).into_iter().flatten().copied())
+    }
+
+    fn entries_for_ids(&self, ids: impl Iterator<Item = u32>) -> Vec<&DictionaryEntry> {
+        ids.filter_map(|index| self.entries.get(index as usize))
+            .collect()
     }
 
     /// Load a TSV file and extend this dictionary with proper rich indexing,
@@ -1626,23 +1746,19 @@ impl Dictionary {
 
     pub fn by_dialect_pinyin(&self, syllable: &str) -> Vec<&DictionaryEntry> {
         let lookup = normalize_pinyin(syllable);
-        let mut matches: Vec<&DictionaryEntry> = self
-            .dialect_index
-            .get(&lookup)
-            .into_iter()
-            .flatten()
-            .filter_map(|index| self.entries.get(*index as usize))
-            .collect();
+        let mut matches = self.entries_for_ids(Self::index_ids(
+            &self.dialect_compact,
+            &self.dialect_index,
+            &lookup,
+        ));
         // e ↔ ĕ 互模糊
         let alt = alternate_e_syllable(syllable, "e\u{0306}");
         if alt != *syllable {
-            if let Some(ids) = self.dialect_index.get(&normalize_pinyin(&alt)) {
-                for index in ids {
-                    if let Some(entry) = self.entries.get(*index as usize) {
-                        matches.push(entry);
-                    }
-                }
-            }
+            matches.extend(self.entries_for_ids(Self::index_ids(
+                &self.dialect_compact,
+                &self.dialect_index,
+                &normalize_pinyin(&alt),
+            )));
         }
         matches
     }
@@ -1651,131 +1767,109 @@ impl Dictionary {
     /// (lowercased, separators collapsed). Avoids a redundant normalize call
     /// in hot paths where callers hold a normalized key.
     pub fn by_dialect_pinyin_normalized(&self, lookup: &str) -> Vec<&DictionaryEntry> {
-        let mut matches: Vec<&DictionaryEntry> = self
-            .dialect_index
-            .get(lookup)
-            .into_iter()
-            .flatten()
-            .filter_map(|index| self.entries.get(*index as usize))
-            .collect();
+        let mut matches = self.entries_for_ids(Self::index_ids(
+            &self.dialect_compact,
+            &self.dialect_index,
+            lookup,
+        ));
         // e ↔ ĕ 互模糊
         let alt = alternate_e_syllable(lookup, "e\u{0306}");
         if alt != *lookup {
-            if let Some(ids) = self.dialect_index.get(&normalize_pinyin(&alt)) {
-                for index in ids {
-                    if let Some(entry) = self.entries.get(*index as usize) {
-                        matches.push(entry);
-                    }
-                }
-            }
+            matches.extend(self.entries_for_ids(Self::index_ids(
+                &self.dialect_compact,
+                &self.dialect_index,
+                &normalize_pinyin(&alt),
+            )));
         }
         matches
     }
 
     pub fn by_mandarin_pinyin(&self, syllable: &str) -> Vec<&DictionaryEntry> {
         let lookup = normalize_pinyin(syllable);
-        let mut matches: Vec<&DictionaryEntry> = self
-            .mandarin_index
-            .get(&lookup)
-            .into_iter()
-            .flatten()
-            .filter_map(|index| self.entries.get(*index as usize))
-            .collect();
+        let mut matches = self.entries_for_ids(Self::index_ids(
+            &self.mandarin_compact,
+            &self.mandarin_index,
+            &lookup,
+        ));
         let alt = alternate_e_syllable(syllable, "e\u{0306}");
         if alt != syllable {
-            if let Some(ids) = self.mandarin_index.get(&normalize_pinyin(&alt)) {
-                for index in ids {
-                    if let Some(entry) = self.entries.get(*index as usize) {
-                        matches.push(entry);
-                    }
-                }
-            }
+            matches.extend(self.entries_for_ids(Self::index_ids(
+                &self.mandarin_compact,
+                &self.mandarin_index,
+                &normalize_pinyin(&alt),
+            )));
         }
         matches
     }
 
     /// Like `by_mandarin_pinyin` but assumes `syllable` is already normalized.
     pub fn by_mandarin_pinyin_normalized(&self, lookup: &str) -> Vec<&DictionaryEntry> {
-        let mut matches: Vec<&DictionaryEntry> = self
-            .mandarin_index
-            .get(lookup)
-            .into_iter()
-            .flatten()
-            .filter_map(|index| self.entries.get(*index as usize))
-            .collect();
+        let mut matches = self.entries_for_ids(Self::index_ids(
+            &self.mandarin_compact,
+            &self.mandarin_index,
+            lookup,
+        ));
         let alt = alternate_e_syllable(lookup, "e\u{0306}");
         if alt != *lookup {
-            if let Some(ids) = self.mandarin_index.get(&normalize_pinyin(&alt)) {
-                for index in ids {
-                    if let Some(entry) = self.entries.get(*index as usize) {
-                        matches.push(entry);
-                    }
-                }
-            }
+            matches.extend(self.entries_for_ids(Self::index_ids(
+                &self.mandarin_compact,
+                &self.mandarin_index,
+                &normalize_pinyin(&alt),
+            )));
         }
         matches
     }
 
     pub fn by_mandarin_word_pinyin(&self, syllable: &str) -> Vec<&DictionaryEntry> {
         let lookup = normalize_pinyin(syllable);
-        let mut matches: Vec<&DictionaryEntry> = self
-            .mandarin_word_index
-            .get(&lookup)
-            .into_iter()
-            .flatten()
-            .filter_map(|index| self.entries.get(*index as usize))
-            .collect();
+        let mut matches = self.entries_for_ids(Self::index_ids(
+            &self.mandarin_word_compact,
+            &self.mandarin_word_index,
+            &lookup,
+        ));
         let alt = alternate_e_syllable(syllable, "e\u{0306}");
         if alt != syllable {
-            if let Some(ids) = self.mandarin_word_index.get(&normalize_pinyin(&alt)) {
-                for index in ids {
-                    if let Some(entry) = self.entries.get(*index as usize) {
-                        matches.push(entry);
-                    }
-                }
-            }
+            matches.extend(self.entries_for_ids(Self::index_ids(
+                &self.mandarin_word_compact,
+                &self.mandarin_word_index,
+                &normalize_pinyin(&alt),
+            )));
         }
         matches
     }
 
     /// Like `by_mandarin_word_pinyin` but assumes `syllable` is already normalized.
     pub fn by_mandarin_word_pinyin_normalized(&self, lookup: &str) -> Vec<&DictionaryEntry> {
-        let mut matches: Vec<&DictionaryEntry> = self
-            .mandarin_word_index
-            .get(lookup)
-            .into_iter()
-            .flatten()
-            .filter_map(|index| self.entries.get(*index as usize))
-            .collect();
+        let mut matches = self.entries_for_ids(Self::index_ids(
+            &self.mandarin_word_compact,
+            &self.mandarin_word_index,
+            lookup,
+        ));
         let alt = alternate_e_syllable(lookup, "e\u{0306}");
         if alt != *lookup {
-            if let Some(ids) = self.mandarin_word_index.get(&normalize_pinyin(&alt)) {
-                for index in ids {
-                    if let Some(entry) = self.entries.get(*index as usize) {
-                        matches.push(entry);
-                    }
-                }
-            }
+            matches.extend(self.entries_for_ids(Self::index_ids(
+                &self.mandarin_word_compact,
+                &self.mandarin_word_index,
+                &normalize_pinyin(&alt),
+            )));
         }
         matches
     }
 
     pub fn by_headword(&self, headword: &str) -> Vec<&DictionaryEntry> {
-        self.headword_index
-            .get(headword)
-            .into_iter()
-            .flatten()
-            .filter_map(|index| self.entries.get(*index as usize))
-            .collect()
+        self.entries_for_ids(Self::index_ids(
+            &self.headword_compact,
+            &self.headword_index,
+            headword,
+        ))
     }
 
     pub fn by_mandarin_word_text(&self, word: &str) -> Vec<&DictionaryEntry> {
-        self.mandarin_word_text_index
-            .get(word)
-            .into_iter()
-            .flatten()
-            .filter_map(|index| self.entries.get(*index as usize))
-            .collect()
+        self.entries_for_ids(Self::index_ids(
+            &self.mandarin_word_text_compact,
+            &self.mandarin_word_text_index,
+            word,
+        ))
     }
 
     /// Find entries whose dialect_pinyin OR mandarin_pinyin has `syllable`
