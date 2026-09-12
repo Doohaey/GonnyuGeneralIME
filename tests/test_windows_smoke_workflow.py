@@ -41,7 +41,7 @@ def test_windows_toolbar_tracks_active_input_profile() -> None:
 
 def test_windows_final_text_commit_allows_tsf_default_composition() -> None:
     source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
-    session = source.split("class InsertTextEditSession", 1)[1].split("class SelectionRectEditSession", 1)[0]
+    session = source.split("class InsertTextEditSession", 1)[1].split("struct CompositionState", 1)[0]
 
     assert "InsertTextAtSelection(" in session
     assert "TF_IAS_NO_DEFAULT_COMPOSITION" not in session.replace("// composition: TF_IAS_NO_DEFAULT_COMPOSITION", "")
@@ -73,6 +73,30 @@ def test_windows_search_provider_wiring_is_present() -> None:
         "GUID_TFCAT_TIPCAP_SYSTRAYSUPPORT",
     ):
         assert unsupported not in categories
+
+
+def test_windows_ui_less_candidates_follow_searchbox_contract() -> None:
+    source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
+    element = source.split("class GannyuCandidateListUiElement", 1)[1].split("int ScaleForDpi", 1)[0]
+
+    assert "GUID_INTEGRATIONSTYLE_SEARCHBOX" in element
+    assert "*eaten = TRUE" in element
+    assert "*show = TRUE" in element
+
+
+def test_windows_preedit_is_a_real_tsf_composition() -> None:
+    source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
+    session = source.split("class CompositionEditSession", 1)[1].split("class SelectionRectEditSession", 1)[0]
+
+    assert "public ITfCompositionSink" in source
+    assert "IID_ITfCompositionSink" in source
+    assert "ITfContextComposition" in session
+    assert "TF_IAS_NO_DEFAULT_COMPOSITION" in session
+    assert "StartComposition" in session
+    assert "EndComposition" in session
+    assert "CompositionEditAction::Update" in source
+    assert "CompositionEditAction::Commit" in source
+    assert "CompositionEditAction::Cancel" in source
 
 
 def test_windows_toolbar_clicks_use_drawn_button_rectangles() -> None:

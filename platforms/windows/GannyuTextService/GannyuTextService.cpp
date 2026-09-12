@@ -15,6 +15,7 @@
 #include <cwctype>
 #include <functional>
 #include <iterator>
+#include <memory>
 #include <new>
 #include <string>
 #include <vector>
@@ -205,10 +206,10 @@ public:
     STDMETHODIMP SetSelection(UINT index) override { if (!items_ || !selection_ || index >= items_->size()) return E_INVALIDARG; *selection_ = index; return S_OK; }
     STDMETHODIMP Finalize() override { if (!selection_) return E_FAIL; finalize_(*selection_); return S_OK; }
     STDMETHODIMP Abort() override { abort_(); return S_OK; }
-    STDMETHODIMP SetIntegrationStyle(GUID) override { return S_OK; }
+    STDMETHODIMP SetIntegrationStyle(GUID style) override { return IsEqualGUID(style, GUID_INTEGRATIONSTYLE_SEARCHBOX) ? S_OK : E_NOTIMPL; }
     STDMETHODIMP GetSelectionStyle(TfIntegratableCandidateListSelectionStyle *style) override { if (!style) return E_POINTER; *style = STYLE_ACTIVE_SELECTION; return S_OK; }
-    STDMETHODIMP OnKeyDown(WPARAM, LPARAM, BOOL *eaten) override { if (!eaten) return E_POINTER; *eaten = FALSE; return S_OK; }
-    STDMETHODIMP ShowCandidateNumbers(BOOL *) override { return S_OK; }
+    STDMETHODIMP OnKeyDown(WPARAM, LPARAM, BOOL *eaten) override { if (!eaten) return E_POINTER; *eaten = TRUE; return S_OK; }
+    STDMETHODIMP ShowCandidateNumbers(BOOL *show) override { if (!show) return E_POINTER; *show = TRUE; return S_OK; }
     STDMETHODIMP FinalizeExactCompositionString() override { if (finalizeExact_) finalizeExact_(); return S_OK; }
 private:
     LONG refs_; ITfContext *context_; const std::vector<CandidateItem> *items_; size_t *selection_; std::function<void(size_t)> finalize_; std::function<void()> abort_; std::function<void()> finalizeExact_; BOOL shown_ = FALSE;
@@ -547,6 +548,197 @@ private:
     std::wstring text_;
 };
 
+struct CompositionState {
+    ~CompositionState() { ReleaseUnknown(composition); }
+
+    ITfComposition *composition = nullptr;
+    bool terminatingInternally = false;
+};
+
+enum class CompositionEditAction {
+    Update,
+    Commit,
+    Cancel,
+};
+
+class CompositionEditSession final : public ITfEditSession {
+public:
+    CompositionEditSession(ITfContext *context, ITfCompositionSink *sink,
+                           std::shared_ptr<CompositionState> state,
+                           CompositionEditAction action, std::wstring text,
+                           std::function<void(HRESULT)> completion)
+        : refs_(1), context_(context), sink_(sink), state_(std::move(state)),
+          action_(action), text_(std::move(text)), completion_(std::move(completion)) {
+        if (context_) context_->AddRef();
+        if (sink_) sink_->AddRef();
+    }
+
+    ~CompositionEditSession() {
+        ReleaseUnknown(sink_);
+        ReleaseUnknown(context_);
+    }
+
+    STDMETHODIMP QueryInterface(REFIID riid, void **ppv) override {
+        if (!ppv) return E_POINTER;
+        *ppv = nullptr;
+        if (IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_ITfEditSession)) {
+            *ppv = static_cast<ITfEditSession *>(this);
+            AddRef();
+            return S_OK;
+        }
+        return E_NOINTERFACE;
+    }
+
+    STDMETHODIMP_(ULONG) AddRef() override {
+        return static_cast<ULONG>(InterlockedIncrement(&refs_));
+    }
+
+    STDMETHODIMP_(ULONG) Release() override {
+        LONG refs = InterlockedDecrement(&refs_);
+        if (!refs) delete this;
+        return static_cast<ULONG>(refs);
+    }
+
+    STDMETHODIMP DoEditSession(TfEditCookie editCookie) override {
+        if (!context_ || !state_) return E_FAIL;
+        HRESULT hr = E_UNEXPECTED;
+        switch (action_) {
+            case CompositionEditAction::Update:
+                hr = UpdateComposition(editCookie);
+                break;
+            case CompositionEditAction::Commit:
+                hr = CommitComposition(editCookie);
+                break;
+            case CompositionEditAction::Cancel:
+                hr = CancelComposition(editCookie);
+                break;
+        }
+        if (completion_) completion_(hr);
+        return hr;
+    }
+
+private:
+    HRESULT MoveSelectionToEnd(TfEditCookie editCookie, ITfRange *range) {
+        if (!range) return E_INVALIDARG;
+        ITfRange *caret = nullptr;
+        HRESULT hr = range->Clone(&caret);
+        if (FAILED(hr) || !caret) return FAILED(hr) ? hr : E_FAIL;
+        hr = caret->Collapse(editCookie, TF_ANCHOR_END);
+        if (SUCCEEDED(hr)) {
+            TF_SELECTION selection{};
+            selection.range = caret;
+            selection.style.ase = TF_AE_NONE;
+            selection.style.fInterimChar = FALSE;
+            hr = context_->SetSelection(editCookie, 1, &selection);
+        }
+        caret->Release();
+        return hr;
+    }
+
+    HRESULT InsertFinalText(TfEditCookie editCookie) {
+        ITfInsertAtSelection *insert = nullptr;
+        HRESULT hr = context_->QueryInterface(IID_ITfInsertAtSelection, reinterpret_cast<void **>(&insert));
+        if (FAILED(hr) || !insert) return FAILED(hr) ? hr : E_FAIL;
+        ITfRange *range = nullptr;
+        hr = insert->InsertTextAtSelection(editCookie, 0, text_.c_str(),
+                                           static_cast<LONG>(text_.size()), &range);
+        ReleaseUnknown(range);
+        insert->Release();
+        return hr;
+    }
+
+    HRESULT UpdateComposition(TfEditCookie editCookie) {
+        if (text_.empty()) return CancelComposition(editCookie);
+        if (state_->composition) {
+            ITfRange *range = nullptr;
+            HRESULT hr = state_->composition->GetRange(&range);
+            if (SUCCEEDED(hr) && range) {
+                hr = range->SetText(editCookie, 0, text_.c_str(), static_cast<LONG>(text_.size()));
+                if (SUCCEEDED(hr)) hr = MoveSelectionToEnd(editCookie, range);
+            }
+            ReleaseUnknown(range);
+            return hr;
+        }
+
+        ITfInsertAtSelection *insert = nullptr;
+        HRESULT hr = context_->QueryInterface(IID_ITfInsertAtSelection, reinterpret_cast<void **>(&insert));
+        if (FAILED(hr) || !insert) return FAILED(hr) ? hr : E_FAIL;
+
+        ITfRange *range = nullptr;
+        hr = insert->InsertTextAtSelection(editCookie, TF_IAS_NO_DEFAULT_COMPOSITION,
+                                           text_.c_str(), static_cast<LONG>(text_.size()), &range);
+        insert->Release();
+        if (FAILED(hr) || !range) {
+            ReleaseUnknown(range);
+            return FAILED(hr) ? hr : E_FAIL;
+        }
+
+        ITfContextComposition *contextComposition = nullptr;
+        hr = context_->QueryInterface(IID_ITfContextComposition,
+                                      reinterpret_cast<void **>(&contextComposition));
+        if (SUCCEEDED(hr) && contextComposition) {
+            ITfComposition *composition = nullptr;
+            hr = contextComposition->StartComposition(editCookie, range, sink_, &composition);
+            if (SUCCEEDED(hr) && composition) {
+                state_->composition = composition;
+                hr = MoveSelectionToEnd(editCookie, range);
+            } else {
+                range->SetText(editCookie, 0, L"", 0);
+                if (SUCCEEDED(hr)) hr = E_FAIL;
+            }
+            contextComposition->Release();
+        } else {
+            range->SetText(editCookie, 0, L"", 0);
+        }
+        range->Release();
+        return hr;
+    }
+
+    HRESULT FinishComposition(TfEditCookie editCookie, const wchar_t *text, LONG length) {
+        ITfComposition *composition = state_->composition;
+        if (!composition) return S_FALSE;
+        composition->AddRef();
+
+        ITfRange *range = nullptr;
+        HRESULT hr = composition->GetRange(&range);
+        if (SUCCEEDED(hr) && range) {
+            hr = range->SetText(editCookie, 0, text, length);
+            if (SUCCEEDED(hr)) hr = MoveSelectionToEnd(editCookie, range);
+        }
+        ReleaseUnknown(range);
+
+        if (SUCCEEDED(hr)) {
+            state_->terminatingInternally = true;
+            hr = composition->EndComposition(editCookie);
+            state_->terminatingInternally = false;
+            if (SUCCEEDED(hr) && state_->composition == composition) {
+                state_->composition->Release();
+                state_->composition = nullptr;
+            }
+        }
+        composition->Release();
+        return hr;
+    }
+
+    HRESULT CommitComposition(TfEditCookie editCookie) {
+        HRESULT hr = FinishComposition(editCookie, text_.c_str(), static_cast<LONG>(text_.size()));
+        return hr == S_FALSE ? InsertFinalText(editCookie) : hr;
+    }
+
+    HRESULT CancelComposition(TfEditCookie editCookie) {
+        HRESULT hr = FinishComposition(editCookie, L"", 0);
+        return hr == S_FALSE ? S_OK : hr;
+    }
+
+    LONG refs_;
+    ITfContext *context_;
+    ITfCompositionSink *sink_;
+    std::shared_ptr<CompositionState> state_;
+    CompositionEditAction action_;
+    std::wstring text_;
+    std::function<void(HRESULT)> completion_;
+};
+
 class SelectionRectEditSession final : public ITfEditSession {
 public:
     SelectionRectEditSession(ITfContext *context, RECT *rect, bool *hasRect) : refs_(1), context_(context), rect_(rect), hasRect_(hasRect) {
@@ -730,7 +922,7 @@ private:
 
 class GannyuTextService : public ITfTextInputProcessorEx, public ITfThreadMgrEventSink,
                           public ITfKeyEventSink, public ITfActiveLanguageProfileNotifySink,
-                          public ITfFunctionProvider {
+                          public ITfFunctionProvider, public ITfCompositionSink {
 public:
     GannyuTextService() : refs_(1) {
         g_moduleRefs.fetch_add(1);
@@ -791,6 +983,8 @@ public:
             *ppv = static_cast<ITfActiveLanguageProfileNotifySink *>(this);
         } else if (IsEqualIID(riid, IID_ITfFunctionProvider)) {
             *ppv = static_cast<ITfFunctionProvider *>(this);
+        } else if (IsEqualIID(riid, IID_ITfCompositionSink)) {
+            *ppv = static_cast<ITfCompositionSink *>(this);
         }
         if (!*ppv) {
             return E_NOINTERFACE;
@@ -819,6 +1013,15 @@ public:
 
     STDMETHODIMP GetFunction(REFGUID guid, REFIID riid, IUnknown **function) override {
         return functionProvider_ ? functionProvider_->GetFunction(guid, riid, function) : E_NOINTERFACE;
+    }
+
+    STDMETHODIMP OnCompositionTerminated(TfEditCookie, ITfComposition *composition) override {
+        if (!compositionState_ || compositionState_->composition != composition) return S_OK;
+        const bool internal = compositionState_->terminatingInternally;
+        compositionState_->composition->Release();
+        compositionState_->composition = nullptr;
+        if (!internal) ClearInputModel();
+        return S_OK;
     }
 
     STDMETHODIMP Activate(ITfThreadMgr *mgr, TfClientId clientId) override {
@@ -868,14 +1071,10 @@ public:
     }
 
     STDMETHODIMP Deactivate() override {
-        HideCandidateWindow();
+        Reset();
         if (statusWindow_) {
             ShowWindow(statusWindow_, SW_HIDE);
         }
-        buffer_.clear();
-        candidates_.clear();
-        preeditDisplay_.clear();
-        selectedIndex_ = 0;
         if (threadMgr_ && langBarButton_ && langBarItemAdded_) {
             ITfLangBarItemMgr *langBarMgr = nullptr;
             if (SUCCEEDED(threadMgr_->QueryInterface(IID_ITfLangBarItemMgr, reinterpret_cast<void **>(&langBarMgr))) && langBarMgr) {
@@ -933,7 +1132,7 @@ public:
     STDMETHODIMP OnUninitDocumentMgr(ITfDocumentMgr *) override { return S_OK; }
 
     STDMETHODIMP OnSetFocus(ITfDocumentMgr *, ITfDocumentMgr *) override {
-        if (!buffer_.empty()) {
+        if (!buffer_.empty() || (compositionState_ && compositionState_->composition)) {
             Reset();
         }
         return S_OK;
@@ -1382,7 +1581,7 @@ private:
             }
             bool committed = CommitText(context, Utf8ToWide(buffer_));
             if (committed) {
-                Reset();
+                Reset(false);
             }
             return committed;
         }
@@ -1417,12 +1616,30 @@ private:
         if (!context || text.empty() || clientId_ == TF_CLIENTID_NULL) {
             return false;
         }
+        if (!buffer_.empty() || (compositionState_ && compositionState_->composition)) {
+            return RequestCompositionEdit(context, CompositionEditAction::Commit, text);
+        }
         InsertTextEditSession *session = new (std::nothrow) InsertTextEditSession(context, text);
         if (!session) {
             return false;
         }
         HRESULT editResult = E_FAIL;
         HRESULT request = context->RequestEditSession(clientId_, session, TF_ES_ASYNCDONTCARE | TF_ES_READWRITE, &editResult);
+        session->Release();
+        return SUCCEEDED(request) && SUCCEEDED(editResult);
+    }
+
+    bool RequestCompositionEdit(ITfContext *context, CompositionEditAction action,
+                                const std::wstring &text = {},
+                                std::function<void(HRESULT)> completion = {}) {
+        if (!context || !compositionState_ || clientId_ == TF_CLIENTID_NULL) return false;
+        CompositionEditSession *session = new (std::nothrow) CompositionEditSession(
+            context, static_cast<ITfCompositionSink *>(this), compositionState_, action, text,
+            std::move(completion));
+        if (!session) return false;
+        HRESULT editResult = E_FAIL;
+        HRESULT request = context->RequestEditSession(
+            clientId_, session, TF_ES_ASYNCDONTCARE | TF_ES_READWRITE, &editResult);
         session->Release();
         return SUCCEEDED(request) && SUCCEEDED(editResult);
     }
@@ -1445,7 +1662,7 @@ private:
             RefreshCandidates();
             return;
         }
-        Reset();
+        Reset(false);
     }
 
 
@@ -1479,6 +1696,17 @@ private:
             selectedIndex_ = 0;
         }
         RefreshPreeditDisplay();
+        if (activeContext_ && !buffer_.empty()) {
+            const bool scheduled = RequestCompositionEdit(
+                activeContext_, CompositionEditAction::Update, Utf8ToWide(buffer_),
+                [this](HRESULT) {
+                    UpdateCandidateUiElement();
+                    UpdateCandidateWindow();
+                });
+            if (scheduled) return;
+        } else if (activeContext_) {
+            RequestCompositionEdit(activeContext_, CompositionEditAction::Cancel);
+        }
         UpdateCandidateUiElement();
         UpdateCandidateWindow();
     }
@@ -1493,9 +1721,8 @@ private:
                 [this]() { Reset(); },
                 [this]() {
                     if (activeContext_ && !buffer_.empty()) {
-                        CommitText(activeContext_, Utf8ToWide(buffer_));
+                        if (CommitText(activeContext_, Utf8ToWide(buffer_))) Reset(false);
                     }
-                    Reset();
                 });
             if (!candidateUi_) return;
             BOOL show = TRUE;
@@ -1981,13 +2208,21 @@ private:
         }
     }
 
-    void Reset() {
+    void ClearInputModel() {
         buffer_.clear();
         candidates_.clear();
         preeditDisplay_.clear();
         selectedIndex_ = 0;
         EndCandidateUiElement();
         HideCandidateWindow();
+    }
+
+    void Reset(bool cancelComposition = true) {
+        if (cancelComposition && activeContext_ &&
+            (!buffer_.empty() || (compositionState_ && compositionState_->composition))) {
+            RequestCompositionEdit(activeContext_, CompositionEditAction::Cancel);
+        }
+        ClearInputModel();
     }
 
     void DestroyCandidateWindow() {
@@ -2084,6 +2319,7 @@ private:
     DWORD candidateUiId_ = TF_INVALID_UIELEMENTID;
     BOOL candidateUiShown_ = FALSE;
     ITfContext *activeContext_ = nullptr;
+    std::shared_ptr<CompositionState> compositionState_ = std::make_shared<CompositionState>();
     TfClientId clientId_ = TF_CLIENTID_NULL;
     DWORD thmgrCookie_ = TF_INVALID_COOKIE;
     DWORD profileCookie_ = TF_INVALID_COOKIE;
