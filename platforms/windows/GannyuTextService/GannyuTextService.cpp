@@ -1040,6 +1040,17 @@ public:
         threadMgr_ = mgr;
         threadMgr_->AddRef();
         clientId_ = clientId;
+        uiLessMode_ = false;
+        ITfThreadMgr2 *threadMgr2 = nullptr;
+        if (SUCCEEDED(threadMgr_->QueryInterface(IID_ITfThreadMgr2,
+                                                reinterpret_cast<void **>(&threadMgr2))) &&
+            threadMgr2) {
+            DWORD activeFlags = 0;
+            if (SUCCEEDED(threadMgr2->GetActiveFlags(&activeFlags))) {
+                uiLessMode_ = (activeFlags & TF_TMF_UIELEMENTENABLEDONLY) != 0;
+            }
+            threadMgr2->Release();
+        }
 
         ITfSource *source = nullptr;
         if (SUCCEEDED(threadMgr_->QueryInterface(IID_ITfSource, reinterpret_cast<void **>(&source))) && source) {
@@ -1114,6 +1125,7 @@ public:
         }
         SetActiveContext(nullptr);
         clientId_ = TF_CLIENTID_NULL;
+        uiLessMode_ = false;
         thmgrCookie_ = TF_INVALID_COOKIE;
         profileCookie_ = TF_INVALID_COOKIE;
         return S_OK;

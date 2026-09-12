@@ -110,6 +110,18 @@ def test_windows_regular_apps_keep_the_native_candidate_path() -> None:
     assert "InsertTextEditSession" in commit
 
 
+def test_windows_enables_composition_only_for_ui_less_threads() -> None:
+    source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
+    activation = source.split("STDMETHODIMP ActivateEx", 1)[1].split("STDMETHODIMP Deactivate", 1)[0]
+    refresh = source.split("void RefreshCandidates()", 1)[1].split("void UpdateCandidateUiElement", 1)[0]
+
+    assert "IID_ITfThreadMgr2" in activation
+    assert "GetActiveFlags" in activation
+    assert "TF_TMF_UIELEMENTENABLEDONLY" in activation
+    assert "uiLessMode_ = (activeFlags" in activation
+    assert "uiLessMode_ && activeContext_" in refresh
+
+
 def test_windows_toolbar_clicks_use_drawn_button_rectangles() -> None:
     source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
     assert "auto drawButton" in source
