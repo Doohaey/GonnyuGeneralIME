@@ -79,7 +79,8 @@ def test_windows_ui_less_candidates_follow_searchbox_contract() -> None:
     source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
     element = source.split("class GannyuCandidateListUiElement", 1)[1].split("int ScaleForDpi", 1)[0]
 
-    assert "GUID_INTEGRATIONSTYLE_SEARCHBOX" in element
+    assert "kSearchBoxIntegrationStyleGuid" in element
+    assert "0xe6d1bd11" in source
     assert "*eaten = TRUE" in element
     assert "*show = TRUE" in element
 

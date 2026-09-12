@@ -40,6 +40,10 @@ static const GUID GannyuRegionButtonGuid =
 // Stable identity for the candidate UI element instance type.
 static const GUID GannyuCandidateUiGuid =
     {0x7a6b9c41, 0x4a1f, 0x4d58, {0x8b, 0x2e, 0x9a, 0x1c, 0x7d, 0x3a, 0x2f, 0x13}};
+// ctffunc.h declares this Search contract GUID, but current Windows SDK import
+// libraries do not provide a linkable definition for desktop TIPs.
+static const GUID kSearchBoxIntegrationStyleGuid =
+    {0xe6d1bd11, 0x82f7, 0x4903, {0xae, 0x21, 0x1a, 0x63, 0x97, 0xcd, 0xe2, 0xeb}};
 static constexpr LANGID kLangId = 0x0804;
 static constexpr wchar_t kTextServiceDescription[] = L"\u8D63\u8BED\u8F93\u5165\u6CD5";
 static constexpr wchar_t kCandidateWindowClass[] = L"GannyuCandidateWindow";
@@ -206,7 +210,7 @@ public:
     STDMETHODIMP SetSelection(UINT index) override { if (!items_ || !selection_ || index >= items_->size()) return E_INVALIDARG; *selection_ = index; return S_OK; }
     STDMETHODIMP Finalize() override { if (!selection_) return E_FAIL; finalize_(*selection_); return S_OK; }
     STDMETHODIMP Abort() override { abort_(); return S_OK; }
-    STDMETHODIMP SetIntegrationStyle(GUID style) override { return IsEqualGUID(style, GUID_INTEGRATIONSTYLE_SEARCHBOX) ? S_OK : E_NOTIMPL; }
+    STDMETHODIMP SetIntegrationStyle(GUID style) override { return IsEqualGUID(style, kSearchBoxIntegrationStyleGuid) ? S_OK : E_NOTIMPL; }
     STDMETHODIMP GetSelectionStyle(TfIntegratableCandidateListSelectionStyle *style) override { if (!style) return E_POINTER; *style = STYLE_ACTIVE_SELECTION; return S_OK; }
     STDMETHODIMP OnKeyDown(WPARAM, LPARAM, BOOL *eaten) override { if (!eaten) return E_POINTER; *eaten = TRUE; return S_OK; }
     STDMETHODIMP ShowCandidateNumbers(BOOL *show) override { if (!show) return E_POINTER; *show = TRUE; return S_OK; }

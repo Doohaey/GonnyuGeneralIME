@@ -60,7 +60,11 @@ def test_android_candidate_bar_keeps_cache_out_of_the_editor() -> None:
 def test_android_symbol_page_clears_composition_and_writes_symbols_literally() -> None:
     source = (ROOT / "platforms/android/app/src/main/java/io/gannyu/input/GannyuInputMethodService.kt").read_text(encoding="utf-8")
 
-    assert 'key.label == "123"                           -> { resetState(clearAccumulated = true); symbolPage = true; renderKeyboard() }' in source
+    symbol_page_branch = source.split('key.label == "123"', 1)[1].splitlines()[0]
+    assert "resetState(clearAccumulated = true)" in symbol_page_branch
+    assert "englishShift = false" in symbol_page_branch
+    assert "symbolPage = true" in symbol_page_branch
+    assert "renderKeyboard()" in symbol_page_branch
     assert "key.label == \"\\u201C\"" not in source
     assert "key.label == \"\\u201D\"" not in source
     assert "else                                         -> currentInputConnection?.commitText(key.label, 1)" in source
