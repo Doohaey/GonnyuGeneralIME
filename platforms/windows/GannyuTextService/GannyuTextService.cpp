@@ -1112,6 +1112,7 @@ public:
         threadMgr_ = mgr;
         threadMgr_->AddRef();
         clientId_ = clientId;
+        profileActive_ = true;
         uiLessMode_ = false;
         ITfThreadMgr2 *threadMgr2 = nullptr;
         if (SUCCEEDED(threadMgr_->QueryInterface(IID_ITfThreadMgr2,
@@ -1199,6 +1200,7 @@ public:
         }
         SetActiveContext(nullptr);
         clientId_ = TF_CLIENTID_NULL;
+        profileActive_ = false;
         uiLessMode_ = false;
         thmgrCookie_ = TF_INVALID_COOKIE;
         profileCookie_ = TF_INVALID_COOKIE;
@@ -1208,8 +1210,13 @@ public:
     STDMETHODIMP OnActivated(REFCLSID clsid, REFGUID guidProfile, BOOL activated) override {
         const bool ownProfile = IsEqualCLSID(clsid, CLSID_GannyuTextService) &&
                                 IsEqualGUID(guidProfile, GannyuProfileGuid);
+        if (ownProfile) {
+            profileActive_ = activated != FALSE;
+        } else if (activated) {
+            profileActive_ = false;
+        }
         ResetShiftState();
-        if (ownProfile && activated) {
+        if (profileActive_) {
             if (EnsureStatusBar()) UpdateStatusBar();
         } else {
             SetActiveContext(nullptr);
@@ -1237,8 +1244,10 @@ public:
             SetActiveContext(nullptr);
             if (statusWindow_) ShowWindow(statusWindow_, SW_HIDE);
             HideLoadingWindow();
-        } else if (EnsureStatusBar()) {
+        } else if (profileActive_ && EnsureStatusBar()) {
             UpdateStatusBar();
+        } else if (statusWindow_) {
+            ShowWindow(statusWindow_, SW_HIDE);
         }
         return S_OK;
     }
@@ -2466,6 +2475,7 @@ private:
     HWND loadWindow_ = nullptr;
     std::wstring loadText_;
     bool englishMode_ = false;
+    bool profileActive_ = false;
     bool uiLessMode_ = false;
     bool fullwidthPunctuation_ = true;
     bool shiftPressed_ = false;

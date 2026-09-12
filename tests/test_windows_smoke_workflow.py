@@ -32,14 +32,17 @@ def test_windows_toolbar_tracks_active_input_profile() -> None:
     assert "IID_ITfActiveLanguageProfileNotifySink" in source
     assert "CLSID_GannyuTextService" in callback
     assert "GannyuProfileGuid" in callback
-    assert "if (ownProfile && activated)" in callback
+    assert "if (ownProfile)" in callback
+    assert "if (profileActive_)" in callback
     assert "UpdateStatusBar()" in callback
     assert "ShowWindow(statusWindow_, SW_HIDE)" in callback
+    assert "profileActive_ = activated != FALSE" in callback
     assert "profileCookie_" in source
     assert "ResetShiftState()" in focus_callback
     assert "SetActiveContext(nullptr)" in focus_callback
     assert "ShowWindow(statusWindow_, SW_HIDE)" in focus_callback
     assert "UpdateStatusBar()" in focus_callback
+    assert "profileActive_ && EnsureStatusBar()" in focus_callback
 
 
 def test_windows_final_text_commit_allows_tsf_default_composition() -> None:
@@ -106,7 +109,7 @@ def test_windows_ui_less_candidate_snapshot_keeps_its_owner_alive() -> None:
 
     assert "IUnknown *owner" in element
     assert "owner_->AddRef()" in element
-    assert "ReleaseUnknown(owner_)" in element
+    assert "if (owner_) owner_->Release()" in element
     assert "std::vector<CandidateItem> items_" in element
     assert "UpdateSnapshot(candidates_, selectedIndex_)" in ui_update
     assert "generation == contextGeneration_" in ui_update
