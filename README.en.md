@@ -13,16 +13,16 @@ Currently supports: **Lancong(Nanchang) and Fenni(Fenyi)**. More localities are 
 
 Rime schema repositories for Lancong(Nanchang) and Fenni(Fenyi). Other installation options are available in the [Installation](#installation) section below.
 
-## Test version 0.2.4-pre.15
+## Test version 0.2.4-pre.16
 
-- feat(android): Refine key spacing and the candidate Pinyin label; add one-shot English Shift, dimensional red action/symbol keys, and a standard system IME switch key at the far left.
-- feat(windows): Complete TSF UI-less search candidate support while restoring native candidate windows and composition in regular apps such as browsers and WeChat.
-- fix(ci): Repair the quality gate and Windows link checks.
+- fix(windows): Fix candidate paging, popup placement, caret advancement, and composition isolation in taskbar and File Explorer search.
+- fix(windows): Fix initial English passthrough, inactive Shift switching, and stale IME UI after moving between QQ, terminals, and other windows.
+- style(android): Apply a pale-blue palette to the keyboard, action keys, 123 symbol page, and translucent Pinyin label.
 
 ## Contents
 
 - [GonnyuGeneralIME — A General Gon(Gan) Chinese Input Method](#gonnyugeneralime--a-general-gongan-chinese-input-method)
-  - [Test version 0.2.4-pre.15](#test-version-024-pre15)
+  - [Test version 0.2.4-pre.16](#test-version-024-pre16)
   - [Contents](#contents)
   - [Overview](#overview)
     - [What it provides](#what-it-provides)
