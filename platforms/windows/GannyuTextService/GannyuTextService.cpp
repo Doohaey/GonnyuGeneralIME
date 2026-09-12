@@ -1620,7 +1620,8 @@ private:
         if (!context || text.empty() || clientId_ == TF_CLIENTID_NULL) {
             return false;
         }
-        if (!buffer_.empty() || (compositionState_ && compositionState_->composition)) {
+        if (uiLessMode_ &&
+            (!buffer_.empty() || (compositionState_ && compositionState_->composition))) {
             return RequestCompositionEdit(context, CompositionEditAction::Commit, text);
         }
         InsertTextEditSession *session = new (std::nothrow) InsertTextEditSession(context, text);
@@ -1700,7 +1701,7 @@ private:
             selectedIndex_ = 0;
         }
         RefreshPreeditDisplay();
-        if (activeContext_ && !buffer_.empty()) {
+        if (uiLessMode_ && activeContext_ && !buffer_.empty()) {
             const bool scheduled = RequestCompositionEdit(
                 activeContext_, CompositionEditAction::Update, Utf8ToWide(buffer_),
                 [this](HRESULT) {
@@ -1708,7 +1709,7 @@ private:
                     UpdateCandidateWindow();
                 });
             if (scheduled) return;
-        } else if (activeContext_) {
+        } else if (uiLessMode_ && activeContext_) {
             RequestCompositionEdit(activeContext_, CompositionEditAction::Cancel);
         }
         UpdateCandidateUiElement();
@@ -1717,6 +1718,7 @@ private:
 
     void UpdateCandidateUiElement() {
         if (!uiElementMgr_) return;
+        if (!uiLessMode_) { EndCandidateUiElement(); return; }
         if (candidates_.empty()) { EndCandidateUiElement(); return; }
         if (!candidateUi_) {
             candidateUi_ = new (std::nothrow) GannyuCandidateListUiElement(
@@ -2345,6 +2347,7 @@ private:
     HWND loadWindow_ = nullptr;
     std::wstring loadText_;
     bool englishMode_ = false;
+    bool uiLessMode_ = false;
     bool fullwidthPunctuation_ = true;
     bool shiftPressed_ = false;
     bool shiftUsedWithOtherKey_ = false;

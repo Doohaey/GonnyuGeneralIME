@@ -100,6 +100,16 @@ def test_windows_preedit_is_a_real_tsf_composition() -> None:
     assert "CompositionEditAction::Cancel" in source
 
 
+def test_windows_regular_apps_keep_the_native_candidate_path() -> None:
+    source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
+    commit = source.split("bool CommitText(", 1)[1].split("bool RequestCompositionEdit", 1)[0]
+    ui_update = source.split("void UpdateCandidateUiElement()", 1)[1].split("void EndCandidateUiElement", 1)[0]
+
+    assert "if (uiLessMode_" in commit
+    assert "if (!uiLessMode_)" in ui_update
+    assert "InsertTextEditSession" in commit
+
+
 def test_windows_toolbar_clicks_use_drawn_button_rectangles() -> None:
     source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
     assert "auto drawButton" in source
