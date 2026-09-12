@@ -2,6 +2,7 @@ package io.gannyu.input
 
 import android.content.Context
 import android.inputmethodservice.InputMethodService
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -9,6 +10,7 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
@@ -244,6 +246,7 @@ class GannyuInputMethodService : InputMethodService() {
             KeySpec("\u00B7"), KeySpec("\uFF0F"))
 
         private const val KEY_TEXT      = 0xFF222222.toInt()
+        private const val IME_SWITCH_KEY = "🌐"
         private const val BACKSPACE_INITIAL_DELAY_MS = 380L
         private const val BACKSPACE_REPEAT_INTERVAL_MS = 55L
 
@@ -285,6 +288,7 @@ class GannyuInputMethodService : InputMethodService() {
         if (selectedRegionId(this) != currentStaticRegionId()) {
             loadSelectedPipelineAsync()
         }
+        renderKeyboard()
         renderState()
     }
 
@@ -407,8 +411,10 @@ class GannyuInputMethodService : InputMethodService() {
         r3.addView(keyBtn(KeySpec("\u232B", 1.5f), gap))
         keyboardRows.addView(r3)
         val r4 = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT) }
+        val showImeSwitcher = shouldShowImeSwitchKey()
+        if (showImeSwitcher) r4.addView(keyBtn(KeySpec(IME_SWITCH_KEY, 1.1f), gap))
         r4.addView(keyBtn(KeySpec(if (englishMode) "\u4E2D" else "\u82F1", 1.1f), gap)); r4.addView(keyBtn(KeySpec("123", 1.2f), gap)); r4.addView(keyBtn(KeySpec("\uFF0C", 1f), gap))
-        r4.addView(keyBtn(KeySpec("\u7A7A\u683C", 4.5f), gap))
+        r4.addView(keyBtn(KeySpec("\u7A7A\u683C", if (showImeSwitcher) 3.4f else 4.5f), gap))
         r4.addView(keyBtn(KeySpec("\u3002", 1f), gap)); r4.addView(keyBtn(KeySpec("\u21B5", 1.8f), gap))
         keyboardRows.addView(r4)
     }
@@ -418,8 +424,10 @@ class GannyuInputMethodService : InputMethodService() {
         keyboardRows.addView(keyRow(SYM_ROW_2, gap).apply { (layoutParams as? LinearLayout.LayoutParams)?.bottomMargin = gap })
         keyboardRows.addView(keyRow(SYM_ROW_3, gap).apply { (layoutParams as? LinearLayout.LayoutParams)?.bottomMargin = gap })
         val r4 = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT) }
+        val showImeSwitcher = shouldShowImeSwitchKey()
+        if (showImeSwitcher) r4.addView(keyBtn(KeySpec(IME_SWITCH_KEY, 1.1f), gap))
         r4.addView(keyBtn(KeySpec("\u62FC", 1.2f), gap)); r4.addView(keyBtn(KeySpec("\uFF08", 1f), gap)); r4.addView(keyBtn(KeySpec("\uFF09", 1f), gap))
-        r4.addView(keyBtn(KeySpec("\u7A7A\u683C", 3f), gap))
+        r4.addView(keyBtn(KeySpec("\u7A7A\u683C", if (showImeSwitcher) 2.2f else 3f), gap))
         r4.addView(keyBtn(KeySpec("\u232B", 1.5f), gap))
         r4.addView(keyBtn(KeySpec("\u21B5", 1.6f), gap))
         keyboardRows.addView(r4)
@@ -440,7 +448,14 @@ class GannyuInputMethodService : InputMethodService() {
         val useActionStyle = symbolPage || key.label in ACTION_KEYS
         setTextColor(if (useActionStyle) 0xFFFFFFFF.toInt() else KEY_TEXT)
         setBackgroundResource(if (useActionStyle) R.drawable.key_action else R.drawable.key_normal)
-        if (key.label == "\u232B") {
+        if (key.label == IME_SWITCH_KEY) {
+            contentDescription = "切换输入法"
+            setOnClickListener { switchToNextEnabledInputMethod() }
+            setOnLongClickListener {
+                showSystemInputMethodPicker()
+                true
+            }
+        } else if (key.label == "\u232B") {
             setOnTouchListener { _, event ->
                 when (event.actionMasked) {
                     MotionEvent.ACTION_DOWN -> {
@@ -490,7 +505,27 @@ class GannyuInputMethodService : InputMethodService() {
     }
 
     private val PUNCT_AFTER_COMPOSE = setOf("\uFF0C", "\u3002", "\uFF1F", "\uFF01", "\uFF1A", "\uFF1B", "\u3001")
-    private val ACTION_KEYS = setOf("分词", "⇧", "⌫", "中", "英", "123", "拼", "↵")
+    private val ACTION_KEYS = setOf("分词", "⇧", "⌫", "中", "英", "123", "拼", "↵", IME_SWITCH_KEY)
+
+    private fun shouldShowImeSwitchKey(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            shouldOfferSwitchingToNextInputMethod()
+        } else {
+            val manager = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+            manager?.enabledInputMethodList?.size?.let { it > 1 } == true
+        }
+    }
+
+    private fun switchToNextEnabledInputMethod() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && switchToNextInputMethod(false)) return
+        showSystemInputMethodPicker()
+    }
+
+    private fun showSystemInputMethodPicker() {
+        val manager = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+        manager?.showInputMethodPicker()
+    }
+
     private fun maybeCommitComposing() {
         if (composing.isNotEmpty()) {
             val first = lastCandidates.firstOrNull()
