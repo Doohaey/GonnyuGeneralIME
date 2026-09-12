@@ -18,24 +18,24 @@ fn next_dictionary_id() -> u64 {
 
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct DictionaryEntry {
-    pub headword: String,
-    pub ipa: String,
-    pub dialect_pinyin: String,
-    pub mandarin_pinyin: String,
-    pub category: String,
-    pub mandarin_word: String,
-    pub mandarin_word_pinyin: String,
+    pub headword: Box<str>,
+    pub ipa: Box<str>,
+    pub dialect_pinyin: Box<str>,
+    pub mandarin_pinyin: Box<str>,
+    pub category: Box<str>,
+    pub mandarin_word: Box<str>,
+    pub mandarin_word_pinyin: Box<str>,
     pub frequency: Option<u64>,
-    pub synonyms: String,
+    pub synonyms: Box<str>,
     /// O(1) lookup: index of this entry in Dictionary::entries. Set by push_entry.
     pub entry_index: usize,
     /// 新旧标记: "新X" / "老X" or empty.  X is any suffix for pairing.
-    pub new_old: String,
+    pub new_old: Box<str>,
 }
 
 impl DictionaryEntry {
     pub fn is_mandarin_only(&self) -> bool {
-        self.category == "官"
+        self.category.as_ref() == "官"
     }
 
     fn has_distinct_mandarin_word(&self) -> bool {
@@ -47,7 +47,7 @@ impl DictionaryEntry {
     /// variants of a Gan reading; everything else (including `赣` and empty)
     /// has no label.
     pub fn register_label(&self) -> &str {
-        match self.category.as_str() {
+        match self.category.as_ref() {
             "文" => "[文]",
             "白" => "[白]",
             _ => "",
@@ -256,7 +256,7 @@ fn collect_char_readings(entries: &[DictionaryEntry]) -> HashMap<String, Vec<Str
         if entry.headword.chars().count() != 1 {
             continue;
         }
-        let tag = entry.new_old.as_str();
+        let tag = entry.new_old.as_ref();
         let bit = match tag.chars().next() {
             Some('新') => 1,
             Some('老') => 2,
@@ -266,15 +266,17 @@ fn collect_char_readings(entries: &[DictionaryEntry]) -> HashMap<String, Vec<Str
         };
         if bit != 0 {
             let suffix: String = tag.chars().skip(1).collect();
-            *marks.entry((entry.headword.clone(), suffix)).or_default() |= bit;
+            *marks
+                .entry((entry.headword.to_string(), suffix))
+                .or_default() |= bit;
         }
-        let bit = match entry.category.as_str() {
+        let bit = match entry.category.as_ref() {
             "文" => 1,
             "白" => 2,
             _ => 0,
         };
         if bit != 0 {
-            *registers.entry(entry.headword.clone()).or_default() |= bit;
+            *registers.entry(entry.headword.to_string()).or_default() |= bit;
         }
     }
     let mut allowed: HashSet<String> = registers
@@ -643,20 +645,20 @@ impl Dictionary {
             };
             let entry_index = entries.len();
             let entry = DictionaryEntry {
-                headword,
-                ipa: get(1).to_string(),
-                dialect_pinyin: normalize_pinyin(get(2)),
-                mandarin_pinyin: normalize_pinyin(get(3)),
-                category: get(4).to_string(),
-                mandarin_word: get(5).to_string(),
-                mandarin_word_pinyin: normalize_pinyin(get(6)),
+                headword: headword.into(),
+                ipa: get(1).into(),
+                dialect_pinyin: normalize_pinyin(get(2)).into(),
+                mandarin_pinyin: normalize_pinyin(get(3)).into(),
+                category: get(4).into(),
+                mandarin_word: get(5).into(),
+                mandarin_word_pinyin: normalize_pinyin(get(6)).into(),
                 frequency,
-                synonyms: get(8).to_string(),
+                synonyms: get(8).into(),
                 entry_index,
-                new_old: get(9).to_string(),
+                new_old: get(9).into(),
             };
             headword_index
-                .entry(entry.headword.clone())
+                .entry(entry.headword.to_string())
                 .or_insert_with(Vec::new)
                 .push(entry_index as u32);
             if build_exact_indices {
@@ -1127,7 +1129,7 @@ impl Dictionary {
     pub(crate) fn set_user_frequency(&mut self, headword: &str, frequency: u64) -> bool {
         let mut changed = false;
         for entry in &mut self.entries {
-            if entry.headword == headword && entry.category == "自" {
+            if entry.headword.as_ref() == headword && entry.category.as_ref() == "自" {
                 entry.frequency = Some(frequency);
                 changed = true;
             }
@@ -1223,20 +1225,20 @@ impl Dictionary {
             };
             let entry_index = start_index + new_entries.len();
             let entry = DictionaryEntry {
-                headword: headword.clone(),
-                ipa: columns[1].trim().to_string(),
-                dialect_pinyin: normalize_pinyin(columns[2].trim()),
-                mandarin_pinyin: normalize_pinyin(columns[3].trim()),
-                category: columns[4].trim().to_string(),
-                mandarin_word: columns[5].trim().to_string(),
-                mandarin_word_pinyin: normalize_pinyin(columns[6].trim()),
+                headword: headword.clone().into(),
+                ipa: columns[1].trim().into(),
+                dialect_pinyin: normalize_pinyin(columns[2].trim()).into(),
+                mandarin_pinyin: normalize_pinyin(columns[3].trim()).into(),
+                category: columns[4].trim().into(),
+                mandarin_word: columns[5].trim().into(),
+                mandarin_word_pinyin: normalize_pinyin(columns[6].trim()).into(),
                 frequency,
-                synonyms: columns[8].trim().to_string(),
+                synonyms: columns[8].trim().into(),
                 entry_index,
-                new_old: columns.get(9).map(|s| s.trim()).unwrap_or("").to_string(),
+                new_old: columns.get(9).map(|s| s.trim()).unwrap_or("").into(),
             };
             self.headword_index
-                .entry(entry.headword.clone())
+                .entry(entry.headword.to_string())
                 .or_default()
                 .push(entry_index as u32);
             if build_exact_indices {
@@ -1390,7 +1392,7 @@ impl Dictionary {
                 }
             }
             self.headword_index
-                .entry(entry.headword.clone())
+                .entry(entry.headword.to_string())
                 .or_default()
                 .push(entry_index as u32);
             if entry.has_distinct_mandarin_word() {
@@ -1523,7 +1525,7 @@ impl Dictionary {
         for entry in &self.entries {
             if entry.new_old.is_empty() || entry.headword.chars().count() != 1 {
             } else {
-                let tag = entry.new_old.as_str();
+                let tag = entry.new_old.as_ref();
                 if matches!(tag.chars().next(), Some('新' | '老' | '本' | '又')) {
                     let ch = entry.headword.chars().next().unwrap();
                     let suffix: String = tag.chars().skip(1).collect();
@@ -1539,14 +1541,14 @@ impl Dictionary {
             }
             let ch = entry.headword.chars().next().unwrap();
             let register = wen_bai.entry(ch).or_insert((None, None));
-            match entry.category.as_str() {
+            match entry.category.as_ref() {
                 "文" => {
                     if register.0.is_none() {
-                        register.0 = Some(entry.dialect_pinyin.clone());
+                        register.0 = Some(entry.dialect_pinyin.to_string());
                     }
                 }
                 "白" if register.1.is_none() => {
-                    register.1 = Some(entry.dialect_pinyin.clone());
+                    register.1 = Some(entry.dialect_pinyin.to_string());
                 }
                 _ => {}
             }
@@ -1574,24 +1576,30 @@ impl Dictionary {
                         .entry(ch)
                         .or_default()
                         .push(PairedReading {
-                            first: new.dialect_pinyin.clone(),
-                            second: old.dialect_pinyin.clone(),
+                            first: new.dialect_pinyin.to_string(),
+                            second: old.dialect_pinyin.to_string(),
                             kind: PairKind::NewOld,
                         });
                     self.new_old_map.entry(ch).or_insert_with(|| {
-                        (new.dialect_pinyin.clone(), old.dialect_pinyin.clone())
+                        (
+                            new.dialect_pinyin.to_string(),
+                            old.dialect_pinyin.to_string(),
+                        )
                     });
                 } else if let (Some(base), Some(variant)) = (find("本"), find("又")) {
                     self.paired_readings
                         .entry(ch)
                         .or_default()
                         .push(PairedReading {
-                            first: base.dialect_pinyin.clone(),
-                            second: variant.dialect_pinyin.clone(),
+                            first: base.dialect_pinyin.to_string(),
+                            second: variant.dialect_pinyin.to_string(),
                             kind: PairKind::Heteronym,
                         });
                     heteronyms.entry(ch).or_insert_with(|| {
-                        (base.dialect_pinyin.clone(), variant.dialect_pinyin.clone())
+                        (
+                            base.dialect_pinyin.to_string(),
+                            variant.dialect_pinyin.to_string(),
+                        )
                     });
                 }
             }
@@ -1842,19 +1850,24 @@ impl Dictionary {
 mod tests {
     use super::*;
 
+    #[test]
+    fn dictionary_entry_keeps_compact_immutable_text_headers() {
+        assert!(std::mem::size_of::<DictionaryEntry>() <= 176);
+    }
+
     fn entry(headword: &str, category: &str, mandarin_word: &str) -> DictionaryEntry {
         DictionaryEntry {
-            headword: headword.to_string(),
-            ipa: String::new(),
-            dialect_pinyin: "kai1".to_string(),
-            mandarin_pinyin: "kai1".to_string(),
-            category: category.to_string(),
-            mandarin_word: mandarin_word.to_string(),
-            mandarin_word_pinyin: "kai1".to_string(),
+            headword: headword.into(),
+            ipa: "".into(),
+            dialect_pinyin: "kai1".into(),
+            mandarin_pinyin: "kai1".into(),
+            category: category.into(),
+            mandarin_word: mandarin_word.into(),
+            mandarin_word_pinyin: "kai1".into(),
             frequency: Some(100000),
-            synonyms: String::new(),
+            synonyms: "".into(),
             entry_index: 0,
-            new_old: String::new(),
+            new_old: "".into(),
         }
     }
 
@@ -1880,7 +1893,7 @@ mod tests {
     fn extend_from_entries_splits_multi_value_mandarin_word_pinyin() {
         let mut dictionary = Dictionary::default();
         let mut entry = entry("青菜", "赣", "蔬菜/菜");
-        entry.mandarin_word_pinyin = "shu1 cai4/cai4".to_string();
+        entry.mandarin_word_pinyin = "shu1 cai4/cai4".into();
         dictionary.extend_from_entries([entry]);
 
         assert_eq!(dictionary.by_mandarin_word_pinyin("shucai").len(), 1);

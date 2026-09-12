@@ -326,7 +326,7 @@ impl InputPipeline {
         let entry = self
             .user_dict
             .entries()
-            .find(|e| e.headword == headword)
+            .find(|e| e.headword.as_ref() == headword)
             .cloned();
         if let Some(entry) = entry {
             self.dictionary.extend_from_entries(std::iter::once(entry));
@@ -448,7 +448,7 @@ impl InputPipeline {
             .user_dict
             .entries()
             .filter(|e| e.frequency.is_none_or(|f| f <= 1))
-            .map(|e| (e.headword.clone(), rng.gen_range(10000..=15000)))
+            .map(|e| (e.headword.to_string(), rng.gen_range(10000..=15000)))
             .collect();
         if !updates.is_empty() {
             self.user_dict.set_frequencies(&updates);
@@ -536,7 +536,7 @@ impl InputPipeline {
             (
                 std::cmp::Reverse(
                     self.frequency_boosts
-                        .get(&entry.headword)
+                        .get(entry.headword.as_ref())
                         .copied()
                         .unwrap_or(0),
                 ),
@@ -1016,7 +1016,7 @@ mod tests {
                 .dictionary
                 .entries()
                 .get(id as usize)
-                .is_some_and(|entry| entry.headword == "测试新词")
+                .is_some_and(|entry| entry.headword.as_ref() == "测试新词")
         }));
         assert!(pipeline
             .dictionary
@@ -1027,7 +1027,7 @@ mod tests {
                     .dictionary
                     .entries()
                     .get(*id as usize)
-                    .is_some_and(|entry| entry.headword == "测试新词")
+                    .is_some_and(|entry| entry.headword.as_ref() == "测试新词")
             }));
     }
 
@@ -1037,17 +1037,17 @@ mod tests {
         let mut entries = Vec::new();
         for index in 0..101 {
             entries.push(crate::dictionary::DictionaryEntry {
-                headword: format!("候选{index:03}"),
-                ipa: String::new(),
-                dialect_pinyin: "ga".to_string(),
-                mandarin_pinyin: String::new(),
-                category: "赣".to_string(),
-                mandarin_word: String::new(),
-                mandarin_word_pinyin: String::new(),
+                headword: format!("候选{index:03}").into(),
+                ipa: "".into(),
+                dialect_pinyin: "ga".into(),
+                mandarin_pinyin: "".into(),
+                category: "赣".into(),
+                mandarin_word: "".into(),
+                mandarin_word_pinyin: "".into(),
                 frequency: Some(1000 - index),
-                synonyms: String::new(),
+                synonyms: "".into(),
                 entry_index: 0,
-                new_old: String::new(),
+                new_old: "".into(),
             });
         }
         pipeline.dictionary.extend_from_entries(entries);
@@ -1113,17 +1113,17 @@ mod tests {
         let mut pipeline = pipeline_with_temp_user_dict();
         let entry =
             |headword: &str, pinyin: &str, frequency: u64| crate::dictionary::DictionaryEntry {
-                headword: headword.to_string(),
-                ipa: String::new(),
-                dialect_pinyin: pinyin.to_string(),
-                mandarin_pinyin: String::new(),
-                category: "赣".to_string(),
-                mandarin_word: String::new(),
-                mandarin_word_pinyin: String::new(),
+                headword: headword.into(),
+                ipa: "".into(),
+                dialect_pinyin: pinyin.into(),
+                mandarin_pinyin: "".into(),
+                category: "赣".into(),
+                mandarin_word: "".into(),
+                mandarin_word_pinyin: "".into(),
                 frequency: Some(frequency),
-                synonyms: String::new(),
+                synonyms: "".into(),
                 entry_index: 0,
-                new_old: String::new(),
+                new_old: "".into(),
             };
         pipeline.dictionary.extend_from_entries([
             entry("我", "ngo", 100_000),

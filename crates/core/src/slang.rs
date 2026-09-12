@@ -332,7 +332,7 @@ impl SlangBook {
                 continue;
             }
 
-            let text = entry.headword.as_str();
+            let text = entry.headword.as_ref();
             self.push_slang(SlangEntry {
                 // id/slang_scheme/source 均无消费方, 词典来源条目留空以省内存。
                 id: String::new(),

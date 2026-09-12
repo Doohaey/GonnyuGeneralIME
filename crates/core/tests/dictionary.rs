@@ -23,13 +23,13 @@ fn loads_eight_column_rows() {
     assert_eq!(dictionary.len(), 2);
 
     let first = &dictionary.entries()[0];
-    assert_eq!(first.headword, "渠");
-    assert_eq!(first.ipa, "tɕʰy21");
-    assert_eq!(first.dialect_pinyin, "qu");
-    assert_eq!(first.mandarin_pinyin, "qu2");
-    assert_eq!(first.category, "赣");
-    assert_eq!(first.mandarin_word, "他");
-    assert_eq!(first.mandarin_word_pinyin, "ta1");
+    assert_eq!(first.headword.as_ref(), "渠");
+    assert_eq!(first.ipa.as_ref(), "tɕʰy21");
+    assert_eq!(first.dialect_pinyin.as_ref(), "qu");
+    assert_eq!(first.mandarin_pinyin.as_ref(), "qu2");
+    assert_eq!(first.category.as_ref(), "赣");
+    assert_eq!(first.mandarin_word.as_ref(), "他");
+    assert_eq!(first.mandarin_word_pinyin.as_ref(), "ta1");
     assert_eq!(first.frequency, Some(1000));
 }
 
@@ -49,9 +49,9 @@ fn tolerates_column_reordering() {
     let path = write_fixture("reorder.tsv", &body);
     let dictionary = Dictionary::load_tsv(&path).expect("load dictionary");
     let entry = &dictionary.entries()[0];
-    assert_eq!(entry.headword, "渠");
+    assert_eq!(entry.headword.as_ref(), "渠");
     assert_eq!(entry.frequency, Some(7));
-    assert_eq!(entry.dialect_pinyin, "qu");
+    assert_eq!(entry.dialect_pinyin.as_ref(), "qu");
 }
 
 #[test]
@@ -78,9 +78,15 @@ fn normalizes_pinyin_columns_and_lookup_aliases() {
     let path = write_fixture("normalized-lookup.tsv", &body);
     let dictionary = Dictionary::load_tsv(&path).expect("load dictionary");
 
-    assert_eq!(dictionary.entries()[0].dialect_pinyin, "suo1'pao1");
-    assert_eq!(dictionary.entries()[0].mandarin_pinyin, "chui1 niu2");
-    assert_eq!(dictionary.entries()[0].mandarin_word_pinyin, "chui1 niu2");
+    assert_eq!(dictionary.entries()[0].dialect_pinyin.as_ref(), "suo1'pao1");
+    assert_eq!(
+        dictionary.entries()[0].mandarin_pinyin.as_ref(),
+        "chui1 niu2"
+    );
+    assert_eq!(
+        dictionary.entries()[0].mandarin_word_pinyin.as_ref(),
+        "chui1 niu2"
+    );
     assert_eq!(dictionary.by_dialect_pinyin("suo'pao").len(), 1);
     assert_eq!(dictionary.by_dialect_pinyin("suo1'pao1").len(), 1);
     assert_eq!(dictionary.by_dialect_pinyin("suo1pao1").len(), 1);

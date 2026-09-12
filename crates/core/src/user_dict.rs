@@ -99,17 +99,17 @@ impl UserDictionary {
                         .unwrap_or_default();
                     let frequency = cols.get(7).and_then(|s| s.trim().parse::<u64>().ok());
                     let entry = DictionaryEntry {
-                        headword: headword.clone(),
-                        ipa: String::new(),
-                        dialect_pinyin,
-                        mandarin_pinyin,
-                        category,
-                        mandarin_word: String::new(),
-                        mandarin_word_pinyin: String::new(),
+                        headword: headword.clone().into(),
+                        ipa: "".into(),
+                        dialect_pinyin: dialect_pinyin.into(),
+                        mandarin_pinyin: mandarin_pinyin.into(),
+                        category: category.into(),
+                        mandarin_word: "".into(),
+                        mandarin_word_pinyin: "".into(),
                         frequency,
-                        synonyms: String::new(),
+                        synonyms: "".into(),
                         entry_index: 0,
-                        new_old: String::new(),
+                        new_old: "".into(),
                     };
                     entries.insert(headword, entry);
                 }
@@ -139,17 +139,17 @@ impl UserDictionary {
             return false;
         }
         let entry = DictionaryEntry {
-            headword: headword.to_string(),
-            ipa: String::new(),
-            dialect_pinyin: dialect_pinyin.to_string(),
-            mandarin_pinyin: mandarin_pinyin.to_string(),
-            category: "自".to_string(),
-            mandarin_word: String::new(),
-            mandarin_word_pinyin: String::new(),
+            headword: headword.into(),
+            ipa: "".into(),
+            dialect_pinyin: dialect_pinyin.into(),
+            mandarin_pinyin: mandarin_pinyin.into(),
+            category: "自".into(),
+            mandarin_word: "".into(),
+            mandarin_word_pinyin: "".into(),
             frequency: Some(1),
-            synonyms: String::new(),
+            synonyms: "".into(),
             entry_index: 0,
-            new_old: String::new(),
+            new_old: "".into(),
         };
         let mut staged = self.entries.clone();
         staged.insert(headword.to_string(), entry);
@@ -314,7 +314,7 @@ mod tests {
         assert!(dict.boost_frequency("测试词"));
         assert_eq!(
             dict.entries()
-                .find(|e| e.headword == "测试词")
+                .find(|e| e.headword.as_ref() == "测试词")
                 .unwrap()
                 .frequency,
             Some(20001)
@@ -325,7 +325,7 @@ mod tests {
         }
         assert_eq!(
             dict.entries()
-                .find(|e| e.headword == "测试词")
+                .find(|e| e.headword.as_ref() == "测试词")
                 .unwrap()
                 .frequency,
             Some(200000)
@@ -334,7 +334,7 @@ mod tests {
         dict.boost_frequency("测试词");
         assert_eq!(
             dict.entries()
-                .find(|e| e.headword == "测试词")
+                .find(|e| e.headword.as_ref() == "测试词")
                 .unwrap()
                 .frequency,
             Some(200000)
@@ -377,14 +377,14 @@ mod tests {
         assert_eq!(updated, 2);
         assert_eq!(
             dict.entries()
-                .find(|e| e.headword == "测试词")
+                .find(|e| e.headword.as_ref() == "测试词")
                 .unwrap()
                 .frequency,
             Some(200000)
         );
         assert_eq!(
             dict.entries()
-                .find(|e| e.headword == "第二个词")
+                .find(|e| e.headword.as_ref() == "第二个词")
                 .unwrap()
                 .frequency,
             Some(12000)

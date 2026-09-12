@@ -198,8 +198,8 @@ fn gan_annotation_impl(
     }
     let mut seen_headwords: Vec<&str> = Vec::new();
     for entry in &source_entries {
-        if !seen_headwords.contains(&entry.headword.as_str()) {
-            seen_headwords.push(entry.headword.as_str());
+        if !seen_headwords.contains(&entry.headword.as_ref()) {
+            seen_headwords.push(entry.headword.as_ref());
         }
     }
     let mut parts: Vec<String> = Vec::new();
@@ -299,7 +299,7 @@ fn annotation_for_entry(
                 Some(parts.join(" "))
             }
         };
-    let annotation = if entry.category == "自" {
+    let annotation = if entry.category.as_ref() == "自" {
         match annotation {
             Some(a) => Some(format!("{a} [用户]")),
             None => Some("[用户]".to_string()),
@@ -597,11 +597,14 @@ fn aggregate_ipa(entries: &[&DictionaryEntry]) -> Option<String> {
         if entry.ipa.is_empty() {
             continue;
         }
-        if let Some(existing) = displays.iter_mut().find(|(value, _)| value == &entry.ipa) {
+        if let Some(existing) = displays
+            .iter_mut()
+            .find(|(value, _)| value == entry.ipa.as_ref())
+        {
             existing.1 = existing.1.max(entry.frequency);
             continue;
         }
-        displays.push((entry.ipa.clone(), entry.frequency));
+        displays.push((entry.ipa.to_string(), entry.frequency));
     }
     if displays.is_empty() {
         return None;
@@ -639,11 +642,11 @@ pub(crate) fn gan_candidate(
         layer,
         mandarin_only,
         weight: layer.base_weight() + frequency_factor(entry.frequency),
-        reading: Some(entry.dialect_pinyin.clone()),
+        reading: Some(entry.dialect_pinyin.to_string()),
         mandarin_reading: if entry.mandarin_pinyin.is_empty() {
             None
         } else {
-            Some(entry.mandarin_pinyin.clone())
+            Some(entry.mandarin_pinyin.to_string())
         },
         consumed_bytes: 0,
     }
@@ -722,13 +725,13 @@ fn push_synonyms(
     let mut synonym_entries: Vec<&DictionaryEntry> = Vec::new();
     for raw_synonym in entry.synonyms.split('/') {
         let synonym = raw_synonym.trim();
-        if synonym.is_empty() || synonym == entry.headword {
+        if synonym.is_empty() || synonym == entry.headword.as_ref() {
             continue;
         }
         synonym_entries.extend(dictionary.by_headword(synonym));
     }
     for syn_entry in sorted_by_frequency(synonym_entries) {
-        if seen.contains(&syn_entry.headword) {
+        if seen.contains(syn_entry.headword.as_ref()) {
             continue;
         }
         let mut candidate =
@@ -869,18 +872,18 @@ fn push_reverse_gan<'a>(
     layer: RetrievalLayer,
 ) {
     let source_headwords: HashSet<&str> =
-        source_entries.iter().map(|e| e.headword.as_str()).collect();
+        source_entries.iter().map(|e| e.headword.as_ref()).collect();
     let mut reverse_gan: Vec<&'a DictionaryEntry> = Vec::new();
     let mut reverse_seen: HashSet<(&str, &str)> =
         HashSet::new();
     for entry in source_entries {
         for gan_entry in dictionary.by_mandarin_word_text(&entry.headword) {
-            if source_headwords.contains(gan_entry.headword.as_str()) {
+            if source_headwords.contains(gan_entry.headword.as_ref()) {
                 continue;
             }
             let key = (
-                gan_entry.headword.as_str(),
-                gan_entry.dialect_pinyin.as_str(),
+                gan_entry.headword.as_ref(),
+                gan_entry.dialect_pinyin.as_ref(),
             );
             if !reverse_seen.insert(key) {
                 continue;
@@ -890,7 +893,7 @@ fn push_reverse_gan<'a>(
     }
 
     for entry in sorted_by_frequency(reverse_gan) {
-        if seen.contains(&entry.headword) {
+        if seen.contains(entry.headword.as_ref()) {
             continue;
         }
         push_candidate(

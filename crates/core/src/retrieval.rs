@@ -88,17 +88,17 @@ mod tests {
 
     fn gan_entry(headword: &str, dialect_pinyin: &str, frequency: u64) -> DictionaryEntry {
         DictionaryEntry {
-            headword: headword.to_string(),
-            ipa: String::new(),
-            dialect_pinyin: dialect_pinyin.to_string(),
-            mandarin_pinyin: String::new(),
-            category: "赣".to_string(),
-            mandarin_word: String::new(),
-            mandarin_word_pinyin: String::new(),
+            headword: headword.into(),
+            ipa: "".into(),
+            dialect_pinyin: dialect_pinyin.into(),
+            mandarin_pinyin: "".into(),
+            category: "赣".into(),
+            mandarin_word: "".into(),
+            mandarin_word_pinyin: "".into(),
             frequency: Some(frequency),
-            synonyms: String::new(),
+            synonyms: "".into(),
             entry_index: 0,
-            new_old: String::new(),
+            new_old: "".into(),
         }
     }
 
@@ -107,13 +107,13 @@ mod tests {
     fn multi_reading_dictionary() -> Dictionary {
         let mut dictionary = Dictionary::empty();
         let mut yu_old = gan_entry("语", "nyu3", 80000);
-        yu_old.new_old = "老1".to_string();
+        yu_old.new_old = "老1".into();
         let mut yu_new = gan_entry("语", "yu3", 60000);
-        yu_new.new_old = "新1".to_string();
+        yu_new.new_old = "新1".into();
         let mut yan_old = gan_entry("言", "nien4", 70000);
-        yan_old.new_old = "老1".to_string();
+        yan_old.new_old = "老1".into();
         let mut yan_new = gan_entry("言", "yen4", 50000);
-        yan_new.new_old = "新1".to_string();
+        yan_new.new_old = "新1".into();
         dictionary.extend_from_entries([
             yu_old,
             yu_new,
@@ -129,9 +129,9 @@ mod tests {
     fn heteronym_dictionary() -> Dictionary {
         let mut dictionary = Dictionary::empty();
         let mut base = gan_entry("手", "shou1", 80000);
-        base.new_old = "本1".to_string();
+        base.new_old = "本1".into();
         let mut variant = gan_entry("手", "sou1", 60000);
-        variant.new_old = "又1".to_string();
+        variant.new_old = "又1".into();
         dictionary.extend_from_entries([base, variant, gan_entry("手心", "shou1 xin1", 90000)]);
         dictionary.rebuild_new_old_map();
         dictionary.rebuild_multi_reading_augmentation();
@@ -141,13 +141,13 @@ mod tests {
     fn multi_heteronym_dictionary() -> Dictionary {
         let mut dictionary = Dictionary::empty();
         let mut hat = gan_entry("还", "hat6", 90000);
-        hat.new_old = "本1".to_string();
+        hat.new_old = "本1".into();
         let mut hai = gan_entry("还", "hai6", 80000);
-        hai.new_old = "又1".to_string();
+        hai.new_old = "又1".into();
         let mut wan = gan_entry("还", "wan6", 70000);
-        wan.new_old = "本2".to_string();
+        wan.new_old = "本2".into();
         let mut fan = gan_entry("还", "fan6", 60000);
-        fan.new_old = "又2".to_string();
+        fan.new_old = "又2".into();
         dictionary.extend_from_entries([hat, hai, wan, fan, gan_entry("还有", "hat6 yiu3", 95000)]);
         dictionary.rebuild_new_old_map();
         dictionary.rebuild_multi_reading_augmentation();
@@ -157,17 +157,17 @@ mod tests {
     fn mixed_pair_priority_dictionary() -> Dictionary {
         let mut dictionary = Dictionary::empty();
         let mut new = gan_entry("横", "vang2", 90000);
-        new.new_old = "新1".to_string();
+        new.new_old = "新1".into();
         let mut old = gan_entry("横", "wang2", 80000);
-        old.new_old = "老1".to_string();
+        old.new_old = "老1".into();
         let mut base = gan_entry("横", "vang2", 70000);
-        base.new_old = "本2".to_string();
+        base.new_old = "本2".into();
         let mut variant = gan_entry("横", "fang2", 60000);
-        variant.new_old = "又2".to_string();
+        variant.new_old = "又2".into();
         let mut wen = gan_entry("明", "ming5", 90000);
-        wen.category = "文".to_string();
+        wen.category = "文".into();
         let mut bai = gan_entry("明", "miang5", 80000);
-        bai.category = "白".to_string();
+        bai.category = "白".into();
         dictionary.extend_from_entries([
             new,
             old,
@@ -186,9 +186,9 @@ mod tests {
     fn heteronym_neutral_word_dictionary() -> Dictionary {
         let mut dictionary = Dictionary::empty();
         let mut base = gan_entry("辑", "qit6", 80000);
-        base.new_old = "本1".to_string();
+        base.new_old = "本1".into();
         let mut variant = gan_entry("辑", "jit6", 60000);
-        variant.new_old = "又1".to_string();
+        variant.new_old = "又1".into();
         dictionary.extend_from_entries([base, variant, gan_entry("逻辑", "lo5 qit0", 90000)]);
         dictionary.rebuild_new_old_map();
         dictionary.rebuild_multi_reading_augmentation();
@@ -198,13 +198,13 @@ mod tests {
     fn heteronym_neutral_word_with_nonmatching_first_pair_dictionary() -> Dictionary {
         let mut dictionary = Dictionary::empty();
         let mut base1 = gan_entry("辑", "lap6", 90000);
-        base1.new_old = "本1".to_string();
+        base1.new_old = "本1".into();
         let mut variant1 = gan_entry("辑", "nap6", 70000);
-        variant1.new_old = "又1".to_string();
+        variant1.new_old = "又1".into();
         let mut base2 = gan_entry("辑", "qit6", 80000);
-        base2.new_old = "本2".to_string();
+        base2.new_old = "本2".into();
         let mut variant2 = gan_entry("辑", "jit6", 60000);
-        variant2.new_old = "又2".to_string();
+        variant2.new_old = "又2".into();
         dictionary.extend_from_entries([
             base1,
             variant1,
@@ -287,7 +287,7 @@ mod tests {
     fn finite_retrieval_keeps_relationships_for_selected_bases() {
         let mut dictionary = Dictionary::empty();
         let mut base = gan_entry("本词", "ben", 100);
-        base.synonyms = "关联甲/关联乙".to_string();
+        base.synonyms = "关联甲/关联乙".into();
         dictionary.extend_from_entries([
             base,
             gan_entry("关联甲", "ga", 10),
@@ -430,12 +430,12 @@ mod tests {
         let base = dictionary
             .by_headword("手")
             .into_iter()
-            .find(|entry| entry.dialect_pinyin == "shou1")
+            .find(|entry| entry.dialect_pinyin.as_ref() == "shou1")
             .unwrap();
         let variant = dictionary
             .by_headword("手")
             .into_iter()
-            .find(|entry| entry.dialect_pinyin == "sou1")
+            .find(|entry| entry.dialect_pinyin.as_ref() == "sou1")
             .unwrap();
         assert_eq!(
             annotation_for_entry(&dictionary, base, &HashMap::new()).as_deref(),
@@ -454,7 +454,7 @@ mod tests {
         let char_entry = dictionary
             .by_headword("辑")
             .into_iter()
-            .find(|entry| entry.dialect_pinyin == "qit6")
+            .find(|entry| entry.dialect_pinyin.as_ref() == "qit6")
             .unwrap();
         assert_eq!(
             annotation_for_entry(&dictionary, word, &HashMap::new()).as_deref(),

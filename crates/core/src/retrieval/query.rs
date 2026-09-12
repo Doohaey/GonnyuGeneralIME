@@ -418,7 +418,7 @@ fn retrieve_inner_limited_with_boosts(
         (
             std::cmp::Reverse(
                 entry
-                    .and_then(|item| boosts.and_then(|map| map.get(&item.headword)))
+                    .and_then(|item| boosts.and_then(|map| map.get(item.headword.as_ref())))
                     .copied()
                     .unwrap_or(0),
             ),

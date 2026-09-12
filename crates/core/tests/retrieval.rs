@@ -676,17 +676,17 @@ fn user_dict_entry_found_after_extend() {
     let tones = tone_values();
 
     let new_entry = gannyu_input_core::DictionaryEntry {
-        headword: "南昌话".to_string(),
-        ipa: String::new(),
-        dialect_pinyin: "lan4 cong1 wa5".to_string(),
-        mandarin_pinyin: "nan2 chang1 hua4".to_string(),
-        category: "赣".to_string(),
-        mandarin_word: String::new(),
-        mandarin_word_pinyin: String::new(),
+        headword: "南昌话".into(),
+        ipa: "".into(),
+        dialect_pinyin: "lan4 cong1 wa5".into(),
+        mandarin_pinyin: "nan2 chang1 hua4".into(),
+        category: "赣".into(),
+        mandarin_word: "".into(),
+        mandarin_word_pinyin: "".into(),
         frequency: Some(20000),
-        synonyms: String::new(),
+        synonyms: "".into(),
         entry_index: 0,
-        new_old: String::new(),
+        new_old: "".into(),
     };
     dictionary.extend_from_entries(std::iter::once(new_entry));
 
@@ -712,17 +712,17 @@ fn user_dict_entry_has_user_tag() {
     let tones = tone_values();
 
     let new_entry = gannyu_input_core::DictionaryEntry {
-        headword: "南昌话".to_string(),
-        ipa: String::new(),
-        dialect_pinyin: "lan4 cong1 wa5".to_string(),
-        mandarin_pinyin: "nan2 chang1 hua4".to_string(),
-        category: "自".to_string(),
-        mandarin_word: String::new(),
-        mandarin_word_pinyin: String::new(),
+        headword: "南昌话".into(),
+        ipa: "".into(),
+        dialect_pinyin: "lan4 cong1 wa5".into(),
+        mandarin_pinyin: "nan2 chang1 hua4".into(),
+        category: "自".into(),
+        mandarin_word: "".into(),
+        mandarin_word_pinyin: "".into(),
         frequency: Some(20000),
-        synonyms: String::new(),
+        synonyms: "".into(),
         entry_index: 0,
-        new_old: String::new(),
+        new_old: "".into(),
     };
     dictionary.extend_from_entries(std::iter::once(new_entry));
 
@@ -752,33 +752,33 @@ fn user_dict_prune_removes_main_dict_duplicates() {
     user_entries.insert(
         "南昌".to_string(),
         gannyu_input_core::DictionaryEntry {
-            headword: "南昌".to_string(),
-            ipa: String::new(),
-            dialect_pinyin: "lan4 cong1".to_string(),
-            mandarin_pinyin: "nan2 chang1".to_string(),
-            category: "自".to_string(),
-            mandarin_word: String::new(),
-            mandarin_word_pinyin: String::new(),
+            headword: "南昌".into(),
+            ipa: "".into(),
+            dialect_pinyin: "lan4 cong1".into(),
+            mandarin_pinyin: "nan2 chang1".into(),
+            category: "自".into(),
+            mandarin_word: "".into(),
+            mandarin_word_pinyin: "".into(),
             frequency: Some(20000),
-            synonyms: String::new(),
+            synonyms: "".into(),
             entry_index: 0,
-            new_old: String::new(),
+            new_old: "".into(),
         },
     );
     user_entries.insert(
         "南昌话".to_string(),
         gannyu_input_core::DictionaryEntry {
-            headword: "南昌话".to_string(),
-            ipa: String::new(),
-            dialect_pinyin: "lan4 cong1 wa5".to_string(),
-            mandarin_pinyin: "nan2 chang1 hua4".to_string(),
-            category: "自".to_string(),
-            mandarin_word: String::new(),
-            mandarin_word_pinyin: String::new(),
+            headword: "南昌话".into(),
+            ipa: "".into(),
+            dialect_pinyin: "lan4 cong1 wa5".into(),
+            mandarin_pinyin: "nan2 chang1 hua4".into(),
+            category: "自".into(),
+            mandarin_word: "".into(),
+            mandarin_word_pinyin: "".into(),
             frequency: Some(20000),
-            synonyms: String::new(),
+            synonyms: "".into(),
             entry_index: 0,
-            new_old: String::new(),
+            new_old: "".into(),
         },
     );
 

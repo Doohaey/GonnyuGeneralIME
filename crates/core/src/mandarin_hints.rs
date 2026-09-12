@@ -134,7 +134,7 @@ impl MandarinHintBook {
 
                 self.push(MandarinHintEntry {
                     mandarin,
-                    gan: entry.headword.clone(),
+                    gan: entry.headword.to_string(),
                     reading: (!reading.is_empty()).then(|| reading.to_string()),
                     register: None,
                     note: None,
