@@ -55,14 +55,14 @@ impl DictionaryEntry {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum PairKind {
     NewOld,
     Heteronym,
     WenBai,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct PairedReading {
     pub first: String,
     pub second: String,
@@ -106,15 +106,24 @@ impl Default for Dictionary {
 
 #[derive(Debug, Serialize, Deserialize)]
 struct RuntimeDictionaryCache {
+    format_version: u32,
     entries: Vec<DictionaryEntry>,
+    dialect_index: HashMap<String, Vec<u32>>,
+    mandarin_index: HashMap<String, Vec<u32>>,
+    mandarin_word_index: HashMap<String, Vec<u32>>,
     headword_index: HashMap<String, Vec<u32>>,
     mandarin_word_text_index: HashMap<String, Vec<u32>>,
     syllable_index: HashMap<usize, HashMap<String, Vec<u32>>>,
     syllable_trie: crate::trie::Trie,
     initial_index: HashMap<usize, HashMap<char, Vec<u32>>>,
     new_old_map: HashMap<char, (String, String)>,
+    heteronym_chars: HashSet<char>,
+    paired_readings: HashMap<char, Vec<PairedReading>>,
     syllable_profile: HashMap<String, i64>,
+    char_readings: HashMap<String, Vec<String>>,
 }
+
+const RUNTIME_CACHE_FORMAT_VERSION: u32 = 2;
 
 #[derive(Debug)]
 pub enum DictionaryError {
@@ -824,14 +833,37 @@ impl Dictionary {
 
     fn to_runtime_cache(&self) -> RuntimeDictionaryCache {
         RuntimeDictionaryCache {
+            format_version: RUNTIME_CACHE_FORMAT_VERSION,
             entries: self.entries.clone(),
+            dialect_index: self.dialect_index.clone(),
+            mandarin_index: self.mandarin_index.clone(),
+            mandarin_word_index: self.mandarin_word_index.clone(),
             headword_index: self.headword_index.clone(),
             mandarin_word_text_index: self.mandarin_word_text_index.clone(),
             syllable_index: self.syllable_index.clone(),
             syllable_trie: self.syllable_trie.clone(),
             initial_index: self.initial_index.clone(),
             new_old_map: self.new_old_map.clone(),
+            heteronym_chars: self.heteronym_chars.clone(),
+            paired_readings: self
+                .paired_readings
+                .iter()
+                .map(|(character, readings)| {
+                    (
+                        *character,
+                        readings
+                            .iter()
+                            .map(|reading| PairedReading {
+                                first: reading.first.clone(),
+                                second: reading.second.clone(),
+                                kind: reading.kind,
+                            })
+                            .collect(),
+                    )
+                })
+                .collect(),
             syllable_profile: self.syllable_profile.clone(),
+            char_readings: self.char_readings.clone(),
         }
     }
 
@@ -865,10 +897,10 @@ impl Dictionary {
     }
 
     pub fn load_runtime_cache(path: impl AsRef<Path>) -> Result<Dictionary, DictionaryError> {
-        let mut bytes = std::fs::read(path)
-            .map_err(|error| DictionaryError::Cache(format!("read cache file: {error}")))?;
-        crate::cache_obfuscation::scramble(&mut bytes);
-        let mut reader = flate2::read::GzDecoder::new(&bytes[..]);
+        let file = File::open(path)
+            .map_err(|error| DictionaryError::Cache(format!("open cache file: {error}")))?;
+        let scrambled = crate::cache_obfuscation::ScrambleReader::new(BufReader::new(file));
+        let mut reader = flate2::read::GzDecoder::new(scrambled);
         let config = bincode::DefaultOptions::new()
             .with_native_endian()
             .with_varint_encoding()
@@ -876,16 +908,21 @@ impl Dictionary {
         let mut cache: RuntimeDictionaryCache = config
             .deserialize_from(&mut reader)
             .map_err(|error| DictionaryError::Cache(format!("load dictionary cache: {error}")))?;
+        if cache.format_version != RUNTIME_CACHE_FORMAT_VERSION {
+            return Err(DictionaryError::Cache(format!(
+                "unsupported dictionary cache format: expected {}, got {}",
+                RUNTIME_CACHE_FORMAT_VERSION, cache.format_version
+            )));
+        }
         for (index, entry) in cache.entries.iter_mut().enumerate() {
             entry.entry_index = index;
         }
-        let char_readings = collect_char_readings(&cache.entries);
-        let mut dictionary = Dictionary {
+        Ok(Dictionary {
             cache_id: next_dictionary_id(),
             entries: cache.entries,
-            dialect_index: HashMap::new(),
-            mandarin_index: HashMap::new(),
-            mandarin_word_index: HashMap::new(),
+            dialect_index: cache.dialect_index,
+            mandarin_index: cache.mandarin_index,
+            mandarin_word_index: cache.mandarin_word_index,
             mandarin_word_text_index: cache.mandarin_word_text_index,
             headword_index: cache.headword_index,
             syllable_index: cache.syllable_index,
@@ -895,17 +932,12 @@ impl Dictionary {
             postings: None,
             postings_topk: None,
             new_old_map: cache.new_old_map,
-            heteronym_chars: HashSet::new(),
-            paired_readings: HashMap::new(),
+            heteronym_chars: cache.heteronym_chars,
+            paired_readings: cache.paired_readings,
             syllable_profile: cache.syllable_profile,
-            char_readings,
+            char_readings: cache.char_readings,
             association_cache: std::sync::OnceLock::new(),
-        };
-        dictionary.rebuild_mandarin_word_text_index();
-        // Runtime cache predates 本又显示信息; rebuild both paired-reading maps
-        // from entries so cached and uncached dictionaries render identically.
-        dictionary.rebuild_new_old_map();
-        Ok(dictionary)
+        })
     }
 
     fn rebuild_mandarin_word_text_index(&mut self) {
@@ -917,40 +949,6 @@ impl Dictionary {
                 entry_index,
             );
         }
-    }
-
-    fn rebuild_exact_lookup_indices(&mut self) {
-        self.dialect_index.clear();
-        self.mandarin_index.clear();
-        self.mandarin_word_index.clear();
-        self.rebuild_mandarin_word_text_index();
-        for (entry_index, entry) in self.entries.iter().enumerate() {
-            add_index_entry(
-                &mut self.dialect_index,
-                dialect_lookup_forms(&entry.dialect_pinyin),
-                entry_index,
-            );
-            add_index_entry(
-                &mut self.mandarin_index,
-                pinyin_lookup_forms(&entry.mandarin_pinyin),
-                entry_index,
-            );
-            if entry.has_distinct_mandarin_word() {
-                for mandarin_word_pinyin in split_list_values(&entry.mandarin_word_pinyin) {
-                    add_index_entry(
-                        &mut self.mandarin_word_index,
-                        pinyin_lookup_forms(&mandarin_word_pinyin),
-                        entry_index,
-                    );
-                }
-            }
-        }
-        // Multi-reading 等权: re-derive char_readings and register every
-        // multi-reading full form into the exact dialect index, so cache
-        // loads behave identically to freshly parsed dictionaries.
-        self.char_readings = collect_char_readings(&self.entries);
-        self.augment_dialect_index_multi_readings();
-        self.shrink_indices();
     }
 
     /// Register every multi-reading full form of each multi-character entry
@@ -976,22 +974,6 @@ impl Dictionary {
         }
     }
 
-    fn shrink_indices(&mut self) {
-        self.dialect_index.shrink_to_fit();
-        self.mandarin_index.shrink_to_fit();
-        self.mandarin_word_index.shrink_to_fit();
-        self.mandarin_word_text_index.shrink_to_fit();
-        self.headword_index.shrink_to_fit();
-        for pos_map in self.syllable_index.values_mut() {
-            pos_map.shrink_to_fit();
-        }
-        self.syllable_index.shrink_to_fit();
-        for pos_map in self.initial_index.values_mut() {
-            pos_map.shrink_to_fit();
-        }
-        self.initial_index.shrink_to_fit();
-    }
-
     pub fn load_split_tsvs(
         paths: &[std::path::PathBuf],
         index_dir: Option<&Path>,
@@ -999,14 +981,13 @@ impl Dictionary {
         let cache_path = runtime_cache_path(paths);
         if let Some(cache_path) = cache_path.as_deref() {
             if cache_path.is_file() && cache_is_fresh(cache_path, paths) {
-                let mut dictionary = Self::load_runtime_cache(cache_path)?;
-                dictionary.rebuild_exact_lookup_indices();
-                let (fst_map, postings, postings_topk) = load_prebuilt_indexes(index_dir);
-                dictionary.fst_map = fst_map;
-                dictionary.postings = postings;
-                dictionary.postings_topk = postings_topk;
-                // Augmentation already baked into runtime cache by build_fst.
-                return Ok(dictionary);
+                if let Ok(mut dictionary) = Self::load_runtime_cache(cache_path) {
+                    let (fst_map, postings, postings_topk) = load_prebuilt_indexes(index_dir);
+                    dictionary.fst_map = fst_map;
+                    dictionary.postings = postings;
+                    dictionary.postings_topk = postings_topk;
+                    return Ok(dictionary);
+                }
             }
         }
         let existing: Vec<&Path> = paths

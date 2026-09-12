@@ -108,6 +108,51 @@ fn expands_multi_mandarin_word_indexes() {
 }
 
 #[test]
+fn runtime_cache_preserves_final_lookup_indexes() {
+    let body = format!(
+        "{HEADER}\n\
+         青菜\t\tqiang cai\tqing1 cai4\t赣\t蔬菜/菜\tshu1 cai4/cai4\t50\t小菜\t\n\
+         小菜\t\txiao cai\txiao3 cai4\t赣\t小菜\txiao3 cai4\t40\t青菜\t\n"
+    );
+    let source = write_fixture("runtime-cache-source.tsv", &body);
+    let cache = std::env::temp_dir().join("gannyu-dict-test-runtime-cache.zst");
+    let mut dictionary =
+        Dictionary::load_split_tsvs_uncached(std::slice::from_ref(&source)).expect("load source");
+    dictionary.rebuild_new_old_map();
+    dictionary.rebuild_multi_reading_augmentation();
+    dictionary.write_runtime_cache(&cache).expect("write cache");
+
+    let loaded = Dictionary::load_runtime_cache(&cache).expect("load cache");
+    let texts = |entries: Vec<&gannyu_input_core::DictionaryEntry>| {
+        entries
+            .into_iter()
+            .map(|entry| entry.headword.clone())
+            .collect::<Vec<_>>()
+    };
+    assert_eq!(
+        texts(loaded.by_dialect_pinyin("qiangcai")),
+        texts(dictionary.by_dialect_pinyin("qiangcai"))
+    );
+    assert_eq!(
+        texts(loaded.by_mandarin_pinyin("qingcai")),
+        texts(dictionary.by_mandarin_pinyin("qingcai"))
+    );
+    assert_eq!(
+        texts(loaded.by_mandarin_word_pinyin("shucai")),
+        texts(dictionary.by_mandarin_word_pinyin("shucai"))
+    );
+    assert_eq!(
+        texts(loaded.by_mandarin_word_text("蔬菜")),
+        texts(dictionary.by_mandarin_word_text("蔬菜"))
+    );
+    assert_eq!(
+        loaded.lookup_prefix_ids("qiang"),
+        dictionary.lookup_prefix_ids("qiang")
+    );
+    let _ = fs::remove_file(cache);
+}
+
+#[test]
 fn missing_column_is_error() {
     let body = "本词\t国际音标\n渠\ttɕʰy21\n".to_string();
     let path = write_fixture("missing-column.tsv", &body);

@@ -10,6 +10,8 @@
 //! additionally protected at rest by the FFI master-key encryption of the
 //! embedded blob.
 
+use std::io::{self, Read};
+
 /// A fixed, obfuscated scramble key. Stored as a byte array so it does not
 /// appear as a contiguous ASCII string in the binary.
 const CACHE_SCRAMBLE_KEY: [u8; 32] = [
@@ -24,10 +26,37 @@ const CACHE_SCRAMBLE_KEY: [u8; 32] = [
 /// the original data.
 pub fn scramble(data: &mut [u8]) {
     for (i, byte) in data.iter_mut().enumerate() {
-        let k = CACHE_SCRAMBLE_KEY[i % CACHE_SCRAMBLE_KEY.len()];
-        // Rolling offset derived from the position and the previous key byte.
-        let offset = (i as u8).wrapping_mul(0x1f).wrapping_add(k);
-        *byte ^= k.wrapping_add(offset);
+        *byte ^= scramble_mask(i);
+    }
+}
+
+fn scramble_mask(position: usize) -> u8 {
+    let key = CACHE_SCRAMBLE_KEY[position % CACHE_SCRAMBLE_KEY.len()];
+    let offset = (position as u8).wrapping_mul(0x1f).wrapping_add(key);
+    key.wrapping_add(offset)
+}
+
+/// Applies the same position-dependent XOR while bytes are read, avoiding a
+/// second full-size input buffer during runtime cache deserialization.
+pub struct ScrambleReader<R> {
+    inner: R,
+    position: usize,
+}
+
+impl<R> ScrambleReader<R> {
+    pub fn new(inner: R) -> Self {
+        Self { inner, position: 0 }
+    }
+}
+
+impl<R: Read> Read for ScrambleReader<R> {
+    fn read(&mut self, buffer: &mut [u8]) -> io::Result<usize> {
+        let count = self.inner.read(buffer)?;
+        for (offset, byte) in buffer[..count].iter_mut().enumerate() {
+            *byte ^= scramble_mask(self.position + offset);
+        }
+        self.position += count;
+        Ok(count)
     }
 }
 
@@ -52,5 +81,24 @@ mod tests {
         let mut data: Vec<u8> = Vec::new();
         scramble(&mut data);
         assert!(data.is_empty());
+    }
+
+    #[test]
+    fn streaming_reader_matches_in_place_scramble_across_short_reads() {
+        let original = b"streaming cache payload that spans several reads".to_vec();
+        let mut scrambled = original.clone();
+        scramble(&mut scrambled);
+        let source = std::io::Cursor::new(scrambled);
+        let mut reader = ScrambleReader::new(source);
+        let mut restored = Vec::new();
+        let mut chunk = [0u8; 7];
+        loop {
+            let count = reader.read(&mut chunk).expect("stream read");
+            if count == 0 {
+                break;
+            }
+            restored.extend_from_slice(&chunk[..count]);
+        }
+        assert_eq!(restored, original);
     }
 }
