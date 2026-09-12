@@ -668,7 +668,7 @@ impl InputPipeline {
                                         &self.tone_values,
                                     );
                                     cand.weight = candidates[i].weight - 0.02;
-                                    seen.insert(mw.clone());
+                                    seen.insert(mw.to_owned());
                                     candidates.insert(insert_at, cand);
                                     insert_at += 1;
                                 }
@@ -714,7 +714,7 @@ impl InputPipeline {
                         if seen.contains(assoc) {
                             // Already in list — move it right after if not adjacent.
                             let assoc_pos =
-                                candidates[i + 1..].iter().position(|c| &c.text == assoc);
+                                candidates[i + 1..].iter().position(|c| c.text == assoc);
                             if let Some(offset) = assoc_pos {
                                 if offset > 0 {
                                     let moved = candidates.remove(i + 1 + offset);
@@ -732,7 +732,7 @@ impl InputPipeline {
                                 &self.tone_values,
                             );
                             cand.weight = candidates[i].weight - 0.03;
-                            seen.insert(assoc.clone());
+                            seen.insert(assoc.to_owned());
                             candidates.insert(i + 1, cand);
                             i += 1;
                         }

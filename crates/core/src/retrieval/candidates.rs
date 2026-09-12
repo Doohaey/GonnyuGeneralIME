@@ -779,7 +779,7 @@ fn inject_pairs_and_associations(
                             tone_values,
                         );
                         cand.weight = candidates[i].weight - 0.02;
-                        seen.insert(mw.clone());
+                        seen.insert(mw.to_owned());
                         candidates.insert(insert_at, cand);
                         insert_at += 1;
                         extra += 1;
@@ -846,7 +846,7 @@ fn inject_pairs_and_associations(
                 let mut cand =
                     gan_candidate(dictionary, entry, RetrievalLayer::Synonym, tone_values);
                 cand.weight = candidates[i].weight - 0.03;
-                seen.insert(assoc.clone());
+                seen.insert(assoc.to_owned());
                 i += 1;
                 candidates.insert(i, cand);
                 extra += 1;
