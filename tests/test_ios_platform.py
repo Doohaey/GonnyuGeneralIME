@@ -6,18 +6,23 @@ IOS = ROOT / "platforms" / "ios"
 
 
 def test_ios_platform_declares_host_app_keyboard_extension_and_build_entrypoint() -> None:
-    project = (IOS / "GannyuInput.xcodeproj" / "project.pbxproj").read_text(encoding="utf-8")
+    project = (IOS / "GonnyuInput.xcodeproj" / "project.pbxproj").read_text(encoding="utf-8")
     build = (IOS / "build.sh").read_text(encoding="utf-8")
 
-    assert "GannyuInput" in project
-    assert "GannyuKeyboard" in project
+    assert "GonnyuInput" in project
+    assert "GonnyuKeyboard" in project
     assert "com.apple.product-type.app-extension" in project
     assert "Embed Keyboard Extension" in project
     assert "GannyuInput/Info.plist" in project
     assert "GannyuKeyboard/Info.plist" in project
     assert "PRODUCT_NAME = GonnyuInputMethod" in project
     assert "PRODUCT_NAME = GonnyuKeyboard" in project
-    assert "files = (A00000000000000000000003, A00000000000000000000004, );" in project
+    assert "PRODUCT_MODULE_NAME = GonnyuInput" in project
+    assert "PRODUCT_MODULE_NAME = GonnyuKeyboard" in project
+    assert "Config/Signing.xcconfig" in project
+    assert "DEVELOPMENT_TEAM = " not in project
+    assert "A00000000000000000000003 /* KeyboardViewController.swift in Sources */" in project
+    assert "A00000000000000000000004 /* GannyuAppleEngine.swift in Sources */" in project
     assert "aarch64-apple-ios" in build
     assert "aarch64-apple-ios-sim" in build
     assert "x86_64-apple-ios" in build

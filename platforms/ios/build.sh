@@ -15,6 +15,8 @@ grep -q '^GANNYU_KEYBOARD_BUNDLE_IDENTIFIER = ' "$signing_config" || { echo "Sig
 command -v cargo >/dev/null || { echo "cargo not found" >&2; exit 1; }
 command -v xcodebuild >/dev/null || { echo "Xcode not found" >&2; exit 1; }
 
+cd "$repo_root"
+
 if [[ -z "${GANNYU_RESOURCE_KEY:-}" && -r "${GANNYU_RESOURCE_KEY_FILE:-$HOME/.config/gonnyu/resource-key}" ]]; then
   IFS= read -r GANNYU_RESOURCE_KEY < "${GANNYU_RESOURCE_KEY_FILE:-$HOME/.config/gonnyu/resource-key}"
   export GANNYU_RESOURCE_KEY
@@ -46,11 +48,11 @@ xcodebuild -create-xcframework \
   -output "$ffi_root"
 
 xcodebuild \
-  -project "$script_dir/GannyuInput.xcodeproj" \
-  -scheme GannyuInput \
+  -project "$script_dir/GonnyuInput.xcodeproj" \
+  -scheme GonnyuInput \
   -configuration Release \
   -sdk iphoneos \
   -destination 'generic/platform=iOS' \
   -xcconfig "$signing_config" \
-  -archivePath "$output_root/GannyuInput.xcarchive" \
+  -archivePath "$output_root/GonnyuInput.xcarchive" \
   archive
