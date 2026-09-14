@@ -66,7 +66,7 @@ Java_io_gannyu_input_GannyuInputMethodService_nativeRegionList(JNIEnv* env, jobj
     // fallback keeps settings available before the Kotlin resource loader reads
     // that manifest; schema identifiers are fixed by the checked-in generator.
     return (*env)->NewStringUTF(env,
-        "[{\"id\":\"fenni\",\"name_zh\":\"分宜\"},{\"id\":\"lancong\",\"name_zh\":\"南昌\"}]");
+        "[{\"id\":\"lancong\",\"name_zh\":\"南昌\"},{\"id\":\"fenni\",\"name_zh\":\"分宜\"}]");
 }
 
 JNIEXPORT jstring JNICALL

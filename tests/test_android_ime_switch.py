@@ -4,6 +4,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SERVICE = ROOT / "platforms/android/app/src/main/java/io/gannyu/input/GannyuInputMethodService.kt"
 METHOD = ROOT / "platforms/android/app/src/main/res/xml/method.xml"
+JNI = ROOT / "platforms/android/app/src/main/cpp/jni_bridge.c"
+RIME_ENGINE = ROOT / "engines/rime/gannyu_rime_engine.cpp"
 
 
 def test_android_ime_switch_uses_the_standard_platform_path_with_fallback() -> None:
@@ -55,3 +57,11 @@ def test_android_keyboard_uses_the_blue_palette_on_both_pages() -> None:
     assert "private const val KEY_TEXT        = 0xFF334B5F.toInt()" in source
     assert "private const val ACTION_KEY_TEXT = 0xFF274B64.toInt()" in source
     assert "symbolPage || key.label in ACTION_KEYS" in source
+
+
+def test_android_rime_regions_start_with_nanchang() -> None:
+    source = JNI.read_text(encoding="utf-8")
+    engine = RIME_ENGINE.read_text(encoding="utf-8")
+
+    assert source.index('\\"id\\":\\"lancong\\"') < source.index('\\"id\\":\\"fenni\\"')
+    assert 'region_id && *region_id ? region_id : "lancong"' in engine

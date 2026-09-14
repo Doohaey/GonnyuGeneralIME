@@ -296,7 +296,7 @@ int Create(const char* shared_data_dir,
   Runtime& runtime = GlobalRuntime();
   std::lock_guard<std::mutex> runtime_lock(runtime.mutex);
   auto handle = std::make_unique<GannyuPipelineHandle>();
-  const std::string region = region_id && *region_id ? region_id : "fenni";
+  const std::string region = region_id && *region_id ? region_id : "lancong";
   handle->schema_id = "gannyu_" + region;
   if (!StartSessionLocked(handle.get())) return kLoadFailure;
   try {

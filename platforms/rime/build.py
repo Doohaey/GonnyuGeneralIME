@@ -38,14 +38,24 @@ HEADERS = (
 MAX_FORMS = 64
 
 def active_regions() -> tuple[str, ...]:
-    regions = []
-    for config_path in sorted((ROOT / "resources" / "regions").glob("*/region.toml")):
-        with config_path.open("rb") as handle:
-            config = tomllib.load(handle)
-        if config.get("region", {}).get("status") == "active":
-            regions.append(config_path.parent.name)
+    """Return active regions with the manifest default first.
+
+    The order is user-visible in Rime's schema list and becomes the first-run
+    mobile default, so it must not depend on directory names.
+    """
+    with (ROOT / "resources" / "manifest.toml").open("rb") as handle:
+        manifest = tomllib.load(handle)
+    regions = [
+        str(region["id"])
+        for region in manifest.get("regions", [])
+        if region.get("status") == "active"
+    ]
     if not regions:
         raise ValueError("no active Rime regions")
+    default_region = str(manifest.get("default_region", ""))
+    if default_region not in regions:
+        raise ValueError("default Rime region must be active and listed in the manifest")
+    regions = [default_region, *(region for region in regions if region != default_region)]
     return tuple(regions)
 
 

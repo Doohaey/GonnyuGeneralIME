@@ -4,6 +4,7 @@ from pathlib import Path
 from platforms.rime.build import (
     Entry,
     annotated_reading,
+    active_regions,
     build,
     build_metadata,
     build_new_old,
@@ -16,6 +17,10 @@ from platforms.rime.fuzzy import compile_algebra, load_rules, normalize
 
 
 RULES_PATH = Path(__file__).resolve().parents[1] / "resources" / "fuzzy_scheme.tsv"
+
+
+def test_active_regions_use_canonical_default_order() -> None:
+    assert active_regions() == ("lancong", "fenni")
 
 
 def test_builds_rime_dictionary_annotations_and_relations(tmp_path: Path) -> None:
