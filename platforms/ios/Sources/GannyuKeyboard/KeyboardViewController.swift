@@ -37,6 +37,7 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func buildKeyboard() {
+        view.backgroundColor = .systemGray6
         let root = UIStackView()
         root.axis = .vertical
         root.spacing = 6
@@ -51,12 +52,14 @@ final class KeyboardViewController: UIInputViewController {
 
         preeditLabel.font = .preferredFont(forTextStyle: .body)
         preeditLabel.textColor = .secondaryLabel
+        preeditLabel.backgroundColor = .clear
         preeditLabel.numberOfLines = 1
         root.addArrangedSubview(preeditLabel)
 
         candidateScroll.showsHorizontalScrollIndicator = false
+        candidateScroll.backgroundColor = .clear
         candidateScroll.translatesAutoresizingMaskIntoConstraints = false
-        candidateScroll.heightAnchor.constraint(greaterThanOrEqualToConstant: 48).isActive = true
+        candidateScroll.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
         root.addArrangedSubview(candidateScroll)
 
         candidateStack.axis = .horizontal
@@ -113,6 +116,15 @@ final class KeyboardViewController: UIInputViewController {
         for label in labels {
             let button = UIButton(type: .system)
             button.setTitle(label, for: .normal)
+            button.setTitleColor(.label, for: .normal)
+            button.titleLabel?.font = .systemFont(ofSize: 17, weight: .regular)
+            button.backgroundColor = keyboardKeyColor(for: label)
+            button.layer.cornerRadius = 5
+            button.layer.cornerCurve = .continuous
+            button.layer.shadowColor = UIColor.systemGray.cgColor
+            button.layer.shadowOpacity = 0.28
+            button.layer.shadowOffset = CGSize(width: 0, height: 1)
+            button.layer.shadowRadius = 0
             button.heightAnchor.constraint(greaterThanOrEqualToConstant: 40).isActive = true
             if label == "⌫" {
                 button.addTarget(self, action: #selector(backspacePressed(_:)), for: .touchDown)
@@ -123,6 +135,15 @@ final class KeyboardViewController: UIInputViewController {
             row.addArrangedSubview(button)
         }
         return row
+    }
+
+    private func keyboardKeyColor(for label: String) -> UIColor {
+        switch label {
+        case "🌐", "⌫", "⏎", "123", "拼", "分词", "英", "中":
+            return .systemGray4
+        default:
+            return .systemBackground
+        }
     }
 
     @objc private func keyPressed(_ sender: UIButton) {
@@ -199,19 +220,21 @@ final class KeyboardViewController: UIInputViewController {
             candidateStack.removeArrangedSubview($0)
             $0.removeFromSuperview()
         }
-        for candidate in snapshot.candidates {
+        for (index, candidate) in snapshot.candidates.enumerated() {
             let button = UIButton(type: .system)
             var configuration = UIButton.Configuration.plain()
+            configuration.baseForegroundColor = index == 0 ? .systemBlue : .label
+            configuration.contentInsets = NSDirectionalEdgeInsets(top: 2, leading: 8, bottom: 2, trailing: 8)
             configuration.title = candidate.text
             configuration.subtitle = candidate.annotation.isEmpty ? candidate.reading : candidate.annotation
             configuration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer {
                 var attributes = $0
-                attributes.font = .systemFont(ofSize: 18)
+                attributes.font = .systemFont(ofSize: 16)
                 return attributes
             }
             configuration.subtitleTextAttributesTransformer = UIConfigurationTextAttributesTransformer {
                 var attributes = $0
-                attributes.font = .systemFont(ofSize: 11)
+                attributes.font = .systemFont(ofSize: 10)
                 attributes.foregroundColor = .secondaryLabel
                 return attributes
             }

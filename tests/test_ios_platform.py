@@ -91,6 +91,19 @@ def test_ios_keyboard_matches_android_composition_and_default_candidate_rules() 
     assert "userDataDirectory" in support
 
 
+def test_ios_keyboard_uses_compact_native_visuals() -> None:
+    keyboard = (IOS / "Sources" / "GannyuKeyboard" / "KeyboardViewController.swift").read_text(
+        encoding="utf-8"
+    )
+
+    assert "view.backgroundColor = .systemGray6" in keyboard
+    assert "candidateScroll.backgroundColor = .clear" in keyboard
+    assert "greaterThanOrEqualToConstant: 44" in keyboard
+    assert "attributes.font = .systemFont(ofSize: 16)" in keyboard
+    assert "attributes.font = .systemFont(ofSize: 10)" in keyboard
+    assert "configuration.baseForegroundColor = index == 0 ? .systemBlue : .label" in keyboard
+
+
 def test_ios_host_matches_android_user_data_controls() -> None:
     host = (IOS / "Sources" / "GannyuInput" / "RegionSettingsViewController.swift").read_text(
         encoding="utf-8"
