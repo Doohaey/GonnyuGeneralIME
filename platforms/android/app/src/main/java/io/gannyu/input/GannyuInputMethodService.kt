@@ -107,8 +107,10 @@ class GannyuInputMethodService : InputMethodService() {
         private val nativeBridge = NativePipelineBridge()
 
         @JvmStatic
-        fun nativeCreateStatic(manifest: String?, region: String?, dataDir: String): Long {
-            return nativeBridge.nativeCreate(manifest, region, dataDir)
+        fun nativeCreateStatic(context: Context, region: String?): Long {
+            val resourceRoot = RimeResourceStore.prepare(context).absolutePath
+            val userDataDir = RimeResourceStore.userDataDirectory(context).absolutePath
+            return nativeBridge.nativeCreate(resourceRoot, region, userDataDir)
         }
 
         @JvmStatic
@@ -163,7 +165,7 @@ class GannyuInputMethodService : InputMethodService() {
                         if (regionHandles.isNotEmpty()) {
                             regionHandles.all(nativeBridge::nativeResetCurrentUserData)
                         } else {
-                            val temporary = nativeCreateStatic(null, region, context.filesDir.absolutePath)
+                                val temporary = nativeCreateStatic(context, region)
                             if (temporary == 0L) {
                                 false
                             } else {
@@ -189,7 +191,7 @@ class GannyuInputMethodService : InputMethodService() {
             val desiredRegion = normalizeRegionId(regionId)
             Thread {
                 try {
-                    val handle = nativeCreateStatic(null, desiredRegion, context.filesDir.absolutePath)
+                    val handle = nativeCreateStatic(context, desiredRegion)
                     val errorDetail = if (handle == 0L) nativeLastErrorStatic() else null
                     Log.i(TAG, "preload handle=" + handle)
                     if (handle != 0L) {

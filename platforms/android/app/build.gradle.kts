@@ -39,6 +39,19 @@ val isReleaseRequested = gradle.startParameter.taskNames.any { it.contains("rele
 require(hasReleaseSigning || !isReleaseRequested) {
     "Release signing requires ANDROID_KEYSTORE_BASE64 (CI) or ANDROID_KEYSTORE_PATH (local), plus ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, and ANDROID_KEY_PASSWORD"
 }
+val mobileRimeResources = rootProject.file("../../build/rime-mobile/mobile-resources")
+val generatedRimeAssets = layout.buildDirectory.dir("generated/rime-assets")
+val prepareRimeAssets by tasks.registering(Sync::class) {
+    from(mobileRimeResources)
+    into(generatedRimeAssets)
+    into("rime")
+    include("**/*")
+    doFirst {
+        require(mobileRimeResources.resolve("resource-manifest.json").isFile) {
+            "Missing mobile Rime resources. Run platforms/rime/mobile/build_resources.py first."
+        }
+    }
+}
 
 android {
     namespace = "io.gannyu.input"
@@ -94,6 +107,7 @@ android {
         getByName("main") {
             jniLibs.srcDirs("src/main/jniLibs")
             assets.srcDirs("../../../resources/tutorial")
+            assets.srcDir(generatedRimeAssets)
         }
     }
 
@@ -102,6 +116,10 @@ android {
             keepDebugSymbols += "**/*.so"
         }
     }
+}
+
+tasks.named("preBuild").configure {
+    dependsOn(prepareRimeAssets)
 }
 
 dependencies {
