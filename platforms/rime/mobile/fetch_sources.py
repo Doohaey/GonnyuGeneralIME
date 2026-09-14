@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import json
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -18,6 +19,7 @@ def run(*args: str, cwd: Path | None = None, capture: bool = False) -> str:
         check=True,
         text=True,
         stdout=subprocess.PIPE if capture else None,
+        env={**os.environ, "GIT_CONFIG_GLOBAL": os.devnull},
     )
     return result.stdout.strip() if capture else ""
 
@@ -37,11 +39,10 @@ def checkout(repository: str, commit: str, destination: Path, recursive: bool = 
     if destination.exists():
         shutil.rmtree(destination)
     destination.parent.mkdir(parents=True, exist_ok=True)
-    clone = ("git", "clone", "--no-checkout")
-    if recursive:
-        clone += ("--recursive",)
-    run(*clone, repository, str(destination))
-    run("git", "checkout", "--detach", commit, cwd=destination)
+    run("git", "init", destination)
+    run("git", "remote", "add", "origin", repository, cwd=destination)
+    run("git", "fetch", "--depth", "1", "origin", commit, cwd=destination)
+    run("git", "checkout", "--detach", "FETCH_HEAD", cwd=destination)
     if recursive:
         run("git", "submodule", "sync", "--recursive", cwd=destination)
         run("git", "submodule", "update", "--init", "--recursive", cwd=destination)
