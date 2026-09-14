@@ -56,6 +56,9 @@ def test_builds_rime_dictionary_annotations_and_relations(tmp_path: Path) -> Non
     assert "fuzz/^G" in schema
     assert "- xform/^G//" in schema
     assert "- xform/^F//" in schema
+    assert "- abbrev/^([a-z]).+$/$1/" in schema
+    assert schema.index("- xform/^F//") < schema.index("- abbrev/^([a-z]).+$/$1/")
+    assert "银行卡\tGnin Ghong Gka\t" in dictionary
     assert "@FUZZY_ALGEBRA@" not in schema
     assert (tmp_path / "default.custom.yaml").is_file()
 
@@ -268,6 +271,11 @@ def test_algebra_is_explicit_and_scoped_to_gan_syllables() -> None:
     assert "    - derive/^Gyuon$/Fyon/" in algebra
     assert not any(rule.startswith("    - ") and "Fion/" in rule for rule in algebra)
     assert all("^M" not in rule for rule in algebra)
+    assert algebra[-3:] == [
+        "    - xform/^G//",
+        "    - xform/^F//",
+        "    - abbrev/^([a-z]).+$/$1/",
+    ]
 
 def test_rime_installers_discover_regions_from_build_output() -> None:
     for name in ("install.sh", "install_macos.sh"):

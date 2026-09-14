@@ -152,5 +152,11 @@ def compile_algebra(canonical: set[str], rules: list[FuzzyRule]) -> list[str]:
     for (target, source), tier in sorted(aliases.items()):
         operator = "derive" if tier == 0 else "fuzz"
         algebra.append(f"    - {operator}/^G{re.escape(target)}$/F{source}/")
-    algebra.extend(("    - xform/^G//", "    - xform/^F//"))
+    algebra.extend(
+        (
+            "    - xform/^G//",
+            "    - xform/^F//",
+            "    - abbrev/^([a-z]).+$/$1/",
+        )
+    )
     return algebra

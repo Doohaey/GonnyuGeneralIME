@@ -535,7 +535,7 @@ def build(region: str, output: Path, display_name: str = "short") -> dict[str, i
         "annotations": len(annotations),
         "readings": len(readings),
         "relations": len(before) + len(after),
-        "fuzzy_spellings": len(algebra) - 2,
+        "fuzzy_spellings": len(algebra) - 3,
     }
 
 
