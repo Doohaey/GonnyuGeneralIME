@@ -1,29 +1,48 @@
 #!/usr/bin/env bash
-# Cross-build the pinned Rime engine for iPhoneOS arm64.
+# Cross-build one arm64 slice of the pinned Rime engine for Apple mobile.
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "$script_dir/../../.." && pwd)"
 source_root="${GANNYU_RIME_MOBILE_SOURCE_ROOT:-$repo_root/build/rime-mobile/sources}"
-build_root="${GANNYU_RIME_MOBILE_IOS_BUILD_ROOT:-$repo_root/build/rime-mobile/ios/iphoneos-arm64}"
-sdk="$(xcrun --sdk iphoneos --show-sdk-path)"
+sdk_name="${GANNYU_IOS_SDK:-iphoneos}"
+architecture="${GANNYU_IOS_ARCH:-arm64}"
+case "$sdk_name" in
+  iphoneos|iphonesimulator) ;;
+  *) echo "unsupported Apple SDK: $sdk_name" >&2; exit 2 ;;
+esac
+build_root="${GANNYU_RIME_MOBILE_IOS_BUILD_ROOT:-$repo_root/build/rime-mobile/ios/$sdk_name-$architecture}"
+sdk="$(xcrun --sdk "$sdk_name" --show-sdk-path)"
 prefix="$build_root/prefix"
 librime_root="$source_root/librime"
+python_bin="${PYTHON_BIN:-python3}"
+
+if ! "$python_bin" -c 'import tomllib' >/dev/null 2>&1; then
+  for candidate in /opt/homebrew/bin/python3 python3.14 python3.13 python3.12 python3.11; do
+    if command -v "$candidate" >/dev/null 2>&1 && "$candidate" -c 'import tomllib' >/dev/null 2>&1; then
+      python_bin="$candidate"
+      break
+    fi
+  done
+fi
+"$python_bin" -c 'import tomllib' >/dev/null 2>&1 || {
+  echo "Python 3.11+ with tomllib is required; set PYTHON_BIN" >&2
+  exit 2
+}
 
 command -v cmake >/dev/null || { echo "cmake is required" >&2; exit 2; }
 command -v ninja >/dev/null || { echo "ninja is required" >&2; exit 2; }
 
 if [[ ! -d "$librime_root/.git" ]]; then
-  python3 "$script_dir/fetch_sources.py" >/dev/null
+  "$python_bin" "$script_dir/fetch_sources.py" >/dev/null
 fi
 [[ -d "$librime_root" ]] || { echo "missing pinned librime source tree: $librime_root" >&2; exit 2; }
 
-# librime's Boost use is header-only for this target.  The include directory is
-# explicit rather than silently taking arbitrary SDK paths.  A later release
-# gate replaces this bootstrap include with a pinned target-built Boost tree.
-boost_include="${GANNYU_RIME_BOOST_INCLUDE:-}"
-if [[ -z "$boost_include" ]] && command -v brew >/dev/null 2>&1; then
-  boost_include="$(brew --prefix boost 2>/dev/null || true)/include"
+# librime uses Boost headers only.  The default tree comes from the checksummed
+# release archive in engine-lock.json; an override is intended for CI mirrors.
+boost_include="${GANNYU_RIME_BOOST_INCLUDE:-$source_root/boost}"
+if [[ ! -f "$boost_include/boost/version.hpp" && -z "${GANNYU_RIME_BOOST_INCLUDE:-}" ]]; then
+  "$python_bin" "$script_dir/fetch_sources.py" --boost-only >/dev/null
 fi
 [[ -f "$boost_include/boost/version.hpp" ]] || {
   echo "set GANNYU_RIME_BOOST_INCLUDE to a Boost include directory" >&2
@@ -34,7 +53,8 @@ common_cmake=(
   -G Ninja
   -DCMAKE_SYSTEM_NAME=iOS
   -DCMAKE_OSX_SYSROOT="$sdk"
-  -DCMAKE_OSX_ARCHITECTURES=arm64
+  -DCMAKE_OSX_ARCHITECTURES="$architecture"
+  -DCMAKE_OSX_DEPLOYMENT_TARGET=16.0
   -DCMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY
   -DCMAKE_BUILD_TYPE=Release
   -DCMAKE_POSITION_INDEPENDENT_CODE=ON
@@ -106,4 +126,4 @@ cmake -S "$repo_root/engines/rime" -B "$build_root/adapter" "${common_cmake[@]}"
   -DGANNYU_RIME_BUILD_PROBES=OFF
 cmake --build "$build_root/adapter"
 
-echo "built iPhoneOS Rime engine: $build_root"
+echo "built $sdk_name $architecture Rime engine: $build_root"

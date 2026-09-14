@@ -11,12 +11,14 @@ def test_mobile_engine_lock_uses_full_pinned_commits() -> None:
     assert lock["librime"]["tag"] == "1.17.0"
     assert lock["librime"]["commit"] == "33e78140250125871856cdc5b42ddc6a5fcd3cd4"
     assert lock["librime_lua"]["commit"] == "ad1e4a6c98abf634dd34242a747f9b1d5d069fbe"
+    assert lock["boost"]["version"] == "1.88.0"
+    assert lock["boost"]["sha256"] == "46d9d2c06637b219270877c9e16155cbd015b6dc84349af064c088e9b5b12f7b"
 
 
 def test_mobile_engine_lock_is_valid_json() -> None:
     raw = json.loads(Path(LOCK_PATH).read_text(encoding="utf-8"))
 
-    assert set(raw) == {"librime", "librime_lua", "librime_lua_thirdparty"}
+    assert set(raw) == {"librime", "librime_lua", "librime_lua_thirdparty", "boost"}
 
 
 def test_checkout_uses_the_locked_revision(tmp_path: Path) -> None:
