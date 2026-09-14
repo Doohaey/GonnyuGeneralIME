@@ -12,9 +12,9 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minHeight="60dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginEnd="10dp"
+        android:minHeight="52dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
         android:clipChildren="false"
         android:clipToPadding="false">
 
@@ -22,12 +22,11 @@
             android:id="@+id/candidateScroll"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="60dp"
+            android:minHeight="52dp"
             android:fillViewport="false"
             android:scrollbars="horizontal"
             android:fadingEdge="horizontal"
             android:fadeScrollbars="false"
-            android:background="#FBFDFF"
             android:overScrollMode="always">
 
             <LinearLayout

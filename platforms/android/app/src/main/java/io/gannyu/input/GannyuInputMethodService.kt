@@ -661,17 +661,17 @@ class GannyuInputMethodService : InputMethodService() {
 
         init {
             orientation = VERTICAL
-            setPadding(dp(12), dp(6), dp(12), dp(6))
-            minimumWidth = dp(48)
+            setPadding(dp(8), dp(4), dp(8), dp(4))
+            minimumWidth = dp(42)
             layoutParams = LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT
             ).apply {
-                if (index < lastSnapshot.candidates.size - 1) marginEnd = dp(6)
+                if (index < lastSnapshot.candidates.size - 1) marginEnd = dp(4)
             }
 
             addView(TextView(context).apply {
                 text = candidate.text
-                textSize = 18f; setTextColor(if (index == 0) 0xFF6A9DC2.toInt() else KEY_TEXT)
+                textSize = 16f; setTextColor(if (index == 0) 0xFF6A9DC2.toInt() else KEY_TEXT)
                 gravity = android.view.Gravity.CENTER_HORIZONTAL
             })
 
@@ -679,7 +679,7 @@ class GannyuInputMethodService : InputMethodService() {
             if (meta.isNotEmpty()) {
                 addView(TextView(context).apply {
                     text = meta
-                    textSize = 11f; setTextColor(0xFF71879A.toInt())
+                    textSize = 10f; setTextColor(0xFF71879A.toInt())
                     gravity = android.view.Gravity.CENTER_HORIZONTAL
                     maxLines = 1; setSingleLine(true)
                 })
