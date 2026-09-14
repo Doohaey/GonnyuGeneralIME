@@ -12,40 +12,33 @@ grep -q '^DEVELOPMENT_TEAM = [^Y]' "$signing_config" || { echo "Signing.xcconfig
 grep -q '^GANNYU_APP_GROUP = group\.' "$signing_config" || { echo "Signing.xcconfig must set a valid GANNYU_APP_GROUP" >&2; exit 1; }
 grep -q '^GANNYU_APP_BUNDLE_IDENTIFIER = ' "$signing_config" || { echo "Signing.xcconfig must set GANNYU_APP_BUNDLE_IDENTIFIER" >&2; exit 1; }
 grep -q '^GANNYU_KEYBOARD_BUNDLE_IDENTIFIER = ' "$signing_config" || { echo "Signing.xcconfig must set GANNYU_KEYBOARD_BUNDLE_IDENTIFIER" >&2; exit 1; }
-command -v cargo >/dev/null || { echo "cargo not found" >&2; exit 1; }
 command -v xcodebuild >/dev/null || { echo "Xcode not found" >&2; exit 1; }
 
 cd "$repo_root"
 
-if [[ -z "${GANNYU_RESOURCE_KEY:-}" && -r "${GANNYU_RESOURCE_KEY_FILE:-$HOME/.config/gonnyu/resource-key}" ]]; then
-  IFS= read -r GANNYU_RESOURCE_KEY < "${GANNYU_RESOURCE_KEY_FILE:-$HOME/.config/gonnyu/resource-key}"
-  export GANNYU_RESOURCE_KEY
+python_bin="${PYTHON_BIN:-python3}"
+if ! "$python_bin" -c 'import tomllib' >/dev/null 2>&1; then
+  for candidate in /opt/homebrew/bin/python3 python3.14 python3.13 python3.12 python3.11; do
+    if command -v "$candidate" >/dev/null 2>&1 && "$candidate" -c 'import tomllib' >/dev/null 2>&1; then
+      python_bin="$candidate"
+      break
+    fi
+  done
 fi
+"$python_bin" -c 'import tomllib' >/dev/null 2>&1 || {
+  echo "Python 3.11+ with tomllib is required; set PYTHON_BIN" >&2
+  exit 1
+}
 
-for target in aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios; do
-  rustup target list --installed | grep -qx "$target" || {
-    echo "missing Rust target: $target" >&2
-    exit 1
-  }
-  cargo build -p gannyu-input-ffi --release --target "$target"
-done
-
-ffi_root="$output_root/GannyuInputFFI.xcframework"
-headers_root="$output_root/ffi-headers"
-simulator_library="$output_root/libgannyu_input_ffi-simulator.a"
-rm -rf "$ffi_root"
-rm -rf "$headers_root"
-mkdir -p "$headers_root"
-cp "$repo_root/crates/ffi/include/gannyu_input.h" "$headers_root/"
-cp "$script_dir/Sources/CGannyuInput/module.modulemap" "$headers_root/"
-lipo -create \
-  "$repo_root/target/aarch64-apple-ios-sim/release/libgannyu_input_ffi.a" \
-  "$repo_root/target/x86_64-apple-ios/release/libgannyu_input_ffi.a" \
-  -output "$simulator_library"
-xcodebuild -create-xcframework \
-  -library "$repo_root/target/aarch64-apple-ios/release/libgannyu_input_ffi.a" -headers "$headers_root" \
-  -library "$simulator_library" -headers "$headers_root" \
-  -output "$ffi_root"
+host_deployer="$repo_root/build/rime-mobile/host/build/bin/rime_deployer"
+if [[ "${GANNYU_IOS_REUSE_HOST_TOOLS:-0}" != "1" || ! -x "$host_deployer" ]]; then
+  PYTHON_BIN="$python_bin" bash "$repo_root/platforms/rime/mobile/build_host.sh"
+fi
+"$python_bin" "$repo_root/platforms/rime/mobile/build_resources.py" \
+  --output "$output_root/rime" \
+  --deployer "$host_deployer"
+GANNYU_IOS_BUILD_ROOT="$output_root" PYTHON_BIN="$python_bin" \
+  bash "$repo_root/platforms/rime/mobile/build_ios_xcframework.sh"
 
 xcodebuild \
   -project "$script_dir/GonnyuInput.xcodeproj" \

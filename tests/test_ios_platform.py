@@ -23,11 +23,11 @@ def test_ios_platform_declares_host_app_keyboard_extension_and_build_entrypoint(
     assert "DEVELOPMENT_TEAM = " not in project
     assert "A00000000000000000000003 /* KeyboardViewController.swift in Sources */" in project
     assert "A00000000000000000000004 /* GannyuAppleEngine.swift in Sources */" in project
-    assert "aarch64-apple-ios" in build
-    assert "aarch64-apple-ios-sim" in build
-    assert "x86_64-apple-ios" in build
-    assert "-create-xcframework" in build
-    assert "lipo -create" in build
+    assert "build_ios_xcframework.sh" in build
+    assert "build_resources.py" in build
+    assert '--output "$output_root/rime"' in build
+    assert "cargo build" not in build
+    assert "GANNYU_RESOURCE_KEY" not in build
     assert "generic/platform=iOS" in build
     assert "archive" in build
     assert "DEVELOPMENT_TEAM" in build
@@ -40,7 +40,10 @@ def test_ios_keyboard_and_host_share_manifest_driven_region_selection() -> None:
     host = (IOS / "Sources" / "GannyuInput" / "RegionSettingsViewController.swift").read_text(encoding="utf-8")
     extension_info = (IOS / "GannyuKeyboard" / "Info.plist").read_text(encoding="utf-8")
 
-    assert "gannyu_region_list" in support
+    assert 'url(forResource: "rime"' in support
+    assert "resource-manifest.json" in support
+    assert "var hasher = SHA256()" in support
+    assert "read(upToCount: 1024 * 1024)" in support
     assert "UserDefaults(suiteName: group)" in support
     assert "?? .standard" not in support
     assert "regions.contains(where:" in support
@@ -81,7 +84,9 @@ def test_ios_keyboard_matches_android_composition_and_default_candidate_rules() 
     assert "snapshot = (try? engine?.snapshot()) ?? .empty" in keyboard
     assert "gannyu_engine_process_key" in support
     assert "gannyu_engine_select_candidate" in support
-    assert "gannyu_pipeline_create_with_user_data_dir" in support
+    assert "gannyu_engine_create" in support
+    assert "shared_data_dir" in support
+    assert "prebuilt_data_dir" in support
     assert "containerURL" in support
     assert "userDataDirectory" in support
 
@@ -94,8 +99,8 @@ def test_ios_host_matches_android_user_data_controls() -> None:
         encoding="utf-8"
     )
 
-    assert "GonnyuAppleUserDataScope" in support
-    assert "gannyu_pipeline_user_data_clear" in support
-    assert "清空用户词" in host
-    assert "清空学习词频" in host
-    assert "清空全部用户数据" in host
+    assert "gannyu_engine_reset_user_data" in support
+    assert "requestUserDataReset" in support
+    assert "pendingUserDataResetRegionIDs" in support
+    assert "清空当前地区学习数据" in host
+    assert "清空全部地区学习数据" in host

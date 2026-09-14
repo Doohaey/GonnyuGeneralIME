@@ -14,6 +14,7 @@
 		A00000000000000000000003 /* KeyboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000013 /* KeyboardViewController.swift */; };
 		A00000000000000000000004 /* GannyuAppleEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000014 /* GannyuAppleEngine.swift */; };
 		A00000000000000000000009 /* ../../build/ios/GannyuInputFFI.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = A00000000000000000000019 /* ../../build/ios/GannyuInputFFI.xcframework */; };
+		A0000000000000000000000A /* ../../build/ios/rime in Resources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000001D /* ../../build/ios/rime */; };
 		A0000000000000000000000B /* GonnyuKeyboard.appex in Embed Keyboard Extension */ = {isa = PBXBuildFile; fileRef = A0000000000000000000001B /* GonnyuKeyboard.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
@@ -54,6 +55,7 @@
 		A0000000000000000000001A /* Config/Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/Signing.xcconfig; sourceTree = SOURCE_ROOT; };
 		A0000000000000000000001B /* GonnyuKeyboard.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; path = GonnyuKeyboard.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		A0000000000000000000001C /* GonnyuInputMethod.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; path = GonnyuInputMethod.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A0000000000000000000001D /* ../../build/ios/rime */ = {isa = PBXFileReference; explicitFileType = folder; path = ../../build/ios/rime; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -91,6 +93,7 @@
 				A00000000000000000000022 /* Sources/GannyuKeyboard */,
 				A00000000000000000000023 /* Sources/GannyuAppleSupport */,
 				A00000000000000000000019 /* ../../build/ios/GannyuInputFFI.xcframework */,
+				A0000000000000000000001D /* ../../build/ios/rime */,
 				A00000000000000000000024 /* Products */,
 				775AE7FD30559BCA007BB968 /* Recovered References */,
 			);
@@ -143,6 +146,7 @@
 			buildPhases = (
 				A00000000000000000000040 /* Sources */,
 				A00000000000000000000030 /* Frameworks */,
+				A00000000000000000000042 /* Resources */,
 				A00000000000000000000050 /* Embed Keyboard Extension */,
 			);
 			buildRules = (
@@ -206,6 +210,17 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A00000000000000000000042 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A0000000000000000000000A /* ../../build/ios/rime in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		A00000000000000000000040 /* Sources */ = {

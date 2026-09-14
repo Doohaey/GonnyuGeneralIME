@@ -1,4 +1,5 @@
 import Foundation
+import CryptoKit
 import CGannyuInput
 
 public struct GonnyuAppleCandidate: Decodable {
@@ -104,22 +105,208 @@ public struct GonnyuAppleRegion: Decodable, Equatable {
 
 public enum GonnyuAppleEngineError: Error {
     case ffi(Int32, String)
+    case resources(String)
 }
 
-public enum GonnyuAppleUserDataScope: Int32 {
-    case words = 1
-    case frequencies = 2
-    case all = 3
+private struct GonnyuAppleResourceFile: Decodable {
+    let path: String
+    let size: Int
+    let sha256: String
+}
+
+private struct GonnyuAppleResourceManifest: Decodable {
+    let schemaVersion: String
+    let regions: [GonnyuAppleRegion]
+    let files: [GonnyuAppleResourceFile]
+
+    private enum CodingKeys: String, CodingKey {
+        case schemaVersion = "schema_version"
+        case regions, files
+    }
+}
+
+private struct GonnyuAppleResourcePaths {
+    let shared: URL
+    let prebuilt: URL
+    let regions: [GonnyuAppleRegion]
+}
+
+private final class GonnyuAppleResourceStore {
+    private static let installLock = NSLock()
+    private let bundle: Bundle
+    private let fileManager = FileManager.default
+    private let resourcesRoot: URL
+    private let currentVersionFile: URL
+
+    let userDataDirectory: URL
+
+    init(bundle: Bundle = .main) throws {
+        guard let group = bundle.object(forInfoDictionaryKey: "GannyuAppGroupIdentifier") as? String,
+              let container = FileManager.default.containerURL(
+                  forSecurityApplicationGroupIdentifier: group
+              ) else {
+            throw GonnyuAppleEngineError.resources("GannyuAppGroupIdentifier must resolve to an App Group")
+        }
+        self.bundle = bundle
+        let applicationSupport = container
+            .appendingPathComponent("Library", isDirectory: true)
+            .appendingPathComponent("Application Support", isDirectory: true)
+            .appendingPathComponent("GonnyuInputMethod", isDirectory: true)
+        let resources = applicationSupport.appendingPathComponent("Resources", isDirectory: true)
+        resourcesRoot = resources
+        currentVersionFile = resources.appendingPathComponent("current-version", isDirectory: false)
+        userDataDirectory = applicationSupport.appendingPathComponent("UserData", isDirectory: true)
+        try fileManager.createDirectory(at: resourcesRoot, withIntermediateDirectories: true)
+        try fileManager.createDirectory(at: userDataDirectory, withIntermediateDirectories: true)
+    }
+
+    func prepare() throws -> [GonnyuAppleRegion] {
+        Self.installLock.lock()
+        defer { Self.installLock.unlock() }
+        if let bundled = bundle.url(forResource: "rime", withExtension: nil) {
+            try install(from: bundled)
+        }
+        return try currentPaths().regions
+    }
+
+    func currentPaths() throws -> GonnyuAppleResourcePaths {
+        guard let versionData = fileManager.contents(atPath: currentVersionFile.path),
+              let version = String(data: versionData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines),
+              isSafeComponent(version) else {
+            throw GonnyuAppleEngineError.resources("Open the Gonnyu app once to install keyboard resources")
+        }
+        let root = resourcesRoot.appendingPathComponent(version, isDirectory: true)
+        let manifest = try loadManifest(at: root)
+        let shared = root.appendingPathComponent("shared", isDirectory: true)
+        let prebuilt = root.appendingPathComponent("prebuilt", isDirectory: true)
+        guard fileManager.fileExists(atPath: shared.path), fileManager.fileExists(atPath: prebuilt.path) else {
+            throw GonnyuAppleEngineError.resources("Installed keyboard resources are incomplete")
+        }
+        return GonnyuAppleResourcePaths(shared: shared, prebuilt: prebuilt, regions: manifest.regions)
+    }
+
+    private func install(from source: URL) throws {
+        let manifest = try loadManifest(at: source)
+        guard isSafeComponent(manifest.schemaVersion) else {
+            throw GonnyuAppleEngineError.resources("Invalid keyboard resource version")
+        }
+        let target = resourcesRoot.appendingPathComponent(manifest.schemaVersion, isDirectory: true)
+        if fileManager.fileExists(atPath: target.path), try verify(root: target, manifest: manifest) {
+            try writeCurrentVersion(manifest.schemaVersion)
+            try removeObsoleteResources(keeping: target)
+            return
+        }
+
+        let staging = resourcesRoot.appendingPathComponent(
+            ".\(manifest.schemaVersion).staging-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        try? fileManager.removeItem(at: staging)
+        try fileManager.createDirectory(at: staging, withIntermediateDirectories: true)
+        do {
+            for item in manifest.files {
+                let relative = try safeRelativePath(item.path)
+                let input = source.appendingPathComponent(relative, isDirectory: false)
+                let output = staging.appendingPathComponent(relative, isDirectory: false)
+                try fileManager.createDirectory(
+                    at: output.deletingLastPathComponent(),
+                    withIntermediateDirectories: true
+                )
+                try fileManager.copyItem(at: input, to: output)
+            }
+            try fileManager.copyItem(
+                at: source.appendingPathComponent("resource-manifest.json", isDirectory: false),
+                to: staging.appendingPathComponent("resource-manifest.json", isDirectory: false)
+            )
+            guard try verify(root: staging, manifest: manifest) else {
+                throw GonnyuAppleEngineError.resources("Keyboard resource verification failed")
+            }
+            try? fileManager.removeItem(at: target)
+            try fileManager.moveItem(at: staging, to: target)
+            try writeCurrentVersion(manifest.schemaVersion)
+            try removeObsoleteResources(keeping: target)
+        } catch {
+            try? fileManager.removeItem(at: staging)
+            throw error
+        }
+    }
+
+    private func loadManifest(at root: URL) throws -> GonnyuAppleResourceManifest {
+        let url = root.appendingPathComponent("resource-manifest.json", isDirectory: false)
+        return try JSONDecoder().decode(GonnyuAppleResourceManifest.self, from: Data(contentsOf: url))
+    }
+
+    private func verify(root: URL, manifest: GonnyuAppleResourceManifest) throws -> Bool {
+        for item in manifest.files {
+            let relative = try safeRelativePath(item.path)
+            let file = root.appendingPathComponent(relative, isDirectory: false)
+            let values = try file.resourceValues(forKeys: [.isRegularFileKey, .fileSizeKey])
+            guard values.isRegularFile == true, values.fileSize == item.size else { return false }
+            let digest = try sha256(of: file)
+            guard digest == item.sha256 else { return false }
+        }
+        return true
+    }
+
+    private func sha256(of file: URL) throws -> String {
+        let input = try FileHandle(forReadingFrom: file)
+        defer { try? input.close() }
+        var hasher = SHA256()
+        while let chunk = try input.read(upToCount: 1024 * 1024), !chunk.isEmpty {
+            hasher.update(data: chunk)
+        }
+        return hasher.finalize().map { String(format: "%02x", $0) }.joined()
+    }
+
+    private func writeCurrentVersion(_ version: String) throws {
+        try Data((version + "\n").utf8).write(to: currentVersionFile, options: .atomic)
+    }
+
+    private func removeObsoleteResources(keeping target: URL) throws {
+        for item in try fileManager.contentsOfDirectory(
+            at: resourcesRoot,
+            includingPropertiesForKeys: [.isDirectoryKey],
+            options: []
+        ) where item != target && item != currentVersionFile {
+            try fileManager.removeItem(at: item)
+        }
+    }
+
+    private func isSafeComponent(_ value: String) -> Bool {
+        !value.isEmpty && value != "." && value != ".." && !value.contains("/") && !value.contains("\\")
+    }
+
+    private func safeRelativePath(_ value: String) throws -> String {
+        let parts = value.split(separator: "/", omittingEmptySubsequences: false)
+        guard !value.hasPrefix("/"), !parts.isEmpty,
+              parts.allSatisfy({ !$0.isEmpty && $0 != "." && $0 != ".." }) else {
+            throw GonnyuAppleEngineError.resources("Invalid keyboard resource path")
+        }
+        return value
+    }
 }
 
 public final class GonnyuAppleEngine {
     private var handle: OpaquePointer?
 
     public init(regionID: String, userDataDirectory: URL) throws {
+        let resourceStore = try GonnyuAppleResourceStore()
+        let resources = try resourceStore.currentPaths()
         var created: OpaquePointer?
         let status = regionID.withCString { region in
-            userDataDirectory.path.withCString { dataDirectory in
-                gannyu_pipeline_create_with_user_data_dir(nil, region, dataDirectory, &created)
+            resources.shared.path.withCString { sharedDirectory in
+                resources.prebuilt.path.withCString { prebuiltDirectory in
+                    userDataDirectory.path.withCString { dataDirectory in
+                        var config = GannyuEngineConfig(
+                            struct_size: MemoryLayout<GannyuEngineConfig>.size,
+                            region_id: region,
+                            shared_data_dir: sharedDirectory,
+                            prebuilt_data_dir: prebuiltDirectory,
+                            user_data_dir: dataDirectory
+                        )
+                        return gannyu_engine_create(&config, &created)
+                    }
+                }
             }
         }
         guard status == gannyu_ffi_status_ok(), let created else {
@@ -135,13 +322,7 @@ public final class GonnyuAppleEngine {
     }
 
     public static func regions() throws -> [GonnyuAppleRegion] {
-        var output: UnsafeMutablePointer<CChar>?
-        let status = gannyu_region_list(nil, &output)
-        guard status == gannyu_ffi_status_ok(), let output else {
-            throw GonnyuAppleEngineError.ffi(status, lastError())
-        }
-        defer { gannyu_string_destroy(output) }
-        return try JSONDecoder().decode([GonnyuAppleRegion].self, from: Data(String(cString: output).utf8))
+        try GonnyuAppleResourceStore().prepare()
     }
 
     public func snapshot() throws -> GonnyuAppleSnapshot {
@@ -171,13 +352,9 @@ public final class GonnyuAppleEngine {
         }
     }
 
-    public func clearUserData(_ scope: GonnyuAppleUserDataScope) throws {
-        guard let handle else {
-            throw GonnyuAppleEngineError.ffi(-1, "pipeline is unavailable")
-        }
-        let status = gannyu_pipeline_user_data_clear(handle, scope.rawValue)
-        guard status == gannyu_ffi_status_ok() else {
-            throw GonnyuAppleEngineError.ffi(status, Self.lastError())
+    public func clearUserData() throws -> GonnyuAppleSnapshot {
+        try jsonCall { handle, out in
+            gannyu_engine_reset_user_data(handle, Int32(GANNYU_USER_DATA_ALL), out)
         }
     }
 
@@ -210,6 +387,7 @@ public final class GonnyuAppleRegionStore {
     public static let didChange = Notification.Name("org.doohaey.gonnyu.apple.regionDidChange")
     private let key = "org.doohaey.gonnyu.region"
     private let defaults: UserDefaults
+    private let resetRequestsDirectory: URL
     public let userDataDirectory: URL
 
     public init(bundle: Bundle = .main) {
@@ -221,12 +399,21 @@ public final class GonnyuAppleRegionStore {
             preconditionFailure("GannyuAppGroupIdentifier must resolve to an App Group")
         }
         self.defaults = defaults
-        self.userDataDirectory = container
+        let applicationSupport = container
             .appendingPathComponent("Library", isDirectory: true)
             .appendingPathComponent("Application Support", isDirectory: true)
             .appendingPathComponent("GonnyuInputMethod", isDirectory: true)
+        self.userDataDirectory = applicationSupport.appendingPathComponent("UserData", isDirectory: true)
+        self.resetRequestsDirectory = applicationSupport.appendingPathComponent(
+            "PendingUserDataResets",
+            isDirectory: true
+        )
         try? FileManager.default.createDirectory(
             at: userDataDirectory,
+            withIntermediateDirectories: true
+        )
+        try? FileManager.default.createDirectory(
+            at: resetRequestsDirectory,
             withIntermediateDirectories: true
         )
     }
@@ -246,5 +433,42 @@ public final class GonnyuAppleRegionStore {
         defaults.set(id, forKey: key)
         NotificationCenter.default.post(name: Self.didChange, object: id)
         return true
+    }
+
+    public func requestUserDataReset(regionIDs: [String], in regions: [GonnyuAppleRegion]) throws {
+        let available = Set(regions.map(\.id))
+        let requested = Array(Set(regionIDs)).sorted()
+        guard !requested.isEmpty, requested.allSatisfy(available.contains) else {
+            throw GonnyuAppleEngineError.resources("Invalid user data reset request")
+        }
+        let request = resetRequestsDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: false)
+            .appendingPathExtension("json")
+        try JSONEncoder().encode(requested).write(to: request, options: .atomic)
+    }
+
+    public func pendingUserDataResetRegionIDs() -> [String] {
+        let files = (try? FileManager.default.contentsOfDirectory(
+            at: resetRequestsDirectory,
+            includingPropertiesForKeys: nil,
+            options: [.skipsHiddenFiles]
+        )) ?? []
+        var ids = Set<String>()
+        for file in files where file.pathExtension == "json" {
+            guard let data = try? Data(contentsOf: file),
+                  let request = try? JSONDecoder().decode([String].self, from: data) else { continue }
+            ids.formUnion(request)
+        }
+        return ids.sorted()
+    }
+
+    public func finishPendingUserDataResets() throws {
+        for file in try FileManager.default.contentsOfDirectory(
+            at: resetRequestsDirectory,
+            includingPropertiesForKeys: nil,
+            options: [.skipsHiddenFiles]
+        ) where file.pathExtension == "json" {
+            try FileManager.default.removeItem(at: file)
+        }
     }
 }

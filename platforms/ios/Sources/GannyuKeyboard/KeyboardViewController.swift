@@ -273,6 +273,23 @@ final class KeyboardViewController: UIInputViewController {
     private func reloadRegionIfNeeded(force: Bool) {
         guard let loadedRegions = try? GonnyuAppleEngine.regions() else { return }
         regions = loadedRegions
+        let pendingResets = store.pendingUserDataResetRegionIDs()
+        if !pendingResets.isEmpty {
+            engine = nil
+            regionID = nil
+            do {
+                for pendingRegion in pendingResets {
+                    let resetEngine = try GonnyuAppleEngine(
+                        regionID: pendingRegion,
+                        userDataDirectory: store.userDataDirectory
+                    )
+                    _ = try resetEngine.clearUserData()
+                }
+                try store.finishPendingUserDataResets()
+            } catch {
+                // Keep the request files so the keyboard retries on its next activation.
+            }
+        }
         guard let selected = store.currentID(in: regions), force || selected != regionID else { return }
         engine = try? GonnyuAppleEngine(
             regionID: selected,

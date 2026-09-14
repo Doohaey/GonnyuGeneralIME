@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Cross-build one arm64 slice of the pinned Rime engine for Apple mobile.
+# Cross-build one architecture slice of the pinned Rime engine for Apple mobile.
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -107,7 +107,7 @@ env RIME_PLUGINS="librime-lua" cmake -S "$librime_root" -B "$build_root/librime"
   -DBUILD_SHARED_LIBS=OFF \
   -DBUILD_STATIC=ON \
   -DBUILD_MERGED_PLUGINS=ON \
-  -DCMAKE_C_FLAGS="-DLUA_USE_IOS" \
+  -DCMAKE_C_FLAGS="-DLUA_USE_IOS -Wno-macro-redefined" \
   -DENABLE_EXTERNAL_PLUGINS=OFF \
   -DBUILD_TEST=OFF \
   -DINSTALL_PRIVATE_HEADERS=ON \

@@ -61,7 +61,7 @@ final class RegionSettingsViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch Section(rawValue: section) {
         case .regions: return regions.count
-        case .userData: return 3
+        case .userData: return 2
         case .setup: return 1
         case nil: return 0
         }
@@ -81,7 +81,7 @@ final class RegionSettingsViewController: UITableViewController {
             content.secondaryText = region.id
             cell.accessoryType = region.id == selectedID ? .checkmark : .none
         case .userData:
-            content.text = ["清空用户词", "清空学习词频", "清空全部用户数据"][indexPath.row]
+            content.text = ["清空当前地区学习数据", "清空全部地区学习数据"][indexPath.row]
             content.textProperties.color = .systemRed
         case .setup:
             content.text = "打开本 App 设置"
@@ -104,11 +104,7 @@ final class RegionSettingsViewController: UITableViewController {
                 tableView.reloadSections(IndexSet(integer: Section.regions.rawValue), with: .automatic)
             }
         case .userData:
-            confirmClear(scope: [
-                .words,
-                .frequencies,
-                .all,
-            ][indexPath.row])
+            confirmClear(allRegions: indexPath.row == 1)
         case .setup:
             guard let settingsURL = URL(string: UIApplication.openSettingsURLString) else { return }
             UIApplication.shared.open(settingsURL)
@@ -117,36 +113,29 @@ final class RegionSettingsViewController: UITableViewController {
         }
     }
 
-    private func confirmClear(scope: GonnyuAppleUserDataScope) {
-        let title: String
-        let message: String
-        switch scope {
-        case .words:
-            title = "清空用户词"
-            message = "这会删除你学习得到的用户词，且无法恢复。"
-        case .frequencies:
-            title = "清空学习词频"
-            message = "这会重置候选词的学习排序，且无法恢复。"
-        case .all:
-            title = "清空全部用户数据"
-            message = "这会删除用户词和学习词频，且无法恢复。"
-        }
+    private func confirmClear(allRegions: Bool) {
+        let title = allRegions ? "清空全部地区学习数据" : "清空当前地区学习数据"
+        let message = "这会删除学习得到的用户词与候选排序，且无法恢复。操作会在下次打开键盘时完成。"
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "取消", style: .cancel))
         alert.addAction(UIAlertAction(title: "清空", style: .destructive) { [weak self] _ in
-            self?.clearUserData(scope)
+            self?.requestUserDataReset(allRegions: allRegions)
         })
         present(alert, animated: true)
     }
 
-    private func clearUserData(_ scope: GonnyuAppleUserDataScope) {
-        guard let regionID = selectedID else { return }
+    private func requestUserDataReset(allRegions: Bool) {
+        let regionIDs = allRegions ? regions.map(\.id) : [selectedID].compactMap { $0 }
+        guard !regionIDs.isEmpty else { return }
         do {
-            let engine = try GonnyuAppleEngine(
-                regionID: regionID,
-                userDataDirectory: store.userDataDirectory
+            try store.requestUserDataReset(regionIDs: regionIDs, in: regions)
+            let alert = UIAlertController(
+                title: "已安排清空",
+                message: "请切换到赣语键盘一次以完成操作。",
+                preferredStyle: .alert
             )
-            try engine.clearUserData(scope)
+            alert.addAction(UIAlertAction(title: "好", style: .default))
+            present(alert, animated: true)
         } catch {
             let alert = UIAlertController(
                 title: "清空失败",

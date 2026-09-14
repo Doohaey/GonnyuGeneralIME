@@ -55,7 +55,7 @@ cmake --install "$build_root/build"
 resources_dir="$build_root/gannyu-data"
 "$python_bin" "$repo_root/platforms/rime/build.py" --region all --display-name apple --output "$resources_dir"
 
-python3 - "$script_dir/engine-lock.json" "$build_root/build-summary.json" "$prefix" "$resources_dir" <<'PYTHON'
+"$python_bin" - "$script_dir/engine-lock.json" "$build_root/build-summary.json" "$prefix" "$resources_dir" <<'PYTHON'
 import json
 import sys
 from pathlib import Path
