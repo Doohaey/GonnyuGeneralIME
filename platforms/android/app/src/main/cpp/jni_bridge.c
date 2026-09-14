@@ -1,241 +1,121 @@
-#include <jni.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
 #include <android/log.h>
+#include <jni.h>
+#include <limits.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+
 #include "gannyu_input.h"
 
-#define LOG_TAG "GannyuNative"
-#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
+#define LOG_TAG "GonnyuNative"
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 
 static jstring copy_out_string(JNIEnv* env, char* out) {
-    if (out == NULL) {
-        return NULL;
-    }
+    if (out == NULL) return NULL;
     jstring result = (*env)->NewStringUTF(env, out);
     gannyu_string_destroy(out);
     return result;
 }
 
+static int child_path(char* output, size_t output_size, const char* root, const char* child) {
+    if (root == NULL || root[0] == '\0') return -1;
+    const int written = snprintf(output, output_size, "%s/%s", root, child);
+    return written < 0 || (size_t)written >= output_size ? -1 : 0;
+}
+
 JNIEXPORT jlong JNICALL
 Java_io_gannyu_input_GannyuInputMethodService_nativeCreate(
-    JNIEnv* env,
-    jobject thiz,
-    jstring manifest,
-    jstring region,
-    jstring data_dir
-) {
+    JNIEnv* env, jobject thiz, jstring resource_root, jstring region, jstring user_data_dir) {
     (void)thiz;
-    const char* manifest_c = manifest ? (*env)->GetStringUTFChars(env, manifest, NULL) : NULL;
-    const char* region_c = region ? (*env)->GetStringUTFChars(env, region, NULL) : NULL;
-    const char* data_dir_c = data_dir ? (*env)->GetStringUTFChars(env, data_dir, NULL) : NULL;
-    LOGI("nativeCreate: manifest=%s region=%s data_dir=%s",
-         manifest_c ? manifest_c : "(null)",
-         region_c ? region_c : "(null)",
-         data_dir_c ? data_dir_c : "(null)");
-    if (data_dir_c && data_dir_c[0] != '\0') {
-        setenv("GANNYU_DATA_HOME", data_dir_c, 1);
-        setenv("TMPDIR", data_dir_c, 1);
-    }
+    const char* resource_root_c = resource_root == NULL ? NULL : (*env)->GetStringUTFChars(env, resource_root, NULL);
+    const char* region_c = region == NULL ? NULL : (*env)->GetStringUTFChars(env, region, NULL);
+    const char* user_data_dir_c = user_data_dir == NULL ? NULL : (*env)->GetStringUTFChars(env, user_data_dir, NULL);
+    char shared_data_dir[PATH_MAX];
+    char prebuilt_data_dir[PATH_MAX];
     GannyuPipelineHandle* handle = NULL;
-    LOGI("nativeCreate: calling gannyu_pipeline_create...");
-    int status = gannyu_pipeline_create(manifest_c, region_c, &handle);
-    LOGI("nativeCreate: gannyu_pipeline_create returned status=%d handle=%p", status, handle);
-    if (manifest_c) (*env)->ReleaseStringUTFChars(env, manifest, manifest_c);
-    if (region_c) (*env)->ReleaseStringUTFChars(env, region, region_c);
-    if (data_dir_c) (*env)->ReleaseStringUTFChars(env, data_dir, data_dir_c);
+    int status = -1;
+
+    if (child_path(shared_data_dir, sizeof(shared_data_dir), resource_root_c, "shared") == 0 &&
+        child_path(prebuilt_data_dir, sizeof(prebuilt_data_dir), resource_root_c, "prebuilt") == 0 &&
+        user_data_dir_c != NULL && user_data_dir_c[0] != '\0') {
+        const GannyuEngineConfig config = {
+            sizeof(GannyuEngineConfig), region_c, shared_data_dir, prebuilt_data_dir, user_data_dir_c};
+        status = gannyu_engine_create(&config, &handle);
+    } else {
+        LOGE("nativeCreate requires prepared resource and user-data directories");
+    }
+
+    if (resource_root_c != NULL) (*env)->ReleaseStringUTFChars(env, resource_root, resource_root_c);
+    if (region_c != NULL) (*env)->ReleaseStringUTFChars(env, region, region_c);
+    if (user_data_dir_c != NULL) (*env)->ReleaseStringUTFChars(env, user_data_dir, user_data_dir_c);
     return status == 0 ? (jlong)(intptr_t)handle : 0;
 }
 
 JNIEXPORT jstring JNICALL
-Java_io_gannyu_input_GannyuInputMethodService_nativeLastError(
-    JNIEnv* env,
-    jobject thiz
-) {
+Java_io_gannyu_input_GannyuInputMethodService_nativeLastError(JNIEnv* env, jobject thiz) {
     (void)thiz;
     char* out = NULL;
-    int status = gannyu_last_error(&out);
-    if (status != 0 || out == NULL) return NULL;
-    return copy_out_string(env, out);
+    return gannyu_last_error(&out) == 0 ? copy_out_string(env, out) : NULL;
 }
 
 JNIEXPORT jstring JNICALL
-Java_io_gannyu_input_GannyuInputMethodService_nativeRegionList(
-    JNIEnv* env,
-    jobject thiz,
-    jstring manifest
-) {
+Java_io_gannyu_input_GannyuInputMethodService_nativeRegionList(JNIEnv* env, jobject thiz, jstring ignored) {
     (void)thiz;
-    const char* manifest_c = manifest ? (*env)->GetStringUTFChars(env, manifest, NULL) : NULL;
-    char* out = NULL;
-    int status = gannyu_region_list(manifest_c, &out);
-    if (manifest_c) (*env)->ReleaseStringUTFChars(env, manifest, manifest_c);
-    if (status != 0 || out == NULL) return NULL;
-    return copy_out_string(env, out);
+    (void)ignored;
+    // Region metadata belongs to the versioned resource manifest.  This small
+    // fallback keeps settings available before the Kotlin resource loader reads
+    // that manifest; schema identifiers are fixed by the checked-in generator.
+    return (*env)->NewStringUTF(env,
+        "[{\"id\":\"fenni\",\"name_zh\":\"分宜\"},{\"id\":\"lancong\",\"name_zh\":\"南昌\"}]");
 }
 
 JNIEXPORT jstring JNICALL
-Java_io_gannyu_input_GannyuInputMethodService_nativeSnapshot(
-    JNIEnv* env,
-    jobject thiz,
-    jlong handle
-) {
+Java_io_gannyu_input_GannyuInputMethodService_nativeSnapshot(JNIEnv* env, jobject thiz, jlong handle) {
     (void)thiz;
     char* out = NULL;
-    int status = gannyu_engine_snapshot((void*)(intptr_t)handle, &out);
-    if (status != 0 || out == NULL) return NULL;
-    return copy_out_string(env, out);
+    return gannyu_engine_snapshot((GannyuPipelineHandle*)(intptr_t)handle, &out) == 0 ? copy_out_string(env, out) : NULL;
 }
 
 JNIEXPORT jstring JNICALL
 Java_io_gannyu_input_GannyuInputMethodService_nativeProcessKey(
-    JNIEnv* env,
-    jobject thiz,
-    jlong handle,
-    jstring event_json
-) {
+    JNIEnv* env, jobject thiz, jlong handle, jstring event_json) {
     (void)thiz;
+    if (event_json == NULL) return NULL;
     const char* event_c = (*env)->GetStringUTFChars(env, event_json, NULL);
     char* out = NULL;
-    int status = gannyu_engine_process_key((void*)(intptr_t)handle, event_c, &out);
-    (*env)->ReleaseStringUTFChars(env, event_json, event_c);
-    if (status != 0 || out == NULL) return NULL;
-    return copy_out_string(env, out);
+    const int status = event_c == NULL ? -1 :
+        gannyu_engine_process_key((GannyuPipelineHandle*)(intptr_t)handle, event_c, &out);
+    if (event_c != NULL) (*env)->ReleaseStringUTFChars(env, event_json, event_c);
+    return status == 0 ? copy_out_string(env, out) : NULL;
 }
 
 JNIEXPORT jstring JNICALL
 Java_io_gannyu_input_GannyuInputMethodService_nativeSelectCandidate(
-    JNIEnv* env,
-    jobject thiz,
-    jlong handle,
-    jint global_index
-) {
+    JNIEnv* env, jobject thiz, jlong handle, jint global_index) {
     (void)thiz;
+    if (global_index < 0) return NULL;
     char* out = NULL;
-    int status = gannyu_engine_select_candidate(
-        (void*)(intptr_t)handle,
-        global_index < 0 ? 0 : (size_t)global_index,
-        &out
-    );
-    if (status != 0 || out == NULL) return NULL;
-    return copy_out_string(env, out);
+    return gannyu_engine_select_candidate((GannyuPipelineHandle*)(intptr_t)handle,
+                                           (size_t)global_index, &out) == 0 ? copy_out_string(env, out) : NULL;
 }
 
 JNIEXPORT jstring JNICALL
 Java_io_gannyu_input_GannyuInputMethodService_nativeClearComposition(
-    JNIEnv* env,
-    jobject thiz,
-    jlong handle
-) {
+    JNIEnv* env, jobject thiz, jlong handle) {
     (void)thiz;
     char* out = NULL;
-    int status = gannyu_engine_clear_composition((void*)(intptr_t)handle, &out);
-    if (status != 0 || out == NULL) return NULL;
-    return copy_out_string(env, out);
-}
-
-JNIEXPORT jstring JNICALL
-Java_io_gannyu_input_GannyuInputMethodService_nativeRetrieve(
-    JNIEnv* env,
-    jobject thiz,
-    jlong handle,
-    jstring input
-) {
-    (void)thiz;
-    const char* input_c = (*env)->GetStringUTFChars(env, input, NULL);
-    char* out = NULL;
-    int status = gannyu_pipeline_retrieve((void*)(intptr_t)handle, input_c, &out);
-    (*env)->ReleaseStringUTFChars(env, input, input_c);
-    if (status != 0 || out == NULL) return NULL;
-    return copy_out_string(env, out);
-}
-
-JNIEXPORT jstring JNICALL
-Java_io_gannyu_input_GannyuInputMethodService_nativeFormatPreedit(
-    JNIEnv* env,
-    jobject thiz,
-    jlong handle,
-    jstring input,
-    jint consumed_bytes
-) {
-    (void)thiz;
-    const char* input_c = (*env)->GetStringUTFChars(env, input, NULL);
-    char* out = NULL;
-    int status = gannyu_pipeline_format_preedit((void*)(intptr_t)handle, input_c,
-                                                  consumed_bytes < 0 ? 0 : (size_t)consumed_bytes,
-                                                  &out);
-    (*env)->ReleaseStringUTFChars(env, input, input_c);
-    if (status != 0 || out == NULL) return NULL;
-    return copy_out_string(env, out);
-}
-
-JNIEXPORT jint JNICALL
-Java_io_gannyu_input_GannyuInputMethodService_nativeEntryCount(
-    JNIEnv* env,
-    jobject thiz,
-    jlong handle
-) {
-    (void)env;
-    (void)thiz;
-    return gannyu_pipeline_entry_count((void*)(intptr_t)handle);
-}
-
-JNIEXPORT jboolean JNICALL
-Java_io_gannyu_input_GannyuInputMethodService_nativeUserDictAdd(
-    JNIEnv* env,
-    jobject thiz,
-    jlong handle,
-    jstring headword,
-    jstring pinyin,
-    jstring mandarin_pinyin
-) {
-    (void)thiz;
-    const char* headword_c = (*env)->GetStringUTFChars(env, headword, NULL);
-    const char* pinyin_c = (*env)->GetStringUTFChars(env, pinyin, NULL);
-    const char* mandarin_c = (*env)->GetStringUTFChars(env, mandarin_pinyin, NULL);
-    int status = gannyu_pipeline_user_dict_add(
-        (void*)(intptr_t)handle,
-        headword_c,
-        pinyin_c,
-        mandarin_c,
-        NULL
-    );
-    (*env)->ReleaseStringUTFChars(env, headword, headword_c);
-    (*env)->ReleaseStringUTFChars(env, pinyin, pinyin_c);
-    (*env)->ReleaseStringUTFChars(env, mandarin_pinyin, mandarin_c);
-    return status == 0 ? JNI_TRUE : JNI_FALSE;
-}
-
-JNIEXPORT jboolean JNICALL
-Java_io_gannyu_input_GannyuInputMethodService_nativeUserDictBoost(
-    JNIEnv* env,
-    jobject thiz,
-    jlong handle,
-    jstring headword
-) {
-    (void)thiz;
-    const char* headword_c = (*env)->GetStringUTFChars(env, headword, NULL);
-    int status = gannyu_pipeline_user_dict_boost((void*)(intptr_t)handle, headword_c, NULL);
-    (*env)->ReleaseStringUTFChars(env, headword, headword_c);
-    return status == 0 ? JNI_TRUE : JNI_FALSE;
+    return gannyu_engine_clear_composition((GannyuPipelineHandle*)(intptr_t)handle, &out) == 0 ? copy_out_string(env, out) : NULL;
 }
 
 JNIEXPORT jboolean JNICALL
 Java_io_gannyu_input_GannyuInputMethodService_nativeResetCurrentUserData(
-    JNIEnv* env, jobject thiz, jlong handle
-) {
+    JNIEnv* env, jobject thiz, jlong handle) {
     (void)env;
     (void)thiz;
     char* snapshot = NULL;
-    int status = gannyu_engine_reset_user_data(
-        (void*)(intptr_t)handle,
-        GANNYU_USER_DATA_ALL,
-        &snapshot
-    );
-    if (snapshot != NULL) {
-        gannyu_string_destroy(snapshot);
-    }
+    const int status = gannyu_engine_reset_user_data((GannyuPipelineHandle*)(intptr_t)handle,
+                                                      GANNYU_USER_DATA_ALL, &snapshot);
+    gannyu_string_destroy(snapshot);
     return status == 0 ? JNI_TRUE : JNI_FALSE;
 }
 
@@ -243,12 +123,12 @@ JNIEXPORT void JNICALL
 Java_io_gannyu_input_GannyuInputMethodService_nativeDestroy(JNIEnv* env, jobject thiz, jlong handle) {
     (void)env;
     (void)thiz;
-    gannyu_pipeline_destroy((void*)(intptr_t)handle);
+    if (handle != 0) gannyu_pipeline_destroy((GannyuPipelineHandle*)(intptr_t)handle);
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_gannyu_input_NativePipelineBridge_nativeCreate(JNIEnv* env, jobject thiz, jstring manifest, jstring region, jstring data_dir) {
-    return Java_io_gannyu_input_GannyuInputMethodService_nativeCreate(env, thiz, manifest, region, data_dir);
+Java_io_gannyu_input_NativePipelineBridge_nativeCreate(JNIEnv* env, jobject thiz, jstring resource_root, jstring region, jstring user_data_dir) {
+    return Java_io_gannyu_input_GannyuInputMethodService_nativeCreate(env, thiz, resource_root, region, user_data_dir);
 }
 
 JNIEXPORT jstring JNICALL
@@ -257,8 +137,8 @@ Java_io_gannyu_input_NativePipelineBridge_nativeLastError(JNIEnv* env, jobject t
 }
 
 JNIEXPORT jstring JNICALL
-Java_io_gannyu_input_NativePipelineBridge_nativeRegionList(JNIEnv* env, jobject thiz, jstring manifest) {
-    return Java_io_gannyu_input_GannyuInputMethodService_nativeRegionList(env, thiz, manifest);
+Java_io_gannyu_input_NativePipelineBridge_nativeRegionList(JNIEnv* env, jobject thiz, jstring ignored) {
+    return Java_io_gannyu_input_GannyuInputMethodService_nativeRegionList(env, thiz, ignored);
 }
 
 JNIEXPORT jstring JNICALL
