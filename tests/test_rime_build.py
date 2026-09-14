@@ -46,8 +46,9 @@ def test_builds_rime_dictionary_annotations_and_relations(tmp_path: Path) -> Non
     assert " defaults = {" not in data
     assert "gannyu_default_processor" not in schema
     assert "gannyu_default_translator" not in schema
-    assert not (tmp_path / "lua" / "gannyu_default_processor.lua").exists()
-    assert not (tmp_path / "lua" / "gannyu_default_translator.lua").exists()
+    assert not (tmp_path / "lua" / "gannyu_filter.lua").exists()
+    assert (tmp_path / "lua" / "gannyu_annotation_filter.lua").is_file()
+    assert (tmp_path / "lua" / "gannyu_relation_filter.lua").is_file()
     assert "dictionary: gannyu_lancong" in schema
     assert "schema_id: gannyu_lancong" in schema
     assert "name: 南" in schema
@@ -193,13 +194,20 @@ def test_sentence_readings_use_highest_frequency_toned_character_entries() -> No
     assert " ".join(readings[character] for character in "我们嗰") == "ngo3 men4 go0"
 
 
-def test_lua_filter_rebuilds_sentence_readings_and_cleans_internal_marker() -> None:
-    source = (
-        Path(__file__).resolve().parents[1] / "platforms" / "rime" / "gannyu_filter.lua"
-    ).read_text(encoding="utf-8")
+def test_annotation_filter_rebuilds_sentence_readings_and_cleans_internal_marker() -> None:
+    source = (Path(__file__).resolve().parents[1] / "platforms" / "rime" / "gannyu_annotation_filter.lua").read_text(encoding="utf-8")
 
     assert "sentence_reading(candidate.text, data)" in source
     assert ':gsub("^G", ""):gsub(" G", " ")' in source
+
+
+def test_relation_filter_preserves_relation_ordering() -> None:
+    source = (Path(__file__).resolve().parents[1] / "platforms" / "rime" / "gannyu_relation_filter.lua").read_text(encoding="utf-8")
+
+    assert 'data.before[candidate.text]' in source
+    assert 'source.quality + 0.01' in source
+    assert 'data.after[candidate.text]' in source
+    assert 'source.quality + -0.02' in source
 
 
 def test_fuzzy_rules_keep_core_directions_and_non_chainable_boundary() -> None:
@@ -282,6 +290,9 @@ def test_rime_installers_discover_regions_from_build_output() -> None:
         content = (Path(__file__).resolve().parents[1] / "platforms/rime" / name).read_text(encoding="utf-8")
         assert "gannyu_*.schema.yaml" in content
         assert "gannyu_*_data.lua" in content
+        assert "gannyu_annotation_filter.lua" in content
+        assert "gannyu_relation_filter.lua" in content
+        assert '"$user_dir/lua/gannyu_filter.lua"' in content
         assert "gannyu_default_*.lua" not in content
         assert "gannyu_default_processor.lua" in content
         assert "gannyu_default_translator.lua" in content

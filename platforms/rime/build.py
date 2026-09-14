@@ -517,7 +517,8 @@ def build(region: str, output: Path, display_name: str = "short") -> dict[str, i
         before,
         after,
     )
-    shutil.copy2(PLATFORM_DIR / "gannyu_filter.lua", output / "lua" / "gannyu_filter.lua")
+    for name in ("gannyu_annotation_filter.lua", "gannyu_relation_filter.lua"):
+        shutil.copy2(PLATFORM_DIR / name, output / "lua" / name)
     schema = (PLATFORM_DIR / "gannyu.schema.yaml").read_text(encoding="utf-8")
     label = f"赣语－{region_name}" if display_name == "apple" else region_name[:1]
     schema = (

@@ -32,7 +32,8 @@ archive = Path(sys.argv[1])
 region = sys.argv[2]
 files = (
     "default.custom.yaml", f"gannyu_{region}.schema.yaml", f"gannyu_{region}.dict.yaml",
-    "lua/gannyu_filter.lua", f"lua/gannyu_{region}_data.lua",
+    "lua/gannyu_annotation_filter.lua", "lua/gannyu_relation_filter.lua",
+    f"lua/gannyu_{region}_data.lua",
 )
 with ZipFile(archive, "w", ZIP_DEFLATED) as package:
     for name in files:
