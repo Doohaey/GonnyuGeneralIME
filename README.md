@@ -13,14 +13,16 @@
 
 上方按钮列出南昌话与分宜话的 Rime 方案仓库。其他安装方案请在下方[安装方法](#安装方法)小节找到对应平台内容下载并且安装。
 
-## 测试版本 0.2.4-pre.17
+## 测试版本 0.2.4-pre.5
 
-- fix(windows): 自绘候选窗、加载窗与状态栏仅随前台活动焦点存在，失焦或切换输入法时立即销毁并在重新激活后按需重建。
+- feat(dict): 增补南昌词条、字音关系与词频。
+- fix(windows): 切换到其他输入法时隐藏工具框；本输入法活动期间保持常驻。
+- docs: 优化中英文功能展示与安装说明。
 
 ## 目录
 
 - [赣语通用输入法 GonnyuGeneralIME](#赣语通用输入法-gonnyugeneralime)
-  - [测试版本 0.2.4-pre.17](#测试版本-024-pre17)
+  - [测试版本 0.2.4-pre.5](#测试版本-024-pre5)
   - [目录](#目录)
   - [简介](#简介)
     - [特色](#特色)
@@ -37,6 +39,7 @@
     - [Android](#android)
     - [Windows](#windows)
     - [Linux：Fcitx5](#linuxfcitx5)
+    - [Linux：IBus](#linuxibus)
     - [Rime](#rime)
   - [本输入法采用的赣语拼音方案](#本输入法采用的赣语拼音方案)
     - [声母](#声母)
@@ -152,6 +155,18 @@ cd GonnyuGeneralIME-版本号-fcitx5
 
 重启 Fcitx5（`fcitx5 -r`）或注销后重新登录，并在 `fcitx5-configtool` 中添加“Gannyu Gan / 赣语”。
 
+### Linux：IBus
+
+下载 `GonnyuGeneralIME-版本号-ibus.tar.gz`，解压后运行包内安装程序：
+
+```sh
+tar -xzf GonnyuGeneralIME-版本号-ibus.tar.gz
+cd GonnyuGeneralIME-版本号-ibus
+./install.sh
+```
+
+运行 `ibus-daemon -drx`（或重启 IBus），然后在 `ibus-setup` 的输入法列表添加“Gannyu Gan”。
+
 ### Rime
 
 下载所需区域的 `GonnyuGeneralIME-版本号-rime-地区.zip`。压缩包适用于各 Rime 前端。
@@ -194,26 +209,29 @@ macOS 鼠须管将压缩包内容复制到 `~/Library/Rime/`，重新部署后�
 
 #### 开口呼韵母
 
-| gon-pin | IPA         | 兼容输入         | 说明 |
-| ------- | ----------- | ---------------- | ---- |
-| a       | [a]         | —                |      |
-| o       | [o]或[ɵ]    | —                |      |
-| e       | [e]         | —                |      |
-| ai      | [ai]        | — |  |
-| oi      | [oi]        | —                |      |
-| ei      | [ei]或[ɨi]   | —       | [ei]仅是合音|
-| au      | [au]        | ao               |      |
-| eu      | [ɛu]或 [ɨu] | ou（部分声母后） |      |
-| an   | [an]         | —    |      |
-| en   | [ɛn] 或 [ɨn] | —    |      |
-| on   | [on]         | —    |      |
-| ang | [ɑŋ] | — |  |
-| ong | [ɔŋ] | — |  |
-| at | [at] | — |  |
-| ot | [ot] | — |  |
-| et | [ɛt] 或 [ɨt] | — |  |
-| ak | [aʔ] | — |  |
-| ok | [ɔʔ] | — |  |
+| gon-pin | 南昌及分宜IPA | 兼容输入         | 弋阳IPA | 说明 |
+| ------- | ----------- | ---------------- | ---- | ------- |
+| a       | [a]         | —                | — |  |
+| o       | [o]或[ɵ]    | —                | — |              |
+| e       | [e]         | —                | [ɛ]或[ə]或[ɯ] |              |
+| ai      | [ai]        | — | — |  |
+| oi      | [oi]        | —                | — |  |
+| ei      | [ei]或[ɨi]   | —       | —             | [ei]仅是合音 |
+| au      | [au]        | ao               | — |  |
+| eu      | [ɛu]或 [ɨu] | ou（部分声母后） | — |  |
+| an   | [an]         | —    | — |  |
+| en   | [ɛn] 或 [ɨn] | —    | — ||
+| on   | [on]         | —    | - ||
+| ang | [ɑŋ] | — | - ||
+| ong | [ɔŋ] | on（弋阳） | — |弋阳ong不分前后|
+| eng | -             | en（弋阳）       | [ən]          |大部分人已不区分en和eng|
+| at | [at] | — | — |  |
+| ot | [ot] | — | — |  |
+| et | [ɛt] 或 [ɨt] | — | — |              |
+| ak | [aʔ] | — | — |  |
+| ok | [ɔʔ] | — | — |  |
+| ek | - | — | [ɛʔ]或[ɤʔ] | [ɤʔ]可以写作ek或uk |
+
 
 #### 齐齿呼韵母
 
@@ -221,23 +239,25 @@ macOS 鼠须管将压缩包内容复制到 `~/Library/Rime/`，重新部署后�
 - i后接-a，-o，-e之时，i转写为y.
 - 其他情况下，i转写为yi.
 
-| gon-pin | IPA   | 兼容输入 | 说明 |
-| ------- | ----- | -------- | ---- |
-| i  | [i] 或 [ɿ]  | —   |      |
-| ia | [ia] | — |  |
-| ie | [iɛ] | — |  |
-| iu | [iu] | you（零声母） |  |
-| ieu | [iɛu] | - |  |
-| in      | [in]  | —        |      |
-| ien     | [iɛn] | - |      |
-| iang | [iɑŋ] | - |  |
-| iong | [iɔŋ] | - |  |
-| iung | [iuŋ] | —        |      |
-| it | [it] | it |  |
-| iet | [iet] | - |  |
-| iak | [iaʔ] | - |  |
-| iok | [iɔʔ] | - |  |
-| iuk | [iuʔ] | - |  |
+| gon-pin | 南昌及分宜IPA | 兼容输入 | 弋阳IPA | 说明 |
+| ------- | ----- | -------- | ---- | ------- |
+| i  | [i] 或 [ɿ]  | —   | — |  |
+| ia | [ia] | — | — |      |
+| ie | [iɛ] | — | — |      |
+| iu | [iu] | you（零声母） | — |      |
+| ieu | [iɛu] | - | [iəu]或[iɛu] |  |
+| in      | [in]  | —        | — |  |
+| ien     | [iɛn] | - | — |  |
+| iang | [iɑŋ] | - | - |  |
+| iong | [iɔŋ] | - | - |  |
+| it | [it] | it | - |      |
+| iet | [iet] | - | - |  |
+| ik      | -          |               | [iʔ]或[ɪʔ]   |      |
+| iak     | [iaʔ]      | -             | —            |      |
+| iok     | [iɔʔ]      | -             | —            |      |
+| iek     | - |               | [iɛʔ]        |      |
+| iuk     | [iuʔ]      | -             | —            |  |
+
 
 #### 合口呼韵母
 
@@ -245,40 +265,47 @@ macOS 鼠须管将压缩包内容复制到 `~/Library/Rime/`，重新部署后�
 - u后接-a，-o，-e之时，u转写为w.
 - 其他情况下，w转写为wu.
 
-| gon-pin | IPA   | 兼容输入 | 说明 |
-| ------- | ----- | -------- | ---- |
-| u       | [u]   | -  |      |
-| ua | [ua] | - |  |
-| uo | [uo] | - |  |
-| ue | [ue] | - |  |
-| ui | [uei] | wei（零声母）, wi |  |
-| uai | [uai] | - |  |
-| un | [un]或[uen] | uen |  |
-| uan | [uan] | - |  |
-| uon | [uon] | uen, wen（零声母） |  |
-| ung | [uŋ] | — |   |
-| uang | [uɑŋ] | - |  |
-| uong | [uɔŋ] | - |  |
-| ut | [ut] | - |  |
-| uat | [uat] | - |  |
-| uot | [uot] | - |  |
-| uet | [uɛt] | - |  |
-| uk | [uʔ] | - |  |
-| uak | [uaʔ] | - |  |
-| uok | [uoʔ] | - |  |
+| gon-pin | 南昌及分宜IPA | 兼容输入 | 弋阳IPA | 说明 |
+| ------- | ----- | -------- | ---- | ------- |
+| u       | [u]   | -  | — |  |
+| ua | [ua] | - | — |  |
+| uo | [uo] | - | — |  |
+| ue | [ue] | - | — |  |
+| ui | [uei] | wei（零声母）, wi | — |  |
+| uai | [uai] | - | — |  |
+| uoi     | -           | oi                 | [uoi]        |  |
+| un      | [un]或[uen] | uen                | —            |  |
+| uan     | [uan]       | -                  | —            |  |
+| uon     | [uon]       | uen, wen（零声母） | —            |  |
+| ung     | [uŋ]        | —                  | —            |  |
+| uang    | [uɑŋ]       | -                  | -            |  |
+| uong    | [uɔŋ]       | uon（弋阳）           | —            |  |
+| ut      | [ut]        | -                  | -            |  |
+| uat     | [uat]       | -                  | -            |  |
+| uot     | [uot]       | -                  | -            |  |
+| uet     | [uɛt]       | -                  | -            |  |
+| uk      | [uʔ]        | -                  | [uʔ]或[ɤʔ]           |  |
+| uak     | [uaʔ]       | -                  | —            |  |
+| uok     | [uoʔ]       |                    | —            |  |
+| uek     | —           | uik | [uɛʔ]或[uɤʔ]或[uɪʔ] |  |
 
 #### 撮口呼韵母
 
 暂定全量用yu表示[y].
 
-| gon-pin | IPA   | 兼容输入 | 说明 |
-| ------- | ----- | -------- | ---- |
-| yu      | [y]   | y, v, u  |         |
-| yue | [ye] | - |  |
-| yun     | [yn]  | — |      |
-| yuon | [yon] | yuen, yoin |  |
-| yut | [yt] | - |  |
-| yuot | [yot] | yue, yuet |  |
+| gon-pin | IPA   | 兼容输入 | 弋阳IPA | 说明 |
+| ------- | ----- | -------- | ---- | ------- |
+| yu      | [y]   | y, v, u  | — |  |
+| yue | [ye] | - | — |  |
+| yun     | [yn]  | — | — |  |
+| yuon | [yon] | yuen, yoin | — |  |
+| yuen    | -     | yueng      | [yɛn]或[yɛŋ] |      |
+| yung    | -     | yun      | [yn] |      |
+| yut     | [yt]  | -          | -            |      |
+| yuot    | [yot] | yue, yuet | - |  |
+| yuak | - | - | [yaʔ] |  |
+| yuok | - | - | [yɔʔ] |  |
+| yuek | - | yuik | [yɛʔ]或[yɪʔ] |  |
 
 #### 边鼻韵
 
