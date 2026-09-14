@@ -10,6 +10,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import tomllib
 from pathlib import Path
 
 
@@ -29,6 +30,17 @@ def active_regions() -> list[str]:
         text=True,
     )
     return [line for line in result.stdout.splitlines() if line]
+
+
+def region_metadata(region: str) -> dict[str, str]:
+    config_path = ROOT / "resources" / "regions" / region / "region.toml"
+    with config_path.open("rb") as handle:
+        config = tomllib.load(handle)
+    return {
+        "id": region,
+        "name_zh": str(config["region"]["name_zh"]),
+        "schema_id": f"gannyu_{region}",
+    }
 
 
 def write_manifest(output: Path, regions: list[str]) -> None:
@@ -54,7 +66,7 @@ def write_manifest(output: Path, regions: list[str]) -> None:
             {
                 "product_version": version,
                 "schema_version": version,
-                "regions": [{"id": region, "schema_id": f"gannyu_{region}"} for region in regions],
+                "regions": [region_metadata(region) for region in regions],
                 "files": files,
             },
             ensure_ascii=False,

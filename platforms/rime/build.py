@@ -49,6 +49,13 @@ def active_regions() -> tuple[str, ...]:
     return tuple(regions)
 
 
+def region_name(region: str) -> str:
+    config_path = ROOT / "resources" / "regions" / region / "region.toml"
+    with config_path.open("rb") as handle:
+        config = tomllib.load(handle)
+    return str(config["region"]["name_zh"])
+
+
 with (ROOT / "Cargo.toml").open("rb") as handle:
     VERSION = tomllib.load(handle)["workspace"]["package"]["version"]
 
@@ -550,7 +557,11 @@ def write_resource_manifest(output: Path, regions: tuple[str, ...]) -> None:
         "product_version": VERSION,
         "schema_version": VERSION,
         "regions": [
-            {"id": region, "schema_id": f"gannyu_{region}"}
+            {
+                "id": region,
+                "name_zh": region_name(region),
+                "schema_id": f"gannyu_{region}",
+            }
             for region in regions
         ],
         "files": files,

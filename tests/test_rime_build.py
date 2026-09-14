@@ -72,7 +72,9 @@ def test_rime_build_writes_resource_manifest(tmp_path: Path) -> None:
 
     assert manifest["product_version"]
     assert manifest["schema_version"] == manifest["product_version"]
-    assert manifest["regions"] == [{"id": "lancong", "schema_id": "gannyu_lancong"}]
+    assert manifest["regions"] == [
+        {"id": "lancong", "name_zh": "南昌", "schema_id": "gannyu_lancong"}
+    ]
     assert any(file["path"] == "gannyu_lancong.schema.yaml" for file in manifest["files"])
     assert any(file["path"] == "lua/gannyu_lancong_data.lua" for file in manifest["files"])
 
