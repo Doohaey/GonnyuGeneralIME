@@ -1,0 +1,11 @@
+{
+  "librime": {
+    "repository": "https://github.com/rime/librime.git",
+    "tag": "1.17.0",
+    "commit": "33e78140250125871856cdc5b42ddc6a5fcd3cd4"
+  },
+  "librime_lua": {
+    "repository": "https://github.com/hchunhui/librime-lua.git",
+    "commit": "ad1e4a6c98abf634dd34242a747f9b1d5d069fbe"
+  }
+}
