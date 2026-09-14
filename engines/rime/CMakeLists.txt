@@ -18,8 +18,12 @@ else()
   target_compile_options(gannyu_rime_engine PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
-add_executable(gannyu_rime_engine_probe rime_engine_probe.cpp)
-target_link_libraries(gannyu_rime_engine_probe PRIVATE gannyu_rime_engine)
+option(GANNYU_RIME_BUILD_PROBES "Build host-only Rime adapter probes" ON)
 
-add_executable(gannyu_rime_engine_concurrency_probe rime_engine_concurrency_probe.cpp)
-target_link_libraries(gannyu_rime_engine_concurrency_probe PRIVATE gannyu_rime_engine)
+if(GANNYU_RIME_BUILD_PROBES)
+  add_executable(gannyu_rime_engine_probe rime_engine_probe.cpp)
+  target_link_libraries(gannyu_rime_engine_probe PRIVATE gannyu_rime_engine)
+
+  add_executable(gannyu_rime_engine_concurrency_probe rime_engine_concurrency_probe.cpp)
+  target_link_libraries(gannyu_rime_engine_concurrency_probe PRIVATE gannyu_rime_engine)
+endif()

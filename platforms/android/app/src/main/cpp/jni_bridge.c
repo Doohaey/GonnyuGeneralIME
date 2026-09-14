@@ -222,13 +222,21 @@ Java_io_gannyu_input_GannyuInputMethodService_nativeUserDictBoost(
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_gannyu_input_GannyuInputMethodService_nativeUserDataClear(
-    JNIEnv* env, jobject thiz, jlong handle, jint scope
+Java_io_gannyu_input_GannyuInputMethodService_nativeResetCurrentUserData(
+    JNIEnv* env, jobject thiz, jlong handle
 ) {
     (void)env;
     (void)thiz;
-    return gannyu_pipeline_user_data_clear((void*)(intptr_t)handle, scope) == 0
-        ? JNI_TRUE : JNI_FALSE;
+    char* snapshot = NULL;
+    int status = gannyu_engine_reset_user_data(
+        (void*)(intptr_t)handle,
+        GANNYU_USER_DATA_ALL,
+        &snapshot
+    );
+    if (snapshot != NULL) {
+        gannyu_string_destroy(snapshot);
+    }
+    return status == 0 ? JNI_TRUE : JNI_FALSE;
 }
 
 JNIEXPORT void JNICALL
@@ -274,8 +282,8 @@ Java_io_gannyu_input_NativePipelineBridge_nativeClearComposition(JNIEnv* env, jo
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_gannyu_input_NativePipelineBridge_nativeUserDataClear(JNIEnv* env, jobject thiz, jlong handle, jint scope) {
-    return Java_io_gannyu_input_GannyuInputMethodService_nativeUserDataClear(env, thiz, handle, scope);
+Java_io_gannyu_input_NativePipelineBridge_nativeResetCurrentUserData(JNIEnv* env, jobject thiz, jlong handle) {
+    return Java_io_gannyu_input_GannyuInputMethodService_nativeResetCurrentUserData(env, thiz, handle);
 }
 
 JNIEXPORT void JNICALL

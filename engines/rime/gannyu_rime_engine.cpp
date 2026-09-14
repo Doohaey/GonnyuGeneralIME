@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <exception>
+#include <filesystem>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -143,6 +144,8 @@ struct Runtime {
   std::string prebuilt_data_dir;
   std::string staging_dir;
   RimeApi* api = nullptr;
+  // Non-owning: callers remain the sole owners of pipeline handles.
+  std::vector<GannyuPipelineHandle*> handles;
 };
 
 Runtime& GlobalRuntime() {
@@ -192,6 +195,27 @@ bool EnsureRuntime(const char* shared_data_dir, const char* prebuilt_data_dir, c
 }
 
 RimeApi* Api() { return GlobalRuntime().api; }
+
+bool StartSessionLocked(GannyuPipelineHandle* handle) {
+  handle->session = Api()->create_session();
+  if (handle->session == 0) {
+    SetError("failed to create Rime session");
+    return false;
+  }
+  if (!Api()->select_schema(handle->session, handle->schema_id.c_str())) {
+    Api()->destroy_session(handle->session);
+    handle->session = 0;
+    SetError("failed to select Rime schema: " + handle->schema_id);
+    return false;
+  }
+  return true;
+}
+
+void StopSessionLocked(GannyuPipelineHandle* handle) {
+  if (handle->session == 0) return;
+  Api()->destroy_session(handle->session);
+  handle->session = 0;
+}
 
 std::optional<std::string> TakeCommit(RimeSessionId session) {
   RimeCommit commit{};
@@ -272,17 +296,14 @@ int Create(const char* shared_data_dir,
   Runtime& runtime = GlobalRuntime();
   std::lock_guard<std::mutex> runtime_lock(runtime.mutex);
   auto handle = std::make_unique<GannyuPipelineHandle>();
-  handle->session = Api()->create_session();
-  if (handle->session == 0) {
-    SetError("failed to create Rime session");
-    return kLoadFailure;
-  }
   const std::string region = region_id && *region_id ? region_id : "fenni";
   handle->schema_id = "gannyu_" + region;
-  if (!Api()->select_schema(handle->session, handle->schema_id.c_str())) {
-    Api()->destroy_session(handle->session);
-    SetError("failed to select Rime schema: " + handle->schema_id);
-    return kLoadFailure;
+  if (!StartSessionLocked(handle.get())) return kLoadFailure;
+  try {
+    runtime.handles.push_back(handle.get());
+  } catch (...) {
+    StopSessionLocked(handle.get());
+    throw;
   }
   *out_handle = handle.release();
   return kOk;
@@ -436,11 +457,59 @@ int gannyu_engine_set_ascii_mode(GannyuPipelineHandle* handle, int enabled, char
   });
 }
 
+int gannyu_engine_reset_user_data(GannyuPipelineHandle* handle, int scope, char** out_json) {
+  return AbiStatus([&] {
+    g_last_error.clear();
+    if (handle == nullptr || out_json == nullptr) return kInvalidArgument;
+    *out_json = nullptr;
+    if (scope != GANNYU_USER_DATA_ALL) {
+      SetError("Rime userdb reset supports complete per-schema reset only");
+      return kInvalidArgument;
+    }
+
+    Runtime& runtime = GlobalRuntime();
+    std::lock_guard<std::mutex> lock(runtime.mutex);
+    const auto registered = std::find(runtime.handles.begin(), runtime.handles.end(), handle);
+    if (registered == runtime.handles.end()) {
+      SetError("engine handle is not registered with the Rime runtime");
+      return kInvalidArgument;
+    }
+
+    std::vector<GannyuPipelineHandle*> affected;
+    for (GannyuPipelineHandle* candidate : runtime.handles) {
+      if (candidate->schema_id == handle->schema_id) affected.push_back(candidate);
+    }
+    for (GannyuPipelineHandle* candidate : affected) StopSessionLocked(candidate);
+
+    std::error_code remove_error;
+    const std::filesystem::path userdb =
+        std::filesystem::path(runtime.user_data_dir) / (handle->schema_id + ".userdb");
+    std::filesystem::remove_all(userdb, remove_error);
+
+    bool sessions_restored = true;
+    for (GannyuPipelineHandle* candidate : affected) {
+      if (!StartSessionLocked(candidate)) sessions_restored = false;
+    }
+    if (remove_error) {
+      SetError("failed to remove Rime userdb " + userdb.string() + ": " + remove_error.message());
+      return kLoadFailure;
+    }
+    if (!sessions_restored) {
+      SetError("Rime userdb was removed but one or more sessions could not be restored");
+      return kLoadFailure;
+    }
+    return WriteSnapshot(handle, true, std::nullopt, out_json);
+  });
+}
+
 void gannyu_pipeline_destroy(GannyuPipelineHandle* handle) {
   if (handle == nullptr) return;
   try {
-    std::lock_guard<std::mutex> lock(GlobalRuntime().mutex);
-    if (Api() != nullptr && handle->session != 0) Api()->destroy_session(handle->session);
+    Runtime& runtime = GlobalRuntime();
+    std::lock_guard<std::mutex> lock(runtime.mutex);
+    if (Api() != nullptr) StopSessionLocked(handle);
+    runtime.handles.erase(std::remove(runtime.handles.begin(), runtime.handles.end(), handle),
+                          runtime.handles.end());
     delete handle;
   } catch (...) {
   }

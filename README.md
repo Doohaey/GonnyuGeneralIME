@@ -48,8 +48,9 @@
       - [边鼻韵](#边鼻韵)
       - [其他音素](#其他音素)
     - [补充：南昌声调](#补充南昌声调)
-  - [参考资料](#参考资料)
-    - [参考资料](#参考资料-1)
+  - [参考](#参考)
+    - [文献](#文献)
+    - [依赖声明](#依赖声明)
     - [致谢](#致谢)
   - [缘起：赣语的失落](#缘起赣语的失落)
   - [参与名单与联系方式](#参与名单与联系方式)
@@ -306,11 +307,11 @@ macOS 鼠须管将压缩包内容复制到 `~/Library/Rime/`，重新部署后�
 | 6 | 阴入 | 5 |
 | 7 | 阳入 | 1 或 2 |
 
-## 参考资料
+## 参考
 
 本项目在制作过程中，除参与者自身生活调查之外，参考了大量相关学术作品与方言爱好者社区的内容。因为语言项目本身性质的缘故，必须从大量来源综合资料。输入法方言词典数据与我们参考的内容已尽可能全部公开，如果有任何版权疑虑，可以联系我们。
 
-### 参考资料
+### 文献
 
 1. osfans. **MCPDict** [CP/OL]. GitHub. <https://github.com/osfans/MCPDict>.
 2. 熊正辉. 《南昌方言的文白读》[EB/OL]. <http://ling.cass.cn/keyan/xueshuchengguo/cgtj/202112/W020211223381176680381.pdf>. 访问日期 2026-06-01.
@@ -322,6 +323,13 @@ macOS 鼠须管将压缩包内容复制到 `~/Library/Rime/`，重新部署后�
 8. 《中国语言资源保护工程汉语方言用字规范》 http://www.moe.gov.cn/s78/A19/tongzhi/201704/W020170405307025943395.pdf. 访问日期2026-08-04.
 9. Bilibili 新概念南昌话系列.  https://www.bilibili.com/video/BV1Us4y1C7fp/?share_source=copy_web&vd_source=5078721afbb2afc4394ca2602bb990de
 10. 肖萍、肖介汉. 《江西吴城方言词典》[M]. 北京：商务印书馆，2017. 书目信息可参见 [语言学书目汇编](https://geolinguistics.sakura.ne.jp/Monograph/SIG-Mono7-LAAA-3-ebook.pdf).
+
+### 依赖声明
+
+移动端输入引擎直接使用以下开源项目。构建系统按锁文件固定具体版本；发布物保留相应许可证和版权声明。
+
+1. RIME Developers. **librime**，版本 `1.17.0`，BSD 3-Clause License。<https://github.com/rime/librime>
+2. librime-lua Developers. **librime-lua**，固定提交 `ad1e4a6c98abf634dd34242a747f9b1d5d069fbe`，BSD 3-Clause License。<https://github.com/hchunhui/librime-lua>
 
 ### 致谢
 

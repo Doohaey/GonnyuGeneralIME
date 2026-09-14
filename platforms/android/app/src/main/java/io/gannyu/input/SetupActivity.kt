@@ -122,21 +122,40 @@ class SetupActivity : Activity() {
     }
 
     private fun showClearChoices() {
-        val labels = arrayOf(getString(R.string.clear_user_words), getString(R.string.clear_user_frequencies), getString(R.string.clear_all_user_data))
+        val labels = arrayOf(
+            getString(R.string.clear_current_region_user_data),
+            getString(R.string.clear_all_region_user_data),
+        )
         AlertDialog.Builder(this).setTitle(R.string.clear_user_data_title).setItems(labels) { _, which ->
-            val scope = intArrayOf(GannyuInputMethodService.USER_DATA_WORDS, GannyuInputMethodService.USER_DATA_FREQUENCIES, GannyuInputMethodService.USER_DATA_ALL)[which]
-            val message = intArrayOf(R.string.clear_user_data_words_message, R.string.clear_user_data_frequencies_message, R.string.clear_user_data_all_message)[which]
-            AlertDialog.Builder(this).setMessage(message).setNegativeButton(R.string.cancel_action, null).setPositiveButton(R.string.clear_action) { _, _ -> clearUserData(scope) }.show()
+            val target = intArrayOf(
+                GannyuInputMethodService.USER_DATA_CURRENT_REGION,
+                GannyuInputMethodService.USER_DATA_ALL_REGIONS,
+            )[which]
+            val message = intArrayOf(
+                R.string.clear_current_region_user_data_message,
+                R.string.clear_all_region_user_data_message,
+            )[which]
+            AlertDialog.Builder(this).setMessage(message).setNegativeButton(R.string.cancel_action, null).setPositiveButton(R.string.clear_action) { _, _ -> clearUserData(target) }.show()
         }.show()
     }
 
-    private fun clearUserData(scope: Int) {
+    private fun clearUserData(target: Int) {
         busy = true
         setLoading(true, getString(R.string.user_data_clearing))
-        GannyuInputMethodService.clearUserDataAsync(this, scope) { success -> runOnUiThread {
+        GannyuInputMethodService.clearUserDataAsync(this, target) { success -> runOnUiThread {
             busy = false
             setLoading(false, "")
-            statusView.text = getString(if (success) R.string.user_data_clear_success else R.string.user_data_clear_failed, if (scope == GannyuInputMethodService.USER_DATA_WORDS) getString(R.string.clear_user_words) else if (scope == GannyuInputMethodService.USER_DATA_FREQUENCIES) getString(R.string.clear_user_frequencies) else getString(R.string.clear_all_user_data))
+            val targetLabel = getString(
+                if (target == GannyuInputMethodService.USER_DATA_CURRENT_REGION) {
+                    R.string.clear_current_region_user_data
+                } else {
+                    R.string.clear_all_region_user_data
+                }
+            )
+            statusView.text = getString(
+                if (success) R.string.user_data_clear_success else R.string.user_data_clear_failed,
+                targetLabel,
+            )
         }}
     }
 

@@ -28,7 +28,7 @@ private class NativePipelineBridge {
     external fun nativeProcessKey(handle: Long, eventJson: String): String?
     external fun nativeSelectCandidate(handle: Long, globalIndex: Int): String?
     external fun nativeClearComposition(handle: Long): String?
-    external fun nativeUserDataClear(handle: Long, scope: Int): Boolean
+    external fun nativeResetCurrentUserData(handle: Long): Boolean
     external fun nativeDestroy(handle: Long)
 }
 
@@ -89,7 +89,7 @@ class GannyuInputMethodService : InputMethodService() {
     external fun nativeProcessKey(handle: Long, eventJson: String): String?
     external fun nativeSelectCandidate(handle: Long, globalIndex: Int): String?
     external fun nativeClearComposition(handle: Long): String?
-    external fun nativeUserDataClear(handle: Long, scope: Int): Boolean
+    external fun nativeResetCurrentUserData(handle: Long): Boolean
     external fun nativeDestroy(handle: Long)
     external fun nativeEntryCount(handle: Long): Int
 
@@ -97,9 +97,8 @@ class GannyuInputMethodService : InputMethodService() {
         private const val TAG = "GonnyuIME"
         private const val PREFS_NAME = "gannyu.runtime"
         private const val KEY_SELECTED_REGION = "selected_region"
-        const val USER_DATA_WORDS = 1
-        const val USER_DATA_FREQUENCIES = 2
-        const val USER_DATA_ALL = 3
+        const val USER_DATA_CURRENT_REGION = 1
+        const val USER_DATA_ALL_REGIONS = 2
         @Volatile var preloadedHandle: Long = 0
         @JvmField val preloadLock = Object()
         @Volatile private var staticHandle: Long = 0
@@ -140,26 +139,40 @@ class GannyuInputMethodService : InputMethodService() {
         fun availableRegions(): List<RegionOption> = parseRegionList(nativeRegionListStatic(null))
 
         @JvmStatic
-        fun clearUserDataAsync(context: Context, scope: Int, onComplete: (Boolean) -> Unit) {
+        fun clearUserDataAsync(context: Context, target: Int, onComplete: (Boolean) -> Unit) {
             Thread {
-                val success = synchronized(preloadLock) {
-                    val handles = linkedSetOf<Long>()
-                    if (staticHandle != 0L) handles += staticHandle
-                    if (preloadedHandle != 0L) handles += preloadedHandle
-                    if (handles.isNotEmpty()) {
-                        handles.all { nativeBridge.nativeUserDataClear(it, scope) }
-                    } else {
-                        val region = selectedRegionId(context)
-                        val handle = nativeCreateStatic(null, region, context.filesDir.absolutePath)
-                        if (handle == 0L) false else {
-                            val cleared = nativeBridge.nativeUserDataClear(handle, scope)
-                            if (cleared) {
-                                preloadedHandle = handle
-                                preloadedRegionId = normalizeRegionId(region)
+                val regions = availableRegions()
+                val selected = selectedRegionId(context) ?: regions.firstOrNull()?.id
+                val targets = when (target) {
+                    USER_DATA_CURRENT_REGION -> listOfNotNull(selected)
+                    USER_DATA_ALL_REGIONS -> regions.map { it.id }
+                    else -> emptyList()
+                }.distinct()
+                val success = targets.isNotEmpty() && synchronized(preloadLock) {
+                    val liveHandles = linkedMapOf<String, LinkedHashSet<Long>>()
+                    normalizeRegionId(staticRegionId)?.let { region ->
+                        if (staticHandle != 0L) liveHandles.getOrPut(region, ::linkedSetOf) += staticHandle
+                    }
+                    normalizeRegionId(preloadedRegionId)?.let { region ->
+                        if (preloadedHandle != 0L) {
+                            liveHandles.getOrPut(region, ::linkedSetOf) += preloadedHandle
+                        }
+                    }
+                    targets.all { region ->
+                        val regionHandles = liveHandles[region].orEmpty()
+                        if (regionHandles.isNotEmpty()) {
+                            regionHandles.all(nativeBridge::nativeResetCurrentUserData)
+                        } else {
+                            val temporary = nativeCreateStatic(null, region, context.filesDir.absolutePath)
+                            if (temporary == 0L) {
+                                false
                             } else {
-                                destroyHandle(handle)
+                                try {
+                                    nativeBridge.nativeResetCurrentUserData(temporary)
+                                } finally {
+                                    destroyHandle(temporary)
+                                }
                             }
-                            cleared
                         }
                     }
                 }

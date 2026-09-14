@@ -49,7 +49,9 @@ Rime schema repositories for Lancong(Nanchang) and Fenni(Fenyi). Other installat
       - [Syllabic nasals](#syllabic-nasals)
       - [Other segments](#other-segments)
     - [Lancong(Nanchang) tones](#lancongnanchang-tones)
-  - [Sources](#sources)
+  - [References](#references)
+    - [Literature](#literature)
+    - [Dependency declarations](#dependency-declarations)
     - [Acknowledgements](#acknowledgements)
   - [Why Gon(Gan) Chinese Matters](#why-gongan-chinese-matters)
   - [Contributors and contact](#contributors-and-contact)
@@ -320,9 +322,11 @@ The Lancong(Nanchang) dictionary uses seven tone markers:
 | 6 | yin checked | 5 |
 | 7 | yang checked | 1 or 2 |
 
-## Sources
+## References
 
 In addition to participants’ own field observations, the project draws on academic work and dialect-enthusiast communities. A project of this kind necessarily synthesises many sources. The reference material and dictionary data used here have been made public as far as possible. Please raise any copyright concerns through the project repository.
+
+### Literature
 
 1. osfans. **MCPDict** [CP/OL]. GitHub. <https://github.com/osfans/MCPDict>.
 2. Xiong Zhenghui. *Literary and colloquial readings in the Lancong(Nanchang) dialect* [EB/OL]. <http://ling.cass.cn/keyan/xueshuchengguo/cgtj/202112/W020211223381176680381.pdf>. Accessed 2026-06-01.
@@ -333,6 +337,13 @@ In addition to participants’ own field observations, the project draws on acad
 7. Wikipedia. *Gon(Gan) Chinese*. <https://zh.wikipedia.org/zh-hans/%E8%B4%9B%E8%AA%9E>.
 8. *Character-use standards for Chinese dialects, Language Resources Protection Project of China*. <http://www.moe.gov.cn/s78/A19/tongzhi/201704/W020170405307025943395.pdf>. Accessed 2026-08-04.
 9. Bilibili. *New Concept Lancong(Nanchang) Dialect* series. <https://www.bilibili.com/video/BV1Us4y1C7fp/?share_source=copy_web&vd_source=5078721afbb2afc4394ca2602bb990de>.
+
+### Dependency declarations
+
+The mobile input engine directly uses the following open-source projects. Exact revisions are pinned by the build lock; distributions retain the corresponding licences and copyright notices.
+
+1. RIME Developers. **librime** `1.17.0`, BSD 3-Clause License. <https://github.com/rime/librime>
+2. librime-lua Developers. **librime-lua** commit `ad1e4a6c98abf634dd34242a747f9b1d5d069fbe`, BSD 3-Clause License. <https://github.com/hchunhui/librime-lua>
 
 ### Acknowledgements
 
