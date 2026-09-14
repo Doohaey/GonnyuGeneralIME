@@ -42,9 +42,10 @@ require(hasReleaseSigning || !isReleaseRequested) {
 val mobileRimeResources = rootProject.file("../../build/rime-mobile/mobile-resources")
 val generatedRimeAssets = layout.buildDirectory.dir("generated/rime-assets")
 val prepareRimeAssets by tasks.registering(Sync::class) {
-    from(mobileRimeResources)
+    from(mobileRimeResources) {
+        into("rime")
+    }
     into(generatedRimeAssets)
-    into("rime")
     include("**/*")
     doFirst {
         require(mobileRimeResources.resolve("resource-manifest.json").isFile) {
