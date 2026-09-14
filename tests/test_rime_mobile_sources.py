@@ -16,7 +16,7 @@ def test_mobile_engine_lock_uses_full_pinned_commits() -> None:
 def test_mobile_engine_lock_is_valid_json() -> None:
     raw = json.loads(Path(LOCK_PATH).read_text(encoding="utf-8"))
 
-    assert set(raw) == {"librime", "librime_lua"}
+    assert set(raw) == {"librime", "librime_lua", "librime_lua_thirdparty"}
 
 
 def test_checkout_uses_the_locked_revision(tmp_path: Path) -> None:
@@ -34,3 +34,30 @@ def test_checkout_uses_the_locked_revision(tmp_path: Path) -> None:
     checkout(source.as_uri(), revision, destination)
 
     assert (destination / "marker").read_text(encoding="utf-8") == "pinned"
+
+
+def test_mobile_host_build_script_uses_pinned_librime_lua_and_manifest() -> None:
+    content = (
+        Path(__file__).resolve().parents[1]
+        / "platforms"
+        / "rime"
+        / "mobile"
+        / "build_host.sh"
+    ).read_text(encoding="utf-8")
+
+    assert 'RIME_PLUGINS="librime-lua"' in content
+    assert 'platforms/rime/build.py" --region all' in content
+    assert "resource-manifest.json" in content
+
+
+def test_mobile_host_workflow_runs_remote_build_entrypoint() -> None:
+    content = (
+        Path(__file__).resolve().parents[1]
+        / ".github"
+        / "workflows"
+        / "rime-mobile-host.yml"
+    ).read_text(encoding="utf-8")
+
+    assert "workflow_dispatch:" in content
+    assert "bash platforms/rime/mobile/build_host.sh" in content
+    assert "tests/test_rime_mobile_sources.py" in content

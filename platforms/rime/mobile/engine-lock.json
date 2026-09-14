@@ -7,5 +7,9 @@
   "librime_lua": {
     "repository": "https://github.com/hchunhui/librime-lua.git",
     "commit": "ad1e4a6c98abf634dd34242a747f9b1d5d069fbe"
+  },
+  "librime_lua_thirdparty": {
+    "repository": "https://github.com/hchunhui/librime-lua.git",
+    "commit": "9e5bb71db1544913f8005dadc3df8439c00d08b7"
   }
 }

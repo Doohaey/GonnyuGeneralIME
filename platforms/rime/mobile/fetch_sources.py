@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from __future__ import annotations
+
 import json
 import os
 import shutil
@@ -26,7 +28,7 @@ def run(*args: str, cwd: Path | None = None, capture: bool = False) -> str:
 
 def read_lock() -> dict[str, dict[str, str]]:
     lock = json.loads(LOCK_PATH.read_text(encoding="utf-8"))
-    for name in ("librime", "librime_lua"):
+    for name in ("librime", "librime_lua", "librime_lua_thirdparty"):
         component = lock.get(name, {})
         if not isinstance(component.get("repository"), str) or not isinstance(component.get("commit"), str):
             raise RuntimeError(f"invalid engine lock component: {name}")
@@ -57,7 +59,10 @@ def fetch_sources(destination: Path = OUTPUT) -> Path:
     librime = lock["librime"]
     checkout(librime["repository"], librime["commit"], destination / "librime", recursive=True)
     lua = lock["librime_lua"]
-    checkout(lua["repository"], lua["commit"], destination / "librime" / "plugins" / "librime-lua")
+    lua_root = destination / "librime" / "plugins" / "librime-lua"
+    checkout(lua["repository"], lua["commit"], lua_root)
+    thirdparty = lock["librime_lua_thirdparty"]
+    checkout(thirdparty["repository"], thirdparty["commit"], lua_root / "thirdparty")
     return destination
 
 
