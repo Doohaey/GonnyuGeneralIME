@@ -265,6 +265,10 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "$(GANNYU_APP_BUNDLE_IDENTIFIER)";
 				PRODUCT_MODULE_NAME = GonnyuInput;
 				PRODUCT_NAME = GonnyuInputMethod;
+				OTHER_LDFLAGS = (
+					"-force_load",
+					"$(BUILT_PRODUCTS_DIR)/libgannyu_input_ffi.a",
+				);
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_VERSION = 5.10;
@@ -285,6 +289,10 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "$(GANNYU_KEYBOARD_BUNDLE_IDENTIFIER)";
 				PRODUCT_MODULE_NAME = GonnyuKeyboard;
 				PRODUCT_NAME = GonnyuKeyboard;
+				OTHER_LDFLAGS = (
+					"-force_load",
+					"$(BUILT_PRODUCTS_DIR)/libgannyu_input_ffi.a",
+				);
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_VERSION = 5.10;

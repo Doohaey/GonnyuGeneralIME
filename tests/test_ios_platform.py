@@ -17,6 +17,8 @@ def test_ios_platform_declares_host_app_keyboard_extension_and_build_entrypoint(
     assert "GannyuKeyboard/Info.plist" in project
     assert "PRODUCT_NAME = GonnyuInputMethod" in project
     assert "PRODUCT_NAME = GonnyuKeyboard" in project
+    assert project.count('"-force_load"') == 2
+    assert project.count('"$(BUILT_PRODUCTS_DIR)/libgannyu_input_ffi.a"') == 2
     assert "PRODUCT_MODULE_NAME = GonnyuInput" in project
     assert "PRODUCT_MODULE_NAME = GonnyuKeyboard" in project
     assert "Config/Signing.xcconfig" in project
