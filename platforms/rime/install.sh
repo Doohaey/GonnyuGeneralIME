@@ -36,5 +36,5 @@ fi
 rime_deployer --build "$user_dir" "$shared_dir" "$user_dir/build"
 fcitx5-remote -r >/dev/null 2>&1 || true
 
-echo "installed Gannyu Rime schema into $user_dir"
+echo "installed Gonnyu Rime schema into $user_dir"
 echo "select a Gonnyu region from the Rime schema menu"

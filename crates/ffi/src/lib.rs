@@ -20,6 +20,7 @@ include!(concat!(env!("OUT_DIR"), "/embedded_resources.rs"));
 include!(concat!(env!("OUT_DIR"), "/integrity.rs"));
 
 use hmac::{Hmac, Mac};
+use serde::{Deserialize, Serialize};
 use sha2::Sha256;
 
 type HmacSha256 = Hmac<Sha256>;
@@ -60,6 +61,7 @@ fn verify_resource_integrity() -> bool {
 
 pub struct GannyuPipelineHandle {
     pipeline: Mutex<InputPipeline>,
+    session: Mutex<EngineSessionState>,
     /// Temp directory holding decrypted resources — cleaned up on destroy
     _temp_dir: Option<tempfile::TempDir>,
     /// Open file descriptors for unlinked decrypted resources (Linux; empty
@@ -71,10 +73,73 @@ pub struct GannyuPipelineHandle {
     user_data_dir: Option<String>,
 }
 
+#[repr(C)]
+pub struct GannyuEngineConfig {
+    pub struct_size: usize,
+    pub region_id: *const c_char,
+    pub shared_data_dir: *const c_char,
+    pub prebuilt_data_dir: *const c_char,
+    pub user_data_dir: *const c_char,
+}
+
 const STATUS_OK: c_int = 0;
 const STATUS_INVALID_ARGUMENT: c_int = 1;
 const STATUS_LOAD_FAILURE: c_int = 2;
 const STATUS_SERIALIZE_FAILURE: c_int = 3;
+const SESSION_PAGE_SIZE: usize = 100;
+
+#[derive(Debug, Default)]
+struct EngineSessionState {
+    raw_input: String,
+    page_number: usize,
+    ascii_mode: bool,
+    accumulated_text: String,
+    accumulated_readings: Vec<String>,
+    accumulated_mandarin_readings: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(tag = "type", rename_all = "kebab-case")]
+enum EngineKeyEvent {
+    Text { text: String },
+    Backspace,
+    Space,
+    Enter,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct EngineCandidateSnapshot {
+    text: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    annotation: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    reading: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    mandarin_reading: Option<String>,
+    global_index: usize,
+    page_index: usize,
+    deletable: bool,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct EngineSnapshot {
+    handled: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    commit_text: Option<String>,
+    raw_input: String,
+    preedit: String,
+    caret: usize,
+    candidates: Vec<EngineCandidateSnapshot>,
+    highlighted_index: Option<usize>,
+    page_number: usize,
+    has_previous_page: bool,
+    has_next_page: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    schema_id: Option<String>,
+    ascii_mode: bool,
+}
 
 thread_local! {
     static LAST_ERROR: RefCell<Option<String>> = const { RefCell::new(None) };
@@ -95,6 +160,209 @@ fn take_last_error() -> Option<String> {
 fn load_failure(stage: &str, error: impl std::fmt::Display) -> c_int {
     set_last_error(format!("{stage}: {error}"));
     STATUS_LOAD_FAILURE
+}
+
+fn invalid_argument(message: impl Into<String>) -> c_int {
+    set_last_error(message);
+    STATUS_INVALID_ARGUMENT
+}
+
+fn sanitize_committed_text(text: &str) -> String {
+    text.replace('「', "“")
+        .replace('」', "”")
+        .replace('『', "“")
+        .replace('』', "”")
+}
+
+fn clear_accumulated_selection(session: &mut EngineSessionState) {
+    session.accumulated_text.clear();
+    session.accumulated_readings.clear();
+    session.accumulated_mandarin_readings.clear();
+}
+
+fn maybe_save_user_word(pipeline: &mut InputPipeline, session: &mut EngineSessionState) {
+    if session.accumulated_text.chars().count() >= 2 && !session.accumulated_readings.is_empty() {
+        let mandarin = session.accumulated_mandarin_readings.join(" ");
+        let _ = pipeline.add_user_word(
+            &session.accumulated_text,
+            &session.accumulated_readings.join(" "),
+            if mandarin.is_empty() { "" } else { &mandarin },
+        );
+    }
+    clear_accumulated_selection(session);
+}
+
+fn commit_raw_input(session: &mut EngineSessionState) -> Option<String> {
+    if session.raw_input.is_empty() {
+        return None;
+    }
+    let committed = std::mem::take(&mut session.raw_input);
+    session.page_number = 0;
+    clear_accumulated_selection(session);
+    Some(committed)
+}
+
+fn select_candidate_internal(
+    pipeline: &mut InputPipeline,
+    session: &mut EngineSessionState,
+    global_index: usize,
+) -> Option<String> {
+    let candidates = pipeline.retrieve(&session.raw_input);
+    let candidate = candidates.get(global_index)?.clone();
+    let committed = sanitize_committed_text(&candidate.text);
+    let _ = pipeline.boost_frequency(&committed);
+    session.accumulated_text.push_str(&committed);
+    if let Some(reading) = candidate.reading.as_ref().filter(|value| !value.is_empty()) {
+        session.accumulated_readings.push(reading.clone());
+    }
+    if let Some(reading) = candidate
+        .mandarin_reading
+        .as_ref()
+        .filter(|value| !value.is_empty())
+    {
+        session.accumulated_mandarin_readings.push(reading.clone());
+    }
+    let consumed = candidate.consumed_bytes.min(session.raw_input.len());
+    if consumed < session.raw_input.len() && session.raw_input.is_char_boundary(consumed) {
+        session.raw_input = session.raw_input[consumed..].to_string();
+    } else {
+        session.raw_input.clear();
+    }
+    session.page_number = 0;
+    if session.raw_input.is_empty() {
+        maybe_save_user_word(pipeline, session);
+    }
+    Some(committed)
+}
+
+fn commit_default_candidate_or_raw(
+    pipeline: &mut InputPipeline,
+    session: &mut EngineSessionState,
+) -> Option<String> {
+    if session.raw_input.is_empty() {
+        return None;
+    }
+    select_candidate_internal(pipeline, session, 0).or_else(|| commit_raw_input(session))
+}
+
+fn is_composition_input(text: &str) -> bool {
+    !text.is_empty()
+        && text
+            .chars()
+            .all(|character| character.is_ascii_alphabetic() || character == '\'')
+}
+
+fn build_snapshot(
+    handle: &GannyuPipelineHandle,
+    handled: bool,
+    commit_text: Option<String>,
+) -> EngineSnapshot {
+    let pipeline = handle.pipeline.lock();
+    let mut session = handle.session.lock();
+    let all_candidates = pipeline.retrieve(&session.raw_input);
+    let total_pages = if all_candidates.is_empty() {
+        1
+    } else {
+        all_candidates.len().div_ceil(SESSION_PAGE_SIZE)
+    };
+    if session.page_number >= total_pages {
+        session.page_number = total_pages.saturating_sub(1);
+    }
+    let page_number = session.page_number;
+    let start = page_number * SESSION_PAGE_SIZE;
+    let page_candidates = all_candidates
+        .iter()
+        .skip(start)
+        .take(SESSION_PAGE_SIZE)
+        .enumerate()
+        .map(|(page_index, candidate)| EngineCandidateSnapshot {
+            text: candidate.text.clone(),
+            annotation: candidate.annotation.clone(),
+            reading: candidate.reading.clone(),
+            mandarin_reading: candidate.mandarin_reading.clone(),
+            global_index: start + page_index,
+            page_index,
+            deletable: candidate
+                .annotation
+                .as_deref()
+                .is_some_and(|annotation| annotation.contains("[用户]")),
+        })
+        .collect::<Vec<_>>();
+    let highlighted_index = (!page_candidates.is_empty()).then_some(0);
+    let preedit = pipeline.format_preedit_display(
+        &session.raw_input,
+        all_candidates
+            .first()
+            .map_or(0, |candidate| candidate.consumed_bytes),
+    );
+    let caret = preedit.chars().count();
+    EngineSnapshot {
+        handled,
+        commit_text,
+        raw_input: session.raw_input.clone(),
+        preedit,
+        caret,
+        candidates: page_candidates,
+        highlighted_index,
+        page_number,
+        has_previous_page: page_number > 0,
+        has_next_page: page_number + 1 < total_pages,
+        schema_id: handle.region_id.clone(),
+        ascii_mode: session.ascii_mode,
+    }
+}
+
+fn serialize_snapshot(snapshot: &EngineSnapshot, out_json: *mut *mut c_char) -> c_int {
+    if out_json.is_null() {
+        return invalid_argument("invalid output json pointer");
+    }
+    unsafe {
+        *out_json = ptr::null_mut();
+    }
+    let serialized = match serde_json::to_string(snapshot) {
+        Ok(value) => value,
+        Err(error) => return load_failure("engine snapshot serialization failed", error),
+    };
+    match CString::new(serialized) {
+        Ok(value) => {
+            unsafe {
+                *out_json = value.into_raw();
+            }
+            STATUS_OK
+        }
+        Err(_) => STATUS_SERIALIZE_FAILURE,
+    }
+}
+
+unsafe fn swap_handle_from_recreated(
+    current: &mut GannyuPipelineHandle,
+    manifest_path: *const c_char,
+    region_id: *const c_char,
+    user_data_dir: *const c_char,
+) -> c_int {
+    let mut replacement = ptr::null_mut();
+    let status = gannyu_pipeline_create_with_user_data_dir(
+        manifest_path,
+        region_id,
+        user_data_dir,
+        &mut replacement,
+    );
+    if status != STATUS_OK || replacement.is_null() {
+        return if status == STATUS_OK {
+            load_failure("engine recreation failed", "replacement handle was null")
+        } else {
+            status
+        };
+    }
+    let replacement = *Box::from_raw(replacement);
+    *current.pipeline.lock() = replacement.pipeline.into_inner();
+    *current.session.lock() = replacement.session.into_inner();
+    current._temp_dir = replacement._temp_dir;
+    current._resource_fds = replacement._resource_fds;
+    current.manifest_path = replacement.manifest_path;
+    current.region_id = replacement.region_id;
+    current.user_data_dir = replacement.user_data_dir;
+    STATUS_OK
 }
 
 #[no_mangle]
@@ -270,6 +538,29 @@ pub unsafe extern "C" fn gannyu_pipeline_create(
 }
 
 #[no_mangle]
+pub unsafe extern "C" fn gannyu_engine_create(
+    config: *const GannyuEngineConfig,
+    out_handle: *mut *mut GannyuPipelineHandle,
+) -> c_int {
+    clear_last_error();
+    if config.is_null() || out_handle.is_null() {
+        return invalid_argument("engine config and output handle are required");
+    }
+    if (*config).struct_size < std::mem::size_of::<GannyuEngineConfig>() {
+        return invalid_argument("engine config is older than the required ABI");
+    }
+    // The Rust backend embeds its immutable shared resources. The directory
+    // fields are intentionally accepted but unused so callers can keep one
+    // engine-neutral creation path while mobile builds select librime.
+    pipeline_create(
+        ptr::null(),
+        (*config).region_id,
+        (*config).user_data_dir,
+        out_handle,
+    )
+}
+
+#[no_mangle]
 pub unsafe extern "C" fn gannyu_pipeline_create_with_user_data_dir(
     manifest_path: *const c_char,
     region_id: *const c_char,
@@ -369,6 +660,7 @@ unsafe fn pipeline_create(
     };
     let handle = Box::new(GannyuPipelineHandle {
         pipeline: Mutex::new(pipeline),
+        session: Mutex::new(EngineSessionState::default()),
         _temp_dir: temp_dir,
         _resource_fds: resource_fds,
         manifest_path: requested_manifest,
@@ -644,6 +936,7 @@ pub unsafe extern "C" fn gannyu_pipeline_user_data_clear(
     }
     let replacement = *Box::from_raw(replacement);
     *current.pipeline.lock() = replacement.pipeline.into_inner();
+    *current.session.lock() = replacement.session.into_inner();
     current._temp_dir = replacement._temp_dir;
     current._resource_fds = replacement._resource_fds;
     current.manifest_path = replacement.manifest_path;
@@ -695,6 +988,241 @@ pub unsafe extern "C" fn gannyu_region_list(
         }
         Err(_) => STATUS_SERIALIZE_FAILURE,
     }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn gannyu_engine_snapshot(
+    handle: *mut GannyuPipelineHandle,
+    out_json: *mut *mut c_char,
+) -> c_int {
+    clear_last_error();
+    if handle.is_null() {
+        return invalid_argument("engine handle is null");
+    }
+    let snapshot = build_snapshot(&*handle, false, None);
+    serialize_snapshot(&snapshot, out_json)
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn gannyu_engine_process_key(
+    handle: *mut GannyuPipelineHandle,
+    event_json: *const c_char,
+    out_json: *mut *mut c_char,
+) -> c_int {
+    clear_last_error();
+    if handle.is_null() {
+        return invalid_argument("engine handle is null");
+    }
+    let Some(event_text) = cstr_to_str(event_json) else {
+        return invalid_argument("engine key event must be a valid UTF-8 JSON string");
+    };
+    let event = match serde_json::from_str::<EngineKeyEvent>(event_text) {
+        Ok(value) => value,
+        Err(error) => return invalid_argument(format!("invalid engine key event: {error}")),
+    };
+    let handle = &mut *handle;
+    let mut pipeline = handle.pipeline.lock();
+    let mut session = handle.session.lock();
+    let (handled, commit_text) = match event {
+        EngineKeyEvent::Text { text } => {
+            if is_composition_input(&text) {
+                session.raw_input.push_str(&text.to_lowercase());
+                session.page_number = 0;
+                (true, None)
+            } else if session.raw_input.is_empty() {
+                (true, Some(text))
+            } else {
+                let commit = commit_default_candidate_or_raw(&mut pipeline, &mut session)
+                    .map(|value| format!("{value}{text}"))
+                    .or(Some(text));
+                (true, commit)
+            }
+        }
+        EngineKeyEvent::Backspace => {
+            let removed = session.raw_input.pop().is_some();
+            if session.raw_input.is_empty() {
+                clear_accumulated_selection(&mut session);
+            }
+            if removed {
+                session.page_number = 0;
+            }
+            (removed, None)
+        }
+        EngineKeyEvent::Space => {
+            if session.raw_input.is_empty() {
+                (true, Some(" ".to_string()))
+            } else {
+                (
+                    true,
+                    commit_default_candidate_or_raw(&mut pipeline, &mut session),
+                )
+            }
+        }
+        EngineKeyEvent::Enter => {
+            if session.raw_input.is_empty() {
+                (true, Some("\n".to_string()))
+            } else {
+                (true, commit_raw_input(&mut session))
+            }
+        }
+    };
+    drop(session);
+    drop(pipeline);
+    let snapshot = build_snapshot(handle, handled, commit_text);
+    serialize_snapshot(&snapshot, out_json)
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn gannyu_engine_select_candidate(
+    handle: *mut GannyuPipelineHandle,
+    global_index: usize,
+    out_json: *mut *mut c_char,
+) -> c_int {
+    clear_last_error();
+    if handle.is_null() {
+        return invalid_argument("engine handle is null");
+    }
+    let handle = &mut *handle;
+    let mut pipeline = handle.pipeline.lock();
+    let mut session = handle.session.lock();
+    let commit_text = select_candidate_internal(&mut pipeline, &mut session, global_index);
+    let handled = commit_text.is_some();
+    drop(session);
+    drop(pipeline);
+    let snapshot = build_snapshot(handle, handled, commit_text);
+    serialize_snapshot(&snapshot, out_json)
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn gannyu_engine_change_page(
+    handle: *mut GannyuPipelineHandle,
+    direction: c_int,
+    out_json: *mut *mut c_char,
+) -> c_int {
+    clear_last_error();
+    if handle.is_null() {
+        return invalid_argument("engine handle is null");
+    }
+    let handle = &*handle;
+    let pipeline = handle.pipeline.lock();
+    let mut session = handle.session.lock();
+    let total_candidates = pipeline.retrieve(&session.raw_input).len();
+    let total_pages = if total_candidates == 0 {
+        1
+    } else {
+        total_candidates.div_ceil(SESSION_PAGE_SIZE)
+    };
+    let previous = session.page_number;
+    match direction.cmp(&0) {
+        std::cmp::Ordering::Less => {
+            session.page_number = session.page_number.saturating_sub(1);
+        }
+        std::cmp::Ordering::Greater => {
+            if session.page_number + 1 < total_pages {
+                session.page_number += 1;
+            }
+        }
+        std::cmp::Ordering::Equal => {}
+    }
+    let handled = session.page_number != previous;
+    drop(session);
+    drop(pipeline);
+    let snapshot = build_snapshot(handle, handled, None);
+    serialize_snapshot(&snapshot, out_json)
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn gannyu_engine_clear_composition(
+    handle: *mut GannyuPipelineHandle,
+    out_json: *mut *mut c_char,
+) -> c_int {
+    clear_last_error();
+    if handle.is_null() {
+        return invalid_argument("engine handle is null");
+    }
+    let handle = &*handle;
+    {
+        let mut session = handle.session.lock();
+        session.raw_input.clear();
+        session.page_number = 0;
+        clear_accumulated_selection(&mut session);
+    }
+    let snapshot = build_snapshot(handle, true, None);
+    serialize_snapshot(&snapshot, out_json)
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn gannyu_engine_switch_region(
+    handle: *mut GannyuPipelineHandle,
+    region_id: *const c_char,
+    out_json: *mut *mut c_char,
+) -> c_int {
+    clear_last_error();
+    if handle.is_null() {
+        return invalid_argument("engine handle is null");
+    }
+    let Some(region) = cstr_to_str(region_id).filter(|value| !value.trim().is_empty()) else {
+        return invalid_argument("region id must be a non-empty UTF-8 string");
+    };
+    let current = &mut *handle;
+    let manifest = current
+        .manifest_path
+        .as_ref()
+        .map(|value| CString::new(value.as_str()).unwrap());
+    let user_data_dir = current
+        .user_data_dir
+        .as_ref()
+        .map(|value| CString::new(value.as_str()).unwrap());
+    let region = CString::new(region).unwrap();
+    let status = swap_handle_from_recreated(
+        current,
+        manifest
+            .as_ref()
+            .map_or(ptr::null(), |value| value.as_ptr()),
+        region.as_ptr(),
+        user_data_dir
+            .as_ref()
+            .map_or(ptr::null(), |value| value.as_ptr()),
+    );
+    if status != STATUS_OK {
+        return status;
+    }
+    let snapshot = build_snapshot(current, true, None);
+    serialize_snapshot(&snapshot, out_json)
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn gannyu_engine_set_ascii_mode(
+    handle: *mut GannyuPipelineHandle,
+    enabled: c_int,
+    out_json: *mut *mut c_char,
+) -> c_int {
+    clear_last_error();
+    if handle.is_null() {
+        return invalid_argument("engine handle is null");
+    }
+    let handle = &*handle;
+    handle.session.lock().ascii_mode = enabled != 0;
+    let snapshot = build_snapshot(handle, true, None);
+    serialize_snapshot(&snapshot, out_json)
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn gannyu_engine_reset_user_data(
+    handle: *mut GannyuPipelineHandle,
+    scope: c_int,
+    out_json: *mut *mut c_char,
+) -> c_int {
+    clear_last_error();
+    if handle.is_null() {
+        return invalid_argument("engine handle is null");
+    }
+    let status = gannyu_pipeline_user_data_clear(handle, scope);
+    if status != STATUS_OK {
+        return status;
+    }
+    let snapshot = build_snapshot(&*handle, true, None);
+    serialize_snapshot(&snapshot, out_json)
 }
 
 #[no_mangle]

@@ -114,7 +114,7 @@ class SetupActivity : Activity() {
             .setNegativeButton(R.string.close_action, null)
             .setPositiveButton(R.string.copy_action) { _, _ ->
                 getSystemService(ClipboardManager::class.java)?.setPrimaryClip(
-                    ClipData.newPlainText("Gannyu preload error", report),
+                    ClipData.newPlainText("Gonnyu preload error", report),
                 )
                 Toast.makeText(this, R.string.copy_success, Toast.LENGTH_SHORT).show()
             }

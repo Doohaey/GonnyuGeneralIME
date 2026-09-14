@@ -44,7 +44,7 @@ def test_ios_keyboard_and_host_share_manifest_driven_region_selection() -> None:
     assert "UserDefaults(suiteName: group)" in support
     assert "?? .standard" not in support
     assert "regions.contains(where:" in support
-    assert "GannyuAppleEngine(" in keyboard
+    assert "GonnyuAppleEngine(" in keyboard
     assert "userDataDirectory: store.userDataDirectory" in keyboard
     assert "store.select(region.id, in: regions)" in host
     assert "com.apple.keyboard-service" in extension_info
@@ -74,12 +74,13 @@ def test_ios_keyboard_matches_android_composition_and_default_candidate_rules() 
     assert 'case "分词":' in keyboard
     assert 'append("\'")' in keyboard
     assert "private func handleSpace()" in keyboard
-    assert "if buffer.isEmpty" in keyboard
-    assert "private func commitComposingIfNeeded()" in keyboard
+    assert "if snapshot.rawInput.isEmpty" in keyboard
+    assert "engine?.process(.space)" in keyboard
     assert "configuration.subtitle" in keyboard
-    assert "candidate.consumedBytes" in keyboard
-    assert "saveAccumulatedUserWord()" in keyboard
-    assert "gannyu_pipeline_user_dict_add" in support
+    assert "engine?.selectCandidate(globalIndex: index)" in keyboard
+    assert "snapshot = (try? engine?.snapshot()) ?? .empty" in keyboard
+    assert "gannyu_engine_process_key" in support
+    assert "gannyu_engine_select_candidate" in support
     assert "gannyu_pipeline_create_with_user_data_dir" in support
     assert "containerURL" in support
     assert "userDataDirectory" in support
@@ -93,7 +94,7 @@ def test_ios_host_matches_android_user_data_controls() -> None:
         encoding="utf-8"
     )
 
-    assert "GannyuAppleUserDataScope" in support
+    assert "GonnyuAppleUserDataScope" in support
     assert "gannyu_pipeline_user_data_clear" in support
     assert "清空用户词" in host
     assert "清空学习词频" in host

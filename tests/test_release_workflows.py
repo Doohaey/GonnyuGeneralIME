@@ -55,6 +55,7 @@ def test_android_build_supports_a_local_keystore_without_base64() -> None:
     gradle = (root / "app" / "build.gradle.kts").read_text(encoding="utf-8")
 
     assert "ANDROID_KEYSTORE_PATH" in build
+    assert "local.properties" in build
 
 
 def test_platform_builds_accept_prerelease_versions() -> None:
@@ -63,3 +64,20 @@ def test_platform_builds_accept_prerelease_versions() -> None:
 
     cmake = (ROOT / "platforms/linux/fcitx5/CMakeLists.txt").read_text(encoding="utf-8")
     assert "(-[0-9A-Za-z.-]+)?" in cmake
+
+
+def test_rime_mobile_host_workflow_uses_remote_build_entrypoint() -> None:
+    content = (ROOT / ".github/workflows/rime-mobile-host.yml").read_text(encoding="utf-8")
+    assert "workflow_dispatch:" in content
+    assert "python -m pytest -q tests/test_rime_build.py tests/test_rime_mobile_sources.py" in content
+    assert "bash platforms/rime/mobile/build_host.sh" in content
+
+
+def test_local_android_sdk_file_stays_ignored_and_ci_safe() -> None:
+    root_ignore = Path(__file__).resolve().parents[2].joinpath(".gitignore").read_text(encoding="utf-8")
+    share_ignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
+    build_script = (ROOT / "platforms/android/build.sh").read_text(encoding="utf-8")
+
+    assert "platforms/android/local.properties" in root_ignore
+    assert "platforms/android/local.properties" in share_ignore
+    assert 'write_local_properties "$SDK_ROOT"' in build_script

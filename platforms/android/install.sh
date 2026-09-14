@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Gannyu Android 输入法安装脚本；将已构建的 APK 安装到连接设备并启用输入法。
+# Gonnyu Android 输入法安装脚本；将已构建的 APK 安装到连接设备并启用输入法。
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

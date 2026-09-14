@@ -1,15 +1,11 @@
 import UIKit
 
 final class KeyboardViewController: UIInputViewController {
-    private let store = GannyuAppleRegionStore()
-    private var regions: [GannyuAppleRegion] = []
-    private var engine: GannyuAppleEngine?
+    private let store = GonnyuAppleRegionStore()
+    private var regions: [GonnyuAppleRegion] = []
+    private var engine: GonnyuAppleEngine?
     private var regionID: String?
-    private var buffer = ""
-    private var candidates: [GannyuAppleCandidate] = []
-    private var accumulatedText = ""
-    private var accumulatedReadings: [String] = []
-    private var accumulatedMandarinReadings: [String] = []
+    private var snapshot = GonnyuAppleSnapshot.empty
     private var symbolPage = false
     private var englishMode = false
     private var backspaceTimer: Timer?
@@ -25,7 +21,7 @@ final class KeyboardViewController: UIInputViewController {
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(regionDidChange),
-            name: GannyuAppleRegionStore.didChange,
+            name: GonnyuAppleRegionStore.didChange,
             object: nil
         )
     }
@@ -137,25 +133,16 @@ final class KeyboardViewController: UIInputViewController {
         case "⌫":
             deleteBackward()
         case "英", "中":
-            buffer = ""
-            candidates = []
-            clearLearningState()
+            clearComposition()
             englishMode.toggle()
             render()
             renderKeyboard()
         case "空格":
             handleSpace()
         case "⏎":
-            commitRawBuffer()
-            textDocumentProxy.insertText("\n")
+            handleEnter()
         case "123":
-            // Clear any in-progress composition so the default candidate (or any
-            // accumulated input) is not accidentally committed when the first
-            // symbol/digit is pressed on the numeric sub-keyboard.
-            buffer = ""
-            candidates = []
-            clearLearningState()
-            render()
+            clearComposition()
             symbolPage = true
             renderKeyboard()
         case "ABC":
@@ -167,8 +154,7 @@ final class KeyboardViewController: UIInputViewController {
         case "分词":
             append("'")
         case "，", "、", "。", "？", "！", "：", "；":
-            commitComposingIfNeeded()
-            textDocumentProxy.insertText(key)
+            apply(try? engine?.process(.text(key)))
         default:
             if symbolPage {
                 textDocumentProxy.insertText(key)
@@ -196,31 +182,24 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func append(_ text: String) {
-        buffer += text.lowercased()
-        refreshComposition()
+        apply(try? engine?.process(.text(text.lowercased())))
     }
 
     private func deleteBackward() {
-        if buffer.isEmpty {
+        if snapshot.rawInput.isEmpty {
             textDocumentProxy.deleteBackward()
         } else {
-            buffer.removeLast()
-            refreshComposition()
+            apply(try? engine?.process(.backspace))
         }
     }
 
-    private func refreshComposition() {
-        candidates = (try? engine?.candidates(for: buffer)) ?? []
-        render()
-    }
-
     private func render() {
-        preeditLabel.text = buffer.isEmpty ? nil : ((try? engine?.formatPreedit(buffer)) ?? buffer)
+        preeditLabel.text = snapshot.preedit.isEmpty ? nil : snapshot.preedit
         candidateStack.arrangedSubviews.forEach {
             candidateStack.removeArrangedSubview($0)
             $0.removeFromSuperview()
         }
-        for (index, candidate) in candidates.enumerated() {
+        for candidate in snapshot.candidates {
             let button = UIButton(type: .system)
             var configuration = UIButton.Configuration.plain()
             configuration.title = candidate.text
@@ -239,7 +218,7 @@ final class KeyboardViewController: UIInputViewController {
             button.configuration = configuration
             button.accessibilityLabel = candidate.text
             button.accessibilityHint = candidate.annotation
-            button.tag = index
+            button.tag = candidate.globalIndex
             button.addTarget(self, action: #selector(candidatePressed(_:)), for: .touchUpInside)
             candidateStack.addArrangedSubview(button)
         }
@@ -250,73 +229,41 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func commitCandidate(at index: Int) {
-        guard candidates.indices.contains(index) else {
-            return
-        }
-        let candidate = candidates[index]
-        engine?.boost(candidate.text)
-        recordSelection(candidate)
-        textDocumentProxy.insertText(candidate.text)
-        let consumed = max(0, min(candidate.consumedBytes, buffer.utf8.count))
-        buffer = consumed < buffer.utf8.count
-            ? String(decoding: buffer.utf8.dropFirst(consumed), as: UTF8.self)
-            : ""
-        if buffer.isEmpty {
-            saveAccumulatedUserWord()
-        }
-        refreshComposition()
-    }
-
-    private func commitRawBuffer() {
-        guard !buffer.isEmpty else { return }
-        textDocumentProxy.insertText(buffer)
-        buffer = ""
-        clearLearningState()
-        refreshComposition()
+        apply(try? engine?.selectCandidate(globalIndex: index))
     }
 
     private func handleSpace() {
-        if buffer.isEmpty {
+        if snapshot.rawInput.isEmpty {
             textDocumentProxy.insertText(" ")
         } else {
-            commitCandidate(at: 0)
+            apply(try? engine?.process(.space))
         }
     }
 
-    private func commitComposingIfNeeded() {
-        guard !buffer.isEmpty else { return }
-        if candidates.isEmpty {
-            commitRawBuffer()
+    private func handleEnter() {
+        if snapshot.rawInput.isEmpty {
+            textDocumentProxy.insertText("\n")
         } else {
-            commitCandidate(at: 0)
+            apply(try? engine?.process(.enter))
         }
     }
 
-    private func recordSelection(_ candidate: GannyuAppleCandidate) {
-        accumulatedText += candidate.text
-        if let reading = candidate.reading, !reading.isEmpty {
-            accumulatedReadings.append(reading)
+    private func clearComposition() {
+        if let updated = try? engine?.clearComposition() {
+            apply(updated)
+            return
         }
-        if let reading = candidate.mandarinReading, !reading.isEmpty {
-            accumulatedMandarinReadings.append(reading)
-        }
+        snapshot = .empty
+        render()
     }
 
-    private func saveAccumulatedUserWord() {
-        engine?.saveUserWord(
-            accumulatedText,
-            reading: accumulatedReadings.joined(separator: " "),
-            mandarinReading: accumulatedMandarinReadings.isEmpty
-                ? nil
-                : accumulatedMandarinReadings.joined(separator: " ")
-        )
-        clearLearningState()
-    }
-
-    private func clearLearningState() {
-        accumulatedText = ""
-        accumulatedReadings = []
-        accumulatedMandarinReadings = []
+    private func apply(_ updated: GonnyuAppleSnapshot?) {
+        guard let updated else { return }
+        if let commit = updated.commitText, !commit.isEmpty {
+            textDocumentProxy.insertText(commit)
+        }
+        snapshot = updated
+        render()
     }
 
     @objc private func regionDidChange() {
@@ -324,16 +271,15 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func reloadRegionIfNeeded(force: Bool) {
-        guard let loadedRegions = try? GannyuAppleEngine.regions() else { return }
+        guard let loadedRegions = try? GonnyuAppleEngine.regions() else { return }
         regions = loadedRegions
         guard let selected = store.currentID(in: regions), force || selected != regionID else { return }
-        engine = try? GannyuAppleEngine(
+        engine = try? GonnyuAppleEngine(
             regionID: selected,
             userDataDirectory: store.userDataDirectory
         )
         regionID = selected
-        buffer = ""
-        clearLearningState()
-        refreshComposition()
+        snapshot = (try? engine?.snapshot()) ?? .empty
+        render()
     }
 }

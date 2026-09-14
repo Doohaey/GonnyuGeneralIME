@@ -5,7 +5,9 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import itertools
+import json
 import re
 import shutil
 import tomllib
@@ -492,6 +494,72 @@ def write_default_custom(output: Path, regions: tuple[str, ...]) -> None:
     lines.extend(f"    - schema: gannyu_{region}" for region in regions)
     (output / "default.custom.yaml").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
+
+def write_mobile_default(output: Path, regions: tuple[str, ...]) -> None:
+    """Write the self-contained default config used by mobile predeployment.
+
+    Desktop Rime clients bring a distribution ``default.yaml`` with unrelated
+    schemas such as luna_pinyin. Mobile packages ship only Gonnyu schemas, so
+    their base config must not name an external schema during deployment.
+    """
+    schema_list = "\n".join(f"  - schema: gannyu_{region}" for region in regions)
+    (output / "default.yaml").write_text(
+        "# Generated mobile Rime defaults; do not edit.\n"
+        "config_version: \"0.2.4\"\n\n"
+        f"schema_list:\n{schema_list}\n\n"
+        "menu:\n"
+        "  page_size: 9\n\n"
+        "punctuator:\n"
+        "  half_shape:\n"
+        "    ',' : { commit: ， }\n"
+        "    '.' : { commit: 。 }\n"
+        "    '?' : { commit: ？ }\n"
+        "    '!' : { commit: ！ }\n"
+        "  full_shape:\n"
+        "    ',' : { commit: ， }\n"
+        "    '.' : { commit: 。 }\n"
+        "    '?' : { commit: ？ }\n"
+        "    '!' : { commit: ！ }\n\n"
+        "key_binder:\n"
+        "  bindings:\n"
+        "    - { when: paging, accept: minus, send: Page_Up }\n"
+        "    - { when: has_menu, accept: equal, send: Page_Down }\n\n"
+        "recognizer:\n"
+        "  patterns:\n"
+        "    uppercase: '[A-Z][-_+.''0-9A-Za-z]*$'\n",
+        encoding="utf-8",
+    )
+
+
+def write_resource_manifest(output: Path, regions: tuple[str, ...]) -> None:
+    files = []
+    for path in sorted(output.rglob("*")):
+        if not path.is_file():
+            continue
+        relative = path.relative_to(output).as_posix()
+        if relative == "resource-manifest.json":
+            continue
+        files.append(
+            {
+                "path": relative,
+                "size": path.stat().st_size,
+                "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+            }
+        )
+    payload = {
+        "product_version": VERSION,
+        "schema_version": VERSION,
+        "regions": [
+            {"id": region, "schema_id": f"gannyu_{region}"}
+            for region in regions
+        ],
+        "files": files,
+    }
+    (output / "resource-manifest.json").write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
 def build(region: str, output: Path, display_name: str = "short") -> dict[str, int]:
     region_name, entries = load_entries(region)
     region_dir = ROOT / "resources" / "regions" / region
@@ -530,6 +598,7 @@ def build(region: str, output: Path, display_name: str = "short") -> dict[str, i
     )
     (output / f"{schema_id}.schema.yaml").write_text(schema, encoding="utf-8")
     write_default_custom(output, (region,))
+    write_resource_manifest(output, (region,))
     return {
         "entries": len(entries),
         "dictionary_records": dictionary_count,
@@ -564,6 +633,8 @@ def main() -> None:
             + ", ".join(f"{key}={value}" for key, value in counts.items())
         )
     write_default_custom(args.output.resolve(), regions)
+    write_mobile_default(args.output.resolve(), regions)
+    write_resource_manifest(args.output.resolve(), regions)
 
 
 if __name__ == "__main__":

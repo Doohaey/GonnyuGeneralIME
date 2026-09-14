@@ -76,6 +76,66 @@ Java_io_gannyu_input_GannyuInputMethodService_nativeRegionList(
 }
 
 JNIEXPORT jstring JNICALL
+Java_io_gannyu_input_GannyuInputMethodService_nativeSnapshot(
+    JNIEnv* env,
+    jobject thiz,
+    jlong handle
+) {
+    (void)thiz;
+    char* out = NULL;
+    int status = gannyu_engine_snapshot((void*)(intptr_t)handle, &out);
+    if (status != 0 || out == NULL) return NULL;
+    return copy_out_string(env, out);
+}
+
+JNIEXPORT jstring JNICALL
+Java_io_gannyu_input_GannyuInputMethodService_nativeProcessKey(
+    JNIEnv* env,
+    jobject thiz,
+    jlong handle,
+    jstring event_json
+) {
+    (void)thiz;
+    const char* event_c = (*env)->GetStringUTFChars(env, event_json, NULL);
+    char* out = NULL;
+    int status = gannyu_engine_process_key((void*)(intptr_t)handle, event_c, &out);
+    (*env)->ReleaseStringUTFChars(env, event_json, event_c);
+    if (status != 0 || out == NULL) return NULL;
+    return copy_out_string(env, out);
+}
+
+JNIEXPORT jstring JNICALL
+Java_io_gannyu_input_GannyuInputMethodService_nativeSelectCandidate(
+    JNIEnv* env,
+    jobject thiz,
+    jlong handle,
+    jint global_index
+) {
+    (void)thiz;
+    char* out = NULL;
+    int status = gannyu_engine_select_candidate(
+        (void*)(intptr_t)handle,
+        global_index < 0 ? 0 : (size_t)global_index,
+        &out
+    );
+    if (status != 0 || out == NULL) return NULL;
+    return copy_out_string(env, out);
+}
+
+JNIEXPORT jstring JNICALL
+Java_io_gannyu_input_GannyuInputMethodService_nativeClearComposition(
+    JNIEnv* env,
+    jobject thiz,
+    jlong handle
+) {
+    (void)thiz;
+    char* out = NULL;
+    int status = gannyu_engine_clear_composition((void*)(intptr_t)handle, &out);
+    if (status != 0 || out == NULL) return NULL;
+    return copy_out_string(env, out);
+}
+
+JNIEXPORT jstring JNICALL
 Java_io_gannyu_input_GannyuInputMethodService_nativeRetrieve(
     JNIEnv* env,
     jobject thiz,
@@ -191,6 +251,26 @@ Java_io_gannyu_input_NativePipelineBridge_nativeLastError(JNIEnv* env, jobject t
 JNIEXPORT jstring JNICALL
 Java_io_gannyu_input_NativePipelineBridge_nativeRegionList(JNIEnv* env, jobject thiz, jstring manifest) {
     return Java_io_gannyu_input_GannyuInputMethodService_nativeRegionList(env, thiz, manifest);
+}
+
+JNIEXPORT jstring JNICALL
+Java_io_gannyu_input_NativePipelineBridge_nativeSnapshot(JNIEnv* env, jobject thiz, jlong handle) {
+    return Java_io_gannyu_input_GannyuInputMethodService_nativeSnapshot(env, thiz, handle);
+}
+
+JNIEXPORT jstring JNICALL
+Java_io_gannyu_input_NativePipelineBridge_nativeProcessKey(JNIEnv* env, jobject thiz, jlong handle, jstring event_json) {
+    return Java_io_gannyu_input_GannyuInputMethodService_nativeProcessKey(env, thiz, handle, event_json);
+}
+
+JNIEXPORT jstring JNICALL
+Java_io_gannyu_input_NativePipelineBridge_nativeSelectCandidate(JNIEnv* env, jobject thiz, jlong handle, jint global_index) {
+    return Java_io_gannyu_input_GannyuInputMethodService_nativeSelectCandidate(env, thiz, handle, global_index);
+}
+
+JNIEXPORT jstring JNICALL
+Java_io_gannyu_input_NativePipelineBridge_nativeClearComposition(JNIEnv* env, jobject thiz, jlong handle) {
+    return Java_io_gannyu_input_GannyuInputMethodService_nativeClearComposition(env, thiz, handle);
 }
 
 JNIEXPORT jboolean JNICALL

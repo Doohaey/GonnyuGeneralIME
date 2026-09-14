@@ -1,17 +1,21 @@
 import Foundation
 import CGannyuInput
 
-public struct GannyuAppleCandidate: Decodable {
+public struct GonnyuAppleCandidate: Decodable {
     public let text: String
     public let annotation: String
     public let reading: String?
     public let mandarinReading: String?
-    public let consumedBytes: Int
+    public let globalIndex: Int
+    public let pageIndex: Int
+    public let deletable: Bool
 
     private enum CodingKeys: String, CodingKey {
         case text, annotation, reading
-        case mandarinReading = "mandarin_reading"
-        case consumedBytes = "consumed_bytes"
+        case mandarinReading
+        case globalIndex
+        case pageIndex
+        case deletable
     }
 
     public init(from decoder: Decoder) throws {
@@ -20,11 +24,75 @@ public struct GannyuAppleCandidate: Decodable {
         annotation = try container.decodeIfPresent(String.self, forKey: .annotation) ?? ""
         reading = try container.decodeIfPresent(String.self, forKey: .reading)
         mandarinReading = try container.decodeIfPresent(String.self, forKey: .mandarinReading)
-        consumedBytes = try container.decodeIfPresent(Int.self, forKey: .consumedBytes) ?? text.utf8.count
+        globalIndex = try container.decodeIfPresent(Int.self, forKey: .globalIndex) ?? 0
+        pageIndex = try container.decodeIfPresent(Int.self, forKey: .pageIndex) ?? globalIndex
+        deletable = try container.decodeIfPresent(Bool.self, forKey: .deletable) ?? false
     }
 }
 
-public struct GannyuAppleRegion: Decodable, Equatable {
+public struct GonnyuAppleSnapshot: Decodable {
+    public let handled: Bool
+    public let commitText: String?
+    public let rawInput: String
+    public let preedit: String
+    public let caret: Int
+    public let candidates: [GonnyuAppleCandidate]
+    public let highlightedIndex: Int?
+    public let pageNumber: Int
+    public let hasPreviousPage: Bool
+    public let hasNextPage: Bool
+    public let schemaID: String?
+    public let asciiMode: Bool
+
+    private enum CodingKeys: String, CodingKey {
+        case handled, commitText, rawInput, preedit, caret, candidates, highlightedIndex
+        case pageNumber, hasPreviousPage, hasNextPage, asciiMode
+        case schemaID = "schemaId"
+    }
+
+    public static let empty = GonnyuAppleSnapshot(
+        handled: false,
+        commitText: nil,
+        rawInput: "",
+        preedit: "",
+        caret: 0,
+        candidates: [],
+        highlightedIndex: nil,
+        pageNumber: 0,
+        hasPreviousPage: false,
+        hasNextPage: false,
+        schemaID: nil,
+        asciiMode: false
+    )
+}
+
+public enum GonnyuAppleKeyEvent: Encodable {
+    case text(String)
+    case backspace
+    case space
+    case enter
+
+    private enum CodingKeys: String, CodingKey {
+        case type, text
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        switch self {
+        case let .text(text):
+            try container.encode("text", forKey: .type)
+            try container.encode(text, forKey: .text)
+        case .backspace:
+            try container.encode("backspace", forKey: .type)
+        case .space:
+            try container.encode("space", forKey: .type)
+        case .enter:
+            try container.encode("enter", forKey: .type)
+        }
+    }
+}
+
+public struct GonnyuAppleRegion: Decodable, Equatable {
     public let id: String
     public let nameZh: String
 
@@ -34,17 +102,17 @@ public struct GannyuAppleRegion: Decodable, Equatable {
     }
 }
 
-public enum GannyuAppleEngineError: Error {
+public enum GonnyuAppleEngineError: Error {
     case ffi(Int32, String)
 }
 
-public enum GannyuAppleUserDataScope: Int32 {
+public enum GonnyuAppleUserDataScope: Int32 {
     case words = 1
     case frequencies = 2
     case all = 3
 }
 
-public final class GannyuAppleEngine {
+public final class GonnyuAppleEngine {
     private var handle: OpaquePointer?
 
     public init(regionID: String, userDataDirectory: URL) throws {
@@ -55,7 +123,7 @@ public final class GannyuAppleEngine {
             }
         }
         guard status == gannyu_ffi_status_ok(), let created else {
-            throw GannyuAppleEngineError.ffi(status, Self.lastError())
+            throw GonnyuAppleEngineError.ffi(status, Self.lastError())
         }
         handle = created
     }
@@ -66,71 +134,50 @@ public final class GannyuAppleEngine {
         }
     }
 
-    public static func regions() throws -> [GannyuAppleRegion] {
+    public static func regions() throws -> [GonnyuAppleRegion] {
         var output: UnsafeMutablePointer<CChar>?
         let status = gannyu_region_list(nil, &output)
         guard status == gannyu_ffi_status_ok(), let output else {
-            throw GannyuAppleEngineError.ffi(status, lastError())
+            throw GonnyuAppleEngineError.ffi(status, lastError())
         }
         defer { gannyu_string_destroy(output) }
-        return try JSONDecoder().decode([GannyuAppleRegion].self, from: Data(String(cString: output).utf8))
+        return try JSONDecoder().decode([GonnyuAppleRegion].self, from: Data(String(cString: output).utf8))
     }
 
-    public func candidates(for input: String) throws -> [GannyuAppleCandidate] {
-        guard let handle else { return [] }
-        var output: UnsafeMutablePointer<CChar>?
-        let status = input.withCString { value in
-            gannyu_pipeline_retrieve(handle, value, &output)
-        }
-        guard status == gannyu_ffi_status_ok(), let output else {
-            throw GannyuAppleEngineError.ffi(status, Self.lastError())
-        }
-        defer { gannyu_string_destroy(output) }
-        return try JSONDecoder().decode([GannyuAppleCandidate].self, from: Data(String(cString: output).utf8))
-    }
-
-    public func formatPreedit(_ input: String, consumedBytes: Int = 0) throws -> String {
-        guard let handle else { return input }
-        var output: UnsafeMutablePointer<CChar>?
-        let status = input.withCString { value in
-            gannyu_pipeline_format_preedit(handle, value, consumedBytes, &output)
-        }
-        guard status == gannyu_ffi_status_ok(), let output else {
-            throw GannyuAppleEngineError.ffi(status, Self.lastError())
-        }
-        defer { gannyu_string_destroy(output) }
-        return String(cString: output)
-    }
-
-    public func boost(_ text: String) {
-        guard let handle else { return }
-        text.withCString { value in
-            _ = gannyu_pipeline_user_dict_boost(handle, value, nil)
+    public func snapshot() throws -> GonnyuAppleSnapshot {
+        try jsonCall { handle, out in
+            gannyu_engine_snapshot(handle, out)
         }
     }
 
-    public func saveUserWord(_ text: String, reading: String, mandarinReading: String?) {
-        guard let handle, text.count >= 2, !reading.isEmpty else { return }
-        text.withCString { headword in
-            reading.withCString { pinyin in
-                if let mandarinReading {
-                    mandarinReading.withCString { mandarin in
-                        _ = gannyu_pipeline_user_dict_add(handle, headword, pinyin, mandarin, nil)
-                    }
-                } else {
-                    _ = gannyu_pipeline_user_dict_add(handle, headword, pinyin, nil, nil)
-                }
+    public func process(_ event: GonnyuAppleKeyEvent) throws -> GonnyuAppleSnapshot {
+        let payload = try String(data: JSONEncoder().encode(event), encoding: .utf8) ?? ""
+        return try payload.withCString { eventJSON in
+            try jsonCall { handle, out in
+                gannyu_engine_process_key(handle, eventJSON, out)
             }
         }
     }
 
-    public func clearUserData(_ scope: GannyuAppleUserDataScope) throws {
+    public func selectCandidate(globalIndex: Int) throws -> GonnyuAppleSnapshot {
+        try jsonCall { handle, out in
+            gannyu_engine_select_candidate(handle, globalIndex, out)
+        }
+    }
+
+    public func clearComposition() throws -> GonnyuAppleSnapshot {
+        try jsonCall { handle, out in
+            gannyu_engine_clear_composition(handle, out)
+        }
+    }
+
+    public func clearUserData(_ scope: GonnyuAppleUserDataScope) throws {
         guard let handle else {
-            throw GannyuAppleEngineError.ffi(-1, "pipeline is unavailable")
+            throw GonnyuAppleEngineError.ffi(-1, "pipeline is unavailable")
         }
         let status = gannyu_pipeline_user_data_clear(handle, scope.rawValue)
         guard status == gannyu_ffi_status_ok() else {
-            throw GannyuAppleEngineError.ffi(status, Self.lastError())
+            throw GonnyuAppleEngineError.ffi(status, Self.lastError())
         }
     }
 
@@ -142,9 +189,24 @@ public final class GannyuAppleEngine {
         defer { gannyu_string_destroy(output) }
         return String(cString: output)
     }
+
+    private func jsonCall<T: Decodable>(
+        run: (OpaquePointer?, UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>) -> Int32
+    ) throws -> T {
+        guard let handle else {
+            throw GonnyuAppleEngineError.ffi(-1, "pipeline is unavailable")
+        }
+        var output: UnsafeMutablePointer<CChar>?
+        let status = run(handle, &output)
+        guard status == gannyu_ffi_status_ok(), let output else {
+            throw GonnyuAppleEngineError.ffi(status, Self.lastError())
+        }
+        defer { gannyu_string_destroy(output) }
+        return try JSONDecoder().decode(T.self, from: Data(String(cString: output).utf8))
+    }
 }
 
-public final class GannyuAppleRegionStore {
+public final class GonnyuAppleRegionStore {
     public static let didChange = Notification.Name("org.doohaey.gonnyu.apple.regionDidChange")
     private let key = "org.doohaey.gonnyu.region"
     private let defaults: UserDefaults
@@ -169,7 +231,7 @@ public final class GannyuAppleRegionStore {
         )
     }
 
-    public func currentID(in regions: [GannyuAppleRegion]) -> String? {
+    public func currentID(in regions: [GonnyuAppleRegion]) -> String? {
         guard let first = regions.first else { return nil }
         let stored = defaults.string(forKey: key)
         let resolved = regions.contains(where: { $0.id == stored }) ? stored! : first.id
@@ -179,7 +241,7 @@ public final class GannyuAppleRegionStore {
         return resolved
     }
 
-    public func select(_ id: String, in regions: [GannyuAppleRegion]) -> Bool {
+    public func select(_ id: String, in regions: [GonnyuAppleRegion]) -> Bool {
         guard regions.contains(where: { $0.id == id }) else { return false }
         defaults.set(id, forKey: key)
         NotificationCenter.default.post(name: Self.didChange, object: id)

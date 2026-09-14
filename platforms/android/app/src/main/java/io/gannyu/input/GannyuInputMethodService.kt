@@ -24,6 +24,10 @@ private class NativePipelineBridge {
     external fun nativeCreate(manifestPath: String?, regionId: String?, dataDir: String): Long
     external fun nativeLastError(): String?
     external fun nativeRegionList(manifestPath: String?): String?
+    external fun nativeSnapshot(handle: Long): String?
+    external fun nativeProcessKey(handle: Long, eventJson: String): String?
+    external fun nativeSelectCandidate(handle: Long, globalIndex: Int): String?
+    external fun nativeClearComposition(handle: Long): String?
     external fun nativeUserDataClear(handle: Long, scope: Int): Boolean
     external fun nativeDestroy(handle: Long)
 }
@@ -32,10 +36,26 @@ class GannyuInputMethodService : InputMethodService() {
     private data class RankedCandidate(
         val text: String,
         val comment: String?,
-        val consumedBytes: Int,
         val reading: String?,
         val mandarinReading: String?,
-        val mandarinOnly: Boolean = false
+        val globalIndex: Int,
+        val pageIndex: Int,
+        val deletable: Boolean = false
+    )
+
+    private data class EngineSnapshot(
+        val handled: Boolean = false,
+        val commitText: String? = null,
+        val rawInput: String = "",
+        val preedit: String = "",
+        val caret: Int = 0,
+        val candidates: List<RankedCandidate> = emptyList(),
+        val highlightedIndex: Int? = null,
+        val pageNumber: Int = 0,
+        val hasPreviousPage: Boolean = false,
+        val hasNextPage: Boolean = false,
+        val schemaId: String? = null,
+        val asciiMode: Boolean = false
     )
 
     data class RegionOption(val id: String, val nameZh: String) {
@@ -49,11 +69,7 @@ class GannyuInputMethodService : InputMethodService() {
     private lateinit var candidateScroll: HorizontalScrollView
     private lateinit var candidateBar: LinearLayout
     private lateinit var keyboardRows: LinearLayout
-    private val composing = StringBuilder()
-    private val accumulatedText = StringBuilder()
-    private val accumulatedReading = mutableListOf<String>()
-    private val accumulatedMandarinReading = mutableListOf<String>()
-    private var lastCandidates: List<RankedCandidate> = emptyList()
+    private var lastSnapshot = EngineSnapshot()
     private var symbolPage = false
     private var englishMode = false
     // One-shot state only: it is never persisted and resets after one letter.
@@ -69,16 +85,16 @@ class GannyuInputMethodService : InputMethodService() {
     external fun nativeCreate(manifestPath: String?, regionId: String?, dataDir: String): Long
     external fun nativeLastError(): String?
     external fun nativeRegionList(manifestPath: String?): String?
-    external fun nativeRetrieve(handle: Long, input: String): String?
-    external fun nativeFormatPreedit(handle: Long, input: String, consumedBytes: Int): String?
-    external fun nativeUserDictAdd(handle: Long, headword: String, pinyin: String, mandarinPinyin: String): Boolean
-    external fun nativeUserDictBoost(handle: Long, headword: String): Boolean
+    external fun nativeSnapshot(handle: Long): String?
+    external fun nativeProcessKey(handle: Long, eventJson: String): String?
+    external fun nativeSelectCandidate(handle: Long, globalIndex: Int): String?
+    external fun nativeClearComposition(handle: Long): String?
     external fun nativeUserDataClear(handle: Long, scope: Int): Boolean
     external fun nativeDestroy(handle: Long)
     external fun nativeEntryCount(handle: Long): Int
 
     companion object {
-        private const val TAG = "GannyuIME"
+        private const val TAG = "GonnyuIME"
         private const val PREFS_NAME = "gannyu.runtime"
         private const val KEY_SELECTED_REGION = "selected_region"
         const val USER_DATA_WORDS = 1
@@ -500,7 +516,7 @@ class GannyuInputMethodService : InputMethodService() {
                 currentInputConnection?.commitText(if (englishShift) key.label.uppercase() else key.label, 1)
                 if (englishShift) { englishShift = false; renderKeyboard() }
             } else appendInput(key.label.single())
-            key.label in PUNCT_AFTER_COMPOSE             -> { maybeCommitComposing(); currentInputConnection?.commitText(key.label, 1) }
+            key.label in PUNCT_AFTER_COMPOSE             -> applyEngineSnapshot(processEngineText(key.label))
             else                                         -> currentInputConnection?.commitText(key.label, 1)
         }
     }
@@ -527,22 +543,15 @@ class GannyuInputMethodService : InputMethodService() {
         manager?.showInputMethodPicker()
     }
 
-    private fun maybeCommitComposing() {
-        if (composing.isNotEmpty()) {
-            val first = lastCandidates.firstOrNull()
-            if (first != null) commitCandidate(first) else commitRawBuffer()
-        }
-    }
-
     // ===== Input handling =====
 
-    private fun appendInput(character: Char) { composing.append(character); renderState() }
+    private fun appendInput(character: Char) {
+        applyEngineSnapshot(processEngineText(character.toString()))
+    }
 
     private fun handleBackspace() {
-        if (composing.isNotEmpty()) {
-            composing.deleteCharAt(composing.length - 1)
-            if (composing.isEmpty()) clearAccumulatedSelection()
-            renderState()
+        if (lastSnapshot.rawInput.isNotEmpty()) {
+            applyEngineSnapshot(processEngineEvent("""{"type":"backspace"}"""))
             return
         }
         currentInputConnection?.deleteSurroundingTextInCodePoints(1, 0)
@@ -553,47 +562,33 @@ class GannyuInputMethodService : InputMethodService() {
     }
 
     private fun handleSpace() {
-        if (composing.isEmpty()) { currentInputConnection?.commitText(" ", 1); return }
-        val first = lastCandidates.firstOrNull()
-        if (first != null) commitCandidate(first) else commitRawBuffer()
+        if (lastSnapshot.rawInput.isEmpty()) {
+            currentInputConnection?.commitText(" ", 1)
+            return
+        }
+        applyEngineSnapshot(processEngineEvent("""{"type":"space"}"""))
     }
 
     private fun handleEnter() {
-        if (composing.isNotEmpty()) commitRawBuffer() else currentInputConnection?.commitText("\n", 1)
+        if (lastSnapshot.rawInput.isNotEmpty()) {
+            applyEngineSnapshot(processEngineEnter())
+        } else {
+            currentInputConnection?.commitText("\n", 1)
+        }
     }
 
-    private fun commitRawBuffer() {
-        if (composing.isEmpty()) return
-        currentInputConnection?.commitText(composing.toString(), 1)
-        resetState(clearAccumulated = true)
-    }
+    private fun processEngineEnter(): EngineSnapshot? = processEngineEvent("""{"type":"enter"}""")
 
     private fun commitCandidate(candidate: RankedCandidate) {
-        val sanitized = candidate.text.replace('「', '“').replace('」', '”').replace('『','“').replace('』','”')
-        currentInputConnection?.commitText(sanitized, 1)
-        if (pipelineHandle != 0L) nativeUserDictBoost(pipelineHandle, sanitized)
-        accumulatedText.append(sanitized)
-        if (!candidate.reading.isNullOrBlank()) accumulatedReading += candidate.reading
-        if (!candidate.mandarinReading.isNullOrBlank()) accumulatedMandarinReading += candidate.mandarinReading
-        if (composing.length >= 4 && candidate.consumedBytes > 0 && candidate.consumedBytes < composing.length) {
-            composing.delete(0, candidate.consumedBytes); renderState(); return
-        }
-        maybeSaveUserWord(); resetState(clearAccumulated = true)
+        if (pipelineHandle == 0L) return
+        applyEngineSnapshot(nativeSelectCandidate(pipelineHandle, candidate.globalIndex)?.let(::parseSnapshot))
     }
-
-    private fun maybeSaveUserWord() {
-        if (pipelineHandle == 0L) { clearAccumulatedSelection(); return }
-        if (accumulatedText.codePointCount(0, accumulatedText.length) >= 2 && accumulatedReading.isNotEmpty()) {
-            nativeUserDictAdd(pipelineHandle, accumulatedText.toString(), accumulatedReading.joinToString(" "), accumulatedMandarinReading.joinToString(" "))
-        }
-        clearAccumulatedSelection()
-    }
-
-    private fun clearAccumulatedSelection() { accumulatedText.clear(); accumulatedReading.clear(); accumulatedMandarinReading.clear() }
 
     private fun resetState(clearAccumulated: Boolean) {
-        composing.clear(); lastCandidates = emptyList()
-        if (clearAccumulated) clearAccumulatedSelection()
+        if (pipelineHandle != 0L && clearAccumulated) {
+            applyEngineSnapshot(nativeClearComposition(pipelineHandle)?.let(::parseSnapshot), render = false)
+        }
+        lastSnapshot = EngineSnapshot()
         if (::candidateBar.isInitialized) renderState()
     }
 
@@ -608,9 +603,7 @@ class GannyuInputMethodService : InputMethodService() {
 
     private fun renderCacheTag() {
         if (!::cacheTag.isInitialized) return
-        val display = if (composing.isEmpty()) "" else segmentedBufferForDisplay(
-            composing.toString(), lastCandidates.firstOrNull()?.consumedBytes ?: 0
-        )
+        val display = lastSnapshot.preedit
         cacheTag.visibility = if (display.isEmpty()) View.GONE else View.VISIBLE
         if (display.isNotEmpty()) cacheTag.text = display
     }
@@ -619,12 +612,11 @@ class GannyuInputMethodService : InputMethodService() {
         if (!::candidateBar.isInitialized) return
         candidateBar.removeAllViews()
         if (!pipelineReady || pipelineHandle == 0L) {
-            Log.w(TAG, "refreshCandidates SKIP ready=$pipelineReady handle=$pipelineHandle composing='$composing'")
-            lastCandidates = emptyList(); return
+            Log.w(TAG, "refreshCandidates SKIP ready=$pipelineReady handle=$pipelineHandle")
+            lastSnapshot = EngineSnapshot()
+            return
         }
-        val json = nativeRetrieve(pipelineHandle, composing.toString())
-        Log.i(TAG, "nativeRetrieve input='$composing' result=${json?.length ?: 0} chars")
-        lastCandidates = json?.let(::parseCandidates).orEmpty()
+        lastSnapshot = nativeSnapshot(pipelineHandle)?.let(::parseSnapshot) ?: EngineSnapshot()
     }
 
     private fun postUpdateCandidates() {
@@ -635,8 +627,8 @@ class GannyuInputMethodService : InputMethodService() {
         if (!::candidateBar.isInitialized) return
         candidateBar.removeAllViews()
         candidateBar.setPadding(dp(4), 0, dp(4), 0)
-        if (lastCandidates.isEmpty()) return
-        lastCandidates.forEachIndexed { index, c ->
+        if (lastSnapshot.candidates.isEmpty()) return
+        lastSnapshot.candidates.forEachIndexed { index, c ->
             val cv = CandidateView(this, c, index)
             candidateBar.addView(cv)
         }
@@ -659,7 +651,7 @@ class GannyuInputMethodService : InputMethodService() {
             layoutParams = LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT
             ).apply {
-                if (index < lastCandidates.size - 1) marginEnd = dp(6)
+                if (index < lastSnapshot.candidates.size - 1) marginEnd = dp(6)
             }
 
             addView(TextView(context).apply {
@@ -698,29 +690,57 @@ class GannyuInputMethodService : InputMethodService() {
         return c.reading.orEmpty()
     }
 
-    private fun parseCandidates(json: String): List<RankedCandidate> {
-        val array = JSONArray(json); val list = ArrayList<RankedCandidate>(array.length())
-        for (i in 0 until array.length()) {
-            val item = array.getJSONObject(i)
-            list += RankedCandidate(
-                text = item.optString("text"), comment = candidateComment(item),
-                consumedBytes = item.optInt("consumed_bytes", 0),
-                reading = item.optString("reading").takeIf { it.isNotBlank() },
-                mandarinReading = item.optString("mandarin_reading").takeIf { it.isNotBlank() },
-                mandarinOnly = item.optBoolean("mandarin_only"))
+    private fun processEngineText(text: String): EngineSnapshot? {
+        val escaped = JSONObject.quote(text)
+        return processEngineEvent("""{"type":"text","text":$escaped}""")
+    }
+
+    private fun processEngineEvent(eventJson: String): EngineSnapshot? {
+        if (pipelineHandle == 0L || !pipelineReady) return null
+        return nativeProcessKey(pipelineHandle, eventJson)?.let(::parseSnapshot)
+    }
+
+    private fun applyEngineSnapshot(snapshot: EngineSnapshot?, render: Boolean = true) {
+        if (snapshot == null) return
+        if (!snapshot.commitText.isNullOrEmpty()) {
+            currentInputConnection?.commitText(snapshot.commitText, 1)
         }
-        return list
+        lastSnapshot = snapshot
+        if (render && ::candidateBar.isInitialized) {
+            renderState()
+        }
     }
 
-    private fun candidateComment(item: JSONObject): String? {
-        if (item.isNull("annotation")) return null
-        val a = item.optString("annotation").takeIf { it.isNotBlank() }; if (a != null) return a
-        return if (item.optBoolean("mandarin_only")) "\u005B\u5B98\u005D" else null
-    }
-
-    private fun segmentedBufferForDisplay(buffer: String, consumedBytes: Int): String {
-        if (pipelineHandle == 0L) return buffer
-        return nativeFormatPreedit(pipelineHandle, buffer, consumedBytes) ?: buffer
+    private fun parseSnapshot(json: String): EngineSnapshot {
+        val item = JSONObject(json)
+        val candidatesArray = item.optJSONArray("candidates") ?: JSONArray()
+        val candidates = ArrayList<RankedCandidate>(candidatesArray.length())
+        for (i in 0 until candidatesArray.length()) {
+            val candidate = candidatesArray.getJSONObject(i)
+            candidates += RankedCandidate(
+                text = candidate.optString("text"),
+                comment = candidate.optString("annotation").takeIf { it.isNotBlank() },
+                reading = candidate.optString("reading").takeIf { it.isNotBlank() },
+                mandarinReading = candidate.optString("mandarinReading").takeIf { it.isNotBlank() },
+                globalIndex = candidate.optInt("globalIndex", i),
+                pageIndex = candidate.optInt("pageIndex", i),
+                deletable = candidate.optBoolean("deletable"),
+            )
+        }
+        return EngineSnapshot(
+            handled = item.optBoolean("handled"),
+            commitText = item.optString("commitText").takeIf { it.isNotBlank() },
+            rawInput = item.optString("rawInput"),
+            preedit = item.optString("preedit"),
+            caret = item.optInt("caret"),
+            candidates = candidates,
+            highlightedIndex = item.optInt("highlightedIndex").takeIf { it >= 0 },
+            pageNumber = item.optInt("pageNumber"),
+            hasPreviousPage = item.optBoolean("hasPreviousPage"),
+            hasNextPage = item.optBoolean("hasNextPage"),
+            schemaId = item.optString("schemaId").takeIf { it.isNotBlank() },
+            asciiMode = item.optBoolean("asciiMode"),
+        )
     }
 
     private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()

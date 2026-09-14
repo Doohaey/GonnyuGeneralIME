@@ -24,5 +24,5 @@ else
   done < <(python3 "$repo_root/platforms/rime/build.py" --list-regions)
 fi
 
-echo "installed Gannyu Rime schemas into $user_dir"
+echo "installed Gonnyu Rime schemas into $user_dir"
 echo "choose a Gonnyu region from the Rime schema menu"

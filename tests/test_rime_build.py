@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 from platforms.rime.build import (
@@ -62,6 +63,18 @@ def test_builds_rime_dictionary_annotations_and_relations(tmp_path: Path) -> Non
     assert "银行卡\tGnin Ghong Gka\t" in dictionary
     assert "@FUZZY_ALGEBRA@" not in schema
     assert (tmp_path / "default.custom.yaml").is_file()
+
+
+def test_rime_build_writes_resource_manifest(tmp_path: Path) -> None:
+    build("lancong", tmp_path)
+    manifest_path = tmp_path / "resource-manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+
+    assert manifest["product_version"]
+    assert manifest["schema_version"] == manifest["product_version"]
+    assert manifest["regions"] == [{"id": "lancong", "schema_id": "gannyu_lancong"}]
+    assert any(file["path"] == "gannyu_lancong.schema.yaml" for file in manifest["files"])
+    assert any(file["path"] == "lua/gannyu_lancong_data.lua" for file in manifest["files"])
 
 
 def test_rime_mandarin_only_annotation_includes_dialect_reading() -> None:

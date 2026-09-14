@@ -7,8 +7,8 @@ final class RegionSettingsViewController: UITableViewController {
         case setup
     }
 
-    private let store = GannyuAppleRegionStore()
-    private var regions: [GannyuAppleRegion] = []
+    private let store = GonnyuAppleRegionStore()
+    private var regions: [GonnyuAppleRegion] = []
     private var selectedID: String?
     private var loadError: String?
 
@@ -21,7 +21,7 @@ final class RegionSettingsViewController: UITableViewController {
 
     private func reloadRegions() {
         do {
-            regions = try GannyuAppleEngine.regions()
+            regions = try GonnyuAppleEngine.regions()
             selectedID = store.currentID(in: regions)
             loadError = nil
         } catch {
@@ -117,7 +117,7 @@ final class RegionSettingsViewController: UITableViewController {
         }
     }
 
-    private func confirmClear(scope: GannyuAppleUserDataScope) {
+    private func confirmClear(scope: GonnyuAppleUserDataScope) {
         let title: String
         let message: String
         switch scope {
@@ -139,10 +139,10 @@ final class RegionSettingsViewController: UITableViewController {
         present(alert, animated: true)
     }
 
-    private func clearUserData(_ scope: GannyuAppleUserDataScope) {
+    private func clearUserData(_ scope: GonnyuAppleUserDataScope) {
         guard let regionID = selectedID else { return }
         do {
-            let engine = try GannyuAppleEngine(
+            let engine = try GonnyuAppleEngine(
                 regionID: regionID,
                 userDataDirectory: store.userDataDirectory
             )

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Gannyu Android 输入法编译脚本；依赖 Android SDK/NDK 与 Rust toolchain。
+# Gonnyu Android 输入法编译脚本；依赖 Android SDK/NDK 与 Rust toolchain。
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -7,6 +7,18 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 APK="$SCRIPT_DIR/app/build/outputs/apk/release/app-release.apk"
 OUT_DIR="$REPO_ROOT/build"
 SHIM_DIR="/tmp/ndk-shim"
+
+write_local_properties() {
+  local sdk_root="$1"
+  python3 - "$SCRIPT_DIR/local.properties" "$sdk_root" <<'PYTHON'
+from pathlib import Path
+import sys
+
+target = Path(sys.argv[1])
+sdk_dir = sys.argv[2].replace("\\", "\\\\").replace(":", "\\:")
+target.write_text(f"sdk.dir={sdk_dir}\n", encoding="utf-8")
+PYTHON
+}
 
 find_bin() {
   local name="$1"
@@ -154,6 +166,7 @@ SDK_ROOT="$(find_sdk_root)" || {
   echo "缺 Android SDK；请设置 ANDROID_SDK_ROOT / ANDROID_HOME 或安装到默认目录。" >&2
   exit 1
 }
+write_local_properties "$SDK_ROOT"
 NDK_ROOT="$(find_ndk_root "$SDK_ROOT")" || {
   echo "缺 Android NDK；请设置 ANDROID_NDK_HOME / ANDROID_NDK_ROOT，或安装到 $SDK_ROOT/ndk。" >&2
   exit 1
