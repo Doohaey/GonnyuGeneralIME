@@ -12,6 +12,10 @@ internal object RimeResourceStore {
     private const val ASSET_ROOT = "rime"
     private const val MANIFEST = "$ASSET_ROOT/resource-manifest.json"
 
+    fun regionList(context: Context) = context.assets.open(MANIFEST).bufferedReader().use { reader ->
+        JSONObject(reader.readText()).optJSONArray("regions")
+    }
+
     fun prepare(context: Context): File {
         val manifestText = context.assets.open(MANIFEST).bufferedReader().use { it.readText() }
         val manifest = JSONObject(manifestText)

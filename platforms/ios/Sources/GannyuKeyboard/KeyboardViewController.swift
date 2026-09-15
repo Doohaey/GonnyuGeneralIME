@@ -19,7 +19,7 @@ private final class KeyPreviewView: UIView {
         layer.shadowOffset = CGSize(width: 0, height: 2)
         layer.shadowRadius = 5
         layer.insertSublayer(bubbleLayer, at: 0)
-        bubbleLayer.fillColor = UIColor.white.cgColor
+        updateColors()
         label.font = .systemFont(ofSize: 28, weight: .bold)
         label.textColor = UIColor(red: 0.10, green: 0.10, blue: 0.12, alpha: 1)
         label.textAlignment = .center
@@ -48,6 +48,18 @@ private final class KeyPreviewView: UIView {
         bubbleLayer.frame = bounds
         bubbleLayer.path = path.cgPath
         layer.shadowPath = path.cgPath
+    }
+
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
+            updateColors()
+        }
+    }
+
+    private func updateColors() {
+        bubbleLayer.fillColor = UIColor.secondarySystemBackground.resolvedColor(with: traitCollection).cgColor
+        label.textColor = .label
     }
 }
 
@@ -91,17 +103,28 @@ final class KeyboardViewController: UIInputViewController {
     private let keyPreviewView = KeyPreviewView(frame: .zero)
     private weak var referenceKeyButton: UIButton?
     private var pendingWidthConstraints: [NSLayoutConstraint] = []
-    private let keyboardPanelColor = UIColor(red: 0.82, green: 0.83, blue: 0.84, alpha: 1)
-    private let normalKeyColor = UIColor(red: 1, green: 1, blue: 1, alpha: 1)
-    private let actionKeyColor = UIColor(red: 0.72, green: 0.74, blue: 0.76, alpha: 1)
-    private let fixedTextColor = UIColor(red: 0.10, green: 0.10, blue: 0.12, alpha: 1)
-    private let fixedSecondaryTextColor = UIColor(red: 0.38, green: 0.40, blue: 0.44, alpha: 1)
+    private let keyboardPanelColor = UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.12, green: 0.13, blue: 0.15, alpha: 1)
+            : UIColor(red: 0.82, green: 0.83, blue: 0.84, alpha: 1)
+    }
+    private let normalKeyColor = UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.20, green: 0.22, blue: 0.25, alpha: 1)
+            : .white
+    }
+    private let actionKeyColor = UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.33, green: 0.35, blue: 0.39, alpha: 1)
+            : UIColor(red: 0.72, green: 0.74, blue: 0.76, alpha: 1)
+    }
+    private let fixedTextColor = UIColor.label
+    private let fixedSecondaryTextColor = UIColor.secondaryLabel
     private let keySpacing: CGFloat = 6
     private let functionKeyWidthMultiplier: CGFloat = 1.12
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        overrideUserInterfaceStyle = .light
         buildKeyboard()
         reloadRegionIfNeeded(force: true)
         NotificationCenter.default.addObserver(
@@ -129,6 +152,14 @@ final class KeyboardViewController: UIInputViewController {
         super.viewDidLayoutSubviews()
         if candidateExpanded && candidateExpandedScroll.bounds.width != expandedLayoutWidth {
             renderExpandedCandidates()
+        }
+    }
+
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
+            renderKeyboard()
+            render()
         }
     }
 
@@ -533,7 +564,9 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func render() {
-        preeditLabel.text = snapshot.preedit.isEmpty ? nil : snapshot.preedit
+        preeditLabel.text = snapshot.preedit.isEmpty
+            ? (hasFullAccess ? nil : "开启“允许完全访问”后，用户词库才能保存")
+            : snapshot.preedit
         candidateExpandButton.isHidden = snapshot.candidates.isEmpty
         candidateExpandButton.setTitle(candidateExpanded ? "⌃" : "⌄", for: .normal)
         candidateStack.arrangedSubviews.forEach {

@@ -55,23 +55,3 @@ def test_android_candidate_bar_keeps_cache_out_of_the_editor() -> None:
     assert 'android:id="@+id/preeditView"' not in layout
     assert 'android:translationY="-12dp"' not in layout
     assert "getTextBeforeCursor" not in source
-
-
-def test_android_symbol_page_clears_composition_and_writes_symbols_literally() -> None:
-    source = (ROOT / "platforms/android/app/src/main/java/io/gannyu/input/GannyuInputMethodService.kt").read_text(encoding="utf-8")
-
-    symbol_page_branch = source.split('key.label == "123"', 1)[1].splitlines()[0]
-    assert "resetState(clearAccumulated = true)" in symbol_page_branch
-    assert "englishShift = false" in symbol_page_branch
-    assert "symbolPage = true" in symbol_page_branch
-    assert "renderKeyboard()" in symbol_page_branch
-    assert "key.label == \"\\u201C\"" not in source
-    assert "key.label == \"\\u201D\"" not in source
-    assert "else                                         -> currentInputConnection?.commitText(key.label, 1)" in source
-    assert 'KeySpec("\\u232B", 1.5f)' in source
-    assert "BACKSPACE_INITIAL_DELAY_MS" in source
-    assert "BACKSPACE_REPEAT_INTERVAL_MS" in source
-    assert "stopBackspaceRepeat()" in source
-    assert 'r4.addView(keyBtn(KeySpec("\\u62FC", 1.2f), gap)); r4.addView(keyBtn(KeySpec("\\uFF08", 1f), gap))' in source
-    assert "private var englishMode = false" in source
-    assert 'key.label == "\\u82F1" || key.label == "\\u4E2D"' in source

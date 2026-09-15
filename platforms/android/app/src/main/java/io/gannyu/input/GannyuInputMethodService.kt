@@ -25,7 +25,6 @@ private class NativePipelineBridge {
 
     external fun nativeCreate(manifestPath: String?, regionId: String?, dataDir: String): Long
     external fun nativeLastError(): String?
-    external fun nativeRegionList(manifestPath: String?): String?
     external fun nativeSnapshot(handle: Long): String?
     external fun nativeProcessKey(handle: Long, eventJson: String): String?
     external fun nativeSelectCandidate(handle: Long, globalIndex: Int): String?
@@ -99,7 +98,6 @@ class GannyuInputMethodService : InputMethodService() {
 
     external fun nativeCreate(manifestPath: String?, regionId: String?, dataDir: String): Long
     external fun nativeLastError(): String?
-    external fun nativeRegionList(manifestPath: String?): String?
     external fun nativeSnapshot(handle: Long): String?
     external fun nativeProcessKey(handle: Long, eventJson: String): String?
     external fun nativeSelectCandidate(handle: Long, globalIndex: Int): String?
@@ -130,12 +128,6 @@ class GannyuInputMethodService : InputMethodService() {
         }
 
         @JvmStatic
-        fun nativeRegionListStatic(manifest: String?): String? {
-            return nativeBridge.nativeRegionList(manifest)
-        }
-
-
-        @JvmStatic
         fun nativeLastErrorStatic(): String? = nativeBridge.nativeLastError()
 
         @JvmStatic
@@ -154,12 +146,13 @@ class GannyuInputMethodService : InputMethodService() {
         }
 
         @JvmStatic
-        fun availableRegions(): List<RegionOption> = parseRegionList(nativeRegionListStatic(null))
+        fun availableRegions(context: Context): List<RegionOption> =
+            parseRegionList(RimeResourceStore.regionList(context))
 
         @JvmStatic
         fun clearUserDataAsync(context: Context, target: Int, onComplete: (Boolean) -> Unit) {
             Thread {
-                val regions = availableRegions()
+                val regions = availableRegions(context)
                 val selected = selectedRegionId(context) ?: regions.firstOrNull()?.id
                 val targets = when (target) {
                     USER_DATA_CURRENT_REGION -> listOfNotNull(selected)
@@ -249,9 +242,8 @@ class GannyuInputMethodService : InputMethodService() {
             }
         }
 
-        private fun parseRegionList(json: String?): List<RegionOption> {
-            if (json.isNullOrBlank()) return emptyList()
-            val array = JSONArray(json)
+        private fun parseRegionList(array: JSONArray?): List<RegionOption> {
+            if (array == null) return emptyList()
             val regions = ArrayList<RegionOption>(array.length())
             for (i in 0 until array.length()) {
                 val item = array.getJSONObject(i)
@@ -289,8 +281,6 @@ class GannyuInputMethodService : InputMethodService() {
         private val MORE_ROW_2 = listOf("@", "#", "$", "¥", "€", "£", "&", "*", "\\", "|")
         private val MORE_ROW_3 = listOf("常用", "!", "?", "'", "\"", ":", ";", "／", "⌫")
 
-        private const val KEY_TEXT        = 0xFF1B1D20.toInt()
-        private const val ACTION_KEY_TEXT = 0xFF1B1D20.toInt()
         private const val FUNCTION_KEY_WIDTH_MULTIPLIER = 1.12f
         private const val IME_SWITCH_KEY = "🌐"
         private const val BACKSPACE_INITIAL_DELAY_MS = 380L
@@ -303,6 +293,12 @@ class GannyuInputMethodService : InputMethodService() {
         super.onCreate()
         loadSelectedPipelineAsync()
     }
+
+    private val keyTextColor: Int
+        get() = getColor(R.color.keyboard_text)
+
+    private val keySecondaryTextColor: Int
+        get() = getColor(R.color.keyboard_secondary_text)
 
     override fun onDestroy() {
         stopBackspaceRepeat()
@@ -545,11 +541,11 @@ class GannyuInputMethodService : InputMethodService() {
         }
         setPadding(0, 0, 0, 0)
         val useActionStyle = key.label in ACTION_KEYS
-        setTextColor(if (useActionStyle) ACTION_KEY_TEXT else KEY_TEXT)
+        setTextColor(keyTextColor)
         setBackgroundResource(if (useActionStyle) R.drawable.key_action else R.drawable.key_normal)
         if (key.label == IME_SWITCH_KEY) {
             val icon = getDrawable(R.drawable.ic_globe)?.mutate()
-            icon?.setTint(KEY_TEXT)
+            icon?.setTint(keyTextColor)
             icon?.setBounds(0, 0, dp(18), dp(18))
             setCompoundDrawables(icon, null, null, null)
             gravity = android.view.Gravity.CENTER
@@ -790,7 +786,7 @@ class GannyuInputMethodService : InputMethodService() {
 
             addView(TextView(context).apply {
                 text = candidate.text
-                textSize = 15f; setTextColor(KEY_TEXT)
+                textSize = 15f; setTextColor(keyTextColor)
                 setTypeface(null, Typeface.BOLD)
                 if (expanded) maxLines = Int.MAX_VALUE else { maxLines = 1; setSingleLine(true) }
             })
@@ -799,7 +795,7 @@ class GannyuInputMethodService : InputMethodService() {
             if (meta.isNotEmpty()) {
                 addView(TextView(context).apply {
                     text = meta
-                    textSize = 10f; setTextColor(0xFF626973.toInt())
+                    textSize = 10f; setTextColor(keySecondaryTextColor)
                     if (expanded) maxLines = Int.MAX_VALUE else { maxLines = 1; setSingleLine(true) }
                 })
             }

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="keyboard_panel">#FFD1D3D6</color>
+    <color name="keyboard_text">#FF1B1D20</color>
+    <color name="keyboard_secondary_text">#FF636871</color>
+</resources>

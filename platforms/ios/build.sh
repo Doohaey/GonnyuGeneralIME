@@ -30,13 +30,11 @@ fi
   exit 1
 }
 
-host_deployer="$repo_root/build/rime-mobile/host/build/bin/rime_deployer"
-if [[ "${GANNYU_IOS_REUSE_HOST_TOOLS:-0}" != "1" || ! -x "$host_deployer" ]]; then
-  PYTHON_BIN="$python_bin" bash "$repo_root/platforms/rime/mobile/build_host.sh"
+PYTHON_BIN="$python_bin" bash "$repo_root/platforms/rime/mobile/prepare_resources.sh"
+if [[ -e "$output_root/rime" || -L "$output_root/rime" ]]; then
+  rm -rf -- "$output_root/rime"
 fi
-"$python_bin" "$repo_root/platforms/rime/mobile/build_resources.py" \
-  --output "$output_root/rime" \
-  --deployer "$host_deployer"
+ln -sfn ../rime-mobile/mobile-resources "$output_root/rime"
 GANNYU_IOS_BUILD_ROOT="$output_root" PYTHON_BIN="$python_bin" \
   bash "$repo_root/platforms/rime/mobile/build_ios_xcframework.sh"
 

@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.ComponentName
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
@@ -24,6 +25,7 @@ class SetupActivity : Activity() {
     private lateinit var loadingTextView: TextView
     private lateinit var regionSpinner: Spinner
     private lateinit var manageUserDataButton: Button
+    private lateinit var openImePickerButton: Button
     private var busy = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,13 +37,14 @@ class SetupActivity : Activity() {
         loadingTextView = findViewById(R.id.regionLoadingText)
         regionSpinner = findViewById(R.id.regionSpinner)
         manageUserDataButton = findViewById(R.id.manageUserData)
+        openImePickerButton = findViewById(R.id.openImePicker)
         setupRegionPicker(statusView)
         manageUserDataButton.setOnClickListener { showClearChoices() }
 
         findViewById<Button>(R.id.openImeSettings).setOnClickListener {
-            startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS))
+            showEnableImeInstructions()
         }
-        findViewById<Button>(R.id.openImePicker).setOnClickListener {
+        openImePickerButton.setOnClickListener {
             getSystemService(InputMethodManager::class.java)?.showInputMethodPicker()
         }
         findViewById<Button>(R.id.openTutorial).setOnClickListener {
@@ -49,10 +52,34 @@ class SetupActivity : Activity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        updateImeSetupState()
+    }
+
+    private fun showEnableImeInstructions() {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.enable_ime_title)
+            .setMessage(R.string.enable_ime_message)
+            .setNegativeButton(R.string.cancel_action, null)
+            .setPositiveButton(R.string.go_to_settings) { _, _ ->
+                startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS))
+            }
+            .show()
+    }
+
+    private fun updateImeSetupState() {
+        val inputMethodManager = getSystemService(InputMethodManager::class.java)
+        val expectedId = ComponentName(this, GannyuInputMethodService::class.java).flattenToString()
+        val enabled = inputMethodManager?.enabledInputMethodList?.any { it.id == expectedId } == true
+        openImePickerButton.isEnabled = enabled
+    }
+
     private fun setupRegionPicker(statusView: TextView) {
-        regions = GannyuInputMethodService.availableRegions()
+        regions = GannyuInputMethodService.availableRegions(this)
         if (regions.isEmpty()) {
             statusView.setText(R.string.region_load_failed)
+            statusView.visibility = View.VISIBLE
             regionSpinner.isEnabled = false
             findViewById<View>(R.id.regionSummary).visibility = View.GONE
             return
@@ -65,7 +92,7 @@ class SetupActivity : Activity() {
         regionSpinner.adapter = adapter
         val currentIndex = regions.indexOfFirst { it.id == currentId }.takeIf { it >= 0 } ?: 0
         regionSpinner.setSelection(currentIndex, false)
-        updateReadyState(regions[currentIndex].nameZh)
+        updateReadyState()
         maybePreload(regions[currentIndex], force = !GannyuInputMethodService.isRegionPrepared(currentId))
         regionSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
@@ -85,7 +112,7 @@ class SetupActivity : Activity() {
 
     private fun maybePreload(region: GannyuInputMethodService.RegionOption, force: Boolean) {
         if (!force) {
-            updateReadyState(region.nameZh)
+            updateReadyState()
             return
         }
         setLoading(true, getString(R.string.region_loading, region.nameZh))
@@ -93,9 +120,10 @@ class SetupActivity : Activity() {
             runOnUiThread {
                 setLoading(false, "")
                 if (success) {
-                    updateReadyState(region.nameZh)
+                    updateReadyState()
                 } else {
                     statusView.text = getString(R.string.resource_failed_region, region.nameZh)
+                    statusView.visibility = View.VISIBLE
                     showPreloadFailure(region, detail)
                 }
             }
@@ -156,11 +184,12 @@ class SetupActivity : Activity() {
                 if (success) R.string.user_data_clear_success else R.string.user_data_clear_failed,
                 targetLabel,
             )
+            statusView.visibility = View.VISIBLE
         }}
     }
 
-    private fun updateReadyState(regionName: String) {
-        statusView.text = getString(R.string.resource_ready_region, regionName)
+    private fun updateReadyState() {
+        statusView.visibility = View.GONE
     }
 
     private fun setLoading(loading: Boolean, message: String) {

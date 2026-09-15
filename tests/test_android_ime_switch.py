@@ -32,18 +32,27 @@ def test_android_ime_switch_key_is_leftmost_on_all_pages() -> None:
     assert "IME_SWITCH_KEY)" in source.split("private val ACTION_KEYS", 1)[1].splitlines()[0]
 
 
-def test_android_keyboard_uses_the_fixed_neutral_palette_on_all_pages() -> None:
+def test_android_keyboard_uses_a_system_adaptive_neutral_palette_on_all_pages() -> None:
     source = SERVICE.read_text(encoding="utf-8")
     action = (ROOT / "platforms/android/app/src/main/res/drawable/key_action.xml").read_text(encoding="utf-8")
     normal = (ROOT / "platforms/android/app/src/main/res/drawable/key_normal.xml").read_text(encoding="utf-8")
     layout = (ROOT / "platforms/android/app/src/main/res/layout/input_view.xml").read_text(encoding="utf-8")
 
+    dark_action = (ROOT / "platforms/android/app/src/main/res/drawable-night/key_action.xml").read_text(encoding="utf-8")
+    dark_normal = (ROOT / "platforms/android/app/src/main/res/drawable-night/key_normal.xml").read_text(encoding="utf-8")
+    colors = (ROOT / "platforms/android/app/src/main/res/values/colors.xml").read_text(encoding="utf-8")
+    dark_colors = (ROOT / "platforms/android/app/src/main/res/values-night/colors.xml").read_text(encoding="utf-8")
     assert "#FFB8BCC3" in action
     assert "#FFFFFFFF" in normal
+    assert "#FF4A4E57" in dark_action
+    assert "#FF34373D" in dark_normal
+    assert "keyboard_panel" in colors
+    assert "#FF1F2125" in dark_colors
     assert "<gradient" not in action
-    assert 'android:background="#D1D3D6"' in layout
-    assert 'android:textColor="#636871"' in layout
-    assert "private const val KEY_TEXT        = 0xFF1B1D20.toInt()" in source
+    assert 'android:background="@color/keyboard_panel"' in layout
+    assert 'android:textColor="@color/keyboard_secondary_text"' in layout
+    assert "private val keyTextColor: Int" in source
+    assert "private val keySecondaryTextColor: Int" in source
     assert "key.label in ACTION_KEYS" in source
     assert "dp(46)" in source
     assert "FUNCTION_KEY_WIDTH_MULTIPLIER = 1.12f" in source
@@ -79,9 +88,32 @@ def test_android_candidates_keep_full_metadata_with_independent_widths() -> None
     assert 'android:textSize="28sp"' in layout
 
 
-def test_android_rime_regions_start_with_nanchang() -> None:
-    source = JNI.read_text(encoding="utf-8")
+def test_android_rime_regions_come_from_the_packaged_manifest() -> None:
+    source = SERVICE.read_text(encoding="utf-8")
+    store = (ROOT / "platforms/android/app/src/main/java/io/gannyu/input/RimeResourceStore.kt").read_text(
+        encoding="utf-8"
+    )
+    jni = JNI.read_text(encoding="utf-8")
     engine = RIME_ENGINE.read_text(encoding="utf-8")
 
-    assert source.index('\\"id\\":\\"lancong\\"') < source.index('\\"id\\":\\"fenni\\"')
+    assert "availableRegions(context: Context)" in source
+    assert "RimeResourceStore.regionList(context)" in source
+    assert 'optJSONArray("regions")' in store
+    assert "nativeRegionList" not in jni
     assert 'region_id && *region_id ? region_id : "lancong"' in engine
+
+
+def test_android_setup_gates_picker_until_ime_is_enabled() -> None:
+    setup = (ROOT / "platforms/android/app/src/main/java/io/gannyu/input/SetupActivity.kt").read_text(
+        encoding="utf-8"
+    )
+    layout = (ROOT / "platforms/android/app/src/main/res/layout/activity_setup.xml").read_text(
+        encoding="utf-8"
+    )
+
+    assert "showEnableImeInstructions" in setup
+    assert "enabledInputMethodList" in setup
+    assert "openImePickerButton.isEnabled = enabled" in setup
+    assert "R.id.imeSetupStatus" not in setup
+    assert "statusView.visibility = View.GONE" in setup
+    assert layout.index("@+id/setupCard") < layout.index("@+id/regionCard")

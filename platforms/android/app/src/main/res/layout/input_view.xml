@@ -9,7 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:background="#D1D3D6"
+        android:background="@color/keyboard_panel"
         android:paddingTop="4dp"
         android:paddingBottom="7dp">
 
@@ -20,7 +20,7 @@
         android:layout_marginStart="6dp"
         android:layout_marginEnd="6dp"
         android:gravity="center_vertical"
-        android:textColor="#636871"
+        android:textColor="@color/keyboard_secondary_text"
         android:textSize="10sp"
         android:visibility="invisible" />
 
@@ -60,7 +60,7 @@
             android:background="@drawable/key_action"
             android:contentDescription="展开候选"
             android:text="⌄"
-            android:textColor="#FF1B1D20"
+            android:textColor="@color/keyboard_text"
             android:textSize="17sp" />
     </LinearLayout>
 
@@ -94,7 +94,7 @@
             android:background="@drawable/key_action"
             android:contentDescription="加载更多候选"
             android:text="加载更多候选"
-            android:textColor="#FF1B1D20"
+            android:textColor="@color/keyboard_text"
             android:textSize="12sp" />
     </LinearLayout>
 
@@ -116,7 +116,7 @@
         android:gravity="center_horizontal"
         android:includeFontPadding="false"
         android:paddingBottom="9dp"
-        android:textColor="#FF1B1D20"
+        android:textColor="@color/keyboard_text"
         android:textSize="28sp"
         android:textStyle="bold"
         android:visibility="gone" />

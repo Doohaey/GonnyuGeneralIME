@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>使用教程</title>
   <style>
-    :root { color-scheme: light; font-family: "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; color: #172033; background: #f5f7fb; }
+    :root { color-scheme: light dark; font-family: "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; color: #172033; background: #f5f7fb; }
+    html, body { background: #f5f7fb; }
     * { box-sizing: border-box; }
     body { max-width: 760px; margin: 0 auto; padding: clamp(20px, 5vw, 48px); line-height: 1.75; font-size: clamp(16px, 1.2vw + 12px, 18px); }
     main { padding: clamp(20px, 4vw, 40px); border: 1px solid #d8e0eb; border-radius: 16px; background: #fff; box-shadow: 0 12px 30px #17203314; }
@@ -20,6 +21,13 @@
     .more { margin: 1.5em 0 0; }
     a { color: #185cc8; overflow-wrap: anywhere; }
     @media (max-width: 480px) { body { padding: 0; background: #fff; } main { border: 0; border-radius: 0; box-shadow: none; } }
+    @media (prefers-color-scheme: dark) {
+      :root, html, body { color: #f2f2f7; background: #111214; }
+      main { background: #1c1d20; border-color: #383a40; box-shadow: none; }
+      th { background: #292b30; }
+      th, td { border-color: #383a40; }
+      a { color: #62a8ff; }
+    }
   </style>
 </head>
 <body>

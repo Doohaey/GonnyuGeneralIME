@@ -11,6 +11,8 @@
 		775AE7FC30559BCA007BB968 /* ../../build/ios/GannyuInputFFI.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = A00000000000000000000019 /* ../../build/ios/GannyuInputFFI.xcframework */; };
 		A00000000000000000000001 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000011 /* AppDelegate.swift */; };
 		A00000000000000000000002 /* RegionSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000012 /* RegionSettingsViewController.swift */; };
+		A0000000000000000000000C /* TutorialViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000001E /* TutorialViewController.swift */; };
+		A0000000000000000000000D /* tutorial.html in Resources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000001F /* tutorial.html */; };
 		A00000000000000000000003 /* KeyboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000013 /* KeyboardViewController.swift */; };
 		A00000000000000000000004 /* GannyuAppleEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000014 /* GannyuAppleEngine.swift */; };
 		A00000000000000000000009 /* ../../build/ios/GannyuInputFFI.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = A00000000000000000000019 /* ../../build/ios/GannyuInputFFI.xcframework */; };
@@ -56,6 +58,8 @@
 		A0000000000000000000001B /* GonnyuKeyboard.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; path = GonnyuKeyboard.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		A0000000000000000000001C /* GonnyuInputMethod.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; path = GonnyuInputMethod.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A0000000000000000000001D /* ../../build/ios/rime */ = {isa = PBXFileReference; explicitFileType = folder; path = ../../build/ios/rime; sourceTree = SOURCE_ROOT; };
+		A0000000000000000000001E /* TutorialViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialViewController.swift; sourceTree = "<group>"; };
+		A0000000000000000000001F /* tutorial.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = ../../resources/tutorial/tutorial.html; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -94,6 +98,7 @@
 				A00000000000000000000023 /* Sources/GannyuAppleSupport */,
 				A00000000000000000000019 /* ../../build/ios/GannyuInputFFI.xcframework */,
 				A0000000000000000000001D /* ../../build/ios/rime */,
+				A0000000000000000000001F /* tutorial.html */,
 				A00000000000000000000024 /* Products */,
 				775AE7FD30559BCA007BB968 /* Recovered References */,
 			);
@@ -104,6 +109,7 @@
 			children = (
 				A00000000000000000000011 /* AppDelegate.swift */,
 				A00000000000000000000012 /* RegionSettingsViewController.swift */,
+				A0000000000000000000001E /* TutorialViewController.swift */,
 				A00000000000000000000015 /* GannyuInput/Info.plist */,
 				A00000000000000000000016 /* GannyuInput/GannyuInput.entitlements */,
 			);
@@ -217,6 +223,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A0000000000000000000000A /* ../../build/ios/rime in Resources */,
+				A0000000000000000000000D /* tutorial.html in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -229,6 +236,7 @@
 			files = (
 				A00000000000000000000001 /* AppDelegate.swift in Sources */,
 				A00000000000000000000002 /* RegionSettingsViewController.swift in Sources */,
+				A0000000000000000000000C /* TutorialViewController.swift in Sources */,
 				775AE7FB30559BCA007BB968 /* GannyuAppleEngine.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

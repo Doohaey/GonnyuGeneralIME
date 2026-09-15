@@ -28,6 +28,7 @@ if [[ "$variant" == "release" ]]; then
   fi
 fi
 
+PYTHON_BIN="${PYTHON_BIN:-python3}" bash "$repo_root/platforms/rime/mobile/prepare_resources.sh"
 bash "$repo_root/platforms/rime/mobile/build_android_jni.sh"
 
 if [[ "$variant" == "debug" ]]; then

@@ -59,17 +59,6 @@ Java_io_gannyu_input_GannyuInputMethodService_nativeLastError(JNIEnv* env, jobje
 }
 
 JNIEXPORT jstring JNICALL
-Java_io_gannyu_input_GannyuInputMethodService_nativeRegionList(JNIEnv* env, jobject thiz, jstring ignored) {
-    (void)thiz;
-    (void)ignored;
-    // Region metadata belongs to the versioned resource manifest.  This small
-    // fallback keeps settings available before the Kotlin resource loader reads
-    // that manifest; schema identifiers are fixed by the checked-in generator.
-    return (*env)->NewStringUTF(env,
-        "[{\"id\":\"lancong\",\"name_zh\":\"南昌\"},{\"id\":\"fenni\",\"name_zh\":\"分宜\"}]");
-}
-
-JNIEXPORT jstring JNICALL
 Java_io_gannyu_input_GannyuInputMethodService_nativeSnapshot(JNIEnv* env, jobject thiz, jlong handle) {
     (void)thiz;
     char* out = NULL;
@@ -144,11 +133,6 @@ Java_io_gannyu_input_NativePipelineBridge_nativeCreate(JNIEnv* env, jobject thiz
 JNIEXPORT jstring JNICALL
 Java_io_gannyu_input_NativePipelineBridge_nativeLastError(JNIEnv* env, jobject thiz) {
     return Java_io_gannyu_input_GannyuInputMethodService_nativeLastError(env, thiz);
-}
-
-JNIEXPORT jstring JNICALL
-Java_io_gannyu_input_NativePipelineBridge_nativeRegionList(JNIEnv* env, jobject thiz, jstring ignored) {
-    return Java_io_gannyu_input_GannyuInputMethodService_nativeRegionList(env, thiz, ignored);
 }
 
 JNIEXPORT jstring JNICALL

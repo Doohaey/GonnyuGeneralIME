@@ -26,8 +26,8 @@ def test_ios_platform_declares_host_app_keyboard_extension_and_build_entrypoint(
     assert "A00000000000000000000003 /* KeyboardViewController.swift in Sources */" in project
     assert "A00000000000000000000004 /* GannyuAppleEngine.swift in Sources */" in project
     assert "build_ios_xcframework.sh" in build
-    assert "build_resources.py" in build
-    assert '--output "$output_root/rime"' in build
+    assert "prepare_resources.sh" in build
+    assert 'ln -sfn ../rime-mobile/mobile-resources "$output_root/rime"' in build
     assert "cargo build" not in build
     assert "GANNYU_RESOURCE_KEY" not in build
     assert "generic/platform=iOS" in build
@@ -77,7 +77,7 @@ def test_ios_keyboard_keeps_auxiliary_input_outside_candidate_selection() -> Non
     assert "textDocumentProxy.insertText(key)" in keyboard
     assert "private final class KeyPreviewView" in keyboard
     assert "private let bubbleLayer = CAShapeLayer()" in keyboard
-    assert "bubbleLayer.fillColor = UIColor.white.cgColor" in keyboard
+    assert "UIColor.secondarySystemBackground.resolvedColor" in keyboard
     assert "label.font = .systemFont(ofSize: 28, weight: .bold)" in keyboard
     assert "private func supportsKeyPreview" in keyboard
     assert "showKeyPreview" in keyboard
@@ -94,6 +94,7 @@ def test_ios_keyboard_matches_android_composition_and_default_candidate_rules() 
     assert "if snapshot.rawInput.isEmpty" in keyboard
     assert "engine?.process(.space)" in keyboard
     assert "configuration.subtitle" in keyboard
+    assert "开启“允许完全访问”后，用户词库才能保存" in keyboard
     assert "systemFont(ofSize: 10, weight: .regular)" in keyboard
     assert "heightAnchor.constraint(equalToConstant: 16)" in keyboard
     assert "candidateStack.spacing = 3" in keyboard
@@ -115,7 +116,7 @@ def test_ios_keyboard_uses_compact_fixed_visuals_and_full_annotations() -> None:
         encoding="utf-8"
     )
 
-    assert "UIColor(red: 0.82, green: 0.83, blue: 0.84, alpha: 1)" in keyboard
+    assert "traits.userInterfaceStyle == .dark" in keyboard
     assert "equalToConstant: 46" in keyboard
     assert "row.spacing = keySpacing" in keyboard
     assert "private let keySpacing: CGFloat = 6" in keyboard
@@ -127,7 +128,8 @@ def test_ios_keyboard_uses_compact_fixed_visuals_and_full_annotations() -> None:
     assert "private func functionKeyWidth(for label: String) -> CGFloat" in keyboard
     assert "case \"🌐\", \"英\", \"中\", \"123\", \"ABC\", \"符号\", \"更多\", \"常用\", \"⇧\", \"分词\":" in keyboard
     assert "multiplier: 1.6" in keyboard
-    assert "overrideUserInterfaceStyle = .light" in keyboard
+    assert "overrideUserInterfaceStyle = .light" not in keyboard
+    assert "traitCollectionDidChange" in keyboard
     assert "candidateScroll.backgroundColor = .clear" in keyboard
     assert "candidateRow.heightAnchor.constraint(equalToConstant: 39)" in keyboard
     assert "attributes.font = .systemFont(ofSize: 15, weight: .bold)" in keyboard
@@ -159,3 +161,27 @@ def test_ios_host_matches_android_user_data_controls() -> None:
     assert "pendingUserDataResetRegionIDs" in support
     assert "清空当前地区学习数据" in host
     assert "清空全部地区学习数据" in host
+
+
+def test_ios_host_uses_standard_settings_sections_and_offline_tutorial() -> None:
+    host = (IOS / "Sources" / "GannyuInput" / "RegionSettingsViewController.swift").read_text(
+        encoding="utf-8"
+    )
+    tutorial = (IOS / "Sources" / "GannyuInput" / "TutorialViewController.swift").read_text(
+        encoding="utf-8"
+    )
+    project = (IOS / "GonnyuInput.xcodeproj" / "project.pbxproj").read_text(encoding="utf-8")
+
+    assert "case setup" in host
+    assert "case regions" in host
+    assert "case userData" in host
+    assert "case help" in host
+    assert "设置 > 通用 > 键盘 > 键盘 > 添加新键盘…" in host
+    assert "UIApplication.openSettingsURLString" in host
+    assert "用户词库仅在本机离线存储。" in host
+    assert "开启允许完全访问" in host
+    assert "openAppSettings" in host
+    assert "TutorialViewController()" in host
+    assert "WKWebView" in tutorial
+    assert 'url(forResource: "tutorial", withExtension: "html")' in tutorial
+    assert "tutorial.html in Resources" in project
