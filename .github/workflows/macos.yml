@@ -1,0 +1,123 @@
+name: macos
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - Cargo.toml
+      - platforms/macos/**
+      - platforms/rime/mobile/**
+      - engines/rime/**
+      - resources/**
+      - .github/workflows/macos.yml
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-26
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: "2"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - id: product
+        shell: bash
+        run: |
+          version="$(awk -F '"' '/^version[[:space:]]*=/ { print $2; exit }' Cargo.toml)"
+          test -n "$version"
+          printf 'version=%s\n' "$version" >> "$GITHUB_OUTPUT"
+      - run: brew install cmake ninja
+      - name: Import release signing identities and notary credentials
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        env:
+          APP_P12: ${{ secrets.MACOS_DEVELOPER_ID_APPLICATION_P12_BASE64 }}
+          INSTALLER_P12: ${{ secrets.MACOS_DEVELOPER_ID_INSTALLER_P12_BASE64 }}
+          CERT_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          NOTARY_KEY: ${{ secrets.APPLE_NOTARY_KEY_P8_BASE64 }}
+          NOTARY_KEY_ID: ${{ secrets.APPLE_NOTARY_KEY_ID }}
+          NOTARY_ISSUER_ID: ${{ secrets.APPLE_NOTARY_ISSUER_ID }}
+        run: |
+          set -euo pipefail
+          for value in "$APP_P12" "$INSTALLER_P12" "$CERT_PASSWORD" "$NOTARY_KEY" "$NOTARY_KEY_ID" "$NOTARY_ISSUER_ID"; do
+            test -n "$value" || { echo "macOS release signing secret is missing" >&2; exit 1; }
+          done
+          signing_dir="$RUNNER_TEMP/gonnyu-signing"
+          mkdir -m 700 "$signing_dir"
+          printf '%s' "$APP_P12" | base64 -D > "$signing_dir/application.p12"
+          printf '%s' "$INSTALLER_P12" | base64 -D > "$signing_dir/installer.p12"
+          printf '%s' "$NOTARY_KEY" | base64 -D > "$signing_dir/notary.p8"
+          keychain="$signing_dir/release.keychain-db"
+          keychain_password="$(openssl rand -hex 24)"
+          security create-keychain -p "$keychain_password" "$keychain"
+          security unlock-keychain -p "$keychain_password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security import "$signing_dir/application.p12" -k "$keychain" -P "$CERT_PASSWORD" -T /usr/bin/codesign
+          security import "$signing_dir/installer.p12" -k "$keychain" -P "$CERT_PASSWORD" -T /usr/bin/pkgbuild
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$keychain_password" "$keychain"
+          security list-keychains -d user -s "$keychain"
+          app_identity="$(security find-identity -v "$keychain" | awk -F '"' '/Developer ID Application:/ { print $2; exit }')"
+          installer_identity="$(security find-identity -v "$keychain" | awk -F '"' '/Developer ID Installer:/ { print $2; exit }')"
+          test -n "$app_identity" && test -n "$installer_identity"
+          xcrun notarytool store-credentials gonnyu-release \
+            --key "$signing_dir/notary.p8" --key-id "$NOTARY_KEY_ID" \
+            --issuer "$NOTARY_ISSUER_ID" --keychain "$keychain"
+          printf 'GANNYU_MACOS_APP_SIGN_IDENTITY=%s\n' "$app_identity" >> "$GITHUB_ENV"
+          printf 'GANNYU_MACOS_INSTALLER_SIGN_IDENTITY=%s\n' "$installer_identity" >> "$GITHUB_ENV"
+          printf 'GANNYU_MACOS_NOTARY_PROFILE=gonnyu-release\n' >> "$GITHUB_ENV"
+          printf 'GANNYU_MACOS_NOTARY_KEYCHAIN=%s\n' "$keychain" >> "$GITHUB_ENV"
+      - name: Rebuild universal librime app from locked source
+        shell: bash
+        env:
+          GANNYU_MACOS_SIGN_IDENTITY: ${{ env.GANNYU_MACOS_APP_SIGN_IDENTITY }}
+          GANNYU_MACOS_CI_ADHOC: ${{ !startsWith(github.ref, 'refs/tags/v') && '1' || '0' }}
+        run: bash platforms/macos/build.sh
+      - name: Validate bundled engine and input-method host
+        shell: bash
+        run: |
+          set -euo pipefail
+          bundle=build/macos/GonnyuInputMethod.app
+          plutil -lint "$bundle/Contents/Info.plist"
+          codesign --verify --deep --strict "$bundle"
+          lipo "$bundle/Contents/MacOS/GannyuInputMethodHost" -verify_arch arm64 x86_64
+          GANNYU_RIME_RESOURCE_ROOT=build/rime-macos/resources \
+          GANNYU_RIME_USER_DATA_DIR=build/rime-macos/ci-user \
+            platforms/macos/.build/apple/Products/Release/GannyuMacOSSmoke --region lancong --input gau
+          GANNYU_IMK_SELFTEST=1 "$bundle/Contents/MacOS/GannyuInputMethodHost"
+      - name: Build and inspect PKG
+        shell: bash
+        env:
+          GANNYU_MACOS_PACKAGE_SKIP_BUILD: "1"
+          GANNYU_MACOS_UNSIGNED_TEST: ${{ !startsWith(github.ref, 'refs/tags/v') && '1' || '0' }}
+        run: |
+          set -euo pipefail
+          bash platforms/macos/package.sh
+          pkgutil --expand build/macos/GonnyuInputMethod.pkg build/macos/pkg-inspection
+          test -x build/macos/pkg-inspection/Scripts/preinstall
+          test -x build/macos/pkg-inspection/Scripts/postinstall
+          test -x build/macos/pkg-inspection/Scripts/check_installer_version.sh
+          expected="$(python3 platforms/macos/installer_version.py '${{ steps.product.outputs.version }}')"
+          grep -Fq "version=\"$expected\"" build/macos/pkg-inspection/PackageInfo
+      - if: startsWith(github.ref, 'refs/tags/v')
+        run: pkgutil --check-signature build/macos/GonnyuInputMethod.pkg
+      - shell: bash
+        run: mv build/macos/GonnyuInputMethod.pkg "build/macos/GonnyuGeneralIME-${{ steps.product.outputs.version }}-macos.pkg"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GonnyuGeneralIME-${{ steps.product.outputs.version }}-macos
+          path: build/macos/GonnyuGeneralIME-${{ steps.product.outputs.version }}-macos.pkg
+          if-no-files-found: error
+      - name: Remove temporary release credentials
+        if: always() && startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: |
+          if [[ -d "$RUNNER_TEMP/gonnyu-signing" ]]; then
+            security delete-keychain "$RUNNER_TEMP/gonnyu-signing/release.keychain-db" || true
+            rm -rf "$RUNNER_TEMP/gonnyu-signing"
+          fi

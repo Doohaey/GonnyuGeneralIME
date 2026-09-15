@@ -7,6 +7,7 @@ WORKFLOWS = (
     "fcitx5.yml",
     "rime.yml",
     "windows.yml",
+    "macos.yml",
 )
 
 
@@ -25,7 +26,9 @@ def test_release_workflow_uses_tagged_workspace_version() -> None:
     assert "scripts/" not in content
     assert "actions/setup-python@v5" in content
     assert "platforms/rime/build.py --list-regions" in content
-    assert '"$((3 + ${#regions[@]}))"' in content
+    assert '"$((4 + ${#regions[@]}))"' in content
+    assert "macos.pkg" in content
+    assert "uses: ./.github/workflows/macos.yml" in content
     assert "GonnyuGeneralIME-${{ steps.product.outputs.version }}-*" in content
     assert "rime-${region}.zip" in content
     assert 'gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1' in content
@@ -38,6 +41,19 @@ def test_fcitx5_workflow_runs_an_isolated_installer_smoke_test() -> None:
     content = (ROOT / ".github/workflows/fcitx5.yml").read_text(encoding="utf-8")
     assert 'DESTDIR="$smoke_root/root" bash "$smoke_root/install.sh"' in content
     assert 'tar -xzf "$artifact" -C "$smoke_root"' in content
+
+
+def test_macos_workflow_rebuilds_and_inspects_pkg() -> None:
+    content = (ROOT / ".github/workflows/macos.yml").read_text(encoding="utf-8")
+    assert "runs-on: macos-26" in content
+    assert "bash platforms/macos/build.sh" in content
+    assert "GannyuMacOSSmoke --region lancong --input gau" in content
+    assert "bash platforms/macos/package.sh" in content
+    assert "pkgutil --expand" in content
+    assert "GANNYU_MACOS_UNSIGNED_TEST" in content
+    assert "MACOS_DEVELOPER_ID_APPLICATION_P12_BASE64" in content
+    assert "MACOS_DEVELOPER_ID_INSTALLER_P12_BASE64" in content
+    assert "APPLE_NOTARY_KEY_P8_BASE64" in content
 
 def test_android_workflow_runs_installation_smoke_test() -> None:
     content = (ROOT / ".github/workflows" / "android.yml").read_text(encoding="utf-8")

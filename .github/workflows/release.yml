@@ -20,8 +20,11 @@ jobs:
   windows:
     uses: ./.github/workflows/windows.yml
     secrets: inherit
+  macos:
+    uses: ./.github/workflows/macos.yml
+    secrets: inherit
   publish:
-    needs: [rime, android, fcitx5, windows]
+    needs: [rime, android, fcitx5, windows, macos]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -47,11 +50,11 @@ jobs:
           while IFS= read -r region; do
             regions+=("$region")
           done < <(python3 platforms/rime/build.py --list-regions)
-          test "$(find release-assets -maxdepth 1 -type f | wc -l)" -eq "$((3 + ${#regions[@]}))"
+          test "$(find release-assets -maxdepth 1 -type f | wc -l)" -eq "$((4 + ${#regions[@]}))"
           for region in "${regions[@]}"; do
             test -f "release-assets/GonnyuGeneralIME-${PRODUCT_VERSION}-rime-${region}.zip"
           done
-          for suffix in android.apk fcitx5.tar.gz windows-installer.exe; do
+          for suffix in android.apk fcitx5.tar.gz windows-installer.exe macos.pkg; do
             test -f "release-assets/GonnyuGeneralIME-${PRODUCT_VERSION}-${suffix}"
           done
           awk -v heading="## 测试版本 ${PRODUCT_VERSION}" "\$0 == heading { found = 1; next }
