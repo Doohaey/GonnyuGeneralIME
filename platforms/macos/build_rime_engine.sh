@@ -98,13 +98,16 @@ cmake -S "$repo_root/engines/rime" -B "$build_root/adapter" "${common_cmake[@]}"
   -DCMAKE_PREFIX_PATH="$prefix" \
   -DRIME_INCLUDE_DIR="$prefix/include" \
   -DRIME_LIBRARY="$prefix/lib/librime.a" \
+  -DRIME_DEPENDENCY_LIBRARIES="$prefix/lib/libleveldb.a;$prefix/lib/libmarisa.a;$prefix/lib/libopencc.a;$prefix/lib/libyaml-cpp.a;$prefix/lib/libglog.a;$prefix/lib/libboost_regex.a" \
   -DGANNYU_RIME_BUILD_PROBES=ON
 cmake --build "$build_root/adapter"
 
 for library in "$build_root/adapter/libgannyu_rime_engine.a" "$prefix/lib/librime.a"; do
   [[ -f "$library" ]] || { echo "missing macOS Rime artifact: $library" >&2; exit 2; }
-  lipo -verify_arch arm64 "$library"
-  lipo -verify_arch x86_64 "$library"
+  IFS=';' read -r -a architecture_list <<< "$architectures"
+  for architecture in "${architecture_list[@]}"; do
+    lipo "$library" -verify_arch "$architecture"
+  done
 done
 
 echo "built macOS universal Rime engine: $build_root"

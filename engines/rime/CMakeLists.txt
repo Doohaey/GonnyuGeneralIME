@@ -6,12 +6,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_path(RIME_INCLUDE_DIR rime_api.h REQUIRED)
 find_library(RIME_LIBRARY NAMES rime REQUIRED)
+set(RIME_DEPENDENCY_LIBRARIES "" CACHE STRING "Static libraries required by librime")
 
 add_library(gannyu_rime_engine STATIC gannyu_rime_engine.cpp)
 target_include_directories(gannyu_rime_engine PUBLIC
   "${CMAKE_CURRENT_LIST_DIR}/../../crates/ffi/include"
   "${RIME_INCLUDE_DIR}")
-target_link_libraries(gannyu_rime_engine PUBLIC "${RIME_LIBRARY}")
+target_link_libraries(gannyu_rime_engine PUBLIC
+  "${RIME_LIBRARY}"
+  ${RIME_DEPENDENCY_LIBRARIES})
 if(MSVC)
   target_compile_options(gannyu_rime_engine PRIVATE /W4)
 else()

@@ -12,6 +12,13 @@ def test_macos_rime_build_uses_pinned_mobile_engine_sources() -> None:
     assert 'GANNYU_MACOS_ARCHITECTURES:-arm64;x86_64' in script
     assert 'CMAKE_OSX_DEPLOYMENT_TARGET="$deployment_target"' in script
     assert 'RIME_PLUGINS="librime-lua"' in script
+    assert 'RIME_DEPENDENCY_LIBRARIES=' in script
     assert 'libgannyu_rime_engine.a' in script
-    assert 'lipo -verify_arch arm64' in script
-    assert 'lipo -verify_arch x86_64' in script
+    assert 'lipo "$library" -verify_arch "$architecture"' in script
+
+
+def test_rime_adapter_propagates_static_librime_dependencies() -> None:
+    cmake = (ROOT / "engines/rime/CMakeLists.txt").read_text(encoding="utf-8")
+
+    assert 'RIME_DEPENDENCY_LIBRARIES' in cmake
+    assert '${RIME_DEPENDENCY_LIBRARIES}' in cmake
