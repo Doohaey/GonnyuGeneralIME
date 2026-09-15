@@ -55,6 +55,9 @@ def test_macos_package_declares_host_and_smoke_targets() -> None:
     assert "Gonnyu 赣语键盘" in plist
     assert "Gonnyu.icns" in plist
     assert "tsInputModeDisplayNameKey" in plist
+    assert "tsInputMethodIconFileKey" in plist
+    assert "tsInputModeMenuIconFileKey" in plist
+    assert "tsInputModePaletteIconFileKey" in plist
     assert 'icon_resource="$repo_root/resources/Gonnyu.icns"' in (
         ROOT / "platforms/macos/build.sh"
     ).read_text(encoding="utf-8")
@@ -109,6 +112,9 @@ def test_macos_controller_wires_minimal_input_loop() -> None:
     assert "override func handle" in controller
     assert "@objc(handleEvent:client:)" in controller
     assert "override func recognizedEvents" in controller
+    assert "charactersIgnoringModifiers" in controller
+    assert "Unable to create Rime engine" in controller
+    assert "Rime engine failed to process input" in controller
     assert ".keyDown, .flagsChanged" in controller
     assert "kVK_ANSI_KeypadEnter" in controller
     assert "override func didCommand" in controller

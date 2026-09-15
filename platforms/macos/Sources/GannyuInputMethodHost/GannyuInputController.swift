@@ -2,6 +2,7 @@ import AppKit
 import Carbon.HIToolbox
 import InputMethodKit
 import GannyuMacOSSupport
+import os
 
 @objc(GannyuInputController)
 final class GannyuInputController: IMKInputController {
@@ -9,10 +10,11 @@ final class GannyuInputController: IMKInputController {
     private var snapshot: GannyuSnapshot?
     private var displays: [NSAttributedString] = []
     private let candidatePanel = GannyuCandidatePanel()
+    private let log = Logger(subsystem: "org.doohaey.inputmethod.gonnyu.native", category: "input")
 
     override init!(server: IMKServer!, delegate: Any!, client inputClient: Any!) {
         super.init(server: server, delegate: delegate, client: inputClient)
-        engine = try? GannyuEngine()
+        createEngineIfNeeded()
         candidatePanel.onSelect = { [weak self] index in
             guard let self else { return }
             _ = self.select(index, client: self.client())
@@ -33,7 +35,7 @@ final class GannyuInputController: IMKInputController {
 
     @objc(activateServer:)
     override func activateServer(_ sender: Any!) {
-        if engine == nil { engine = try? GannyuEngine() }
+        createEngineIfNeeded()
     }
 
     @objc(deactivateServer:)
@@ -75,7 +77,13 @@ final class GannyuInputController: IMKInputController {
         if active, let line = candidateLineNumber(event.keyCode) {
             return selectLine(line, client: sender)
         }
-        guard let characters = event.characters, !characters.isEmpty else { return false }
+        let characters = event.characters?.isEmpty == false
+            ? event.characters
+            : event.charactersIgnoringModifiers
+        guard let characters, !characters.isEmpty else {
+            log.debug("IMK key event has no printable characters; keyCode=\(event.keyCode, privacy: .public)")
+            return false
+        }
         return processText(characters, client: sender)
     }
 
@@ -170,10 +178,28 @@ final class GannyuInputController: IMKInputController {
     }
 
     private func process(_ event: GannyuKeyEvent, client sender: Any!) -> Bool {
-        guard let engine, let result = try? engine.process(event) else { return false }
-        if !result.handled { return false }
-        render(result, client: sender)
-        return true
+        guard let engine else {
+            log.error("Rime engine is unavailable while processing input")
+            return false
+        }
+        do {
+            let result = try engine.process(event)
+            guard result.handled else { return false }
+            render(result, client: sender)
+            return true
+        } catch {
+            log.error("Rime engine failed to process input: \(String(describing: error), privacy: .public)")
+            return false
+        }
+    }
+
+    private func createEngineIfNeeded() {
+        guard engine == nil else { return }
+        do {
+            engine = try GannyuEngine()
+        } catch {
+            log.error("Unable to create Rime engine: \(String(describing: error), privacy: .public)")
+        }
     }
 
     private func page(_ direction: Int, client sender: Any!) -> Bool {

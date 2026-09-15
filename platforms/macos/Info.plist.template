@@ -38,6 +38,10 @@
                 <string>@BUNDLE_ID@.Gan</string>
                 <key>tsInputModeDisplayNameKey</key>
                 <string>Gonnyu 赣语键盘</string>
+                <key>tsInputModeMenuIconFileKey</key>
+                <string>Gonnyu.icns</string>
+                <key>tsInputModePaletteIconFileKey</key>
+                <string>Gonnyu.icns</string>
                 <key>TISIntendedLanguage</key>
                 <string>zh-Hans</string>
                 <key>tsInputModeCharacterRepertoireKey</key>
@@ -72,6 +76,8 @@
     </dict>
     <key>InputMethodServerControllerClass</key>
     <string>GannyuInputController</string>
+    <key>tsInputMethodIconFileKey</key>
+    <string>Gonnyu.icns</string>
     <key>LSMinimumSystemVersion</key>
     <string>13.0</string>
     <key>TISInputSourceID</key>
