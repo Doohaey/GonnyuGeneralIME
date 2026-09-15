@@ -53,7 +53,7 @@ build_dependency opencc -DBUILD_SHARED_LIBS=OFF -DENABLE_GTEST=OFF -DENABLE_BENC
 build_dependency yaml-cpp -DBUILD_SHARED_LIBS=OFF -DYAML_CPP_BUILD_CONTRIB=OFF -DYAML_CPP_BUILD_TESTS=OFF -DYAML_CPP_BUILD_TOOLS=OFF
 
 cmake -S "$librime_root" -B "$build_root/librime" "${common[@]}" \
-  -DCMAKE_PREFIX_PATH="$prefix" -DBoost_NO_SYSTEM_PATHS=ON -DBoost_INCLUDE_DIR="$boost_include" \
+  -DCMAKE_PREFIX_PATH="$prefix" -DBoost_NO_BOOST_CMAKE=ON -DBoost_NO_SYSTEM_PATHS=ON -DBoost_INCLUDE_DIR="$boost_include" \
   -DBUILD_SHARED_LIBS=OFF -DBUILD_STATIC=ON -DBUILD_MERGED_PLUGINS=ON -DENABLE_EXTERNAL_PLUGINS=OFF -DBUILD_TEST=OFF -DINSTALL_PRIVATE_HEADERS=ON \
   -DGlog_INCLUDE_PATH="$prefix/include" -DGlog_LIBRARY="$prefix/lib/libglog.a" \
   -DYamlCpp_INCLUDE_PATH="$prefix/include" -DYamlCpp_NEW_API="$prefix/include/yaml-cpp/node/node.h" -DYamlCpp_LIBRARY="$prefix/lib/libyaml-cpp.a" \
