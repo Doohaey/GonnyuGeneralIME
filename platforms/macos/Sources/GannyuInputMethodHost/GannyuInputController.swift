@@ -8,20 +8,19 @@ final class GannyuInputController: IMKInputController {
     private var engine: GannyuEngine?
     private var snapshot: GannyuSnapshot?
     private var displays: [NSAttributedString] = []
-    private var candidateIdentifiers: [Int: Int] = [:]
-    private lazy var panel: IMKCandidates? = {
-        guard let server = server() else { return nil }
-        let window = IMKCandidates(server: server, panelType: kIMKSingleColumnScrollingCandidatePanel)
-        window?.setAttributes([
-            IMKCandidatesSendServerKeyEventFirst: NSNumber(value: true),
-            NSAttributedString.Key.font.rawValue: NSFont.systemFont(ofSize: 18),
-        ])
-        return window
-    }()
+    private let candidatePanel = GannyuCandidatePanel()
 
     override init!(server: IMKServer!, delegate: Any!, client inputClient: Any!) {
         super.init(server: server, delegate: delegate, client: inputClient)
         engine = try? GannyuEngine()
+        candidatePanel.onSelect = { [weak self] index in
+            guard let self else { return }
+            _ = self.select(index, client: self.client())
+        }
+        candidatePanel.onPage = { [weak self] direction in
+            guard let self else { return }
+            _ = self.page(direction, client: self.client())
+        }
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(regionDidChange),
@@ -206,7 +205,7 @@ final class GannyuInputController: IMKInputController {
         } else {
             snapshot = nil
             displays = []
-            panel?.hide()
+            candidatePanel.hide()
             (sender as? NSTextInputClient)?.unmarkText()
         }
     }
@@ -219,7 +218,7 @@ final class GannyuInputController: IMKInputController {
         }
         if result.rawInput.isEmpty {
             client.unmarkText()
-            panel?.hide()
+            candidatePanel.hide()
             displays = []
             return
         }
@@ -246,19 +245,8 @@ final class GannyuInputController: IMKInputController {
             }
             return display
         }
-        guard !displays.isEmpty else { panel?.hide(); return }
-        panel?.setCandidateData(displays)
-        panel?.update()
-        panel?.show(kIMKLocateCandidatesBelowHint)
-        candidateIdentifiers.removeAll()
-        if let panel {
-            for (offset, display) in displays.enumerated() {
-                let identifier = panel.candidateStringIdentifier(display)
-                if identifier != NSNotFound {
-                    candidateIdentifiers[identifier] = result.candidates[offset].globalIndex
-                }
-            }
-        }
+        guard !displays.isEmpty else { candidatePanel.hide(); return }
+        candidatePanel.present(result, anchor: candidateAnchor(for: client))
     }
 
     private func replacementRange(for client: NSTextInputClient) -> NSRange {
@@ -268,11 +256,15 @@ final class GannyuInputController: IMKInputController {
 
     private func candidateIndex(for display: NSAttributedString?) -> Int? {
         guard let display else { return nil }
-        if let panel {
-            let identifier = panel.candidateStringIdentifier(display)
-            if let index = candidateIdentifiers[identifier] { return index }
-        }
         return snapshot?.candidates.first(where: { $0.text == display.string })?.globalIndex
+    }
+
+    private func candidateAnchor(for client: NSTextInputClient) -> NSRect {
+        let marked = client.markedRange()
+        let range = marked.location == NSNotFound ? client.selectedRange() : marked
+        let rect = client.firstRect(forCharacterRange: range, actualRange: nil)
+        if !rect.isEmpty { return rect }
+        return NSRect(origin: NSEvent.mouseLocation, size: .zero)
     }
 
     private func candidateLineNumber(_ keyCode: UInt16) -> Int? {

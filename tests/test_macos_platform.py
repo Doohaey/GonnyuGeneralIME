@@ -51,6 +51,26 @@ def test_macos_package_declares_host_and_smoke_targets() -> None:
     assert "GannyuInputController" in (
         ROOT / "platforms/macos/Info.plist.template"
     ).read_text(encoding="utf-8")
+
+
+def test_macos_uses_native_vertical_candidate_panel() -> None:
+    panel = (
+        ROOT / "platforms/macos/Sources/GannyuInputMethodHost/GannyuCandidatePanel.swift"
+    ).read_text(encoding="utf-8")
+    controller = (
+        ROOT / "platforms/macos/Sources/GannyuInputMethodHost/GannyuInputController.swift"
+    ).read_text(encoding="utf-8")
+
+    assert "NSPanel" in panel
+    assert "NSVisualEffectView" in panel
+    assert "rows.orientation = .vertical" in panel
+    assert "systemFont(ofSize: 18)" in panel
+    assert "systemFont(ofSize: 12)" in panel
+    assert 'NSButton(title: "<"' in panel
+    assert 'NSButton(title: ">"' in panel
+    assert "pageLabel" not in panel
+    assert "candidatePanel.present" in controller
+    assert "candidatePanel.onPage" in controller
     host = (ROOT / "platforms/macos/Sources/GannyuInputMethodHost/main.swift").read_text(
         encoding="utf-8"
     )
