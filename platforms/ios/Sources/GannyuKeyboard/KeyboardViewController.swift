@@ -1,5 +1,56 @@
 import UIKit
 
+private final class KeyPreviewView: UIView {
+    private let label = UILabel()
+    private let bubbleLayer = CAShapeLayer()
+
+    var text: String? {
+        get { label.text }
+        set { label.text = newValue }
+    }
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        isOpaque = false
+        isUserInteractionEnabled = false
+        backgroundColor = .clear
+        layer.shadowColor = UIColor.black.cgColor
+        layer.shadowOpacity = 0.18
+        layer.shadowOffset = CGSize(width: 0, height: 2)
+        layer.shadowRadius = 5
+        layer.insertSublayer(bubbleLayer, at: 0)
+        bubbleLayer.fillColor = UIColor.white.cgColor
+        label.font = .systemFont(ofSize: 28, weight: .bold)
+        label.textColor = UIColor(red: 0.10, green: 0.10, blue: 0.12, alpha: 1)
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(label)
+        NSLayoutConstraint.activate([
+            label.leadingAnchor.constraint(equalTo: leadingAnchor),
+            label.trailingAnchor.constraint(equalTo: trailingAnchor),
+            label.topAnchor.constraint(equalTo: topAnchor),
+            label.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -9),
+        ])
+    }
+
+    required init?(coder: NSCoder) { nil }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        let body = CGRect(x: 0, y: 0, width: bounds.width, height: bounds.height - 9)
+        let path = UIBezierPath(roundedRect: body, cornerRadius: 8)
+        let arrow = UIBezierPath()
+        arrow.move(to: CGPoint(x: bounds.midX - 8, y: body.maxY - 1))
+        arrow.addLine(to: CGPoint(x: bounds.midX, y: bounds.maxY))
+        arrow.addLine(to: CGPoint(x: bounds.midX + 8, y: body.maxY - 1))
+        arrow.close()
+        path.append(arrow)
+        bubbleLayer.frame = bounds
+        bubbleLayer.path = path.cgPath
+        layer.shadowPath = path.cgPath
+    }
+}
+
 final class KeyboardViewController: UIInputViewController {
     private enum KeyboardPage {
         case letters
@@ -37,6 +88,7 @@ final class KeyboardViewController: UIInputViewController {
     private var expandedPageNumbers = Set<Int>()
     private var expandedLayoutWidth: CGFloat = 0
     private let keyboardStack = UIStackView()
+    private let keyPreviewView = KeyPreviewView(frame: .zero)
     private weak var referenceKeyButton: UIButton?
     private var pendingWidthConstraints: [NSLayoutConstraint] = []
     private let keyboardPanelColor = UIColor(red: 0.82, green: 0.83, blue: 0.84, alpha: 1)
@@ -70,6 +122,7 @@ final class KeyboardViewController: UIInputViewController {
         // A keyboard extension can be dismissed while a delete key is held.
         // Never let its repeat timer survive that transition.
         stopBackspaceRepeat()
+        hideKeyPreview()
     }
 
     override func viewDidLayoutSubviews() {
@@ -97,6 +150,8 @@ final class KeyboardViewController: UIInputViewController {
             root.topAnchor.constraint(equalTo: view.topAnchor, constant: 4),
             root.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -7),
         ])
+        keyPreviewView.isHidden = true
+        view.addSubview(keyPreviewView)
 
         preeditLabel.font = .systemFont(ofSize: 10, weight: .regular)
         preeditLabel.textColor = fixedSecondaryTextColor
@@ -164,6 +219,7 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func renderKeyboard() {
+        hideKeyPreview()
         NSLayoutConstraint.deactivate(pendingWidthConstraints)
         pendingWidthConstraints.removeAll()
         keyboardStack.arrangedSubviews.forEach {
@@ -305,6 +361,10 @@ final class KeyboardViewController: UIInputViewController {
         button.layer.shadowOffset = CGSize(width: 0, height: 1)
         button.layer.shadowRadius = 0
         button.heightAnchor.constraint(equalToConstant: 46).isActive = true
+        if supportsKeyPreview(label) {
+            button.addTarget(self, action: #selector(showKeyPreview(_:)), for: .touchDown)
+            button.addTarget(self, action: #selector(hideKeyPreview), for: [.touchUpInside, .touchUpOutside, .touchCancel, .touchDragExit])
+        }
         if label == "⌫" {
             button.addTarget(self, action: #selector(backspacePressed(_:)), for: .touchDown)
             button.addTarget(self, action: #selector(stopBackspaceRepeat), for: [.touchUpInside, .touchUpOutside, .touchCancel])
@@ -312,6 +372,31 @@ final class KeyboardViewController: UIInputViewController {
             button.addTarget(self, action: #selector(keyPressed(_:)), for: .touchUpInside)
         }
         return button
+    }
+
+    private func supportsKeyPreview(_ label: String) -> Bool {
+        label.count == 1 && !["🌐", "⌫", "⇧", "⏎"].contains(label)
+    }
+
+    @objc private func showKeyPreview(_ sender: UIButton) {
+        guard let label = sender.title(for: .normal), !label.isEmpty else { return }
+        let keyFrame = sender.convert(sender.bounds, to: view)
+        let width: CGFloat = 58
+        let height: CGFloat = 66
+        let centerX = min(max(keyFrame.midX, width / 2 + 3), view.bounds.width - width / 2 - 3)
+        keyPreviewView.frame = CGRect(
+            x: centerX - width / 2,
+            y: max(0, keyFrame.minY - height - 5),
+            width: width,
+            height: height
+        )
+        keyPreviewView.text = label
+        keyPreviewView.isHidden = false
+        view.bringSubviewToFront(keyPreviewView)
+    }
+
+    @objc private func hideKeyPreview() {
+        keyPreviewView.isHidden = true
     }
 
     private func constrainToReferenceWidth(_ buttons: [UIButton]) {

@@ -13,6 +13,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
+import android.widget.FrameLayout
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -78,6 +79,7 @@ class GannyuInputMethodService : InputMethodService() {
     private lateinit var candidateExpandedRows: LinearLayout
     private lateinit var candidateMoreButton: Button
     private lateinit var keyboardRows: LinearLayout
+    private lateinit var keyPreview: TextView
     private var lastSnapshot = EngineSnapshot()
     private var candidateExpanded = false
     private val expandedCandidates = mutableListOf<RankedCandidate>()
@@ -322,6 +324,7 @@ class GannyuInputMethodService : InputMethodService() {
         candidateExpandButton.setOnClickListener { toggleCandidateExpansion() }
         candidateMoreButton.setOnClickListener { loadMoreCandidates() }
         keyboardRows = root.findViewById(R.id.keyboardRows)
+        keyPreview = root.findViewById(R.id.keyPreview)
         cacheTag = root.findViewById(R.id.cacheTag)
         keyboardRows.addOnLayoutChangeListener { _, left, _, right, _, _, _, _, _ ->
             val width = right - left
@@ -350,6 +353,7 @@ class GannyuInputMethodService : InputMethodService() {
     }
 
     override fun onFinishInput() {
+        hideKeyPreview()
         englishShift = false
         resetState(clearAccumulated = true)
         super.onFinishInput()
@@ -358,6 +362,7 @@ class GannyuInputMethodService : InputMethodService() {
     override fun onFinishInputView(finishingInput: Boolean) {
         // Input view is being finished (e.g., switching to another IME) — clear UI and composing state
         englishShift = false
+        hideKeyPreview()
         resetState(clearAccumulated = true)
         super.onFinishInputView(finishingInput)
     }
@@ -376,6 +381,7 @@ class GannyuInputMethodService : InputMethodService() {
     override fun onWindowHidden() {
         // Window hidden (IME no longer visible) — ensure we don't keep composing spans
         englishShift = false
+        hideKeyPreview()
         resetState(clearAccumulated = true)
         super.onWindowHidden()
     }
@@ -446,6 +452,7 @@ class GannyuInputMethodService : InputMethodService() {
     // ===== Keyboard rendering =====
 
     private fun renderKeyboard() {
+        hideKeyPreview()
         keyboardRows.removeAllViews()
         val width = keyboardRows.width.takeIf { it > 0 } ?: resources.displayMetrics.widthPixels - dp(12)
         lastRenderedKeyboardWidth = width
@@ -568,8 +575,46 @@ class GannyuInputMethodService : InputMethodService() {
                 }
             }
         } else {
+            if (supportsKeyPreview(key)) {
+                setOnTouchListener { view, event ->
+                    when (event.actionMasked) {
+                        MotionEvent.ACTION_DOWN -> showKeyPreview(view, text.toString())
+                        MotionEvent.ACTION_MOVE -> if (event.x !in 0f..view.width.toFloat() || event.y !in 0f..view.height.toFloat()) hideKeyPreview()
+                        MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_OUTSIDE -> hideKeyPreview()
+                    }
+                    false
+                }
+            }
             setOnClickListener { onKey(key) }
         }
+    }
+
+    private fun supportsKeyPreview(key: KeySpec): Boolean =
+        key.label.length == 1 && key.label !in ACTION_KEYS
+
+    private fun showKeyPreview(anchor: View, label: String) {
+        if (!::keyPreview.isInitialized) return
+        val root = keyPreview.parent as? View ?: return
+        val anchorLocation = IntArray(2)
+        val rootLocation = IntArray(2)
+        anchor.getLocationInWindow(anchorLocation)
+        root.getLocationInWindow(rootLocation)
+        val width = dp(58)
+        val height = dp(66)
+        val centerX = anchorLocation[0] - rootLocation[0] + anchor.width / 2
+        val left = centerX.coerceIn(width / 2 + dp(3), root.width - width / 2 - dp(3)) - width / 2
+        val top = (anchorLocation[1] - rootLocation[1] - height - dp(5)).coerceAtLeast(0)
+        keyPreview.text = label
+        keyPreview.layoutParams = (keyPreview.layoutParams as FrameLayout.LayoutParams).apply {
+            leftMargin = left
+            topMargin = top
+        }
+        keyPreview.visibility = View.VISIBLE
+        keyPreview.bringToFront()
+    }
+
+    private fun hideKeyPreview() {
+        if (::keyPreview.isInitialized) keyPreview.visibility = View.GONE
     }
 
     // ===== Key handling =====

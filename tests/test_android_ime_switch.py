@@ -73,6 +73,10 @@ def test_android_candidates_keep_full_metadata_with_independent_widths() -> None
     assert "textSize = 15f" in source
     assert "setTypeface(Typeface.DEFAULT_BOLD)" in source
     assert 'key.label == "空格" -> ""' in source
+    assert "private fun supportsKeyPreview" in source
+    assert "private fun showKeyPreview" in source
+    assert "keyPreview" in layout
+    assert 'android:textSize="28sp"' in layout
 
 
 def test_android_rime_regions_start_with_nanchang() -> None:

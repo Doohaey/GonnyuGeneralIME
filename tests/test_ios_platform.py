@@ -75,6 +75,12 @@ def test_ios_keyboard_keeps_auxiliary_input_outside_candidate_selection() -> Non
     assert "Timer.scheduledTimer(withTimeInterval: 0.38" in keyboard
     assert "Timer.scheduledTimer(withTimeInterval: 0.055, repeats: true)" in keyboard
     assert "textDocumentProxy.insertText(key)" in keyboard
+    assert "private final class KeyPreviewView" in keyboard
+    assert "private let bubbleLayer = CAShapeLayer()" in keyboard
+    assert "bubbleLayer.fillColor = UIColor.white.cgColor" in keyboard
+    assert "label.font = .systemFont(ofSize: 28, weight: .bold)" in keyboard
+    assert "private func supportsKeyPreview" in keyboard
+    assert "showKeyPreview" in keyboard
     assert 'label == "空格" ? ""' in keyboard
 
 
