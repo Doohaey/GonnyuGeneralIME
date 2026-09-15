@@ -59,6 +59,8 @@ def test_macos_package_declares_host_and_smoke_targets() -> None:
         ROOT / "platforms/macos/build.sh"
     ).read_text(encoding="utf-8")
     assert (ROOT / "resources/Gonnyu.icns").is_file()
+    assert (ROOT / "platforms/macos/Resources/en.lproj/InfoPlist.strings").is_file()
+    assert (ROOT / "platforms/macos/Resources/zh-Hans.lproj/InfoPlist.strings").is_file()
 
 
 def test_macos_uses_native_vertical_candidate_panel() -> None:

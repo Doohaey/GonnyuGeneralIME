@@ -67,6 +67,11 @@ ditto "$repo_root/build/rime-macos/resources" "$bundle_root/Contents/Resources/r
 icon_resource="$repo_root/resources/Gonnyu.icns"
 [[ -f "$icon_resource" ]] || { echo "missing macOS icon resource: $icon_resource" >&2; exit 2; }
 cp "$icon_resource" "$bundle_root/Contents/Resources/Gonnyu.icns"
+for localization in en zh-Hans; do
+  localization_source="$repo_root/platforms/macos/Resources/$localization.lproj"
+  [[ -d "$localization_source" ]] || { echo "missing macOS localization resource: $localization_source" >&2; exit 2; }
+  ditto "$localization_source" "$bundle_root/Contents/Resources/$localization.lproj"
+done
 python3 - "$plist_template" "$bundle_root/Contents/Info.plist" "$version" "$short_version" "$build_version" "$bundle_id" "$connection_name" <<'PYTHON'
 from pathlib import Path
 import sys
