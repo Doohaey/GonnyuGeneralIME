@@ -12,6 +12,9 @@ def test_macos_platform_exposes_build_and_smoke_entrypoints() -> None:
     install_script = (ROOT / "platforms/macos/install_local.sh").read_text(encoding="utf-8")
 
     assert 'cargo build -p gannyu-input-ffi --release' in build_script
+    assert 'build_rime_engine.sh' in build_script
+    assert 'prepare_rime_resources.sh' in build_script
+    assert 'Contents/Resources/rime' in build_script
     assert 'swift build --package-path "$script_dir" -c release' in build_script
     assert "Info.plist.template" in build_script
     assert "GonnyuInputMethod.app" in build_script

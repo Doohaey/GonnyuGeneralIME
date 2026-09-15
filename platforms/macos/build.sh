@@ -37,6 +37,8 @@ command -v swift >/dev/null || { echo "swift not found; install Xcode Command Li
 command -v python3 >/dev/null || { echo "python3 not found" >&2; exit 1; }
 
 cd "$repo_root"
+bash "$script_dir/build_rime_engine.sh"
+bash "$script_dir/prepare_rime_resources.sh"
 cargo build -p gannyu-input-ffi --release
 swift build --package-path "$script_dir" -c release
 
@@ -56,6 +58,7 @@ PYTHON
 rm -rf "$bundle_root"
 mkdir -p "$bundle_root/Contents/MacOS" "$bundle_root/Contents/Resources"
 install -m 0755 "$bin_dir/GannyuInputMethodHost" "$bundle_root/Contents/MacOS/GannyuInputMethodHost"
+ditto "$repo_root/build/rime-macos/resources" "$bundle_root/Contents/Resources/rime"
 python3 - "$plist_template" "$bundle_root/Contents/Info.plist" "$version" "$bundle_id" "$connection_name" <<'PYTHON'
 from pathlib import Path
 import sys
