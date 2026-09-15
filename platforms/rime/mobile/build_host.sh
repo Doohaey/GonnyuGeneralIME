@@ -34,6 +34,8 @@ fi
 librime_root="$source_root/librime"
 [[ -d "$librime_root" ]] || { echo "missing librime source tree: $librime_root" >&2; exit 1; }
 [[ -f "$librime_root/Makefile" ]] || { echo "missing librime Makefile: $librime_root" >&2; exit 1; }
+deps_mk="$librime_root/deps.mk"
+[[ -f "$deps_mk" ]] || { echo "missing librime deps.mk: $deps_mk" >&2; exit 1; }
 
 mkdir -p "$build_root"
 
@@ -41,6 +43,7 @@ mkdir -p "$build_root"
 # expression.  Apple's BSD make expands it to an empty `-j` argument, which
 # makes the dependency build fail before CMake starts.  Disable that upstream
 # job injection; the CMake builds below retain their normal parallelism.
+perl -0pi -e 's/-DCMAKE_INSTALL_PREFIX:PATH="\\$\\(prefix\\)" \\\\\\n\\t&& cmake --build/-DCMAKE_INSTALL_PREFIX:PATH="\\$\\(prefix\\)" \\\\\\n\\t-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON \\\\\\n\\t&& cmake --build/g' "$deps_mk"
 make -C "$librime_root" NOPARALLEL=1 deps prefix="$prefix" build=build-host-deps
 
 env RIME_PLUGINS="librime-lua" cmake "${generator_args[@]}" "$librime_root" \
