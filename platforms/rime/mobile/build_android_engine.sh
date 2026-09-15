@@ -27,14 +27,12 @@ fi
 
 if [[ ! -d "$source_root/librime/.git" ]]; then "$python_bin" "$script_dir/fetch_sources.py" >/dev/null; fi
 librime_root="$source_root/librime"
-librime_patch="$script_dir/patches/librime-android-std-regex.patch"
 patched_librime_root="$build_root/librime-source"
 boost_include="${GANNYU_RIME_BOOST_INCLUDE:-$source_root/boost}"
 if [[ ! -f "$boost_include/boost/version.hpp" && -z "${GANNYU_RIME_BOOST_INCLUDE:-}" ]]; then
   "$python_bin" "$script_dir/fetch_sources.py" --boost-only >/dev/null
 fi
 [[ -f "$boost_include/boost/version.hpp" ]] || { echo "Boost headers not found" >&2; exit 2; }
-[[ -f "$librime_patch" ]] || { echo "Missing Android librime patch: $librime_patch" >&2; exit 2; }
 
 common=(
   -G Ninja
@@ -57,7 +55,14 @@ build_dependency yaml-cpp -DBUILD_SHARED_LIBS=OFF -DYAML_CPP_BUILD_CONTRIB=OFF -
 
 rm -rf "$patched_librime_root" "$build_root/librime" "$build_root/adapter"
 cmake -E copy_directory "$librime_root" "$patched_librime_root"
-patch -d "$patched_librime_root" -p1 < "$librime_patch"
+perl -0pi -e 's/if\\(LINUX\\)\\n  find_package\\(Boost 1\\.74\\.0 REQUIRED COMPONENTS regex\\)\\nelse\\(\\)\\n  find_package\\(Boost 1\\.77\\.0\\)\\nendif\\(\\)/if(GANNYU_MOBILE_USE_STD_REGEX)\\n  set(Boost_FOUND TRUE)\\n  set(Boost_INCLUDE_DIRS \\$\\{Boost_INCLUDE_DIR\\})\\n  set(Boost_LIBRARY_DIRS \"\")\\n  set(Boost_LIBRARIES \"\")\\nelseif(LINUX)\\n  find_package(Boost 1.74.0 REQUIRED COMPONENTS regex)\\nelse()\\n  find_package(Boost 1.77.0 REQUIRED)\\nendif()/s' "$patched_librime_root/CMakeLists.txt"
+perl -0pi -e 's/boost::regex_error/std::regex_error/g' "$patched_librime_root/src/rime/algo/algebra.cc"
+perl -0pi -e 's/boost::regex_replace/std::regex_replace/g; s/boost::regex_match/std::regex_match/g' "$patched_librime_root/src/rime/algo/calculus.cc"
+perl -0pi -e 's/#include <boost\\/regex\\.hpp>/#include <regex>/; s/boost::regex/std::regex/g' "$patched_librime_root/src/rime/algo/calculus.h"
+perl -0pi -e 's/boost::regex/std::regex/g; s/boost::regex_match/std::regex_match/g' "$patched_librime_root/src/rime/algo/encoder.cc"
+perl -0pi -e 's/#include <boost\\/regex\\.hpp>/#include <regex>/; s/vector<boost::regex>/vector<std::regex>/g' "$patched_librime_root/src/rime/algo/encoder.h"
+grep -q 'if(GANNYU_MOBILE_USE_STD_REGEX)' "$patched_librime_root/CMakeLists.txt" || { echo "Failed to rewrite Android librime Boost detection" >&2; exit 2; }
+grep -q 'std::regex_error' "$patched_librime_root/src/rime/algo/algebra.cc" || { echo "Failed to rewrite Android librime regex usage" >&2; exit 2; }
 
 cmake -S "$patched_librime_root" -B "$build_root/librime" "${common[@]}" \
   -DCMAKE_PREFIX_PATH="$prefix" -DGANNYU_MOBILE_USE_STD_REGEX=ON -DBoost_NO_BOOST_CMAKE=ON -DBoost_NO_SYSTEM_PATHS=ON -DBoost_INCLUDE_DIR="$boost_include" \
