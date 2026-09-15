@@ -10,6 +10,7 @@ final class GannyuInputController: IMKInputController {
     private var snapshot: GannyuSnapshot?
     private var displays: [NSAttributedString] = []
     private var shiftOnlyPress = false
+    private var selectedLine = 0
     private var candidateWindow: IMKCandidates?
     private let log = Logger(subsystem: "org.doohaey.inputmethod.gonnyu.native", category: "input")
 
@@ -18,10 +19,6 @@ final class GannyuInputController: IMKInputController {
         createEngineIfNeeded()
         if let server {
             let window = IMKCandidates(server: server, panelType: kIMKSingleColumnScrollingCandidatePanel)
-            window?.setSelectionKeys([
-                kVK_ANSI_1, kVK_ANSI_2, kVK_ANSI_3, kVK_ANSI_4, kVK_ANSI_5,
-                kVK_ANSI_6, kVK_ANSI_7, kVK_ANSI_8, kVK_ANSI_9,
-            ].map { NSNumber(value: $0) })
             window?.setDismissesAutomatically(false)
             window?.setAttributes([IMKCandidatesSendServerKeyEventFirst: true])
             candidateWindow = window
@@ -79,13 +76,13 @@ final class GannyuInputController: IMKInputController {
             if active { clear(client: sender); return true }
             return false
         case kVK_Return, kVK_ANSI_KeypadEnter:
-            return active ? process(.enter, client: sender) : false
+            return active ? selectHighlighted(client: sender) : false
         case kVK_Tab:
             return active ? selectHighlighted(client: sender) : false
         case kVK_UpArrow:
-            return active ? page(-1, client: sender) : false
+            return active ? moveSelection(-1, client: sender) : false
         case kVK_DownArrow:
-            return active ? page(1, client: sender) : false
+            return active ? moveSelection(1, client: sender) : false
         // Keep paging on the two physical punctuation keys, regardless of
         // whether Shift produces < / > on the active keyboard layout.
         case kVK_ANSI_Comma:
@@ -236,6 +233,7 @@ final class GannyuInputController: IMKInputController {
 
     private func page(_ direction: Int, client sender: Any!) -> Bool {
         guard let engine, let result = try? engine.changePage(direction: direction) else { return false }
+        selectedLine = 0
         render(result, client: sender)
         return true
     }
@@ -273,8 +271,30 @@ final class GannyuInputController: IMKInputController {
 
     private func selectHighlighted(client sender: Any!) -> Bool {
         guard let state = snapshot, !state.candidates.isEmpty else { return false }
-        let line = state.highlightedIndex ?? 0
-        return selectLine(line, client: sender)
+        return selectLine(selectedLine, client: sender)
+    }
+
+    private func moveSelection(_ direction: Int, client sender: Any!) -> Bool {
+        guard let state = snapshot, !state.candidates.isEmpty else { return false }
+        let count = state.candidates.count
+        let next = selectedLine + direction
+        if next < 0, state.hasPreviousPage {
+            guard page(-1, client: sender) else { return false }
+            selectedLine = snapshot?.candidates.count ?? 1
+            selectedLine = max(selectedLine - 1, 0)
+            presentCandidates()
+            return true
+        }
+        if next >= count, state.hasNextPage {
+            guard page(1, client: sender) else { return false }
+            selectedLine = 0
+            presentCandidates()
+            return true
+        }
+        guard next >= 0, next < count else { return false }
+        selectedLine = next
+        presentCandidates()
+        return true
     }
 
     private func clear(client sender: Any!) {
@@ -298,6 +318,7 @@ final class GannyuInputController: IMKInputController {
             client.insertText(commit, replacementRange: replacementRange(for: client))
         }
         if result.rawInput.isEmpty {
+            selectedLine = 0
             clearMarkedText(on: client)
             candidateWindow?.hide()
             displays = []
@@ -310,7 +331,13 @@ final class GannyuInputController: IMKInputController {
             selectionRange: NSRange(location: (String(preedit.prefix(caret)) as NSString).length, length: 0),
             replacementRange: replacementRange(for: client)
         )
-        displays = result.candidates.sorted(by: { $0.pageIndex < $1.pageIndex }).map(display(for:))
+        selectedLine = min(selectedLine, max(result.candidates.count - 1, 0))
+        presentCandidates()
+    }
+
+    private func presentCandidates() {
+        let candidates = snapshot?.candidates.sorted(by: { $0.pageIndex < $1.pageIndex }) ?? []
+        displays = candidates.enumerated().map { display(for: $0.element, selected: $0.offset == selectedLine) }
         guard !displays.isEmpty else { candidateWindow?.hide(); return }
         candidateWindow?.setCandidateData(displays)
         candidateWindow?.show(kIMKLocateCandidatesBelowHint)
@@ -335,20 +362,23 @@ final class GannyuInputController: IMKInputController {
         return zip(candidates, displays).first(where: { $0.1.string == display.string })?.0.globalIndex
     }
 
-    private func display(for candidate: GannyuCandidate) -> NSAttributedString {
+    private func display(for candidate: GannyuCandidate, selected: Bool) -> NSAttributedString {
+        let primaryColor = selected ? NSColor.alternateSelectedControlTextColor : NSColor.labelColor
+        let secondaryColor = selected ? NSColor.alternateSelectedControlTextColor.withAlphaComponent(0.85) : NSColor.secondaryLabelColor
         let display = NSMutableAttributedString(
-            string: candidate.text,
-            attributes: [.font: NSFont.systemFont(ofSize: 18), .foregroundColor: NSColor.labelColor]
+            string: "\(candidate.pageIndex + 1). \(candidate.text)",
+            attributes: [.font: NSFont.systemFont(ofSize: 18), .foregroundColor: primaryColor]
         )
         if !candidate.annotation.isEmpty {
             display.append(NSAttributedString(
                 string: "  \(candidate.annotation.replacingOccurrences(of: "\n", with: " "))",
                 attributes: [
                     .font: NSFont.systemFont(ofSize: 12),
-                    .foregroundColor: NSColor.secondaryLabelColor,
+                    .foregroundColor: secondaryColor,
                 ]
             ))
         }
+        if selected { display.addAttribute(.backgroundColor, value: NSColor.selectedControlColor, range: NSRange(location: 0, length: display.length)) }
         return display
     }
 

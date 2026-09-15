@@ -76,10 +76,11 @@ def test_macos_uses_native_candidate_panel() -> None:
 
     assert "IMKCandidates" in controller
     assert "kIMKSingleColumnScrollingCandidatePanel" in controller
-    assert "setSelectionKeys" in controller
     assert "kVK_ANSI_9" in controller
     assert "setCandidateData" in controller
     assert "kIMKLocateCandidatesBelowHint" in controller
+    assert "selectedLine" in controller
+    assert "moveSelection" in controller
     assert "candidatePanel.present" not in controller
     host = (ROOT / "platforms/macos/Sources/GannyuInputMethodHost/main.swift").read_text(
         encoding="utf-8"
