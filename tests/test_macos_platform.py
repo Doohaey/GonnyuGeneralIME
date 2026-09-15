@@ -79,6 +79,8 @@ def test_macos_uses_native_vertical_candidate_panel() -> None:
     assert "rows.orientation = .vertical" in panel
     assert "systemFont(ofSize: 18)" in panel
     assert "systemFont(ofSize: 12)" in panel
+    assert 'string: "\\n    ' not in panel
+    assert "heightAnchor.constraint(equalToConstant: 30)" in panel
     assert 'NSButton(title: "<"' in panel
     assert 'NSButton(title: ">"' in panel
     assert "pageLabel" not in panel
@@ -119,6 +121,9 @@ def test_macos_controller_wires_minimal_input_loop() -> None:
     assert "IMK inputText received" in controller
     assert "IMK keyDown received" in controller
     assert "kVK_ANSI_KeypadEnter" in controller
+    assert "kVK_ANSI_Comma" in controller
+    assert "kVK_ANSI_Period" in controller
+    assert "firstRect(forCharacterRange:" in controller
     assert "override func didCommand" in controller
     assert "selectCandidate(globalIndex:" in engine
     assert "client.insertText" in controller

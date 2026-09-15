@@ -38,7 +38,7 @@ final class GannyuCandidatePanel: NSObject {
 
         rows.orientation = .vertical
         rows.alignment = .leading
-        rows.spacing = 2
+        rows.spacing = 1
         rows.translatesAutoresizingMaskIntoConstraints = false
         content.addSubview(rows)
 
@@ -56,10 +56,10 @@ final class GannyuCandidatePanel: NSObject {
         width = content.widthAnchor.constraint(equalToConstant: 280)
         NSLayoutConstraint.activate([
             width,
-            rows.topAnchor.constraint(equalTo: content.topAnchor, constant: 8),
-            rows.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 8),
-            rows.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -8),
-            footer.topAnchor.constraint(equalTo: rows.bottomAnchor, constant: 5),
+            rows.topAnchor.constraint(equalTo: content.topAnchor, constant: 6),
+            rows.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 6),
+            rows.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -6),
+            footer.topAnchor.constraint(equalTo: rows.bottomAnchor, constant: 3),
             footer.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 12),
             footer.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -12),
             footer.bottomAnchor.constraint(equalTo: content.bottomAnchor, constant: -6),
@@ -108,10 +108,13 @@ final class GannyuCandidatePanel: NSObject {
         let widest = candidates.reduce(CGFloat(0)) { result, candidate in
             let title = "\(candidate.pageIndex + 1). \(candidate.text)" as NSString
             let note = candidate.annotation.replacingOccurrences(of: "\n", with: " ") as NSString
-            return max(result, title.size(withAttributes: [.font: primary]).width,
-                       note.size(withAttributes: [.font: secondary]).width + 24)
+            return max(
+                result,
+                title.size(withAttributes: [.font: primary]).width
+                    + (candidate.annotation.isEmpty ? 0 : 10 + note.size(withAttributes: [.font: secondary]).width)
+            )
         }
-        return min(max(widest + 32, 240), 440)
+        return min(max(widest + 28, 210), 440)
     }
 
     private func position(_ frame: NSRect, at anchor: NSRect) {
@@ -170,12 +173,12 @@ private final class CandidateRowButton: NSButton {
         )
         if !candidate.annotation.isEmpty {
             title.append(NSAttributedString(
-                string: "\n    \(candidate.annotation.replacingOccurrences(of: "\n", with: " "))",
+                string: "  \(candidate.annotation.replacingOccurrences(of: "\n", with: " "))",
                 attributes: [.font: NSFont.systemFont(ofSize: 12), .foregroundColor: secondaryColor]
             ))
         }
         attributedTitle = title
-        heightAnchor.constraint(equalToConstant: candidate.annotation.isEmpty ? 31 : 51).isActive = true
+        heightAnchor.constraint(equalToConstant: 30).isActive = true
     }
 
     required init?(coder: NSCoder) {

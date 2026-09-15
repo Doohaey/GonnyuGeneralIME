@@ -76,6 +76,12 @@ final class GannyuInputController: IMKInputController {
             return active ? page(-1, client: sender) : false
         case kVK_DownArrow:
             return active ? page(1, client: sender) : false
+        // Keep paging on the two physical punctuation keys, regardless of
+        // whether Shift produces < / > on the active keyboard layout.
+        case kVK_ANSI_Comma:
+            return active ? page(-1, client: sender) : false
+        case kVK_ANSI_Period:
+            return active ? page(1, client: sender) : false
         default:
             break
         }
@@ -175,8 +181,8 @@ final class GannyuInputController: IMKInputController {
 
     private func processText(_ text: String, client sender: Any!) -> Bool {
         let active = !(snapshot?.rawInput.isEmpty ?? true)
-        if active && text == "<" { return page(-1, client: sender) }
-        if active && text == ">" { return page(1, client: sender) }
+        if active && (text == "," || text == "<") { return page(-1, client: sender) }
+        if active && (text == "." || text == ">") { return page(1, client: sender) }
         if text == " " { return active ? process(.space, client: sender) : false }
         if active && text.count == 1, let line = Int(text), line > 0 {
             return selectLine(line - 1, client: sender)
@@ -308,10 +314,14 @@ final class GannyuInputController: IMKInputController {
     }
 
     private func candidateAnchor(for client: IMKTextInput) -> NSRect {
-        // IMKTextInput does not promise NSTextInputClient's AppKit-only
-        // firstRect API.  Keep the native panel visible for every compliant
-        // IMK client; a later layout pass can refine this anchor from the
-        // optional line-height rectangle API.
+        // IMKTextInput returns this rectangle in global screen coordinates,
+        // so the candidate panel follows the insertion point in every client
+        // that implements the standard input-session contract (including
+        // TextEdit).  The mouse location is only a defensive fallback.
+        let rect = client.firstRect(forCharacterRange: client.selectedRange(), actualRange: nil)
+        if rect.origin.x.isFinite, rect.origin.y.isFinite, rect != .zero {
+            return rect
+        }
         return NSRect(origin: NSEvent.mouseLocation, size: .zero)
     }
 
