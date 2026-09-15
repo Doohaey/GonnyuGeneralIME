@@ -15,6 +15,7 @@ final class GannyuInputController: IMKInputController {
     override init!(server: IMKServer!, delegate: Any!, client inputClient: Any!) {
         super.init(server: server, delegate: delegate, client: inputClient)
         createEngineIfNeeded()
+        if diagnosticsEnabled { log.notice("IMK input controller created") }
         candidatePanel.onSelect = { [weak self] index in
             guard let self else { return }
             _ = self.select(index, client: self.client())
@@ -46,12 +47,16 @@ final class GannyuInputController: IMKInputController {
     @objc(inputText:client:)
     override func inputText(_ string: String!, client sender: Any!) -> Bool {
         guard let string, !string.isEmpty else { return false }
+        if diagnosticsEnabled { log.notice("IMK inputText received \(string, privacy: .private)") }
         return processText(string, client: sender)
     }
 
     @objc(handleEvent:client:)
     override func handle(_ event: NSEvent!, client sender: Any!) -> Bool {
         guard let event, event.type == .keyDown else { return false }
+        if diagnosticsEnabled {
+            log.notice("IMK keyDown received keyCode=\(event.keyCode, privacy: .public)")
+        }
         let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
         if modifiers.contains(.command) || modifiers.contains(.control)
             || modifiers.contains(.option) || modifiers.contains(.function) { return false }
@@ -88,7 +93,9 @@ final class GannyuInputController: IMKInputController {
     }
 
     override func recognizedEvents(_ sender: Any!) -> Int {
-        Int(NSEvent.EventTypeMask([.keyDown, .flagsChanged]).rawValue)
+        // IMK's default composition and keybinding path is only enabled when
+        // this is exactly the key-down mask.
+        Int(NSEvent.EventTypeMask.keyDown.rawValue)
     }
 
     @objc(didCommandBySelector:client:)
@@ -200,6 +207,10 @@ final class GannyuInputController: IMKInputController {
         } catch {
             log.error("Unable to create Rime engine: \(String(describing: error), privacy: .public)")
         }
+    }
+
+    private var diagnosticsEnabled: Bool {
+        UserDefaults.standard.bool(forKey: "GannyuIMKDiagnostics")
     }
 
     private func page(_ direction: Int, client sender: Any!) -> Bool {

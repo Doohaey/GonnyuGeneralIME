@@ -115,7 +115,9 @@ def test_macos_controller_wires_minimal_input_loop() -> None:
     assert "charactersIgnoringModifiers" in controller
     assert "Unable to create Rime engine" in controller
     assert "Rime engine failed to process input" in controller
-    assert ".keyDown, .flagsChanged" in controller
+    assert "EventTypeMask.keyDown.rawValue" in controller
+    assert "IMK inputText received" in controller
+    assert "IMK keyDown received" in controller
     assert "kVK_ANSI_KeypadEnter" in controller
     assert "override func didCommand" in controller
     assert "selectCandidate(globalIndex:" in engine
