@@ -36,6 +36,7 @@ fi
 
 common=(
   -G Ninja
+  -DCMAKE_SYSTEM_NAME=Android
   -DCMAKE_TOOLCHAIN_FILE="$ndk_root/build/cmake/android.toolchain.cmake"
   -DANDROID_ABI="$abi" -DANDROID_PLATFORM=android-24 -DANDROID_STL=c++_shared
   -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=ON
@@ -63,6 +64,7 @@ perl -0pi -e 's/boost::regex/std::regex/g; s/boost::regex_match/std::regex_match
 perl -0pi -e 's/#include <boost\\/regex\\.hpp>/#include <regex>/; s/vector<boost::regex>/vector<std::regex>/g' "$patched_librime_root/src/rime/algo/encoder.h"
 grep -q 'if(GANNYU_MOBILE_USE_STD_REGEX)' "$patched_librime_root/CMakeLists.txt" || { echo "Failed to rewrite Android librime Boost detection" >&2; exit 2; }
 grep -q 'std::regex_error' "$patched_librime_root/src/rime/algo/algebra.cc" || { echo "Failed to rewrite Android librime regex usage" >&2; exit 2; }
+sed -n '64,74p' "$patched_librime_root/CMakeLists.txt"
 
 cmake -S "$patched_librime_root" -B "$build_root/librime" "${common[@]}" \
   -DCMAKE_PREFIX_PATH="$prefix" -DGANNYU_MOBILE_USE_STD_REGEX=ON -DBoost_NO_BOOST_CMAKE=ON -DBoost_NO_SYSTEM_PATHS=ON -DBoost_INCLUDE_DIR="$boost_include" \
