@@ -9,6 +9,7 @@ final class GannyuInputController: IMKInputController {
     private var engine: GannyuEngine?
     private var snapshot: GannyuSnapshot?
     private var displays: [NSAttributedString] = []
+    private var shiftOnlyPress = false
     private let candidatePanel = GannyuCandidatePanel()
     private let log = Logger(subsystem: "org.doohaey.inputmethod.gonnyu.native", category: "input")
 
@@ -53,11 +54,18 @@ final class GannyuInputController: IMKInputController {
 
     @objc(handleEvent:client:)
     override func handle(_ event: NSEvent!, client sender: Any!) -> Bool {
-        guard let event, event.type == .keyDown else { return false }
+        guard let event else { return false }
+        let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        if event.type == .flagsChanged {
+            return handleModifierChange(modifiers, client: sender)
+        }
+        guard event.type == .keyDown else { return false }
         if diagnosticsEnabled {
             log.notice("IMK keyDown received keyCode=\(event.keyCode, privacy: .public)")
         }
-        let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        // A following key means this was a modifier chord, not a standalone
+        // Shift language toggle.
+        shiftOnlyPress = false
         if modifiers.contains(.command) || modifiers.contains(.control)
             || modifiers.contains(.option) || modifiers.contains(.function) { return false }
 
@@ -101,7 +109,7 @@ final class GannyuInputController: IMKInputController {
     override func recognizedEvents(_ sender: Any!) -> Int {
         // IMK's default composition and keybinding path is only enabled when
         // this is exactly the key-down mask.
-        Int(NSEvent.EventTypeMask.keyDown.rawValue)
+        Int(NSEvent.EventTypeMask.keyDown.rawValue | NSEvent.EventTypeMask.flagsChanged.rawValue)
     }
 
     @objc(didCommandBySelector:client:)
@@ -181,6 +189,11 @@ final class GannyuInputController: IMKInputController {
 
     private func processText(_ text: String, client sender: Any!) -> Bool {
         let active = !(snapshot?.rawInput.isEmpty ?? true)
+        if snapshot?.asciiMode == true {
+            guard let client = sender as? IMKTextInput else { return false }
+            client.insertText(text, replacementRange: NSRange(location: NSNotFound, length: 0))
+            return true
+        }
         if active && (text == "," || text == "<") { return page(-1, client: sender) }
         if active && (text == "." || text == ">") { return page(1, client: sender) }
         if text == " " { return active ? process(.space, client: sender) : false }
@@ -232,8 +245,28 @@ final class GannyuInputController: IMKInputController {
     }
 
     private func selectLine(_ line: Int, client sender: Any!) -> Bool {
-        guard let candidate = snapshot?.candidates.first(where: { $0.pageIndex == line }) else { return false }
+        guard let candidate = snapshot?.candidates.sorted(by: { $0.pageIndex < $1.pageIndex })[safe: line] else { return false }
         return select(candidate.globalIndex, client: sender)
+    }
+
+    private func handleModifierChange(_ modifiers: NSEvent.ModifierFlags, client sender: Any!) -> Bool {
+        let hasBlockingModifier = modifiers.contains(.command) || modifiers.contains(.control)
+            || modifiers.contains(.option) || modifiers.contains(.function)
+        let shiftDown = modifiers.contains(.shift)
+        if shiftDown, !hasBlockingModifier {
+            shiftOnlyPress = true
+            return true
+        }
+        guard !shiftDown, shiftOnlyPress else {
+            shiftOnlyPress = false
+            return false
+        }
+        shiftOnlyPress = false
+        guard let engine else { return false }
+        if !(snapshot?.rawInput.isEmpty ?? true) { clear(client: sender) }
+        guard let result = try? engine.setASCIIMode(!(snapshot?.asciiMode ?? false)) else { return false }
+        render(result, client: sender)
+        return true
     }
 
     private func selectHighlighted(client sender: Any!) -> Bool {
@@ -310,7 +343,8 @@ final class GannyuInputController: IMKInputController {
 
     private func candidateIndex(for display: NSAttributedString?) -> Int? {
         guard let display else { return nil }
-        return snapshot?.candidates.first(where: { $0.text == display.string })?.globalIndex
+        let text = display.string.components(separatedBy: "\n").first ?? display.string
+        return snapshot?.candidates.first(where: { $0.text == text })?.globalIndex
     }
 
     private func candidateAnchor(for client: IMKTextInput) -> NSRect {
@@ -318,9 +352,12 @@ final class GannyuInputController: IMKInputController {
         // so the candidate panel follows the insertion point in every client
         // that implements the standard input-session contract (including
         // TextEdit).  The mouse location is only a defensive fallback.
-        let rect = client.firstRect(forCharacterRange: client.selectedRange(), actualRange: nil)
-        if rect.origin.x.isFinite, rect.origin.y.isFinite, rect != .zero {
-            return rect
+        let ranges = [client.markedRange(), client.selectedRange()]
+        for range in ranges where range.location != NSNotFound {
+            let rect = client.firstRect(forCharacterRange: range, actualRange: nil)
+            if rect.origin.x.isFinite, rect.origin.y.isFinite, rect.width > 0, rect.height > 0 {
+                return rect
+            }
         }
         return NSRect(origin: NSEvent.mouseLocation, size: .zero)
     }
@@ -350,5 +387,11 @@ final class GannyuInputController: IMKInputController {
     @objc private func selectRegion(_ sender: NSMenuItem) {
         guard let region = sender.representedObject as? String else { return }
         _ = GannyuRegionStore.shared.select(region)
+    }
+}
+
+private extension Collection {
+    subscript(safe index: Index) -> Element? {
+        indices.contains(index) ? self[index] : nil
     }
 }

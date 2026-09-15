@@ -124,6 +124,9 @@ def test_macos_controller_wires_minimal_input_loop() -> None:
     assert "kVK_ANSI_Comma" in controller
     assert "kVK_ANSI_Period" in controller
     assert "firstRect(forCharacterRange:" in controller
+    assert "client.markedRange()" in controller
+    assert "flagsChanged.rawValue" in controller
+    assert "setASCIIMode" in controller
     assert "override func didCommand" in controller
     assert "selectCandidate(globalIndex:" in engine
     assert "client.insertText" in controller
@@ -134,6 +137,7 @@ def test_macos_controller_wires_minimal_input_loop() -> None:
     assert "gannyu_engine_create" in engine
     assert "gannyu_engine_process_key" in engine
     assert "gannyu_engine_change_page" in engine
+    assert "gannyu_engine_set_ascii_mode" in engine
     assert "currentID()" in engine
     assert "GannyuRegion.fallback" not in controller
 

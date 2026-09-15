@@ -180,6 +180,10 @@ public final class GannyuEngine {
         try jsonCall { gannyu_engine_change_page($0, Int32(direction), $1) }
     }
 
+    public func setASCIIMode(_ enabled: Bool) throws -> GannyuSnapshot {
+        try jsonCall { gannyu_engine_set_ascii_mode($0, enabled ? 1 : 0, $1) }
+    }
+
     public func clearComposition() throws -> GannyuSnapshot {
         try jsonCall { gannyu_engine_clear_composition($0, $1) }
     }
