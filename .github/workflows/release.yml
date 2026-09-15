@@ -57,6 +57,8 @@ jobs:
           for suffix in android.apk fcitx5.tar.gz windows-installer.exe macos.pkg; do
             test -f "release-assets/GonnyuGeneralIME-${PRODUCT_VERSION}-${suffix}"
           done
+          python3 platforms/release/generate_release_metadata.py \
+            --version "$PRODUCT_VERSION" --output-dir release-assets
           awk -v heading="## 测试版本 ${PRODUCT_VERSION}" "\$0 == heading { found = 1; next }
             found && /^## / { exit }
             found { print }
