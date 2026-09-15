@@ -70,6 +70,7 @@ build_dependency() {
   cmake --build "$output" --target install
 }
 
+rm -rf "$build_root"
 mkdir -p "$build_root"
 build_dependency glog \
   -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTING=OFF -DWITH_GFLAGS=OFF
@@ -99,11 +100,22 @@ cp "$opencc_source"/src/*.hpp "$opencc_source/src/opencc.h" "$opencc_build/src/o
 build_dependency yaml-cpp \
   -DBUILD_SHARED_LIBS=OFF -DYAML_CPP_BUILD_CONTRIB=OFF -DYAML_CPP_BUILD_TESTS=OFF -DYAML_CPP_BUILD_TOOLS=OFF
 
-rm -rf "$build_root/librime" "$build_root/adapter"
+boost_build="$build_root/boost-regex"
+cmake -S "$script_dir/boost_regex" -B "$boost_build" "${common_cmake[@]}" \
+  -DGANNYU_BOOST_ROOT="$boost_include"
+cmake --build "$boost_build" --target install
+boost_regex_library="$prefix/lib/libboost_regex.a"
+[[ -f "$boost_regex_library" ]] || { echo "Boost.Regex was not built: $boost_regex_library" >&2; exit 2; }
+
 env RIME_PLUGINS="librime-lua" cmake -S "$librime_root" -B "$build_root/librime" "${common_cmake[@]}" \
   -DCMAKE_PREFIX_PATH="$prefix" \
+  -DBoost_NO_BOOST_CMAKE=ON \
   -DBoost_NO_SYSTEM_PATHS=ON \
   -DBoost_INCLUDE_DIR="$boost_include" \
+  -DBoost_INCLUDE_DIRS="$boost_include" \
+  -DBoost_LIBRARY_DIRS="$prefix/lib" \
+  -DBoost_REGEX_LIBRARY_RELEASE="$boost_regex_library" \
+  -DBoost_LIBRARIES="$boost_regex_library" \
   -DBUILD_SHARED_LIBS=OFF \
   -DBUILD_STATIC=ON \
   -DBUILD_MERGED_PLUGINS=ON \

@@ -30,6 +30,7 @@ combine_slice() {
     "$root/prefix/lib/libopencc.a"
     "$root/prefix/lib/libyaml-cpp.a"
     "$root/prefix/lib/libglog.a"
+    "$root/prefix/lib/libboost_regex.a"
   )
   for library in "${libraries[@]}"; do
     [[ -f "$library" ]] || { echo "missing Apple Rime library: $library" >&2; exit 2; }

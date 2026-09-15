@@ -34,29 +34,36 @@ fi
 librime_root="$source_root/librime"
 [[ -d "$librime_root" ]] || { echo "missing librime source tree: $librime_root" >&2; exit 1; }
 [[ -f "$librime_root/Makefile" ]] || { echo "missing librime Makefile: $librime_root" >&2; exit 1; }
-deps_mk="$librime_root/deps.mk"
-[[ -f "$deps_mk" ]] || { echo "missing librime deps.mk: $deps_mk" >&2; exit 1; }
+boost_include="${GANNYU_RIME_BOOST_INCLUDE:-$source_root/boost}"
+[[ -f "$boost_include/boost/version.hpp" ]] || { echo "missing pinned Boost headers: $boost_include" >&2; exit 1; }
 
+# This directory contains only derived host tools and must never make a newer
+# resource or source revision appear to have been rebuilt successfully.
+rm -rf "$build_root"
 mkdir -p "$build_root"
 
-# The pinned librime Makefiles inject a GNU-style MAKEFLAGS arithmetic
-# expression.  Apple's BSD make expands it to an empty `-j` argument, which
-# makes the dependency build fail before CMake starts.  Disable that upstream
-# job injection; the CMake builds below retain their normal parallelism.
-"$python_bin" - "$deps_mk" <<'PYTHON'
-from pathlib import Path
-import sys
+build_dependency() {
+  local name="$1"
+  shift
+  cmake -S "$librime_root/deps/$name" -B "$build_root/deps/$name" "${generator_args[@]}" \
+    -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$prefix" -DCMAKE_POSITION_INDEPENDENT_CODE=ON "$@"
+  cmake --build "$build_root/deps/$name" --target install
+}
 
-path = Path(sys.argv[1])
-source = path.read_text(encoding="utf-8")
-needle = '-DCMAKE_INSTALL_PREFIX:PATH="$(prefix)" \\\n\t&& cmake --build'
-replacement = '-DCMAKE_INSTALL_PREFIX:PATH="$(prefix)" \\\n\t-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON \\\n\t&& cmake --build'
-updated = source.replace(needle, replacement)
-if updated == source:
-    raise SystemExit("failed to inject PIC into librime deps.mk")
-path.write_text(updated, encoding="utf-8")
-PYTHON
-make -C "$librime_root" NOPARALLEL=1 deps prefix="$prefix" build=build-host-deps
+# Do not invoke or rewrite librime's Makefile.  These explicit dependency
+# builds are platform-neutral and leave the pinned source checkout untouched.
+build_dependency glog -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTING=OFF -DWITH_GFLAGS=OFF
+build_dependency leveldb -DBUILD_SHARED_LIBS=OFF -DLEVELDB_BUILD_BENCHMARKS=OFF -DLEVELDB_BUILD_TESTS=OFF -DHAVE_CRC32C=OFF -DHAVE_SNAPPY=OFF -DHAVE_TCMALLOC=OFF
+build_dependency marisa-trie -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTING=OFF -DENABLE_TOOLS=OFF
+build_dependency opencc -DBUILD_SHARED_LIBS=OFF -DENABLE_GTEST=OFF -DENABLE_BENCHMARK=OFF -DBUILD_PYTHON=OFF
+build_dependency yaml-cpp -DBUILD_SHARED_LIBS=OFF -DYAML_CPP_BUILD_CONTRIB=OFF -DYAML_CPP_BUILD_TESTS=OFF -DYAML_CPP_BUILD_TOOLS=OFF
+
+boost_build="$build_root/boost-regex"
+cmake -S "$script_dir/boost_regex" -B "$boost_build" "${generator_args[@]}" \
+  -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$prefix" -DGANNYU_BOOST_ROOT="$boost_include"
+cmake --build "$boost_build" --target install
+boost_regex_library="$prefix/lib/libboost_regex.a"
+[[ -f "$boost_regex_library" ]] || { echo "Boost.Regex was not built: $boost_regex_library" >&2; exit 1; }
 
 env RIME_PLUGINS="librime-lua" cmake "${generator_args[@]}" "$librime_root" \
   -B"$build_root/build" \
@@ -64,6 +71,12 @@ env RIME_PLUGINS="librime-lua" cmake "${generator_args[@]}" "$librime_root" \
   -DCMAKE_INSTALL_PREFIX="$prefix" \
   -DCMAKE_PREFIX_PATH="$prefix" \
   -DBoost_NO_BOOST_CMAKE=ON \
+  -DBoost_NO_SYSTEM_PATHS=ON \
+  -DBoost_INCLUDE_DIR="$boost_include" \
+  -DBoost_INCLUDE_DIRS="$boost_include" \
+  -DBoost_LIBRARY_DIRS="$prefix/lib" \
+  -DBoost_REGEX_LIBRARY_RELEASE="$boost_regex_library" \
+  -DBoost_LIBRARIES="$boost_regex_library" \
   -DBUILD_MERGED_PLUGINS=ON \
   -DENABLE_EXTERNAL_PLUGINS=OFF \
   -DBUILD_TEST=OFF \

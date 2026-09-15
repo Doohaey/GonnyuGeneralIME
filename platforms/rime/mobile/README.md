@@ -35,6 +35,19 @@ The script:
 5. regenerates Gonnyu Rime resources with `platforms/rime/build.py`
 6. writes `build/rime-mobile/host/build-summary.json`
 
+`resources/` is the only checked-in resource source. Everything below
+`build/rime-mobile/` is derived and ignored. Each host, Android, and iOS
+engine entrypoint removes its own derived platform directory before the first
+CMake configure, then regenerates it from the pinned checkout and current
+resources. A previous local library, CMake cache, or generated dictionary can
+therefore never satisfy a new build.
+
+The mobile builds compile Boost.Regex from the Boost source pinned in
+`engine-lock.json` and link that static library into the final Android JNI
+library and iOS XCFramework. They use the upstream librime checkout directly:
+no script copies or rewrites librime sources, and no system Boost installation
+is consulted.
+
 The YAML resources are the source layer. Before an API or app run, deploy them
 with the generated `rime_deployer` so Rime creates the `.table.bin`,
 `.prism.bin`, and `.reverse.bin` files in the user build directory. The
@@ -54,6 +67,10 @@ assertion.
 
 The generated Rime resources now include `resource-manifest.json` with deterministic file sizes and SHA-256 hashes.
 
-## Remote trigger
+## Build boundaries
 
-The repository workflow `.github/workflows/rime-mobile-host.yml` runs the pinned host build on push and manual dispatch. Use that workflow for actual host builds instead of relying on a local signed mobile build.
+The remote Android workflow rebuilds its host validation tools, native engine,
+and packaged resources from these checked-in inputs. It does not upload or
+consume `build/` intermediates. iOS signing remains a local operation: keep the
+ignored signing configuration only on the developer machine, and never commit
+certificates, profiles, keys, or signing settings.

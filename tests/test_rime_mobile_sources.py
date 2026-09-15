@@ -50,3 +50,53 @@ def test_mobile_host_build_script_uses_pinned_librime_lua_and_manifest() -> None
     assert 'RIME_PLUGINS="librime-lua"' in content
     assert 'platforms/rime/build.py" --region all' in content
     assert "resource-manifest.json" in content
+
+
+def test_mobile_builds_compile_pinned_boost_regex_without_mutating_librime() -> None:
+    root = Path(__file__).resolve().parents[1]
+    scripts = [
+        root / "platforms" / "rime" / "mobile" / "build_host.sh",
+        root / "platforms" / "rime" / "mobile" / "build_android_engine.sh",
+        root / "platforms" / "rime" / "mobile" / "build_ios_engine.sh",
+    ]
+    for script in scripts:
+        content = script.read_text(encoding="utf-8")
+        assert "boost_regex" in content
+        assert "Boost_LIBRARIES" in content
+        assert "perl -0pi" not in content
+        assert "copy_directory \"$librime_root\"" not in content
+        assert "std::regex" not in content
+
+
+def test_mobile_boost_regex_target_builds_the_required_pinned_sources() -> None:
+    content = (
+        Path(__file__).resolve().parents[1]
+        / "platforms"
+        / "rime"
+        / "mobile"
+        / "boost_regex"
+        / "CMakeLists.txt"
+    ).read_text(encoding="utf-8")
+
+    for source in (
+        "posix_api.cpp",
+        "regex.cpp",
+        "regex_debug.cpp",
+        "static_mutex.cpp",
+        "wide_posix_api.cpp",
+    ):
+        assert source in content
+    assert "POSITION_INDEPENDENT_CODE ON" in content
+
+
+def test_final_mobile_link_steps_include_pinned_boost_regex() -> None:
+    root = Path(__file__).resolve().parents[1]
+    android_cmake = (
+        root / "platforms" / "android" / "app" / "src" / "main" / "cpp" / "CMakeLists.txt"
+    ).read_text(encoding="utf-8")
+    ios_packager = (
+        root / "platforms" / "rime" / "mobile" / "build_ios_xcframework.sh"
+    ).read_text(encoding="utf-8")
+
+    assert "libboost_regex.a" in android_cmake
+    assert "libboost_regex.a" in ios_packager

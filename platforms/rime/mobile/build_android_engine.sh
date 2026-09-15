@@ -29,12 +29,16 @@ fi
 
 if [[ ! -d "$source_root/librime/.git" ]]; then "$python_bin" "$script_dir/fetch_sources.py" >/dev/null; fi
 librime_root="$source_root/librime"
-patched_librime_root="$build_root/librime-source"
 boost_include="${GANNYU_RIME_BOOST_INCLUDE:-$source_root/boost}"
 if [[ ! -f "$boost_include/boost/version.hpp" && -z "${GANNYU_RIME_BOOST_INCLUDE:-}" ]]; then
   "$python_bin" "$script_dir/fetch_sources.py" --boost-only >/dev/null
 fi
 [[ -f "$boost_include/boost/version.hpp" ]] || { echo "Boost headers not found" >&2; exit 2; }
+
+# All Android native output is derived.  Clear it before the first CMake
+# configure so a prior local generator or dependency cannot mask a clean build.
+rm -rf "$build_root"
+mkdir -p "$build_root"
 
 common=(
   -G Ninja
@@ -57,20 +61,15 @@ build_dependency marisa-trie -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTING=OFF -DENABL
 PATH="$host_bin_dir:$PATH" build_dependency opencc -DBUILD_SHARED_LIBS=OFF -DENABLE_GTEST=OFF -DENABLE_BENCHMARK=OFF -DBUILD_PYTHON=OFF
 build_dependency yaml-cpp -DBUILD_SHARED_LIBS=OFF -DYAML_CPP_BUILD_CONTRIB=OFF -DYAML_CPP_BUILD_TESTS=OFF -DYAML_CPP_BUILD_TOOLS=OFF
 
-rm -rf "$patched_librime_root" "$build_root/librime" "$build_root/adapter"
-cmake -E copy_directory "$librime_root" "$patched_librime_root"
-perl -0pi -e 's/if\\(LINUX\\)\\n  find_package\\(Boost 1\\.74\\.0 REQUIRED COMPONENTS regex\\)\\nelse\\(\\)\\n  find_package\\(Boost 1\\.77\\.0\\)\\nendif\\(\\)/if(GANNYU_MOBILE_USE_STD_REGEX)\\n  set(Boost_FOUND TRUE)\\n  set(Boost_INCLUDE_DIRS \\$\\{Boost_INCLUDE_DIR\\})\\n  set(Boost_LIBRARY_DIRS \"\")\\n  set(Boost_LIBRARIES \"\")\\nelseif(LINUX)\\n  find_package(Boost 1.74.0 REQUIRED COMPONENTS regex)\\nelse()\\n  find_package(Boost 1.77.0 REQUIRED)\\nendif()/s' "$patched_librime_root/CMakeLists.txt"
-perl -0pi -e 's/boost::regex_error/std::regex_error/g' "$patched_librime_root/src/rime/algo/algebra.cc"
-perl -0pi -e 's/boost::regex_replace/std::regex_replace/g; s/boost::regex_match/std::regex_match/g' "$patched_librime_root/src/rime/algo/calculus.cc"
-perl -0pi -e 's/#include <boost\\/regex\\.hpp>/#include <regex>/; s/boost::regex/std::regex/g' "$patched_librime_root/src/rime/algo/calculus.h"
-perl -0pi -e 's/boost::regex/std::regex/g; s/boost::regex_match/std::regex_match/g' "$patched_librime_root/src/rime/algo/encoder.cc"
-perl -0pi -e 's/#include <boost\\/regex\\.hpp>/#include <regex>/; s/vector<boost::regex>/vector<std::regex>/g' "$patched_librime_root/src/rime/algo/encoder.h"
-grep -q 'if(GANNYU_MOBILE_USE_STD_REGEX)' "$patched_librime_root/CMakeLists.txt" || { echo "Failed to rewrite Android librime Boost detection" >&2; exit 2; }
-grep -q 'std::regex_error' "$patched_librime_root/src/rime/algo/algebra.cc" || { echo "Failed to rewrite Android librime regex usage" >&2; exit 2; }
-sed -n '64,74p' "$patched_librime_root/CMakeLists.txt"
+boost_build="$build_root/boost-regex"
+cmake -S "$script_dir/boost_regex" -B "$boost_build" "${common[@]}" \
+  -DGANNYU_BOOST_ROOT="$boost_include"
+cmake --build "$boost_build" --target install
+boost_regex_library="$prefix/lib/libboost_regex.a"
+[[ -f "$boost_regex_library" ]] || { echo "Boost.Regex was not built: $boost_regex_library" >&2; exit 2; }
 
-cmake -S "$patched_librime_root" -B "$build_root/librime" "${common[@]}" \
-  -DCMAKE_PREFIX_PATH="$prefix" -DGANNYU_MOBILE_USE_STD_REGEX=ON -DBoost_NO_BOOST_CMAKE=ON -DBoost_NO_SYSTEM_PATHS=ON -DBoost_INCLUDE_DIR="$boost_include" \
+cmake -S "$librime_root" -B "$build_root/librime" "${common[@]}" \
+  -DCMAKE_PREFIX_PATH="$prefix" -DBoost_NO_BOOST_CMAKE=ON -DBoost_NO_SYSTEM_PATHS=ON -DBoost_INCLUDE_DIR="$boost_include" -DBoost_INCLUDE_DIRS="$boost_include" -DBoost_LIBRARY_DIRS="$prefix/lib" -DBoost_REGEX_LIBRARY_RELEASE="$boost_regex_library" -DBoost_LIBRARIES="$boost_regex_library" \
   -DBUILD_SHARED_LIBS=OFF -DBUILD_STATIC=ON -DBUILD_MERGED_PLUGINS=ON -DENABLE_EXTERNAL_PLUGINS=OFF -DBUILD_TEST=OFF -DINSTALL_PRIVATE_HEADERS=ON \
   -DGlog_INCLUDE_PATH="$prefix/include" -DGlog_LIBRARY="$prefix/lib/libglog.a" \
   -DYamlCpp_INCLUDE_PATH="$prefix/include" -DYamlCpp_NEW_API="$prefix/include/yaml-cpp/node/node.h" -DYamlCpp_LIBRARY="$prefix/lib/libyaml-cpp.a" \

@@ -27,6 +27,7 @@ foreach(required_path
     "${RIME_PREFIX}/lib/libopencc.a"
     "${RIME_PREFIX}/lib/libyaml-cpp.a"
     "${RIME_PREFIX}/lib/libglog.a"
+    "${RIME_PREFIX}/lib/libboost_regex.a"
     "${RIME_SOURCE_ROOT}/src/rime_api.h")
     if(NOT EXISTS "${required_path}")
         message(FATAL_ERROR "Missing mobile Rime build input: ${required_path}. Run platforms/rime/mobile/build_android.sh first.")
@@ -58,6 +59,7 @@ target_link_libraries(gannyu_input_jni PRIVATE
     "${RIME_PREFIX}/lib/libopencc.a"
     "${RIME_PREFIX}/lib/libyaml-cpp.a"
     "${RIME_PREFIX}/lib/libglog.a"
+    "${RIME_PREFIX}/lib/libboost_regex.a"
     log
     android
     dl
