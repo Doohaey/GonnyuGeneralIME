@@ -7,6 +7,23 @@ repo_root="$(cd "$script_dir/../.." && pwd)"
 variant="${GANNYU_ANDROID_BUILD_VARIANT:-debug}"
 apk_dir="$script_dir/app/build/outputs/apk/$variant"
 
+write_local_properties() {
+  local sdk_root="$1"
+  python3 - "$script_dir/local.properties" "$sdk_root" <<'PYTHON'
+from pathlib import Path
+import sys
+
+target = Path(sys.argv[1])
+sdk_dir = sys.argv[2].replace("\\", "\\\\").replace(":", "\\:")
+target.write_text(f"sdk.dir={sdk_dir}\n", encoding="utf-8")
+PYTHON
+}
+
+SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+if [[ -n "$SDK_ROOT" && -d "$SDK_ROOT" ]]; then
+  write_local_properties "$SDK_ROOT"
+fi
+
 case "$variant" in
   debug|release) ;;
   *)
@@ -29,6 +46,7 @@ if [[ "$variant" == "release" ]]; then
 fi
 
 PYTHON_BIN="${PYTHON_BIN:-python3}" bash "$repo_root/platforms/rime/mobile/prepare_resources.sh"
+bash "$repo_root/platforms/rime/mobile/build_android_engine.sh"
 bash "$repo_root/platforms/rime/mobile/build_android_jni.sh"
 
 if [[ "$variant" == "debug" ]]; then

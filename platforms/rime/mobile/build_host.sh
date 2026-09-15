@@ -37,7 +37,11 @@ librime_root="$source_root/librime"
 
 mkdir -p "$build_root"
 
-make -C "$librime_root" deps prefix="$prefix" build=build-host-deps
+# The pinned librime Makefiles inject a GNU-style MAKEFLAGS arithmetic
+# expression.  Apple's BSD make expands it to an empty `-j` argument, which
+# makes the dependency build fail before CMake starts.  Disable that upstream
+# job injection; the CMake builds below retain their normal parallelism.
+make -C "$librime_root" NOPARALLEL=1 deps prefix="$prefix" build=build-host-deps
 
 env RIME_PLUGINS="librime-lua" cmake "${generator_args[@]}" "$librime_root" \
   -B"$build_root/build" \
