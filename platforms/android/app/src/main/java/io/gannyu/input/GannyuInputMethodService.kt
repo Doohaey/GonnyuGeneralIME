@@ -5,6 +5,7 @@ import android.inputmethodservice.InputMethodService
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.graphics.Typeface
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -33,6 +34,8 @@ private class NativePipelineBridge {
 }
 
 class GannyuInputMethodService : InputMethodService() {
+    private enum class KeyboardPage { LETTERS, NUMBERS, SYMBOLS, SYMBOLS_MORE }
+
     private data class RankedCandidate(
         val text: String,
         val comment: String?,
@@ -70,8 +73,9 @@ class GannyuInputMethodService : InputMethodService() {
     private lateinit var candidateBar: LinearLayout
     private lateinit var keyboardRows: LinearLayout
     private var lastSnapshot = EngineSnapshot()
-    private var symbolPage = false
+    private var keyboardPage = KeyboardPage.LETTERS
     private var englishMode = false
+    private var lastRenderedKeyboardWidth = 0
     // One-shot state only: it is never persisted and resets after one letter.
     private var englishShift = false
     private val backspaceRepeatHandler = Handler(Looper.getMainLooper())
@@ -247,7 +251,7 @@ class GannyuInputMethodService : InputMethodService() {
             return regions
         }
 
-        private data class KeySpec(val label: String, val weight: Float = 1f, val isLetter: Boolean = false)
+        private data class KeySpec(val label: String, val isLetter: Boolean = false)
 
         private val ROW_1 = listOf(
             KeySpec("q", isLetter=true), KeySpec("w", isLetter=true), KeySpec("e", isLetter=true),
@@ -263,21 +267,19 @@ class GannyuInputMethodService : InputMethodService() {
             KeySpec("v", isLetter=true), KeySpec("b", isLetter=true), KeySpec("n", isLetter=true),
             KeySpec("m", isLetter=true))
 
-        // Symbol page: all Chinese full-width punctuation
-        private val SYM_ROW_1 = listOf(
-            KeySpec("1"), KeySpec("2"), KeySpec("3"), KeySpec("4"), KeySpec("5"),
-            KeySpec("6"), KeySpec("7"), KeySpec("8"), KeySpec("9"), KeySpec("0"))
-        private val SYM_ROW_2 = listOf(
-            KeySpec("\u3010"), KeySpec("\u3011"), KeySpec("\u201C"), KeySpec("\u201D"),
-            KeySpec("\u3008"), KeySpec("\u3009"), KeySpec("\u300A"), KeySpec("\u300B"),
-            KeySpec("\uFF1A"), KeySpec("\uFF1B"))
-        private val SYM_ROW_3 = listOf(
-            KeySpec("\uFF0C"), KeySpec("\u3001"), KeySpec("\u3002"), KeySpec("\uFF1F"),
-            KeySpec("\uFF01"), KeySpec("\u2026"), KeySpec("\u2014"), KeySpec("\uFF5E"),
-            KeySpec("\u00B7"), KeySpec("\uFF0F"))
+        private val NUM_ROW_1 = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
+        private val NUM_ROW_2 = listOf("-", "/", ":", ";", "(", ")", "¥", "&", "@", "\"")
+        private val NUM_ROW_3 = listOf("符号", ".", ",", "?", "!", "'", "%", "＋", "⌫")
+        private val SYM_ROW_1 = listOf("【", "】", "“", "”", "〈", "〉", "《", "》", "：", "；")
+        private val SYM_ROW_2 = listOf("，", "、", "。", "？", "！", "…", "—", "～", "·", "／")
+        private val SYM_ROW_3 = listOf("更多", "（", "）", "[", "]", "{", "}", "#", "⌫")
+        private val MORE_ROW_1 = listOf("+", "−", "=", "×", "÷", "<", ">", "^", "~", "_")
+        private val MORE_ROW_2 = listOf("@", "#", "$", "¥", "€", "£", "&", "*", "\\", "|")
+        private val MORE_ROW_3 = listOf("常用", "!", "?", "'", "\"", ":", ";", "／", "⌫")
 
-        private const val KEY_TEXT        = 0xFF334B5F.toInt()
-        private const val ACTION_KEY_TEXT = 0xFF274B64.toInt()
+        private const val KEY_TEXT        = 0xFF1B1D20.toInt()
+        private const val ACTION_KEY_TEXT = 0xFF1B1D20.toInt()
+        private const val FUNCTION_KEY_WIDTH_MULTIPLIER = 1.12f
         private const val IME_SWITCH_KEY = "🌐"
         private const val BACKSPACE_INITIAL_DELAY_MS = 380L
         private const val BACKSPACE_REPEAT_INTERVAL_MS = 55L
@@ -304,6 +306,12 @@ class GannyuInputMethodService : InputMethodService() {
         candidateBar = root.findViewById(R.id.candidateBar)
         keyboardRows = root.findViewById(R.id.keyboardRows)
         cacheTag = root.findViewById(R.id.cacheTag)
+        keyboardRows.addOnLayoutChangeListener { _, left, _, right, _, _, _, _, _ ->
+            val width = right - left
+            if (width > 0 && width != lastRenderedKeyboardWidth) {
+                keyboardRows.post { if (keyboardRows.width != lastRenderedKeyboardWidth) renderKeyboard() }
+            }
+        }
         renderKeyboard()
         renderState()
         return root
@@ -422,65 +430,102 @@ class GannyuInputMethodService : InputMethodService() {
 
     private fun renderKeyboard() {
         keyboardRows.removeAllViews()
-        val gap = dp(6)
-        if (symbolPage) renderSymbolPage(gap) else renderPinyinPage(gap)
+        val width = keyboardRows.width.takeIf { it > 0 } ?: resources.displayMetrics.widthPixels - dp(12)
+        lastRenderedKeyboardWidth = width
+        val gap = dp(if (width <= dp(315)) 4 else if (width <= dp(350)) 5 else 6)
+        val keyWidth = (width - gap * 9) / 10
+        when (keyboardPage) {
+            KeyboardPage.LETTERS -> renderPinyinPage(keyWidth, gap)
+            KeyboardPage.NUMBERS -> renderAuxiliaryPage(NUM_ROW_1, NUM_ROW_2, NUM_ROW_3, keyWidth, gap)
+            KeyboardPage.SYMBOLS -> renderAuxiliaryPage(SYM_ROW_1, SYM_ROW_2, SYM_ROW_3, keyWidth, gap)
+            KeyboardPage.SYMBOLS_MORE -> renderAuxiliaryPage(MORE_ROW_1, MORE_ROW_2, MORE_ROW_3, keyWidth, gap)
+        }
+        renderBottomRow(keyWidth, gap)
     }
 
-    private fun renderPinyinPage(gap: Int) {
-        keyboardRows.addView(keyRow(ROW_1, gap).apply { (layoutParams as? LinearLayout.LayoutParams)?.bottomMargin = gap })
+    private fun renderPinyinPage(keyWidth: Int, gap: Int) {
+        keyboardRows.addView(keyRow(ROW_1, keyWidth, gap).apply { (layoutParams as? LinearLayout.LayoutParams)?.bottomMargin = gap })
         val r2 = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { bottomMargin = gap }
         }
-        r2.addView(spacer(0.5f)); ROW_2.forEach { r2.addView(keyBtn(it, gap)) }; r2.addView(spacer(0.5f))
+        r2.addView(spacer((keyWidth + gap) / 2))
+        ROW_2.forEachIndexed { index, key -> r2.addView(keyBtn(key, keyWidth, if (index == ROW_2.lastIndex) 0 else gap)) }
+        r2.addView(spacer((keyWidth + gap) / 2))
         keyboardRows.addView(r2)
-        val r3 = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { bottomMargin = gap }
+        val third = listOf(KeySpec(if (englishMode) "⇧" else "分词")) + ROW_3_LETTERS + KeySpec("⌫")
+        keyboardRows.addView(keyRow(third, keyWidth, gap, deleteExtended = true).apply { (layoutParams as? LinearLayout.LayoutParams)?.bottomMargin = gap })
+    }
+
+    private fun renderAuxiliaryPage(one: List<String>, two: List<String>, three: List<String>, keyWidth: Int, gap: Int) {
+        keyboardRows.addView(keyRow(one.map(::KeySpec), keyWidth, gap).apply { (layoutParams as? LinearLayout.LayoutParams)?.bottomMargin = gap })
+        keyboardRows.addView(keyRow(two.map(::KeySpec), keyWidth, gap).apply { (layoutParams as? LinearLayout.LayoutParams)?.bottomMargin = gap })
+        keyboardRows.addView(keyRow(three.map(::KeySpec), keyWidth, gap, deleteExtended = true).apply { (layoutParams as? LinearLayout.LayoutParams)?.bottomMargin = gap })
+    }
+
+    private fun renderBottomRow(keyWidth: Int, gap: Int) {
+        val r4 = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT) }
+        val showImeSwitcher = shouldShowImeSwitchKey()
+        val mode = if (keyboardPage == KeyboardPage.LETTERS) if (englishMode) "中" else "英"
+            else if (keyboardPage == KeyboardPage.NUMBERS) "符号" else "123"
+        val nav = if (keyboardPage == KeyboardPage.LETTERS) "123" else "ABC"
+        val keys = (if (showImeSwitcher) listOf(IME_SWITCH_KEY) else emptyList()) +
+            listOf(mode, nav, "空格", if (englishMode) "," else "，", if (englishMode) "." else "。", "↵")
+        keys.forEachIndexed { index, label ->
+            val width = when (label) {
+                "空格" -> 0
+                "中", "英", "123", "ABC", "符号", IME_SWITCH_KEY -> functionKeyWidth(label, keyWidth)
+                "↵" -> (keyWidth * 1.6f).toInt()
+                else -> keyWidth
+            }
+            r4.addView(keyBtn(KeySpec(label), width, if (index == keys.lastIndex) 0 else gap))
         }
-        r3.addView(keyBtn(KeySpec(if (englishMode) "⇧" else "分词", 1.3f), gap))
-        ROW_3_LETTERS.forEach { r3.addView(keyBtn(it, gap)) }
-        r3.addView(keyBtn(KeySpec("\u232B", 1.5f), gap))
-        keyboardRows.addView(r3)
-        val r4 = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT) }
-        val showImeSwitcher = shouldShowImeSwitchKey()
-        if (showImeSwitcher) r4.addView(keyBtn(KeySpec(IME_SWITCH_KEY, 1.1f), gap))
-        r4.addView(keyBtn(KeySpec(if (englishMode) "\u4E2D" else "\u82F1", 1.1f), gap)); r4.addView(keyBtn(KeySpec("123", 1.2f), gap)); r4.addView(keyBtn(KeySpec("\uFF0C", 1f), gap))
-        r4.addView(keyBtn(KeySpec("\u7A7A\u683C", if (showImeSwitcher) 3.4f else 4.5f), gap))
-        r4.addView(keyBtn(KeySpec("\u3002", 1f), gap)); r4.addView(keyBtn(KeySpec("\u21B5", 1.8f), gap))
         keyboardRows.addView(r4)
     }
 
-    private fun renderSymbolPage(gap: Int) {
-        keyboardRows.addView(keyRow(SYM_ROW_1, gap).apply { (layoutParams as? LinearLayout.LayoutParams)?.bottomMargin = gap })
-        keyboardRows.addView(keyRow(SYM_ROW_2, gap).apply { (layoutParams as? LinearLayout.LayoutParams)?.bottomMargin = gap })
-        keyboardRows.addView(keyRow(SYM_ROW_3, gap).apply { (layoutParams as? LinearLayout.LayoutParams)?.bottomMargin = gap })
-        val r4 = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT) }
-        val showImeSwitcher = shouldShowImeSwitchKey()
-        if (showImeSwitcher) r4.addView(keyBtn(KeySpec(IME_SWITCH_KEY, 1.1f), gap))
-        r4.addView(keyBtn(KeySpec("\u62FC", 1.2f), gap)); r4.addView(keyBtn(KeySpec("\uFF08", 1f), gap)); r4.addView(keyBtn(KeySpec("\uFF09", 1f), gap))
-        r4.addView(keyBtn(KeySpec("\u7A7A\u683C", if (showImeSwitcher) 2.2f else 3f), gap))
-        r4.addView(keyBtn(KeySpec("\u232B", 1.5f), gap))
-        r4.addView(keyBtn(KeySpec("\u21B5", 1.6f), gap))
-        keyboardRows.addView(r4)
-    }
-
-    private fun spacer(weight: Float): View = View(this).apply { layoutParams = LinearLayout.LayoutParams(0, 0, weight) }
-    private fun keyRow(keys: List<KeySpec>, gap: Int): LinearLayout = LinearLayout(this).apply {
+    private fun spacer(width: Int): View = View(this).apply { layoutParams = LinearLayout.LayoutParams(width, 1) }
+    private fun keyRow(keys: List<KeySpec>, keyWidth: Int, gap: Int, deleteExtended: Boolean = false): LinearLayout = LinearLayout(this).apply {
         orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-        keys.forEach { addView(keyBtn(it, gap)) }
+        val functionalExtra = if (deleteExtended) {
+            keys.dropLast(1).fold(0) { total, key -> total + functionKeyExtraWidth(key.label, keyWidth) }
+        } else {
+            0
+        }
+        keys.forEachIndexed { index, key ->
+            val width = if (deleteExtended && index == keys.lastIndex) {
+                2 * keyWidth + gap - functionalExtra
+            } else {
+                functionKeyWidth(key.label, keyWidth)
+            }
+            addView(keyBtn(key, width, if (index == keys.lastIndex) 0 else gap))
+        }
     }
-    private fun keyBtn(key: KeySpec, gap: Int): Button = Button(this).apply {
-        text = if (key.isLetter && englishMode && englishShift) key.label.uppercase() else key.label
-        isAllCaps = false; textSize = 16f
-        layoutParams = LinearLayout.LayoutParams(0, dp(42), key.weight).apply {
+
+    private fun functionKeyWidth(label: String, keyWidth: Int): Int =
+        if (label in FUNCTION_WIDTH_KEYS) (keyWidth * FUNCTION_KEY_WIDTH_MULTIPLIER).toInt() else keyWidth
+
+    private fun functionKeyExtraWidth(label: String, keyWidth: Int): Int = functionKeyWidth(label, keyWidth) - keyWidth
+    private fun keyBtn(key: KeySpec, width: Int, gap: Int): Button = Button(this).apply {
+        text = when {
+            key.label == IME_SWITCH_KEY -> ""
+            key.label == "↵" -> if (englishMode) "return" else "换行"
+            key.isLetter && englishMode && englishShift -> key.label.uppercase()
+            else -> key.label
+        }
+        isAllCaps = false; textSize = if (key.isLetter) 20f else if (key.label.length > 2) 12f else 15f
+        layoutParams = LinearLayout.LayoutParams(width, dp(46), if (width == 0) 1f else 0f).apply {
             marginEnd = gap
         }
         setPadding(0, 0, 0, 0)
-        val useActionStyle = symbolPage || key.label in ACTION_KEYS
+        val useActionStyle = key.label in ACTION_KEYS
         setTextColor(if (useActionStyle) ACTION_KEY_TEXT else KEY_TEXT)
         setBackgroundResource(if (useActionStyle) R.drawable.key_action else R.drawable.key_normal)
         if (key.label == IME_SWITCH_KEY) {
+            val icon = getDrawable(R.drawable.ic_globe)?.mutate()
+            icon?.setTint(KEY_TEXT)
+            icon?.setBounds(0, 0, dp(18), dp(18))
+            setCompoundDrawables(icon, null, null, null)
+            gravity = android.view.Gravity.CENTER
             contentDescription = "切换输入法"
             setOnClickListener { switchToNextEnabledInputMethod() }
             setOnLongClickListener {
@@ -522,22 +567,26 @@ class GannyuInputMethodService : InputMethodService() {
             }
             key.label == "⇧" && englishMode            -> { englishShift = !englishShift; renderKeyboard() }
             key.label == "分词"                            -> appendInput('\'')
-            // Entering the symbol page must not carry a pending candidate into
-            // the next key.  Symbol keys are literal input, never a candidate
-            // selection action.
-            key.label == "123"                           -> { resetState(clearAccumulated = true); englishShift = false; symbolPage = true; renderKeyboard() }
-            key.label == "\u62FC"                        -> { englishShift = false; symbolPage = false; renderKeyboard() }
+            key.label == "123"                           -> { englishShift = false; keyboardPage = KeyboardPage.NUMBERS; renderKeyboard() }
+            key.label == "符号"                            -> { keyboardPage = KeyboardPage.SYMBOLS; renderKeyboard() }
+            key.label == "更多"                            -> { keyboardPage = KeyboardPage.SYMBOLS_MORE; renderKeyboard() }
+            key.label == "常用"                            -> { keyboardPage = KeyboardPage.SYMBOLS; renderKeyboard() }
+            key.label == "ABC"                           -> { keyboardPage = KeyboardPage.LETTERS; renderKeyboard() }
             key.isLetter                                 -> if (englishMode) {
                 currentInputConnection?.commitText(if (englishShift) key.label.uppercase() else key.label, 1)
                 if (englishShift) { englishShift = false; renderKeyboard() }
             } else appendInput(key.label.single())
-            key.label in PUNCT_AFTER_COMPOSE             -> applyEngineSnapshot(processEngineText(key.label))
+            keyboardPage != KeyboardPage.LETTERS || key.label in PUNCT_AFTER_COMPOSE -> {
+                if (lastSnapshot.rawInput.isNotEmpty()) applyEngineSnapshot(processEngineText(key.label))
+                else currentInputConnection?.commitText(key.label, 1)
+            }
             else                                         -> currentInputConnection?.commitText(key.label, 1)
         }
     }
 
-    private val PUNCT_AFTER_COMPOSE = setOf("\uFF0C", "\u3002", "\uFF1F", "\uFF01", "\uFF1A", "\uFF1B", "\u3001")
-    private val ACTION_KEYS = setOf("分词", "⇧", "⌫", "中", "英", "123", "拼", "↵", IME_SWITCH_KEY)
+    private val PUNCT_AFTER_COMPOSE = setOf("，", "。", "？", "！", "：", "；", "、", ",", ".")
+    private val ACTION_KEYS = setOf("分词", "⇧", "⌫", "中", "英", "123", "ABC", "符号", "更多", "常用", "↵", IME_SWITCH_KEY)
+    private val FUNCTION_WIDTH_KEYS = setOf("分词", "⇧", "中", "英", "123", "ABC", "符号", "更多", "常用", IME_SWITCH_KEY)
 
     private fun shouldShowImeSwitchKey(): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -619,8 +668,8 @@ class GannyuInputMethodService : InputMethodService() {
     private fun renderCacheTag() {
         if (!::cacheTag.isInitialized) return
         val display = lastSnapshot.preedit
-        cacheTag.visibility = if (display.isEmpty()) View.GONE else View.VISIBLE
-        if (display.isNotEmpty()) cacheTag.text = display
+        cacheTag.visibility = if (display.isEmpty()) View.INVISIBLE else View.VISIBLE
+        cacheTag.text = display
     }
 
     private fun refreshCandidates() {
@@ -641,7 +690,7 @@ class GannyuInputMethodService : InputMethodService() {
     private fun renderCandidateBar() {
         if (!::candidateBar.isInitialized) return
         candidateBar.removeAllViews()
-        candidateBar.setPadding(dp(4), 0, dp(4), 0)
+        candidateBar.setPadding(0, 0, 0, 0)
         if (lastSnapshot.candidates.isEmpty()) return
         lastSnapshot.candidates.forEachIndexed { index, c ->
             val cv = CandidateView(this, c, index)
@@ -650,40 +699,42 @@ class GannyuInputMethodService : InputMethodService() {
         candidateScroll.post { candidateScroll.scrollTo(0, 0) }
     }
 
-    /** Candidate view aligned to Linux: main text + one metadata line. */
     private inner class CandidateView(
         context: android.content.Context,
         private val candidate: RankedCandidate,
-        index: Int
+        index: Int,
     ) : LinearLayout(context) {
         private var downX = 0f
         private var moved = false
 
         init {
             orientation = VERTICAL
-            setPadding(dp(8), dp(4), dp(8), dp(4))
-            minimumWidth = dp(42)
+            setPadding(dp(5), dp(2), dp(5), dp(2))
+            minimumWidth = dp(44)
+            minimumHeight = dp(40)
+            gravity = android.view.Gravity.START or android.view.Gravity.CENTER_VERTICAL
             layoutParams = LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT
             ).apply {
-                if (index < lastSnapshot.candidates.size - 1) marginEnd = dp(4)
+                if (index < lastSnapshot.candidates.size - 1) marginEnd = dp(3)
             }
 
             addView(TextView(context).apply {
                 text = candidate.text
-                textSize = 16f; setTextColor(if (index == 0) 0xFF6A9DC2.toInt() else KEY_TEXT)
-                gravity = android.view.Gravity.CENTER_HORIZONTAL
+                textSize = 16f; setTextColor(KEY_TEXT)
+                if (index == 0) setTypeface(null, Typeface.BOLD)
+                maxLines = 1; setSingleLine(true)
             })
 
             val meta = buildCandidateMeta(candidate)
             if (meta.isNotEmpty()) {
                 addView(TextView(context).apply {
                     text = meta
-                    textSize = 10f; setTextColor(0xFF71879A.toInt())
-                    gravity = android.view.Gravity.CENTER_HORIZONTAL
+                    textSize = 10f; setTextColor(0xFF626973.toInt())
                     maxLines = 1; setSingleLine(true)
                 })
             }
+            contentDescription = candidate.text + "，" + meta
         }
 
         override fun onTouchEvent(event: MotionEvent): Boolean {

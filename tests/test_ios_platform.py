@@ -57,16 +57,18 @@ def test_ios_keyboard_and_host_share_manifest_driven_region_selection() -> None:
     assert "<true/>" in extension_info
 
 
-def test_ios_keyboard_keeps_symbol_input_outside_candidate_selection() -> None:
+def test_ios_keyboard_keeps_auxiliary_input_outside_candidate_selection() -> None:
     keyboard = (IOS / "Sources" / "GannyuKeyboard" / "KeyboardViewController.swift").read_text(encoding="utf-8")
 
-    assert "private var symbolPage = false" in keyboard
-    assert "symbolPage = true" in keyboard
-    assert "symbolPage = false" in keyboard
-    assert '? ["🌐", "拼", "（", "）", "空格", "⌫", "⏎"]' in keyboard
+    assert "private var keyboardPage: KeyboardPage = .letters" in keyboard
+    for page in (".numbers", ".symbols", ".symbolsMore"):
+        assert "keyboardPage = " + page in keyboard
+    assert 'case "ABC":' in keyboard
+    assert "keyboardPage != .letters" in keyboard
+    assert "insertLiteral(key)" in keyboard
     assert "private var backspaceTimer: Timer?" in keyboard
     assert "private var englishMode = false" in keyboard
-    assert 'englishMode ? "中" : "英"' in keyboard
+    assert "private var englishShift = false" in keyboard
     assert "backspacePressed" in keyboard
     assert "stopBackspaceRepeat" in keyboard
     assert "textDocumentProxy.insertText(key)" in keyboard
@@ -82,6 +84,10 @@ def test_ios_keyboard_matches_android_composition_and_default_candidate_rules() 
     assert "if snapshot.rawInput.isEmpty" in keyboard
     assert "engine?.process(.space)" in keyboard
     assert "configuration.subtitle" in keyboard
+    assert "systemFont(ofSize: 10, weight: .regular)" in keyboard
+    assert "heightAnchor.constraint(equalToConstant: 16)" in keyboard
+    assert "candidateStack.spacing = 3" in keyboard
+    assert "leading: 5, bottom: 2, trailing: 5" in keyboard
     assert "engine?.selectCandidate(globalIndex: index)" in keyboard
     assert "snapshot = (try? engine?.snapshot()) ?? .empty" in keyboard
     assert "gannyu_engine_process_key" in support
@@ -93,17 +99,38 @@ def test_ios_keyboard_matches_android_composition_and_default_candidate_rules() 
     assert "userDataDirectory" in support
 
 
-def test_ios_keyboard_uses_compact_native_visuals() -> None:
+def test_ios_keyboard_uses_compact_fixed_visuals_and_full_annotations() -> None:
     keyboard = (IOS / "Sources" / "GannyuKeyboard" / "KeyboardViewController.swift").read_text(
         encoding="utf-8"
     )
 
-    assert "view.backgroundColor = .systemGray6" in keyboard
+    assert "UIColor(red: 0.82, green: 0.83, blue: 0.84, alpha: 1)" in keyboard
+    assert "equalToConstant: 46" in keyboard
+    assert "row.spacing = keySpacing" in keyboard
+    assert "private let keySpacing: CGFloat = 6" in keyboard
+    assert "case centered" in keyboard
+    assert "case deleteExtended" in keyboard
+    assert "case bottom" in keyboard
+    assert "row.centerXAnchor.constraint(equalTo: container.centerXAnchor)" in keyboard
+    assert "functionKeyWidthMultiplier: CGFloat = 1.12" in keyboard
+    assert "private func functionKeyWidth(for label: String) -> CGFloat" in keyboard
+    assert "case \"🌐\", \"英\", \"中\", \"123\", \"ABC\", \"符号\", \"更多\", \"常用\", \"⇧\", \"分词\":" in keyboard
+    assert "multiplier: 1.6" in keyboard
+    assert "overrideUserInterfaceStyle = .light" in keyboard
     assert "candidateScroll.backgroundColor = .clear" in keyboard
     assert "greaterThanOrEqualToConstant: 44" in keyboard
     assert "attributes.font = .systemFont(ofSize: 16)" in keyboard
     assert "attributes.font = .systemFont(ofSize: 10)" in keyboard
-    assert "configuration.baseForegroundColor = index == 0 ? .systemBlue : .label" in keyboard
+    assert "configuration.titleLineBreakMode = .byClipping" in keyboard
+    assert "configuration.subtitleLineBreakMode = .byClipping" in keyboard
+    assert "button.setContentCompressionResistancePriority(.required, for: .horizontal)" in keyboard
+    assert "lessThanOrEqualTo: candidateScroll.frameLayoutGuide.widthAnchor" not in keyboard
+    assert "NSLayoutConstraint.activate(pendingWidthConstraints)" in keyboard
+    assert keyboard.index("keyboardStack.addArrangedSubview(keyRow(\n            [\"🌐\"") < keyboard.index(
+        "NSLayoutConstraint.activate(pendingWidthConstraints)"
+    )
+    assert "UIImage(systemName: \"globe\")" in keyboard
+    assert '"空格", englishMode ? "," : "，"' in keyboard
 
 
 def test_ios_host_matches_android_user_data_controls() -> None:

@@ -22,41 +22,49 @@ def test_android_ime_switch_uses_the_standard_platform_path_with_fallback() -> N
     assert "setOnLongClickListener" in source
 
 
-def test_android_ime_switch_key_is_the_leftmost_key_on_both_pages() -> None:
+def test_android_ime_switch_key_is_leftmost_on_all_pages() -> None:
     source = SERVICE.read_text(encoding="utf-8")
-    pinyin_page = source.split("private fun renderPinyinPage", 1)[1].split(
-        "private fun renderSymbolPage", 1
-    )[0]
-    symbol_page = source.split("private fun renderSymbolPage", 1)[1].split(
-        "private fun keyRow", 1
-    )[0]
-
-    switch_add = "r4.addView(keyBtn(KeySpec(IME_SWITCH_KEY, 1.1f), gap))"
-    assert pinyin_page.index(switch_add) < pinyin_page.index(
-        'r4.addView(keyBtn(KeySpec(if (englishMode)'
-    )
-    assert symbol_page.index(switch_add) < symbol_page.index(
-        'r4.addView(keyBtn(KeySpec("\\u62FC", 1.2f), gap))'
-    )
+    bottom = source.split("private fun renderBottomRow", 1)[1].split("private fun spacer", 1)[0]
+    assert bottom.index("listOf(IME_SWITCH_KEY)") < bottom.index("listOf(mode, nav, \"空格\"")
+    assert "KeyboardPage.NUMBERS" in source
+    assert "KeyboardPage.SYMBOLS" in source
+    assert "KeyboardPage.SYMBOLS_MORE" in source
     assert "IME_SWITCH_KEY)" in source.split("private val ACTION_KEYS", 1)[1].splitlines()[0]
 
 
-def test_android_keyboard_uses_the_blue_palette_on_both_pages() -> None:
+def test_android_keyboard_uses_the_fixed_neutral_palette_on_all_pages() -> None:
     source = SERVICE.read_text(encoding="utf-8")
     action = (ROOT / "platforms/android/app/src/main/res/drawable/key_action.xml").read_text(encoding="utf-8")
     normal = (ROOT / "platforms/android/app/src/main/res/drawable/key_normal.xml").read_text(encoding="utf-8")
     layout = (ROOT / "platforms/android/app/src/main/res/layout/input_view.xml").read_text(encoding="utf-8")
 
-    for color in ("#FFD2E9F8", "#FF9FC6E2", "#FFE4F3FF", "#FFBFDFF5"):
-        assert color in action
-    for color in ("#FFEAF4FB", "#FFD1E2F0", "#FFF8FCFF"):
-        assert color in normal
-    assert 'android:background="#F3F9FE"' in layout
-    assert 'android:background="#B3C7E4F7"' in layout
-    assert 'android:textColor="#FF365C78"' in layout
-    assert "private const val KEY_TEXT        = 0xFF334B5F.toInt()" in source
-    assert "private const val ACTION_KEY_TEXT = 0xFF274B64.toInt()" in source
-    assert "symbolPage || key.label in ACTION_KEYS" in source
+    assert "#FFB8BCC3" in action
+    assert "#FFFFFFFF" in normal
+    assert "<gradient" not in action
+    assert 'android:background="#D1D3D6"' in layout
+    assert 'android:textColor="#636871"' in layout
+    assert "private const val KEY_TEXT        = 0xFF1B1D20.toInt()" in source
+    assert "key.label in ACTION_KEYS" in source
+    assert "dp(46)" in source
+    assert "FUNCTION_KEY_WIDTH_MULTIPLIER = 1.12f" in source
+    assert "private fun functionKeyWidth(label: String, keyWidth: Int): Int" in source
+    assert "private val FUNCTION_WIDTH_KEYS" in source
+
+
+def test_android_bottom_row_places_comma_and_period_after_space() -> None:
+    source = SERVICE.read_text(encoding="utf-8")
+    bottom = source.split("private fun renderBottomRow", 1)[1].split("private fun spacer", 1)[0]
+    assert 'listOf(mode, nav, "空格", if (englishMode) "," else "，", if (englishMode) "." else "。", "↵")' in bottom
+
+
+def test_android_candidates_keep_full_metadata_with_independent_widths() -> None:
+    source = SERVICE.read_text(encoding="utf-8")
+
+    assert "candidateMaxWidth" not in source
+    assert "ellipsize = TextUtils.TruncateAt.END" not in source
+    assert "marginEnd = dp(3)" in source
+    assert "minimumWidth = dp(44)" in source
+    assert 'android:layout_height="44dp"' in (ROOT / "platforms/android/app/src/main/res/layout/input_view.xml").read_text(encoding="utf-8")
 
 
 def test_android_rime_regions_start_with_nanchang() -> None:

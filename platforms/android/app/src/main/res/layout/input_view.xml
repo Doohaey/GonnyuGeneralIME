@@ -3,67 +3,49 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="#F3F9FE"
+    android:background="#D1D3D6"
     android:clipChildren="false"
     android:clipToPadding="false"
-    android:paddingTop="6dp"
-    android:paddingBottom="4dp">
+    android:paddingTop="4dp"
+    android:paddingBottom="7dp">
 
-    <FrameLayout
+    <TextView
+        android:id="@+id/cacheTag"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:minHeight="52dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:clipChildren="false"
-        android:clipToPadding="false">
+        android:layout_height="16dp"
+        android:layout_marginStart="6dp"
+        android:layout_marginEnd="6dp"
+        android:gravity="center_vertical"
+        android:textColor="#636871"
+        android:textSize="10sp"
+        android:visibility="invisible" />
 
-        <HorizontalScrollView
-            android:id="@+id/candidateScroll"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="52dp"
-            android:fillViewport="false"
-            android:scrollbars="horizontal"
-            android:fadingEdge="horizontal"
-            android:fadeScrollbars="false"
-            android:overScrollMode="always">
+    <HorizontalScrollView
+        android:id="@+id/candidateScroll"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:layout_marginStart="6dp"
+        android:layout_marginEnd="6dp"
+        android:layout_marginBottom="4dp"
+        android:fillViewport="false"
+        android:scrollbars="horizontal"
+        android:fadingEdge="horizontal"
+        android:fadeScrollbars="false"
+        android:overScrollMode="always">
 
-            <LinearLayout
-                android:id="@+id/candidateBar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingStart="4dp"
-                android:paddingEnd="4dp" />
-        </HorizontalScrollView>
-
-        <TextView
-            android:id="@+id/cacheTag"
+        <LinearLayout
+            android:id="@+id/candidateBar"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="start|top"
-            android:layout_marginStart="6dp"
-            android:translationY="-9dp"
-            android:elevation="8dp"
-            android:alpha="0.74"
-            android:background="#B3C7E4F7"
-            android:paddingStart="9dp"
-            android:paddingEnd="9dp"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp"
-            android:textColor="#FF365C78"
-            android:textSize="12sp"
-            android:visibility="gone" />
-
-    </FrameLayout>
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal" />
+    </HorizontalScrollView>
 
     <LinearLayout
         android:id="@+id/keyboardRows"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp" />
+        android:paddingStart="6dp"
+        android:paddingEnd="6dp" />
 </LinearLayout>

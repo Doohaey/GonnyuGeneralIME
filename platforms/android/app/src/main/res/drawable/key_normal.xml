@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_pressed="true">
-        <layer-list>
-            <item android:top="2dp"><shape><corners android:radius="8dp" /><solid android:color="#FFEAF4FB" /></shape></item>
-        </layer-list>
+        <shape><corners android:radius="5dp" /><solid android:color="#FFE7E8EA" /></shape>
     </item>
     <item>
         <layer-list>
-            <item android:top="1dp" android:bottom="2dp"><shape><corners android:radius="8dp" /><solid android:color="#FFD1E2F0" /></shape></item>
-            <item android:bottom="3dp"><shape><corners android:radius="8dp" /><solid android:color="#FFF8FCFF" /></shape></item>
+            <item android:top="1dp"><shape><corners android:radius="5dp" /><solid android:color="#FF999DA4" /></shape></item>
+            <item android:bottom="1dp"><shape><corners android:radius="5dp" /><solid android:color="#FFFFFFFF" /></shape></item>
         </layer-list>
     </item>
 </selector>
