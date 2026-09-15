@@ -13,14 +13,14 @@ Currently supports: **Lancong(Nanchang) and Fenni(Fenyi)**. More localities are 
 
 Rime schema repositories for Lancong(Nanchang) and Fenni(Fenyi). Other installation options are available in the [Installation](#installation) section below.
 
-## Test version 0.2.4-pre.17
+## Test version 0.2.4-pre.18
 
-- fix(windows): Scope custom candidate, loading, and status windows to the active foreground focus; destroy them on focus or IME loss and rebuild them on demand after reactivation.
+- optimize(android): Improve kernel performance.
 
 ## Contents
 
 - [GonnyuGeneralIME — A General Gon(Gan) Chinese Input Method](#gonnyugeneralime--a-general-gongan-chinese-input-method)
-  - [Test version 0.2.4-pre.17](#test-version-024-pre17)
+  - [Test version 0.2.4-pre.18](#test-version-024-pre18)
   - [Contents](#contents)
   - [Overview](#overview)
     - [What it provides](#what-it-provides)
