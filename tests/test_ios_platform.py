@@ -71,7 +71,11 @@ def test_ios_keyboard_keeps_auxiliary_input_outside_candidate_selection() -> Non
     assert "private var englishShift = false" in keyboard
     assert "backspacePressed" in keyboard
     assert "stopBackspaceRepeat" in keyboard
+    assert "override func viewWillDisappear" in keyboard
+    assert "Timer.scheduledTimer(withTimeInterval: 0.38" in keyboard
+    assert "Timer.scheduledTimer(withTimeInterval: 0.055, repeats: true)" in keyboard
     assert "textDocumentProxy.insertText(key)" in keyboard
+    assert 'label == "空格" ? ""' in keyboard
 
 
 def test_ios_keyboard_matches_android_composition_and_default_candidate_rules() -> None:
@@ -120,7 +124,7 @@ def test_ios_keyboard_uses_compact_fixed_visuals_and_full_annotations() -> None:
     assert "overrideUserInterfaceStyle = .light" in keyboard
     assert "candidateScroll.backgroundColor = .clear" in keyboard
     assert "candidateRow.heightAnchor.constraint(equalToConstant: 39)" in keyboard
-    assert "attributes.font = .systemFont(ofSize: 16)" in keyboard
+    assert "attributes.font = .systemFont(ofSize: 15, weight: .bold)" in keyboard
     assert "attributes.font = .systemFont(ofSize: 10)" in keyboard
     assert "configuration.titleLineBreakMode = expanded ? .byWordWrapping : .byClipping" in keyboard
     assert "configuration.subtitleLineBreakMode = expanded ? .byWordWrapping : .byClipping" in keyboard

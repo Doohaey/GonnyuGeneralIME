@@ -65,6 +65,13 @@ final class KeyboardViewController: UIInputViewController {
         reloadRegionIfNeeded(force: false)
     }
 
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        // A keyboard extension can be dismissed while a delete key is held.
+        // Never let its repeat timer survive that transition.
+        stopBackspaceRepeat()
+    }
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         if candidateExpanded && candidateExpandedScroll.bounds.width != expandedLayoutWidth {
@@ -277,15 +284,18 @@ final class KeyboardViewController: UIInputViewController {
             button.tintColor = fixedTextColor
             button.accessibilityLabel = "切换输入法"
         } else {
-            let title = label == "⏎" ? (englishMode ? "return" : "换行")
+            let title = label == "空格" ? "" : (label == "⏎" ? (englishMode ? "return" : "换行")
                 : (englishMode && englishShift && label.count == 1 && label.first?.isLetter == true
-                    ? label.uppercased() : label)
+                    ? label.uppercased() : label))
             button.setTitle(title, for: .normal)
+            if label == "空格" {
+                button.accessibilityLabel = "空格"
+            }
         }
         button.setTitleColor(fixedTextColor, for: .normal)
         button.titleLabel?.font = .systemFont(
-            ofSize: label.count > 2 ? 12 : (keyboardKeyColor(for: label) == actionKeyColor ? 15 : 20),
-            weight: .regular
+            ofSize: label.count > 2 ? 12 : (keyboardKeyColor(for: label) == actionKeyColor ? 15 : 23),
+            weight: label.count == 1 && label.first?.isLetter == true ? .bold : .regular
         )
         button.backgroundColor = keyboardKeyColor(for: label)
         button.layer.cornerRadius = 5
@@ -462,7 +472,7 @@ final class KeyboardViewController: UIInputViewController {
         configuration.subtitleLineBreakMode = expanded ? .byWordWrapping : .byClipping
         configuration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer {
             var attributes = $0
-            attributes.font = .systemFont(ofSize: 16)
+            attributes.font = .systemFont(ofSize: 15, weight: .bold)
             return attributes
         }
         configuration.subtitleTextAttributesTransformer = UIConfigurationTextAttributesTransformer {
@@ -483,7 +493,7 @@ final class KeyboardViewController: UIInputViewController {
 
     private func candidateWidth(_ candidate: GonnyuAppleCandidate, maximum: CGFloat) -> CGFloat {
         let subtitle = candidate.annotation.isEmpty ? candidate.reading ?? "" : candidate.annotation
-        let titleWidth = (candidate.text as NSString).size(withAttributes: [.font: UIFont.systemFont(ofSize: 16)]).width
+        let titleWidth = (candidate.text as NSString).size(withAttributes: [.font: UIFont.systemFont(ofSize: 15)]).width
         let subtitleWidth = (subtitle as NSString).size(withAttributes: [.font: UIFont.systemFont(ofSize: 10)]).width
         return min(maximum, max(44, max(titleWidth, subtitleWidth) + 10))
     }

@@ -525,11 +525,14 @@ class GannyuInputMethodService : InputMethodService() {
     private fun keyBtn(key: KeySpec, width: Int, gap: Int): Button = Button(this).apply {
         text = when {
             key.label == IME_SWITCH_KEY -> ""
+            key.label == "空格" -> ""
             key.label == "↵" -> if (englishMode) "return" else "换行"
             key.isLetter && englishMode && englishShift -> key.label.uppercase()
             else -> key.label
         }
-        isAllCaps = false; textSize = if (key.isLetter) 20f else if (key.label.length > 2) 12f else 15f
+        isAllCaps = false; textSize = if (key.isLetter) 23f else if (key.label.length > 2) 12f else 15f
+        if (key.isLetter) setTypeface(Typeface.DEFAULT_BOLD)
+        if (key.label == "空格") contentDescription = "空格"
         layoutParams = LinearLayout.LayoutParams(width, dp(46), if (width == 0) 1f else 0f).apply {
             marginEnd = gap
         }
@@ -742,8 +745,8 @@ class GannyuInputMethodService : InputMethodService() {
 
             addView(TextView(context).apply {
                 text = candidate.text
-                textSize = 16f; setTextColor(KEY_TEXT)
-                if (index == 0) setTypeface(null, Typeface.BOLD)
+                textSize = 15f; setTextColor(KEY_TEXT)
+                setTypeface(null, Typeface.BOLD)
                 if (expanded) maxLines = Int.MAX_VALUE else { maxLines = 1; setSingleLine(true) }
             })
 
@@ -816,7 +819,7 @@ class GannyuInputMethodService : InputMethodService() {
 
     private fun candidateWidth(candidate: RankedCandidate, maximum: Int): Int {
         val scale = resources.displayMetrics.scaledDensity
-        val wordWidth = android.graphics.Paint().apply { textSize = 16f * scale }.measureText(candidate.text)
+        val wordWidth = android.graphics.Paint().apply { textSize = 15f * scale }.measureText(candidate.text)
         val metaWidth = android.graphics.Paint().apply { textSize = 10f * scale }.measureText(buildCandidateMeta(candidate))
         return minOf(maximum, maxOf(dp(44), kotlin.math.ceil(maxOf(wordWidth, metaWidth).toDouble()).toInt() + dp(10)))
     }

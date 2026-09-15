@@ -70,6 +70,9 @@ def test_android_candidates_keep_full_metadata_with_independent_widths() -> None
     assert "candidateExpansionContainer" in layout
     assert "nativeChangeCandidatePage" in source
     assert "private fun loadMoreCandidates()" in source
+    assert "textSize = 15f" in source
+    assert "setTypeface(Typeface.DEFAULT_BOLD)" in source
+    assert 'key.label == "空格" -> ""' in source
 
 
 def test_android_rime_regions_start_with_nanchang() -> None:
