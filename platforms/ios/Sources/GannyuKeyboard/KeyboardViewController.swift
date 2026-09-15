@@ -94,10 +94,8 @@ final class KeyboardViewController: UIInputViewController {
     private let candidateExpandButton = UIButton(type: .system)
     private let candidateExpandedScroll = UIScrollView()
     private let candidateExpandedStack = UIStackView()
-    private var candidateExpandedHeightConstraint: NSLayoutConstraint?
     private var candidateExpanded = false
     private var expandedCandidates: [GonnyuAppleCandidate] = []
-    private var expandedPageNumbers = Set<Int>()
     private var expandedLayoutWidth: CGFloat = 0
     private let keyboardStack = UIStackView()
     private let keyPreviewView = KeyPreviewView(frame: .zero)
@@ -225,17 +223,20 @@ final class KeyboardViewController: UIInputViewController {
         ])
 
         candidateExpandedScroll.showsVerticalScrollIndicator = true
-        candidateExpandedScroll.backgroundColor = .clear
+        candidateExpandedScroll.backgroundColor = keyboardPanelColor
         candidateExpandedScroll.translatesAutoresizingMaskIntoConstraints = false
-        candidateExpandedHeightConstraint = candidateExpandedScroll.heightAnchor.constraint(equalToConstant: 0)
-        candidateExpandedHeightConstraint?.isActive = true
-        root.addArrangedSubview(candidateExpandedScroll)
+        candidateExpandedScroll.isHidden = true
+        view.addSubview(candidateExpandedScroll)
 
         candidateExpandedStack.axis = .vertical
         candidateExpandedStack.spacing = 3
         candidateExpandedStack.translatesAutoresizingMaskIntoConstraints = false
         candidateExpandedScroll.addSubview(candidateExpandedStack)
         NSLayoutConstraint.activate([
+            candidateExpandedScroll.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 6),
+            candidateExpandedScroll.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -6),
+            candidateExpandedScroll.topAnchor.constraint(equalTo: view.topAnchor, constant: 20),
+            candidateExpandedScroll.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -7),
             candidateExpandedStack.leadingAnchor.constraint(equalTo: candidateExpandedScroll.contentLayoutGuide.leadingAnchor, constant: 3),
             candidateExpandedStack.trailingAnchor.constraint(equalTo: candidateExpandedScroll.contentLayoutGuide.trailingAnchor, constant: -3),
             candidateExpandedStack.topAnchor.constraint(equalTo: candidateExpandedScroll.contentLayoutGuide.topAnchor, constant: 3),
@@ -276,7 +277,7 @@ final class KeyboardViewController: UIInputViewController {
                 layout: .reference
             ))
             keyboardStack.addArrangedSubview(keyRow(
-                ["符号", ".", ",", "?", "!", "'", "%", "＋", "⌫"],
+                [".", ",", "?", "!", "'", "%", "＋", "⌫"],
                 layout: .deleteExtended
             ))
         case .symbols:
@@ -622,10 +623,11 @@ final class KeyboardViewController: UIInputViewController {
             $0.removeFromSuperview()
         }
         guard candidateExpanded else {
-            candidateExpandedHeightConstraint?.constant = 0
+            candidateExpandedScroll.isHidden = true
             return
         }
         let available = max(44, candidateExpandedScroll.bounds.width - 6)
+        candidateExpandedScroll.isHidden = false
         expandedLayoutWidth = candidateExpandedScroll.bounds.width
         var row = makeExpandedCandidateRow()
         var usedWidth: CGFloat = 0
@@ -644,17 +646,6 @@ final class KeyboardViewController: UIInputViewController {
         if !row.arrangedSubviews.isEmpty {
             candidateExpandedStack.addArrangedSubview(row)
         }
-        if snapshot.hasNextPage {
-            let more = UIButton(type: .system)
-            more.setTitle("加载更多候选", for: .normal)
-            more.setTitleColor(fixedTextColor, for: .normal)
-            more.backgroundColor = actionKeyColor
-            more.layer.cornerRadius = 5
-            more.heightAnchor.constraint(equalToConstant: 30).isActive = true
-            more.addTarget(self, action: #selector(loadMoreCandidates), for: .touchUpInside)
-            candidateExpandedStack.addArrangedSubview(more)
-        }
-        candidateExpandedHeightConstraint?.constant = 154
     }
 
     private func makeExpandedCandidateRow() -> UIStackView {
@@ -673,27 +664,12 @@ final class KeyboardViewController: UIInputViewController {
         guard !snapshot.candidates.isEmpty else { return }
         candidateExpanded = true
         expandedCandidates = snapshot.candidates
-        expandedPageNumbers = [snapshot.pageNumber]
-        render()
-    }
-
-    @objc private func loadMoreCandidates() {
-        guard let engine, snapshot.hasNextPage, let updated = try? engine.changeCandidatePage(direction: 1) else { return }
-        snapshot = updated
-        if expandedPageNumbers.insert(updated.pageNumber).inserted {
-            expandedCandidates.append(contentsOf: updated.candidates)
-        }
         render()
     }
 
     private func collapseCandidateExpansion() {
-        while snapshot.hasPreviousPage {
-            guard let engine, let updated = try? engine.changeCandidatePage(direction: -1) else { break }
-            snapshot = updated
-        }
         candidateExpanded = false
         expandedCandidates.removeAll()
-        expandedPageNumbers.removeAll()
         render()
     }
 
@@ -740,7 +716,6 @@ final class KeyboardViewController: UIInputViewController {
         if compositionChanged {
             candidateExpanded = false
             expandedCandidates.removeAll()
-            expandedPageNumbers.removeAll()
         }
         render()
     }
@@ -778,7 +753,6 @@ final class KeyboardViewController: UIInputViewController {
         snapshot = (try? engine?.snapshot()) ?? .empty
         candidateExpanded = false
         expandedCandidates.removeAll()
-        expandedPageNumbers.removeAll()
         render()
     }
 }

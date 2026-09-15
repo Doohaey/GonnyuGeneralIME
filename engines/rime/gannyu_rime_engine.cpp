@@ -18,6 +18,7 @@
 struct GannyuPipelineHandle {
   RimeSessionId session = 0;
   std::string schema_id;
+  size_t candidate_limit = 0;
 };
 
 namespace {
@@ -231,7 +232,7 @@ std::string Snapshot(GannyuPipelineHandle* handle, bool handled, const std::opti
   RIME_STRUCT_INIT(RimeContext, context);
   RimeStatus status{};
   RIME_STRUCT_INIT(RimeStatus, status);
-  const bool has_context = Api()->get_context(handle->session, &context);
+  bool has_context = Api()->get_context(handle->session, &context);
   const bool has_status = Api()->get_status(handle->session, &status);
   std::ostringstream output;
   const char* raw_input = Api()->get_input(handle->session);
@@ -241,26 +242,47 @@ std::string Snapshot(GannyuPipelineHandle* handle, bool handled, const std::opti
   output << Utf8CountBefore(raw_input, Api()->get_caret_pos(handle->session));
   if (commit.has_value() && !commit->empty()) output << ",\"commitText\":\"" << JsonEscape(*commit) << "\"";
   output << ",\"candidates\":[";
-  if (has_context) {
-    for (int index = 0; index < context.menu.num_candidates; ++index) {
-      if (index != 0) output << ',';
+  bool first_candidate = true;
+  auto append_context_candidates = [&] {
+    if (!has_context) return;
+    for (int index = 0; index < context.menu.num_candidates &&
+         (handle->candidate_limit == 0 || index + context.menu.page_no * context.menu.page_size < static_cast<int>(handle->candidate_limit)); ++index) {
+      if (!first_candidate) output << ',';
+      first_candidate = false;
       const RimeCandidate& candidate = context.menu.candidates[index];
       output << "{\"text\":\"" << JsonEscape(candidate.text) << "\"";
-      if (candidate.comment != nullptr && candidate.comment[0] != '\0') {
-        output << ",\"annotation\":\"" << JsonEscape(candidate.comment) << "\"";
-      }
+      if (candidate.comment != nullptr && candidate.comment[0] != '\0') output << ",\"annotation\":\"" << JsonEscape(candidate.comment) << "\"";
       output << ",\"globalIndex\":" << context.menu.page_no * context.menu.page_size + index;
-      output << ",\"pageIndex\":" << index << ",\"deletable\":false}";
+      output << ",\"pageIndex\":" << (context.menu.page_no * context.menu.page_size + index) << ",\"deletable\":false}";
+    }
+  };
+  const int original_page = has_context ? context.menu.page_no : 0;
+  append_context_candidates();
+  if (handle->candidate_limit > 0 && has_context) {
+    while (context.menu.page_size > 0 && !context.menu.is_last_page && context.menu.page_no * context.menu.page_size < static_cast<int>(handle->candidate_limit)) {
+      const int previous_page = context.menu.page_no;
+      Api()->free_context(&context);
+      Api()->process_key(handle->session, kPageDown, 0);
+      RIME_STRUCT_INIT(RimeContext, context);
+      has_context = Api()->get_context(handle->session, &context);
+      append_context_candidates();
+      if (!has_context || context.menu.page_no <= previous_page) break;
+    }
+    while (has_context && context.menu.page_no > original_page) {
+      Api()->free_context(&context);
+      Api()->process_key(handle->session, kPageUp, 0);
+      RIME_STRUCT_INIT(RimeContext, context);
+      has_context = Api()->get_context(handle->session, &context);
     }
   }
   output << "]";
   if (has_context && context.menu.num_candidates > 0) {
     output << ",\"highlightedIndex\":" << context.menu.highlighted_candidate_index;
   }
-  output << ",\"pageNumber\":" << (has_context ? context.menu.page_no : 0);
-  output << ",\"hasPreviousPage\":" << (has_context && context.menu.page_no > 0 ? "true" : "false");
+  output << ",\"pageNumber\":" << (handle->candidate_limit > 0 ? 0 : (has_context ? context.menu.page_no : 0));
+  output << ",\"hasPreviousPage\":" << (handle->candidate_limit > 0 ? "false" : (has_context && context.menu.page_no > 0 ? "true" : "false"));
   output << ",\"hasNextPage\":"
-         << (has_context && context.menu.num_candidates > 0 && !context.menu.is_last_page ? "true" : "false");
+         << (handle->candidate_limit > 0 ? "false" : (has_context && context.menu.num_candidates > 0 && !context.menu.is_last_page ? "true" : "false"));
   output << ",\"schemaId\":\"" << JsonEscape(handle->schema_id) << "\"";
   output << ",\"asciiMode\":" << (has_status && status.is_ascii_mode ? "true" : "false") << '}';
   if (has_context) Api()->free_context(&context);
@@ -365,6 +387,14 @@ int gannyu_engine_snapshot(GannyuPipelineHandle* handle, char** out_json) {
     if (handle == nullptr) return kInvalidArgument;
     std::lock_guard<std::mutex> lock(GlobalRuntime().mutex);
     return WriteSnapshot(handle, false, std::nullopt, out_json);
+  });
+}
+
+int gannyu_engine_set_candidate_limit(GannyuPipelineHandle* handle, size_t limit) {
+  return AbiStatus([&] {
+    if (handle == nullptr) return kInvalidArgument;
+    handle->candidate_limit = limit;
+    return kOk;
   });
 }
 

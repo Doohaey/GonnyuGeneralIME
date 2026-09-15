@@ -312,6 +312,9 @@ public final class GonnyuAppleEngine {
         guard status == gannyu_ffi_status_ok(), let created else {
             throw GonnyuAppleEngineError.ffi(status, Self.lastError())
         }
+        guard gannyu_engine_set_candidate_limit(created, 100) == gannyu_ffi_status_ok() else {
+            throw GonnyuAppleEngineError.ffi(gannyu_ffi_status_ok(), Self.lastError())
+        }
         handle = created
     }
 

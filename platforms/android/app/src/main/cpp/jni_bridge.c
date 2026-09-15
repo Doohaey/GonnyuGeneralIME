@@ -48,6 +48,7 @@ Java_io_gannyu_input_GannyuInputMethodService_nativeCreate(
     if (resource_root_c != NULL) (*env)->ReleaseStringUTFChars(env, resource_root, resource_root_c);
     if (region_c != NULL) (*env)->ReleaseStringUTFChars(env, region, region_c);
     if (user_data_dir_c != NULL) (*env)->ReleaseStringUTFChars(env, user_data_dir, user_data_dir_c);
+    if (status == 0) status = gannyu_engine_set_candidate_limit(handle, 100);
     return status == 0 ? (jlong)(intptr_t)handle : 0;
 }
 

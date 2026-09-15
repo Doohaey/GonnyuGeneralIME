@@ -76,13 +76,11 @@ class GannyuInputMethodService : InputMethodService() {
     private lateinit var candidateExpansionContainer: LinearLayout
     private lateinit var candidateExpandedScroll: android.widget.ScrollView
     private lateinit var candidateExpandedRows: LinearLayout
-    private lateinit var candidateMoreButton: Button
     private lateinit var keyboardRows: LinearLayout
     private lateinit var keyPreview: TextView
     private var lastSnapshot = EngineSnapshot()
     private var candidateExpanded = false
     private val expandedCandidates = mutableListOf<RankedCandidate>()
-    private val expandedPageNumbers = mutableSetOf<Int>()
     private var keyboardPage = KeyboardPage.LETTERS
     private var englishMode = false
     private var lastRenderedKeyboardWidth = 0
@@ -273,7 +271,7 @@ class GannyuInputMethodService : InputMethodService() {
 
         private val NUM_ROW_1 = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
         private val NUM_ROW_2 = listOf("-", "/", ":", ";", "(", ")", "¥", "&", "@", "\"")
-        private val NUM_ROW_3 = listOf("符号", ".", ",", "?", "!", "'", "%", "＋", "⌫")
+        private val NUM_ROW_3 = listOf(".", ",", "?", "!", "'", "%", "＋", "⌫")
         private val SYM_ROW_1 = listOf("【", "】", "“", "”", "〈", "〉", "《", "》", "：", "；")
         private val SYM_ROW_2 = listOf("，", "、", "。", "？", "！", "…", "—", "～", "·", "／")
         private val SYM_ROW_3 = listOf("更多", "（", "）", "[", "]", "{", "}", "#", "⌫")
@@ -316,9 +314,15 @@ class GannyuInputMethodService : InputMethodService() {
         candidateExpansionContainer = root.findViewById(R.id.candidateExpansionContainer)
         candidateExpandedScroll = root.findViewById(R.id.candidateExpandedScroll)
         candidateExpandedRows = root.findViewById(R.id.candidateExpandedRows)
-        candidateMoreButton = root.findViewById(R.id.candidateMoreButton)
         candidateExpandButton.setOnClickListener { toggleCandidateExpansion() }
-        candidateMoreButton.setOnClickListener { loadMoreCandidates() }
+        val overlay = candidateExpansionContainer
+        (overlay.parent as? ViewGroup)?.removeView(overlay)
+        (root as? FrameLayout)?.addView(overlay, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(154)).apply {
+            gravity = android.view.Gravity.TOP or android.view.Gravity.START
+            leftMargin = dp(6)
+            topMargin = dp(20)
+            rightMargin = dp(6)
+        })
         keyboardRows = root.findViewById(R.id.keyboardRows)
         keyPreview = root.findViewById(R.id.keyPreview)
         cacheTag = root.findViewById(R.id.cacheTag)
@@ -850,7 +854,6 @@ class GannyuInputMethodService : InputMethodService() {
             usedWidth += (if (usedWidth == 0) 0 else dp(3)) + width
         }
         if (row.childCount > 0) candidateExpandedRows.addView(row)
-        candidateMoreButton.visibility = if (lastSnapshot.hasNextPage) View.VISIBLE else View.GONE
     }
 
     private fun expandedCandidateRow(): LinearLayout = LinearLayout(this).apply {
@@ -874,27 +877,12 @@ class GannyuInputMethodService : InputMethodService() {
         candidateExpanded = true
         expandedCandidates.clear()
         expandedCandidates += lastSnapshot.candidates
-        expandedPageNumbers.clear()
-        expandedPageNumbers += lastSnapshot.pageNumber
-        renderState()
-    }
-
-    private fun loadMoreCandidates() {
-        if (!lastSnapshot.hasNextPage || pipelineHandle == 0L) return
-        val updated = nativeChangeCandidatePage(pipelineHandle, 1)?.let(::parseSnapshot) ?: return
-        lastSnapshot = updated
-        if (expandedPageNumbers.add(updated.pageNumber)) expandedCandidates += updated.candidates
         renderState()
     }
 
     private fun collapseCandidateExpansion() {
-        while (lastSnapshot.hasPreviousPage && pipelineHandle != 0L) {
-            val updated = nativeChangeCandidatePage(pipelineHandle, -1)?.let(::parseSnapshot) ?: break
-            lastSnapshot = updated
-        }
         candidateExpanded = false
         expandedCandidates.clear()
-        expandedPageNumbers.clear()
         renderState()
     }
 
@@ -918,7 +906,6 @@ class GannyuInputMethodService : InputMethodService() {
         if (compositionChanged) {
             candidateExpanded = false
             expandedCandidates.clear()
-            expandedPageNumbers.clear()
         }
         if (render && ::candidateBar.isInitialized) {
             renderState()

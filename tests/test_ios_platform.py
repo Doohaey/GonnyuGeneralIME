@@ -137,8 +137,8 @@ def test_ios_keyboard_uses_compact_fixed_visuals_and_full_annotations() -> None:
     assert "configuration.titleLineBreakMode = expanded ? .byWordWrapping : .byClipping" in keyboard
     assert "configuration.subtitleLineBreakMode = expanded ? .byWordWrapping : .byClipping" in keyboard
     assert "button.setContentCompressionResistancePriority(.required, for: .horizontal)" in keyboard
-    assert "private func loadMoreCandidates()" in keyboard
-    assert "candidateExpandedHeightConstraint?.constant = 154" in keyboard
+    assert "private func loadMoreCandidates()" not in keyboard
+    assert "candidateExpandedScroll.topAnchor.constraint(equalTo: view.topAnchor, constant: 20)" in keyboard
     assert "lessThanOrEqualTo: candidateScroll.frameLayoutGuide.widthAnchor" not in keyboard
     assert "NSLayoutConstraint.activate(pendingWidthConstraints)" in keyboard
     assert keyboard.index("keyboardStack.addArrangedSubview(keyRow(\n            [\"🌐\"") < keyboard.index(

@@ -92,6 +92,7 @@ const SESSION_PAGE_SIZE: usize = 100;
 struct EngineSessionState {
     raw_input: String,
     page_number: usize,
+    candidate_limit: Option<usize>,
     ascii_mode: bool,
     accumulated_text: String,
     accumulated_readings: Vec<String>,
@@ -260,6 +261,45 @@ fn build_snapshot(
     let pipeline = handle.pipeline.lock();
     let mut session = handle.session.lock();
     let all_candidates = pipeline.retrieve(&session.raw_input);
+    if let Some(limit) = session.candidate_limit {
+        let candidates = all_candidates
+            .iter()
+            .take(limit)
+            .enumerate()
+            .map(|(index, candidate)| EngineCandidateSnapshot {
+                text: candidate.text.clone(),
+                annotation: candidate.annotation.clone(),
+                reading: candidate.reading.clone(),
+                mandarin_reading: candidate.mandarin_reading.clone(),
+                global_index: index,
+                page_index: index,
+                deletable: candidate
+                    .annotation
+                    .as_deref()
+                    .is_some_and(|annotation| annotation.contains("[用户]")),
+            })
+            .collect::<Vec<_>>();
+        let preedit = pipeline.format_preedit_display(
+            &session.raw_input,
+            all_candidates
+                .first()
+                .map_or(0, |candidate| candidate.consumed_bytes),
+        );
+        return EngineSnapshot {
+            handled,
+            commit_text,
+            raw_input: session.raw_input.clone(),
+            preedit: preedit.clone(),
+            caret: preedit.chars().count(),
+            highlighted_index: (!candidates.is_empty()).then_some(0),
+            candidates,
+            page_number: 0,
+            has_previous_page: false,
+            has_next_page: false,
+            schema_id: handle.region_id.clone(),
+            ascii_mode: session.ascii_mode,
+        };
+    }
     let total_pages = if all_candidates.is_empty() {
         1
     } else {
@@ -1001,6 +1041,18 @@ pub unsafe extern "C" fn gannyu_engine_snapshot(
     }
     let snapshot = build_snapshot(&*handle, false, None);
     serialize_snapshot(&snapshot, out_json)
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn gannyu_engine_set_candidate_limit(
+    handle: *mut GannyuPipelineHandle,
+    limit: usize,
+) -> c_int {
+    if handle.is_null() {
+        return invalid_argument("engine handle is null");
+    }
+    (&*handle).session.lock().candidate_limit = (limit > 0).then_some(limit);
+    STATUS_OK
 }
 
 #[no_mangle]
