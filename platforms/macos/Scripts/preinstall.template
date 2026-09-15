@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+scripts_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+target="/Library/Input Methods/GonnyuInputMethod.app"
+backup="/Library/Input Methods/.GonnyuInputMethod.previous.app"
+failed="/Library/Input Methods/GonnyuInputMethod.app.failed"
+
+[[ ! -e "$backup" ]] || { echo "previous Gonnyu backup requires manual recovery: $backup" >&2; exit 1; }
+[[ ! -e "$failed" ]] || { echo "previous failed Gonnyu upgrade requires manual recovery: $failed" >&2; exit 1; }
+bash "$scripts_dir/check_installer_version.sh" "@VERSION@" "$target/Contents/Info.plist"
+if [[ -d "$target" ]]; then mv "$target" "$backup"; fi

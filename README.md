@@ -121,13 +121,15 @@
 
 ## 安装方法
 
-输入法主体覆盖 Linux、Android 和 Windows。macOS 与 iOS 的 输入法目前只能使用通用 Rime 资源包，安装方法见 Rime 章节。
+输入法主体覆盖 Linux、Android、Windows 和 macOS。iOS 使用通用 Rime 资源包，安装方法见 Rime 章节。
 
 从 [Releases](https://github.com/Doohaey/GonnyuGeneralIME/releases) 下载与系统相符或者对应区域的文件。
 
 ### macOS
 
-macOS 上使用输入法时，见 Rime 章节。
+下载 `GonnyuGeneralIME-版本号-macos.pkg` 并安装，在系统输入法设置中启用“Gonnyu”。安装包校验现有版本，接受较新版本覆盖，拒绝同版本和降级安装。用户词库保存在应用程序支持目录，升级时保留。
+
+源码构建在 macOS 运行 `bash platforms/macos/build.sh`，构建脚本按 `platforms/rime/mobile/engine-lock.json` 重建 arm64、x86_64 的 librime 与预部署资源。正式安装包运行 `bash platforms/macos/package.sh`，需要 Developer ID Application、Developer ID Installer 签名身份及 notarytool 钥匙串配置。应用与安装包完成签名、苹果公证和 Gatekeeper 验证后产出 `build/macos/GonnyuInputMethod.pkg`。本机开发安装使用 `bash platforms/macos/install_local.sh`。
 
 ### iOS
 

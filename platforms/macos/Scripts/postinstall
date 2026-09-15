@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+target="/Library/Input Methods/GonnyuInputMethod.app"
+backup="/Library/Input Methods/.GonnyuInputMethod.previous.app"
+lsregister="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
+
+restore_previous() {
+  if [[ -d "$target" ]]; then mv "$target" "$target.failed"; fi
+  if [[ -d "$backup" ]]; then
+    mv "$backup" "$target"
+    if [[ -x "$lsregister" ]]; then "$lsregister" -f "$target" >/dev/null 2>&1 || true; fi
+  fi
+}
+trap restore_previous ERR
+codesign --verify --deep --strict "$target"
+if [[ -x "$lsregister" ]]; then "$lsregister" -f "$target" >/dev/null; fi
+trap - ERR
+if [[ -d "$backup" ]]; then rm -rf "$backup"; fi
