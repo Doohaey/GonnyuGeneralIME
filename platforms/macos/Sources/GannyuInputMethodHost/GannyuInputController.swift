@@ -357,8 +357,12 @@ final class GannyuInputController: IMKInputController {
         guard !displays.isEmpty else { candidateWindow?.hide(); return }
         candidateWindow?.setCandidateData(displays)
         candidateWindow?.show(kIMKLocateCandidatesBelowHint)
-        DispatchQueue.main.async { [weak self] in
-            guard let self, let frame = self.candidateWindow?.candidateFrame() else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
+            guard let self, let frame = self.candidateWindow?.candidateFrame(),
+                  frame != .zero, frame.width > 0, frame.height > 0 else {
+                self?.pageHint.hide()
+                return
+            }
             self.pageHint.show(near: frame)
         }
     }

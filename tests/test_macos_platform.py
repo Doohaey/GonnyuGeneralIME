@@ -90,6 +90,7 @@ def test_macos_uses_native_candidate_panel() -> None:
     assert "GannyuPageHint" in controller
     assert "GannyuModeHint" in controller
     assert "candidateFrame()" in controller
+    assert "frame != .zero" in controller
     assert 'NSButton(title: "<"' in controller
     assert 'NSButton(title: ">"' in controller
     assert "candidatePanel.present" not in controller
