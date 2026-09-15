@@ -69,8 +69,8 @@ jobs:
             echo
             echo "### 发布校验"
             echo
-            echo "所有下载产物的 SHA-256 校验值见 [SHA256SUMS](SHA256SUMS)。"
-            echo "软件物料清单见 [SPDX SBOM](GonnyuGeneralIME-${PRODUCT_VERSION}-SBOM.spdx.json)。"
+            echo "所有下载产物的 SHA-256 校验值见 [SHA256SUMS](https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/SHA256SUMS)。"
+            echo "软件物料清单见 [SPDX SBOM](https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/GonnyuGeneralIME-${PRODUCT_VERSION}-SBOM.spdx.json)。"
           } >> release-notes.md
           if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
             gh release upload "$GITHUB_REF_NAME" release-assets/* --clobber

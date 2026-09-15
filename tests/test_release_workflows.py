@@ -61,8 +61,8 @@ def test_macos_workflow_rebuilds_and_inspects_pkg() -> None:
 def test_release_notes_link_to_generated_metadata() -> None:
     content = (ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
     assert 'echo "所有下载产物的 SHA-256' in content
-    assert 'SHA256SUMS' in content
-    assert 'SBOM' in content
+    assert "releases/download/${GITHUB_REF_NAME}/SHA256SUMS" in content
+    assert "releases/download/${GITHUB_REF_NAME}/GonnyuGeneralIME-${PRODUCT_VERSION}-SBOM.spdx.json" in content
 
 def test_android_workflow_runs_installation_smoke_test() -> None:
     content = (ROOT / ".github/workflows" / "android.yml").read_text(encoding="utf-8")
