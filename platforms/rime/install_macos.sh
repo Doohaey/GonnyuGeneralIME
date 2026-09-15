@@ -6,12 +6,27 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 output_dir="$repo_root/build/rime"
 user_dir="${GANNYU_RIME_USER_DIR:-$HOME/Library/Rime}"
+python_bin="${PYTHON_BIN:-python3}"
 
-python3 "$repo_root/platforms/rime/build.py" --region all --display-name apple --output "$output_dir"
+if ! "$python_bin" -c 'import tomllib' >/dev/null 2>&1; then
+  for candidate in /opt/homebrew/bin/python3 python3.14 python3.13 python3.12 python3.11; do
+    if command -v "$candidate" >/dev/null 2>&1 && "$candidate" -c 'import tomllib' >/dev/null 2>&1; then
+      python_bin="$candidate"
+      break
+    fi
+  done
+fi
+"$python_bin" -c 'import tomllib' >/dev/null 2>&1 || {
+  echo "Python 3.11+ with tomllib is required; set PYTHON_BIN" >&2
+  exit 1
+}
+
+"$python_bin" "$repo_root/platforms/rime/build.py" --region all --display-name apple --output "$output_dir"
 mkdir -p "$user_dir/lua"
 for schema in "$output_dir"/gannyu_*.schema.yaml; do install -m 0644 "$schema" "$user_dir/"; done
 install -m 0644 "$output_dir"/gannyu_*.dict.yaml "$user_dir/"
 install -m 0644 "$output_dir"/lua/gannyu_annotation_filter.lua "$user_dir/lua/gannyu_annotation_filter.lua"
+install -m 0644 "$output_dir"/lua/gannyu_single_char_filter.lua "$user_dir/lua/gannyu_single_char_filter.lua"
 install -m 0644 "$output_dir"/lua/gannyu_relation_filter.lua "$user_dir/lua/gannyu_relation_filter.lua"
 for data in "$output_dir"/lua/gannyu_*_data.lua; do install -m 0644 "$data" "$user_dir/lua/"; done
 rm -f "$user_dir/lua/gannyu_filter.lua" "$user_dir/lua/gannyu_default_processor.lua" "$user_dir/lua/gannyu_default_translator.lua"
@@ -21,7 +36,7 @@ if [[ ! -e "$user_dir/default.custom.yaml" ]]; then
 else
   while IFS= read -r region; do
     grep -q "schema: gannyu_${region}" "$user_dir/default.custom.yaml" || echo "warning: add gannyu_${region} to $user_dir/default.custom.yaml" >&2
-  done < <(python3 "$repo_root/platforms/rime/build.py" --list-regions)
+  done < <("$python_bin" "$repo_root/platforms/rime/build.py" --list-regions)
 fi
 
 echo "installed Gonnyu Rime schemas into $user_dir"

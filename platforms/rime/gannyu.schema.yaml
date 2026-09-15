@@ -34,6 +34,7 @@ engine:
     - script_translator
   filters:
     - lua_filter@*gannyu_annotation_filter
+    - lua_filter@*gannyu_single_char_filter
     - lua_filter@*gannyu_relation_filter
     - uniquifier
 

@@ -7,6 +7,7 @@ from platforms.rime.build import (
     active_regions,
     build,
     build_metadata,
+    build_single_character_frequencies,
     build_new_old,
     build_paired_readings,
     entry_codes,
@@ -38,6 +39,7 @@ def test_builds_rime_dictionary_annotations_and_relations(tmp_path: Path) -> Non
     assert '  ["我"] = "ngo3",' in data
     assert '  ["们"] = "men4",' in data
     assert '  ["嗰"] = "go0",' in data
+    assert 'single_character_frequencies' in data
     assert not any(
         character.isdigit()
         for line in dictionary.splitlines()
@@ -54,6 +56,7 @@ def test_builds_rime_dictionary_annotations_and_relations(tmp_path: Path) -> Non
     assert "gannyu_default_translator" not in schema
     assert not (tmp_path / "lua" / "gannyu_filter.lua").exists()
     assert (tmp_path / "lua" / "gannyu_annotation_filter.lua").is_file()
+    assert (tmp_path / "lua" / "gannyu_single_char_filter.lua").is_file()
     assert (tmp_path / "lua" / "gannyu_relation_filter.lua").is_file()
     assert "dictionary: gannyu_lancong" in schema
     assert "schema_id: gannyu_lancong" in schema
@@ -68,6 +71,14 @@ def test_builds_rime_dictionary_annotations_and_relations(tmp_path: Path) -> Non
     assert "银行卡\tGnin Ghong Gka\t" in dictionary
     assert "@FUZZY_ALGEBRA@" not in schema
     assert (tmp_path / "default.custom.yaml").is_file()
+
+
+def test_rime_installers_install_the_shared_single_character_filter() -> None:
+    root = Path(__file__).resolve().parents[1]
+
+    for name in ("install.sh", "install_macos.sh"):
+        source = (root / "platforms" / "rime" / name).read_text(encoding="utf-8")
+        assert "gannyu_single_char_filter.lua" in source
 
 
 def test_rime_build_writes_resource_manifest(tmp_path: Path) -> None:
@@ -225,9 +236,33 @@ def test_relation_filter_preserves_relation_ordering() -> None:
     source = (Path(__file__).resolve().parents[1] / "platforms" / "rime" / "gannyu_relation_filter.lua").read_text(encoding="utf-8")
 
     assert 'data.before[candidate.text]' in source
-    assert 'source.quality + 0.01' in source
+    assert 'emit_relations(candidate, data.before[candidate.text], seen, 0.01, data)' in source
+    assert 'source.quality + offset' in source
     assert 'data.after[candidate.text]' in source
-    assert 'source.quality + -0.02' in source
+    assert 'emit_relations(candidate, data.after[candidate.text], seen, -0.02, data)' in source
+
+
+def test_single_character_filter_keeps_anchor_and_runs_before_relations() -> None:
+    root = Path(__file__).resolve().parents[1]
+    schema = (root / "platforms" / "rime" / "gannyu.schema.yaml").read_text(encoding="utf-8")
+    source = (root / "platforms" / "rime" / "gannyu_single_char_filter.lua").read_text(encoding="utf-8")
+
+    assert schema.index("lua_filter@*gannyu_single_char_filter") < schema.index("lua_filter@*gannyu_relation_filter")
+    assert "yield(anchor)" in source
+    assert "candidate._end < anchor._end" in source
+    assert "MIN_FREQUENCY = 250000" in source
+    assert "data.single_character_frequencies[candidate.text]" in source
+    assert 'candidate.type == "phrase" or candidate.type == "user_phrase"' in source
+
+
+def test_single_character_frequency_uses_the_highest_canonical_value() -> None:
+    frequencies = build_single_character_frequencies([
+        Entry("上", "", "", "", "", "", 100000, "", ""),
+        Entry("上", "", "", "", "", "", 508101, "", ""),
+        Entry("尝试", "", "", "", "", "", 999999, "", ""),
+    ])
+
+    assert frequencies == {"上": 508101}
 
 
 def test_fuzzy_rules_keep_core_directions_and_non_chainable_boundary() -> None:

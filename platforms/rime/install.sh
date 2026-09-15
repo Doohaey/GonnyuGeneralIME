@@ -20,6 +20,7 @@ mkdir -p "$user_dir/lua"
 for schema in "$output_dir"/gannyu_*.schema.yaml; do install -m 0644 "$schema" "$user_dir/"; done
 install -m 0644 "$output_dir"/gannyu_*.dict.yaml "$user_dir/"
 install -m 0644 "$output_dir"/lua/gannyu_annotation_filter.lua "$user_dir/lua/gannyu_annotation_filter.lua"
+install -m 0644 "$output_dir"/lua/gannyu_single_char_filter.lua "$user_dir/lua/gannyu_single_char_filter.lua"
 install -m 0644 "$output_dir"/lua/gannyu_relation_filter.lua "$user_dir/lua/gannyu_relation_filter.lua"
 for data in "$output_dir"/lua/gannyu_*_data.lua; do install -m 0644 "$data" "$user_dir/lua/"; done
 rm -f "$user_dir/gannyu.schema.yaml" "$user_dir/lua/gannyu_data.lua" "$user_dir/build/gannyu.schema.yaml" \

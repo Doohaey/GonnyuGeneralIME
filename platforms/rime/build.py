@@ -478,12 +478,21 @@ def write_dictionary(path: Path, entries: list[Entry], region: str) -> int:
     return len(records)
 
 
+def build_single_character_frequencies(entries: list[Entry]) -> dict[str, int]:
+    frequencies: dict[str, int] = {}
+    for entry in entries:
+        if len(entry.word) == 1:
+            frequencies[entry.word] = max(frequencies.get(entry.word, 0), entry.frequency)
+    return frequencies
+
+
 def write_lua_data(
     path: Path,
     annotations: dict[str, str],
     readings: dict[str, str],
     before: dict[str, list[str]],
     after: dict[str, list[str]],
+    single_character_frequencies: dict[str, int],
 ) -> None:
     def table_map(values: dict[str, str]) -> str:
         return "\n".join(f"  [{lua_quote(key)}] = {lua_quote(value)}," for key, value in sorted(values.items()))
@@ -495,12 +504,16 @@ def write_lua_data(
             lines.append(f"  [{lua_quote(key)}] = {{{body}}},")
         return "\n".join(lines)
 
+    def number_map(values: dict[str, int]) -> str:
+        return "\n".join(f"  [{lua_quote(key)}] = {value}," for key, value in sorted(values.items()))
+
     path.write_text(
         "return {\n"
         f" annotations = {{\n{table_map(annotations)}\n }},\n"
         f" readings = {{\n{table_map(readings)}\n }},\n"
         f" before = {{\n{list_map(before)}\n }},\n"
         f" after = {{\n{list_map(after)}\n }},\n"
+        f" single_character_frequencies = {{\n{number_map(single_character_frequencies)}\n }},\n"
         "}\n",
         encoding="utf-8",
     )
@@ -598,6 +611,7 @@ def build(region: str, output: Path, display_name: str = "short") -> dict[str, i
     dictionary_count = write_dictionary(output / f"gannyu_{region}.dict.yaml", entries, region)
     annotations, before, after = build_metadata(entries)
     readings = build_preferred_readings(entries)
+    single_character_frequencies = build_single_character_frequencies(entries)
     schema_id = f"gannyu_{region}"
     write_lua_data(
         output / "lua" / f"{schema_id}_data.lua",
@@ -605,8 +619,13 @@ def build(region: str, output: Path, display_name: str = "short") -> dict[str, i
         readings,
         before,
         after,
+        single_character_frequencies,
     )
-    for name in ("gannyu_annotation_filter.lua", "gannyu_relation_filter.lua"):
+    for name in (
+        "gannyu_annotation_filter.lua",
+        "gannyu_single_char_filter.lua",
+        "gannyu_relation_filter.lua",
+    ):
         shutil.copy2(PLATFORM_DIR / name, output / "lua" / name)
     schema = (PLATFORM_DIR / "gannyu.schema.yaml").read_text(encoding="utf-8")
     label = f"赣语－{region_name}" if display_name == "apple" else region_name[:1]
