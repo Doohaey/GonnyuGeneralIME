@@ -53,7 +53,7 @@ def test_macos_package_declares_host_and_smoke_targets() -> None:
     ).read_text(encoding="utf-8")
     plist = (ROOT / "platforms/macos/Info.plist.template").read_text(encoding="utf-8")
     assert "Gonnyu 赣语键盘" in plist
-    assert "icon.png" in plist
+    assert "Gonny.icns" in plist
     assert "tsInputModeDisplayNameKey" in plist
     assert "tsInputMethodIconFileKey" in plist
     assert "tsInputModeMenuIconFileKey" in plist
@@ -62,6 +62,9 @@ def test_macos_package_declares_host_and_smoke_targets() -> None:
         ROOT / "platforms/macos/build.sh"
     ).read_text(encoding="utf-8")
     assert (ROOT / "resources/icon.png").is_file()
+    assert "iconutil -c icns" in (
+        ROOT / "platforms/macos/build.sh"
+    ).read_text(encoding="utf-8")
     assert (ROOT / "platforms/macos/Resources/en.lproj/InfoPlist.strings").is_file()
     assert (ROOT / "platforms/macos/Resources/zh-Hans.lproj/InfoPlist.strings").is_file()
 

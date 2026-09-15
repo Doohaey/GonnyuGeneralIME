@@ -67,6 +67,15 @@ ditto "$repo_root/build/rime-macos/resources" "$bundle_root/Contents/Resources/r
 icon_resource="$repo_root/resources/icon.png"
 [[ -f "$icon_resource" ]] || { echo "missing canonical icon resource: $icon_resource" >&2; exit 2; }
 cp "$icon_resource" "$bundle_root/Contents/Resources/icon.png"
+iconset_root="$(mktemp -d "${TMPDIR:-/private/tmp}/gonnyu-iconset.XXXXXX")"
+iconset_dir="$iconset_root/Gonny.iconset"
+mkdir "$iconset_dir"
+trap 'rm -rf "$iconset_root"' EXIT
+for icon_size in 16 32 128 256 512; do
+  sips -z "$icon_size" "$icon_size" "$icon_resource" --out "$iconset_dir/icon_${icon_size}x${icon_size}.png" >/dev/null
+  sips -z "$((icon_size * 2))" "$((icon_size * 2))" "$icon_resource" --out "$iconset_dir/icon_${icon_size}x${icon_size}@2x.png" >/dev/null
+done
+iconutil -c icns "$iconset_dir" -o "$bundle_root/Contents/Resources/Gonny.icns"
 for localization in en zh-Hans; do
   localization_source="$repo_root/platforms/macos/Resources/$localization.lproj"
   [[ -d "$localization_source" ]] || { echo "missing macOS localization resource: $localization_source" >&2; exit 2; }

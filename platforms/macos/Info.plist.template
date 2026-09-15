@@ -7,9 +7,9 @@
     <key>CFBundleDisplayName</key>
     <string>Gonnyu 赣语键盘</string>
     <key>CFBundleIconFile</key>
-    <string>icon.png</string>
+    <string>Gonny.icns</string>
     <key>CFBundleIconName</key>
-    <string>icon</string>
+    <string>Gonny</string>
     <key>CFBundleExecutable</key>
     <string>GannyuInputMethodHost</string>
     <key>CFBundleIdentifier</key>
@@ -39,9 +39,9 @@
                 <key>tsInputModeDisplayNameKey</key>
                 <string>Gonnyu 赣语键盘</string>
                 <key>tsInputModeMenuIconFileKey</key>
-                <string>icon.png</string>
+                <string>Gonny.icns</string>
                 <key>tsInputModePaletteIconFileKey</key>
-                <string>icon.png</string>
+                <string>Gonny.icns</string>
                 <key>TISIntendedLanguage</key>
                 <string>zh-Hans</string>
                 <key>tsInputModeCharacterRepertoireKey</key>
@@ -77,7 +77,7 @@
     <key>InputMethodServerControllerClass</key>
     <string>GannyuInputController</string>
     <key>tsInputMethodIconFileKey</key>
-    <string>icon.png</string>
+    <string>Gonny.icns</string>
     <key>LSMinimumSystemVersion</key>
     <string>13.0</string>
     <key>TISInputSourceID</key>
