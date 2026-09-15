@@ -10,6 +10,8 @@ ndk_root="${ANDROID_NDK_HOME:-${ANDROID_NDK_ROOT:-}}"
 source_root="${GANNYU_RIME_MOBILE_SOURCE_ROOT:-$repo_root/build/rime-mobile/sources}"
 build_root="$repo_root/build/rime-mobile/android/$abi"
 prefix="$build_root/prefix"
+host_build_root="${GANNYU_RIME_MOBILE_BUILD_ROOT:-$repo_root/build/rime-mobile/host}"
+host_bin_dir="$host_build_root/prefix/bin"
 python_bin="${PYTHON_BIN:-python3}"
 
 [[ "$abi" == "arm64-v8a" ]] || { echo "only arm64-v8a is supported" >&2; exit 2; }
@@ -51,7 +53,8 @@ build_dependency() {
 build_dependency glog -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTING=OFF -DWITH_GFLAGS=OFF
 build_dependency leveldb -DBUILD_SHARED_LIBS=OFF -DLEVELDB_BUILD_BENCHMARKS=OFF -DLEVELDB_BUILD_TESTS=OFF -DHAVE_CRC32C=OFF -DHAVE_SNAPPY=OFF -DHAVE_TCMALLOC=OFF
 build_dependency marisa-trie -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTING=OFF -DENABLE_TOOLS=OFF
-build_dependency opencc -DBUILD_SHARED_LIBS=OFF -DENABLE_GTEST=OFF -DENABLE_BENCHMARK=OFF -DBUILD_PYTHON=OFF
+[[ -x "$host_bin_dir/opencc_dict" ]] || { echo "Missing host opencc_dict: $host_bin_dir/opencc_dict" >&2; exit 2; }
+PATH="$host_bin_dir:$PATH" build_dependency opencc -DBUILD_SHARED_LIBS=OFF -DENABLE_GTEST=OFF -DENABLE_BENCHMARK=OFF -DBUILD_PYTHON=OFF
 build_dependency yaml-cpp -DBUILD_SHARED_LIBS=OFF -DYAML_CPP_BUILD_CONTRIB=OFF -DYAML_CPP_BUILD_TESTS=OFF -DYAML_CPP_BUILD_TOOLS=OFF
 
 rm -rf "$patched_librime_root" "$build_root/librime" "$build_root/adapter"
