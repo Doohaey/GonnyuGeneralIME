@@ -20,13 +20,16 @@ final class GannyuInputController: IMKInputController {
         super.init(server: server, delegate: delegate, client: inputClient)
         createEngineIfNeeded()
         if let server {
-            let window = IMKCandidates(server: server, panelType: kIMKSingleColumnScrollingCandidatePanel)
+            let window = IMKCandidates(
+                server: server,
+                panelType: kIMKSingleColumnScrollingCandidatePanel,
+                styleType: kIMKMain
+            )
             window?.setSelectionKeys([
                 kVK_ANSI_1, kVK_ANSI_2, kVK_ANSI_3, kVK_ANSI_4, kVK_ANSI_5,
                 kVK_ANSI_6, kVK_ANSI_7, kVK_ANSI_8, kVK_ANSI_9,
             ].map { NSNumber(value: $0) })
             window?.setDismissesAutomatically(false)
-            window?.setAttributes([IMKCandidatesSendServerKeyEventFirst: true])
             candidateWindow = window
         }
         pageHint.onPage = { [weak self] direction in
@@ -75,9 +78,8 @@ final class GannyuInputController: IMKInputController {
         // A following key means this was a modifier chord, not a standalone
         // Shift language toggle.
         shiftOnlyPress = false
-        let arrowKey = event.keyCode == kVK_UpArrow || event.keyCode == kVK_DownArrow
         if modifiers.contains(.command) || modifiers.contains(.control)
-            || modifiers.contains(.function) || (modifiers.contains(.option) && !arrowKey) { return false }
+            || modifiers.contains(.function) || modifiers.contains(.option) { return false }
 
         let active = !(snapshot?.rawInput.isEmpty ?? true)
         switch Int(event.keyCode) {
@@ -87,13 +89,15 @@ final class GannyuInputController: IMKInputController {
             if active { clear(client: sender); return true }
             return false
         case kVK_Return, kVK_ANSI_KeypadEnter:
-            return active ? selectHighlighted(client: sender) : false
+            // IMKCandidates owns Enter once its panel is visible. Returning
+            // false lets it emit candidateSelected with the native highlight.
+            return false
         case kVK_Tab:
-            return active ? selectHighlighted(client: sender) : false
+            return false
         case kVK_UpArrow:
-            return active ? moveSelection(-1, client: sender) : false
+            return false
         case kVK_DownArrow:
-            return active ? moveSelection(1, client: sender) : false
+            return false
         // Keep paging on the two physical punctuation keys, regardless of
         // whether Shift produces < / > on the active keyboard layout.
         case kVK_ANSI_Comma:
@@ -103,9 +107,9 @@ final class GannyuInputController: IMKInputController {
         default:
             break
         }
-        if active, let line = candidateLineNumber(event.keyCode) {
-            return selectLine(line, client: sender)
-        }
+        // Number keys are selection keys registered on IMKCandidates. Do not
+        // consume them here: the native panel paints 1–9 and dispatches the
+        // selected attributed string through candidateSelected(_:).
         let characters = event.characters?.isEmpty == false
             ? event.characters
             : event.charactersIgnoringModifiers
@@ -277,9 +281,14 @@ final class GannyuInputController: IMKInputController {
         if !(snapshot?.rawInput.isEmpty ?? true) { clear(client: sender) }
         guard let result = try? engine.setASCIIMode(!(snapshot?.asciiMode ?? false)) else { return false }
         render(result, client: sender)
-        if let client = sender as? IMKTextInput, let rect = caretRect(for: client) {
-            modeHint.show(title: result.asciiMode ? "英" : "赣", near: rect)
+        guard let client = sender as? IMKTextInput, let rect = caretRect(for: client) else {
+            // Never leave a panel at its initial (0, 0) origin. Some clients
+            // cannot provide firstRectForCharacterRange; in that case there
+            // is no trustworthy screen coordinate for a cursor-adjacent hint.
+            modeHint.hide()
+            return true
         }
+        modeHint.show(title: result.asciiMode ? "英" : "赣", near: rect)
         return true
     }
 
@@ -356,6 +365,8 @@ final class GannyuInputController: IMKInputController {
         displays = candidates.enumerated().map { display(for: $0.element, selected: $0.offset == selectedLine) }
         guard !displays.isEmpty else { candidateWindow?.hide(); return }
         candidateWindow?.setCandidateData(displays)
+        // Swift imports Objective-C updateCandidates as update().
+        candidateWindow?.update()
         candidateWindow?.show(kIMKLocateCandidatesBelowHint)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
             guard let self, let frame = self.candidateWindow?.candidateFrame(),
@@ -408,10 +419,15 @@ final class GannyuInputController: IMKInputController {
 
     private func caretRect(for client: IMKTextInput) -> NSRect? {
         for range in [client.markedRange(), client.selectedRange()] where range.location != NSNotFound {
-            let rect = client.firstRect(forCharacterRange: range, actualRange: nil)
-            if rect != .zero, rect.origin.x.isFinite, rect.origin.y.isFinite, rect.width > 0, rect.height > 0 {
-                return rect
+            var actualRange = NSRange(location: NSNotFound, length: 0)
+            let rect = client.firstRect(forCharacterRange: range, actualRange: &actualRange)
+            if diagnosticsEnabled {
+                log.notice("IMK caret range=\(range.location, privacy: .public):\(range.length, privacy: .public) actual=\(actualRange.location, privacy: .public):\(actualRange.length, privacy: .public) rect=\(rect.origin.x, privacy: .public),\(rect.origin.y, privacy: .public),\(rect.width, privacy: .public),\(rect.height, privacy: .public)")
             }
+            guard rect.origin.x.isFinite, rect.origin.y.isFinite,
+                  rect.width > 0, rect.height > 0,
+                  rect.intersectsAnyScreen else { continue }
+            return rect
         }
         return nil
     }
@@ -441,6 +457,12 @@ final class GannyuInputController: IMKInputController {
     @objc private func selectRegion(_ sender: NSMenuItem) {
         guard let region = sender.representedObject as? String else { return }
         _ = GannyuRegionStore.shared.select(region)
+    }
+}
+
+private extension NSRect {
+    var intersectsAnyScreen: Bool {
+        NSScreen.screens.contains { $0.visibleFrame.intersects(self) }
     }
 }
 

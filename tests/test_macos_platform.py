@@ -87,7 +87,8 @@ def test_macos_uses_native_candidate_panel() -> None:
     assert "moveSelection" in controller
     assert "setSelectionKeys" in controller
     assert "candidate.text" in controller
-    assert "arrowKey" in controller
+    assert "updateCandidates" in controller
+    assert "IMKCandidates owns Enter" in controller
     assert "GannyuPageHint" in controller
     assert "GannyuModeHint" in controller
     assert "candidateFrame()" in controller
