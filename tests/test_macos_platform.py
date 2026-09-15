@@ -81,6 +81,11 @@ def test_macos_uses_native_candidate_panel() -> None:
     assert "kIMKLocateCandidatesBelowHint" in controller
     assert "selectedLine" in controller
     assert "moveSelection" in controller
+    assert "GannyuPageHint" in controller
+    assert "GannyuModeHint" in controller
+    assert "candidateFrame()" in controller
+    assert 'NSButton(title: "<"' in controller
+    assert 'NSButton(title: ">"' in controller
     assert "candidatePanel.present" not in controller
     host = (ROOT / "platforms/macos/Sources/GannyuInputMethodHost/main.swift").read_text(
         encoding="utf-8"

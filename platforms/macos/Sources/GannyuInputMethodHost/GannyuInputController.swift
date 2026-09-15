@@ -12,6 +12,8 @@ final class GannyuInputController: IMKInputController {
     private var shiftOnlyPress = false
     private var selectedLine = 0
     private var candidateWindow: IMKCandidates?
+    private let pageHint = GannyuPageHint()
+    private let modeHint = GannyuModeHint()
     private let log = Logger(subsystem: "org.doohaey.inputmethod.gonnyu.native", category: "input")
 
     override init!(server: IMKServer!, delegate: Any!, client inputClient: Any!) {
@@ -22,6 +24,10 @@ final class GannyuInputController: IMKInputController {
             window?.setDismissesAutomatically(false)
             window?.setAttributes([IMKCandidatesSendServerKeyEventFirst: true])
             candidateWindow = window
+        }
+        pageHint.onPage = { [weak self] direction in
+            guard let self else { return }
+            _ = self.page(direction, client: self.client())
         }
         if diagnosticsEnabled { log.notice("IMK input controller created") }
         NotificationCenter.default.addObserver(
@@ -266,6 +272,9 @@ final class GannyuInputController: IMKInputController {
         if !(snapshot?.rawInput.isEmpty ?? true) { clear(client: sender) }
         guard let result = try? engine.setASCIIMode(!(snapshot?.asciiMode ?? false)) else { return false }
         render(result, client: sender)
+        if let client = sender as? IMKTextInput, let rect = caretRect(for: client) {
+            modeHint.show(title: result.asciiMode ? "英" : "赣", near: rect)
+        }
         return true
     }
 
@@ -321,6 +330,8 @@ final class GannyuInputController: IMKInputController {
             selectedLine = 0
             clearMarkedText(on: client)
             candidateWindow?.hide()
+            pageHint.hide()
+            modeHint.hide()
             displays = []
             return
         }
@@ -341,6 +352,10 @@ final class GannyuInputController: IMKInputController {
         guard !displays.isEmpty else { candidateWindow?.hide(); return }
         candidateWindow?.setCandidateData(displays)
         candidateWindow?.show(kIMKLocateCandidatesBelowHint)
+        DispatchQueue.main.async { [weak self] in
+            guard let self, let frame = self.candidateWindow?.candidateFrame() else { return }
+            self.pageHint.show(near: frame)
+        }
     }
 
     private func replacementRange(for client: IMKTextInput) -> NSRange {
@@ -382,6 +397,16 @@ final class GannyuInputController: IMKInputController {
         return display
     }
 
+    private func caretRect(for client: IMKTextInput) -> NSRect? {
+        for range in [client.markedRange(), client.selectedRange()] where range.location != NSNotFound {
+            let rect = client.firstRect(forCharacterRange: range, actualRange: nil)
+            if rect.origin.x.isFinite, rect.origin.y.isFinite, rect.width > 0, rect.height > 0 {
+                return rect
+            }
+        }
+        return nil
+    }
+
     private func candidateLineNumber(_ keyCode: UInt16) -> Int? {
         switch Int(keyCode) {
         case kVK_ANSI_1, kVK_ANSI_Keypad1: return 0
@@ -408,6 +433,71 @@ final class GannyuInputController: IMKInputController {
         guard let region = sender.representedObject as? String else { return }
         _ = GannyuRegionStore.shared.select(region)
     }
+}
+
+private final class GannyuPageHint: NSPanel {
+    var onPage: ((Int) -> Void)?
+    private let previous = NSButton(title: "<", target: nil, action: nil)
+    private let next = NSButton(title: ">", target: nil, action: nil)
+
+    init() {
+        super.init(contentRect: NSRect(x: 0, y: 0, width: 58, height: 24), styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
+        isOpaque = false
+        backgroundColor = .clear
+        level = .statusBar
+        hasShadow = true
+        let stack = NSStackView(views: [previous, next])
+        stack.spacing = 1
+        stack.edgeInsets = NSEdgeInsets(top: 2, left: 2, bottom: 2, right: 2)
+        previous.target = self
+        previous.action = #selector(previousPage)
+        next.target = self
+        next.action = #selector(nextPage)
+        for button in [previous, next] {
+            button.isBordered = true
+            button.bezelStyle = .texturedRounded
+            button.font = .systemFont(ofSize: 12, weight: .semibold)
+            button.focusRingType = .none
+        }
+        contentView = stack
+    }
+
+    func show(near frame: NSRect) {
+        setFrameOrigin(NSPoint(x: frame.maxX - 62, y: frame.minY + 3))
+        orderFrontRegardless()
+    }
+
+    func hide() { orderOut(nil) }
+    @objc private func previousPage() { onPage?(-1) }
+    @objc private func nextPage() { onPage?(1) }
+}
+
+private final class GannyuModeHint: NSPanel {
+    private let label = NSTextField(labelWithString: "赣")
+
+    init() {
+        super.init(contentRect: NSRect(x: 0, y: 0, width: 30, height: 26), styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
+        isOpaque = false
+        backgroundColor = .clear
+        level = .statusBar
+        hasShadow = true
+        label.alignment = .center
+        label.font = .systemFont(ofSize: 14, weight: .bold)
+        label.textColor = .white
+        label.wantsLayer = true
+        label.layer?.backgroundColor = NSColor.controlAccentColor.cgColor
+        label.layer?.cornerRadius = 6
+        contentView = label
+    }
+
+    func show(title: String, near rect: NSRect) {
+        label.stringValue = title
+        setFrameOrigin(NSPoint(x: rect.maxX + 6, y: rect.minY))
+        orderFrontRegardless()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in self?.hide() }
+    }
+
+    func hide() { orderOut(nil) }
 }
 
 private extension Collection {
