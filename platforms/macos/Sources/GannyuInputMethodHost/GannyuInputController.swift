@@ -10,21 +10,23 @@ final class GannyuInputController: IMKInputController {
     private var snapshot: GannyuSnapshot?
     private var displays: [NSAttributedString] = []
     private var shiftOnlyPress = false
-    private let candidatePanel = GannyuCandidatePanel()
+    private var candidateWindow: IMKCandidates?
     private let log = Logger(subsystem: "org.doohaey.inputmethod.gonnyu.native", category: "input")
 
     override init!(server: IMKServer!, delegate: Any!, client inputClient: Any!) {
         super.init(server: server, delegate: delegate, client: inputClient)
         createEngineIfNeeded()
+        if let server {
+            let window = IMKCandidates(server: server, panelType: kIMKSingleColumnScrollingCandidatePanel)
+            window?.setSelectionKeys([
+                kVK_ANSI_1, kVK_ANSI_2, kVK_ANSI_3, kVK_ANSI_4, kVK_ANSI_5,
+                kVK_ANSI_6, kVK_ANSI_7, kVK_ANSI_8, kVK_ANSI_9,
+            ].map { NSNumber(value: $0) })
+            window?.setDismissesAutomatically(false)
+            window?.setAttributes([IMKCandidatesSendServerKeyEventFirst: true])
+            candidateWindow = window
+        }
         if diagnosticsEnabled { log.notice("IMK input controller created") }
-        candidatePanel.onSelect = { [weak self] index in
-            guard let self else { return }
-            _ = self.select(index, client: self.client())
-        }
-        candidatePanel.onPage = { [weak self] direction in
-            guard let self else { return }
-            _ = self.page(direction, client: self.client())
-        }
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(regionDidChange),
@@ -281,7 +283,7 @@ final class GannyuInputController: IMKInputController {
         } else {
             snapshot = nil
             displays = []
-            candidatePanel.hide()
+            candidateWindow?.hide()
             if let client = sender as? IMKTextInput { clearMarkedText(on: client) }
         }
     }
@@ -297,7 +299,7 @@ final class GannyuInputController: IMKInputController {
         }
         if result.rawInput.isEmpty {
             clearMarkedText(on: client)
-            candidatePanel.hide()
+            candidateWindow?.hide()
             displays = []
             return
         }
@@ -308,24 +310,10 @@ final class GannyuInputController: IMKInputController {
             selectionRange: NSRange(location: (String(preedit.prefix(caret)) as NSString).length, length: 0),
             replacementRange: replacementRange(for: client)
         )
-        displays = result.candidates.map { candidate in
-            let display = NSMutableAttributedString(
-                string: candidate.text,
-                attributes: [.font: NSFont.systemFont(ofSize: 18), .foregroundColor: NSColor.labelColor]
-            )
-            if !candidate.annotation.isEmpty {
-                display.append(NSAttributedString(
-                    string: "\n\(candidate.annotation.replacingOccurrences(of: "\n", with: " "))",
-                    attributes: [
-                        .font: NSFont.systemFont(ofSize: 12),
-                        .foregroundColor: NSColor.secondaryLabelColor,
-                    ]
-                ))
-            }
-            return display
-        }
-        guard !displays.isEmpty else { candidatePanel.hide(); return }
-        candidatePanel.present(result, anchor: candidateAnchor(for: client))
+        displays = result.candidates.sorted(by: { $0.pageIndex < $1.pageIndex }).map(display(for:))
+        guard !displays.isEmpty else { candidateWindow?.hide(); return }
+        candidateWindow?.setCandidateData(displays)
+        candidateWindow?.show(kIMKLocateCandidatesBelowHint)
     }
 
     private func replacementRange(for client: IMKTextInput) -> NSRange {
@@ -343,23 +331,25 @@ final class GannyuInputController: IMKInputController {
 
     private func candidateIndex(for display: NSAttributedString?) -> Int? {
         guard let display else { return nil }
-        let text = display.string.components(separatedBy: "\n").first ?? display.string
-        return snapshot?.candidates.first(where: { $0.text == text })?.globalIndex
+        let candidates = snapshot?.candidates.sorted(by: { $0.pageIndex < $1.pageIndex }) ?? []
+        return zip(candidates, displays).first(where: { $0.1.string == display.string })?.0.globalIndex
     }
 
-    private func candidateAnchor(for client: IMKTextInput) -> NSRect {
-        // IMKTextInput returns this rectangle in global screen coordinates,
-        // so the candidate panel follows the insertion point in every client
-        // that implements the standard input-session contract (including
-        // TextEdit).  The mouse location is only a defensive fallback.
-        let ranges = [client.markedRange(), client.selectedRange()]
-        for range in ranges where range.location != NSNotFound {
-            let rect = client.firstRect(forCharacterRange: range, actualRange: nil)
-            if rect.origin.x.isFinite, rect.origin.y.isFinite, rect.width > 0, rect.height > 0 {
-                return rect
-            }
+    private func display(for candidate: GannyuCandidate) -> NSAttributedString {
+        let display = NSMutableAttributedString(
+            string: candidate.text,
+            attributes: [.font: NSFont.systemFont(ofSize: 18), .foregroundColor: NSColor.labelColor]
+        )
+        if !candidate.annotation.isEmpty {
+            display.append(NSAttributedString(
+                string: "  \(candidate.annotation.replacingOccurrences(of: "\n", with: " "))",
+                attributes: [
+                    .font: NSFont.systemFont(ofSize: 12),
+                    .foregroundColor: NSColor.secondaryLabelColor,
+                ]
+            ))
         }
-        return NSRect(origin: NSEvent.mouseLocation, size: .zero)
+        return display
     }
 
     private func candidateLineNumber(_ keyCode: UInt16) -> Int? {

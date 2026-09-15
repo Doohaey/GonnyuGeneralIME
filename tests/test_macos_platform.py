@@ -66,7 +66,7 @@ def test_macos_package_declares_host_and_smoke_targets() -> None:
     assert (ROOT / "platforms/macos/Resources/zh-Hans.lproj/InfoPlist.strings").is_file()
 
 
-def test_macos_uses_native_vertical_candidate_panel() -> None:
+def test_macos_uses_native_candidate_panel() -> None:
     panel = (
         ROOT / "platforms/macos/Sources/GannyuInputMethodHost/GannyuCandidatePanel.swift"
     ).read_text(encoding="utf-8")
@@ -74,18 +74,13 @@ def test_macos_uses_native_vertical_candidate_panel() -> None:
         ROOT / "platforms/macos/Sources/GannyuInputMethodHost/GannyuInputController.swift"
     ).read_text(encoding="utf-8")
 
-    assert "NSPanel" in panel
-    assert "NSVisualEffectView" in panel
-    assert "rows.orientation = .vertical" in panel
-    assert "systemFont(ofSize: 18)" in panel
-    assert "systemFont(ofSize: 12)" in panel
-    assert 'string: "\\n    ' not in panel
-    assert "heightAnchor.constraint(equalToConstant: 30)" in panel
-    assert 'NSButton(title: "<"' in panel
-    assert 'NSButton(title: ">"' in panel
-    assert "pageLabel" not in panel
-    assert "candidatePanel.present" in controller
-    assert "candidatePanel.onPage" in controller
+    assert "IMKCandidates" in controller
+    assert "kIMKSingleColumnScrollingCandidatePanel" in controller
+    assert "setSelectionKeys" in controller
+    assert "kVK_ANSI_9" in controller
+    assert "setCandidateData" in controller
+    assert "kIMKLocateCandidatesBelowHint" in controller
+    assert "candidatePanel.present" not in controller
     host = (ROOT / "platforms/macos/Sources/GannyuInputMethodHost/main.swift").read_text(
         encoding="utf-8"
     )
@@ -123,8 +118,8 @@ def test_macos_controller_wires_minimal_input_loop() -> None:
     assert "kVK_ANSI_KeypadEnter" in controller
     assert "kVK_ANSI_Comma" in controller
     assert "kVK_ANSI_Period" in controller
-    assert "firstRect(forCharacterRange:" in controller
-    assert "client.markedRange()" in controller
+    assert "IMKCandidates" in controller
+    assert "kIMKLocateCandidatesBelowHint" in controller
     assert "flagsChanged.rawValue" in controller
     assert "setASCIIMode" in controller
     assert "override func didCommand" in controller
