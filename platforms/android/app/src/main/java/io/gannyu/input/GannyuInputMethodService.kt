@@ -280,7 +280,7 @@ class GannyuInputMethodService : InputMethodService() {
         private val MORE_ROW_3 = listOf("常用", "!", "?", "'", "\"", ":", ";", "／", "⌫")
 
         private const val FUNCTION_KEY_WIDTH_MULTIPLIER = 1.12f
-        private const val SEGMENT_KEY_WIDTH_MULTIPLIER = 1.18f
+        private const val SEGMENT_KEY_WIDTH_MULTIPLIER = 1.333333f
         private const val IME_SWITCH_KEY = "🌐"
         private const val BACKSPACE_INITIAL_DELAY_MS = 380L
         private const val BACKSPACE_REPEAT_INTERVAL_MS = 55L
