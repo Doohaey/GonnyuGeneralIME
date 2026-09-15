@@ -74,6 +74,8 @@
         <key>zh-Hans</key>
         <string>Gonnyu 赣语键盘</string>
     </dict>
+    <key>TISIconIsTemplate</key>
+    <false/>
     <key>InputMethodServerControllerClass</key>
     <string>GannyuInputController</string>
     <key>tsInputMethodIconFileKey</key>

@@ -54,6 +54,7 @@ def test_macos_package_declares_host_and_smoke_targets() -> None:
     plist = (ROOT / "platforms/macos/Info.plist.template").read_text(encoding="utf-8")
     assert "Gonnyu 赣语键盘" in plist
     assert "Gonny.icns" in plist
+    assert "TISIconIsTemplate" in plist
     assert "tsInputModeDisplayNameKey" in plist
     assert "tsInputMethodIconFileKey" in plist
     assert "tsInputModeMenuIconFileKey" in plist
