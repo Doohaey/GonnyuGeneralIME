@@ -68,6 +68,6 @@ fi
 product_version="$(awk -F '"' '/^version[[:space:]]*=/ { print $2; exit }' "$repo_root/Cargo.toml")"
 output_dir="$repo_root/build/android"
 mkdir -p "$output_dir"
-output="$output_dir/GonnyuGeneralIME-${product_version}-android-${variant}.apk"
+output="$output_dir/GonnyuGeneralIME-${product_version}-android.apk"
 cp "$apk" "$output"
 echo "APK generated: $output"
