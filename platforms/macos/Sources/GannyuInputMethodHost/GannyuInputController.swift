@@ -21,6 +21,10 @@ final class GannyuInputController: IMKInputController {
         createEngineIfNeeded()
         if let server {
             let window = IMKCandidates(server: server, panelType: kIMKSingleColumnScrollingCandidatePanel)
+            window?.setSelectionKeys([
+                kVK_ANSI_1, kVK_ANSI_2, kVK_ANSI_3, kVK_ANSI_4, kVK_ANSI_5,
+                kVK_ANSI_6, kVK_ANSI_7, kVK_ANSI_8, kVK_ANSI_9,
+            ].map { NSNumber(value: $0) })
             window?.setDismissesAutomatically(false)
             window?.setAttributes([IMKCandidatesSendServerKeyEventFirst: true])
             candidateWindow = window
@@ -71,8 +75,9 @@ final class GannyuInputController: IMKInputController {
         // A following key means this was a modifier chord, not a standalone
         // Shift language toggle.
         shiftOnlyPress = false
+        let arrowKey = event.keyCode == kVK_UpArrow || event.keyCode == kVK_DownArrow
         if modifiers.contains(.command) || modifiers.contains(.control)
-            || modifiers.contains(.option) || modifiers.contains(.function) { return false }
+            || modifiers.contains(.function) || (modifiers.contains(.option) && !arrowKey) { return false }
 
         let active = !(snapshot?.rawInput.isEmpty ?? true)
         switch Int(event.keyCode) {
@@ -381,7 +386,7 @@ final class GannyuInputController: IMKInputController {
         let primaryColor = selected ? NSColor.alternateSelectedControlTextColor : NSColor.labelColor
         let secondaryColor = selected ? NSColor.alternateSelectedControlTextColor.withAlphaComponent(0.85) : NSColor.secondaryLabelColor
         let display = NSMutableAttributedString(
-            string: "\(candidate.pageIndex + 1). \(candidate.text)",
+            string: candidate.text,
             attributes: [.font: NSFont.systemFont(ofSize: 18), .foregroundColor: primaryColor]
         )
         if !candidate.annotation.isEmpty {
@@ -400,7 +405,7 @@ final class GannyuInputController: IMKInputController {
     private func caretRect(for client: IMKTextInput) -> NSRect? {
         for range in [client.markedRange(), client.selectedRange()] where range.location != NSNotFound {
             let rect = client.firstRect(forCharacterRange: range, actualRange: nil)
-            if rect.origin.x.isFinite, rect.origin.y.isFinite, rect.width > 0, rect.height > 0 {
+            if rect != .zero, rect.origin.x.isFinite, rect.origin.y.isFinite, rect.width > 0, rect.height > 0 {
                 return rect
             }
         }
