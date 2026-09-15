@@ -475,7 +475,7 @@ final class KeyboardViewController: UIInputViewController {
     private func functionKeyWidth(for label: String) -> CGFloat {
         switch label {
         case "分词":
-            return 1.333333
+            return 1.5
         case "🌐", "英", "中", "123", "ABC", "符号", "更多", "常用", "⇧":
             return functionKeyWidthMultiplier
         default:
