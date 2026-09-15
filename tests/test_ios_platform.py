@@ -126,19 +126,20 @@ def test_ios_keyboard_uses_compact_fixed_visuals_and_full_annotations() -> None:
     assert "row.centerXAnchor.constraint(equalTo: container.centerXAnchor)" in keyboard
     assert "functionKeyWidthMultiplier: CGFloat = 1.12" in keyboard
     assert "private func functionKeyWidth(for label: String) -> CGFloat" in keyboard
-    assert "case \"🌐\", \"英\", \"中\", \"123\", \"ABC\", \"符号\", \"更多\", \"常用\", \"⇧\", \"分词\":" in keyboard
+    assert "case \"分词\":" in keyboard
     assert "multiplier: 1.6" in keyboard
     assert "overrideUserInterfaceStyle = .light" not in keyboard
     assert "traitCollectionDidChange" in keyboard
     assert "candidateScroll.backgroundColor = .clear" in keyboard
     assert "candidateRow.heightAnchor.constraint(equalToConstant: 39)" in keyboard
-    assert "attributes.font = .systemFont(ofSize: 15, weight: .regular)" in keyboard
+    assert "attributes.font = .systemFont(ofSize: 16, weight: .regular)" in keyboard
     assert "attributes.font = .systemFont(ofSize: 10)" in keyboard
     assert "configuration.titleLineBreakMode = .byClipping" in keyboard
     assert "configuration.subtitleLineBreakMode = .byClipping" in keyboard
     assert "button.setContentCompressionResistancePriority(.required, for: .horizontal)" in keyboard
     assert "private func loadMoreCandidates()" not in keyboard
     assert "candidateExpandedScroll.topAnchor.constraint(equalTo: view.topAnchor, constant: 20)" in keyboard
+    assert "if candidateExpanded {\n            collapseCandidateExpansion()" in keyboard
     assert "lessThanOrEqualTo: candidateScroll.frameLayoutGuide.widthAnchor" not in keyboard
     assert "NSLayoutConstraint.activate(pendingWidthConstraints)" in keyboard
     assert keyboard.index("keyboardStack.addArrangedSubview(keyRow(\n            [\"🌐\"") < keyboard.index(

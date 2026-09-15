@@ -697,6 +697,12 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func commitCandidate(at index: Int) {
+        // An expanded list belongs to one immutable candidate snapshot.  Once a
+        // candidate is consumed, hide that snapshot before the engine produces
+        // its next (possibly shorter) composition.
+        if candidateExpanded {
+            collapseCandidateExpansion()
+        }
         apply(try? engine?.selectCandidate(globalIndex: index))
     }
 

@@ -728,6 +728,9 @@ class GannyuInputMethodService : InputMethodService() {
 
     private fun commitCandidate(candidate: RankedCandidate) {
         if (pipelineHandle == 0L) return
+        // The expanded panel represents one candidate snapshot.  Selecting an
+        // item invalidates it, so hide it before requesting the next snapshot.
+        if (candidateExpanded) collapseCandidateExpansion()
         applyEngineSnapshot(nativeSelectCandidate(pipelineHandle, candidate.globalIndex)?.let(::parseSnapshot))
     }
 

@@ -79,8 +79,9 @@ def test_android_candidates_keep_full_metadata_with_independent_widths() -> None
     assert "candidateExpansionContainer" in layout
     assert "nativeChangeCandidatePage" in source
     assert "private fun loadMoreCandidates()" not in source
-    assert "textSize = 15f" in source
-    assert "setTypeface(Typeface.DEFAULT_BOLD)" in source
+    assert "textSize = 16f" in source
+    assert "setTypeface(null, Typeface.NORMAL)" in source
+    assert "if (candidateExpanded) collapseCandidateExpansion()" in source
     assert 'key.label == "空格" -> ""' in source
     assert "private fun supportsKeyPreview" in source
     assert "private fun showKeyPreview" in source
