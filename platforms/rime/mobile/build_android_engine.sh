@@ -60,7 +60,7 @@ cmake -E copy_directory "$librime_root" "$patched_librime_root"
 patch -d "$patched_librime_root" -p1 < "$librime_patch"
 
 cmake -S "$patched_librime_root" -B "$build_root/librime" "${common[@]}" \
-  -DCMAKE_PREFIX_PATH="$prefix" -DBoost_NO_BOOST_CMAKE=ON -DBoost_NO_SYSTEM_PATHS=ON -DBoost_INCLUDE_DIR="$boost_include" \
+  -DCMAKE_PREFIX_PATH="$prefix" -DGANNYU_MOBILE_USE_STD_REGEX=ON -DBoost_NO_BOOST_CMAKE=ON -DBoost_NO_SYSTEM_PATHS=ON -DBoost_INCLUDE_DIR="$boost_include" \
   -DBUILD_SHARED_LIBS=OFF -DBUILD_STATIC=ON -DBUILD_MERGED_PLUGINS=ON -DENABLE_EXTERNAL_PLUGINS=OFF -DBUILD_TEST=OFF -DINSTALL_PRIVATE_HEADERS=ON \
   -DGlog_INCLUDE_PATH="$prefix/include" -DGlog_LIBRARY="$prefix/lib/libglog.a" \
   -DYamlCpp_INCLUDE_PATH="$prefix/include" -DYamlCpp_NEW_API="$prefix/include/yaml-cpp/node/node.h" -DYamlCpp_LIBRARY="$prefix/lib/libyaml-cpp.a" \

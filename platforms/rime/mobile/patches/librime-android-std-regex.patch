@@ -6,7 +6,7 @@ diff --git a/CMakeLists.txt b/CMakeLists.txt
  endif()
  
 -if(LINUX)
-+if(ANDROID OR CMAKE_SYSTEM_NAME STREQUAL "Android")
++if(GANNYU_MOBILE_USE_STD_REGEX)
 +  set(Boost_FOUND TRUE)
 +  set(Boost_INCLUDE_DIRS ${Boost_INCLUDE_DIR})
 +  set(Boost_LIBRARY_DIRS "")
