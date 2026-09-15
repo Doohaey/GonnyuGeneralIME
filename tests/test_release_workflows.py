@@ -67,8 +67,9 @@ def test_platform_builds_accept_prerelease_versions() -> None:
 
 
 def test_local_android_sdk_file_stays_ignored_and_ci_safe() -> None:
-    root_ignore = Path(__file__).resolve().parents[2].joinpath(".gitignore").read_text(encoding="utf-8")
     share_ignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
+    repository_ignore = Path(__file__).resolve().parents[2].joinpath(".gitignore")
+    root_ignore = repository_ignore.read_text(encoding="utf-8") if repository_ignore.is_file() else share_ignore
     build_script = (ROOT / "platforms/android/build.sh").read_text(encoding="utf-8")
 
     assert "platforms/android/local.properties" in root_ignore

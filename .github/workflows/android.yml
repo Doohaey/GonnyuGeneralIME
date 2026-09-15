@@ -10,6 +10,7 @@ on:
       - Cargo.lock
       - crates/**
       - platforms/android/**
+      - platforms/rime/mobile/**
       - resources/**
       - .github/workflows/android.yml
 
@@ -31,6 +32,9 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
       - run: sudo apt-get update && sudo apt-get install -y cmake ninja-build libboost-dev
       - uses: android-actions/setup-android@v3
         with:
