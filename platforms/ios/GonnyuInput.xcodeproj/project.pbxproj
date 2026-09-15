@@ -13,6 +13,7 @@
 		A00000000000000000000002 /* RegionSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000012 /* RegionSettingsViewController.swift */; };
 		A0000000000000000000000C /* TutorialViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000001E /* TutorialViewController.swift */; };
 		A0000000000000000000000D /* tutorial.html in Resources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000001F /* tutorial.html */; };
+		A0000000000000000000000E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000025 /* Assets.xcassets */; };
 		A00000000000000000000003 /* KeyboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000013 /* KeyboardViewController.swift */; };
 		A00000000000000000000004 /* GannyuAppleEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000014 /* GannyuAppleEngine.swift */; };
 		A00000000000000000000009 /* ../../build/ios/GannyuInputFFI.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = A00000000000000000000019 /* ../../build/ios/GannyuInputFFI.xcframework */; };
@@ -60,6 +61,7 @@
 		A0000000000000000000001D /* ../../build/ios/rime */ = {isa = PBXFileReference; explicitFileType = folder; path = ../../build/ios/rime; sourceTree = SOURCE_ROOT; };
 		A0000000000000000000001E /* TutorialViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialViewController.swift; sourceTree = "<group>"; };
 		A0000000000000000000001F /* tutorial.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = ../../resources/tutorial/tutorial.html; sourceTree = SOURCE_ROOT; };
+		A00000000000000000000025 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = GannyuInput/Assets.xcassets; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -99,6 +101,7 @@
 				A00000000000000000000019 /* ../../build/ios/GannyuInputFFI.xcframework */,
 				A0000000000000000000001D /* ../../build/ios/rime */,
 				A0000000000000000000001F /* tutorial.html */,
+				A00000000000000000000025 /* Assets.xcassets */,
 				A00000000000000000000024 /* Products */,
 				775AE7FD30559BCA007BB968 /* Recovered References */,
 			);
@@ -224,6 +227,7 @@
 			files = (
 				A0000000000000000000000A /* ../../build/ios/rime in Resources */,
 				A0000000000000000000000D /* tutorial.html in Resources */,
+				A0000000000000000000000E /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -270,6 +274,7 @@
 				INFOPLIST_FILE = GannyuInput/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MARKETING_VERSION = 0.2.4;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				PRODUCT_BUNDLE_IDENTIFIER = "$(GANNYU_APP_BUNDLE_IDENTIFIER)";
 				PRODUCT_MODULE_NAME = GonnyuInput;
 				PRODUCT_NAME = GonnyuInputMethod;

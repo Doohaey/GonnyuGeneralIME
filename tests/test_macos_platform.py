@@ -51,6 +51,14 @@ def test_macos_package_declares_host_and_smoke_targets() -> None:
     assert "GannyuInputController" in (
         ROOT / "platforms/macos/Info.plist.template"
     ).read_text(encoding="utf-8")
+    plist = (ROOT / "platforms/macos/Info.plist.template").read_text(encoding="utf-8")
+    assert "Gonnyu 赣语键盘" in plist
+    assert "Gonnyu.icns" in plist
+    assert "tsInputModeDisplayNameKey" in plist
+    assert 'icon_resource="$repo_root/resources/Gonnyu.icns"' in (
+        ROOT / "platforms/macos/build.sh"
+    ).read_text(encoding="utf-8")
+    assert (ROOT / "resources/Gonnyu.icns").is_file()
 
 
 def test_macos_uses_native_vertical_candidate_panel() -> None:

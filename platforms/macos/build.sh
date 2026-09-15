@@ -64,6 +64,9 @@ rm -rf "$bundle_root"
 mkdir -p "$bundle_root/Contents/MacOS" "$bundle_root/Contents/Resources"
 install -m 0755 "$bin_dir/GannyuInputMethodHost" "$bundle_root/Contents/MacOS/GannyuInputMethodHost"
 ditto "$repo_root/build/rime-macos/resources" "$bundle_root/Contents/Resources/rime"
+icon_resource="$repo_root/resources/Gonnyu.icns"
+[[ -f "$icon_resource" ]] || { echo "missing macOS icon resource: $icon_resource" >&2; exit 2; }
+cp "$icon_resource" "$bundle_root/Contents/Resources/Gonnyu.icns"
 python3 - "$plist_template" "$bundle_root/Contents/Info.plist" "$version" "$short_version" "$build_version" "$bundle_id" "$connection_name" <<'PYTHON'
 from pathlib import Path
 import sys

@@ -5,7 +5,11 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>zh-Hans</string>
     <key>CFBundleDisplayName</key>
-    <string>Gonnyu Input Method</string>
+    <string>Gonnyu 赣语键盘</string>
+    <key>CFBundleIconFile</key>
+    <string>Gonnyu.icns</string>
+    <key>CFBundleIconName</key>
+    <string>Gonnyu</string>
     <key>CFBundleExecutable</key>
     <string>GannyuInputMethodHost</string>
     <key>CFBundleIdentifier</key>
@@ -32,6 +36,8 @@
             <dict>
                 <key>TISInputSourceID</key>
                 <string>@BUNDLE_ID@.Gan</string>
+                <key>tsInputModeDisplayNameKey</key>
+                <string>Gonnyu 赣语键盘</string>
                 <key>TISIntendedLanguage</key>
                 <string>zh-Hans</string>
                 <key>tsInputModeCharacterRepertoireKey</key>
@@ -60,9 +66,9 @@
     <key>InputMethodLocalizedName</key>
     <dict>
         <key>en</key>
-        <string>Gonnyu Input Method</string>
+        <string>Gonnyu Gan Keyboard</string>
         <key>zh-Hans</key>
-        <string>Gonnyu 赣语输入法</string>
+        <string>Gonnyu 赣语键盘</string>
     </dict>
     <key>InputMethodServerControllerClass</key>
     <string>GannyuInputController</string>
