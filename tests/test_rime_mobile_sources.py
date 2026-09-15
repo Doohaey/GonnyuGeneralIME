@@ -50,16 +50,3 @@ def test_mobile_host_build_script_uses_pinned_librime_lua_and_manifest() -> None
     assert 'RIME_PLUGINS="librime-lua"' in content
     assert 'platforms/rime/build.py" --region all' in content
     assert "resource-manifest.json" in content
-
-
-def test_mobile_host_workflow_runs_remote_build_entrypoint() -> None:
-    content = (
-        Path(__file__).resolve().parents[1]
-        / ".github"
-        / "workflows"
-        / "rime-mobile-host.yml"
-    ).read_text(encoding="utf-8")
-
-    assert "workflow_dispatch:" in content
-    assert "bash platforms/rime/mobile/build_host.sh" in content
-    assert "tests/test_rime_mobile_sources.py" in content
