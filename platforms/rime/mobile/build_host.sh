@@ -48,6 +48,7 @@ env RIME_PLUGINS="librime-lua" cmake "${generator_args[@]}" "$librime_root" \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_INSTALL_PREFIX="$prefix" \
   -DCMAKE_PREFIX_PATH="$prefix" \
+  -DBoost_NO_BOOST_CMAKE=ON \
   -DBUILD_MERGED_PLUGINS=ON \
   -DENABLE_EXTERNAL_PLUGINS=OFF \
   -DBUILD_TEST=OFF \

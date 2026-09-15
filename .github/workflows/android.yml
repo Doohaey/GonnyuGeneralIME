@@ -35,7 +35,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: sudo apt-get update && sudo apt-get install -y cmake ninja-build libboost-dev
+      - run: sudo apt-get update && sudo apt-get install -y cmake ninja-build libboost-dev libboost-regex-dev
       - uses: android-actions/setup-android@v3
         with:
           packages: platform-tools
