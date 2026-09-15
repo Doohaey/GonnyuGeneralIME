@@ -9,3 +9,12 @@ GANNYU_RESOURCE_KEY_FILE=/path/to/resource-key bash share/platforms/ios/build.sh
 ```
 
 脚本会为真机和模拟器构建加密资源 FFI 的 XCFramework，再 archive 宿主 App 和键盘扩展。它不会安装、上传或发布。
+
+本地真机安装可先完成未签名编译，再使用 Xcode 已安装的开发 provisioning profile 自动嵌入、签名并安装：
+
+```bash
+GANNYU_IOS_DEVICE_ID="设备 UDID" \
+  bash share/platforms/ios/install_device.sh
+```
+
+脚本按 App Bundle ID 自动匹配主 App 与键盘扩展的 profile，不读取或上传私钥；profile 和证书均来自本机 Xcode/钥匙串。

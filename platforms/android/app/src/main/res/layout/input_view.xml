@@ -49,7 +49,8 @@
                 android:id="@+id/candidateBar"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:gravity="center_vertical"
+                android:layout_gravity="start"
+                android:gravity="start|center_vertical"
                 android:orientation="horizontal" />
         </HorizontalScrollView>
 

@@ -813,6 +813,7 @@ class GannyuInputMethodService : InputMethodService() {
                 text = candidate.text
                 textSize = 16f; setTextColor(keyTextColor)
                 setTypeface(null, Typeface.NORMAL)
+                gravity = android.view.Gravity.START
                 maxLines = 1
                 setSingleLine(true)
             })
@@ -822,6 +823,7 @@ class GannyuInputMethodService : InputMethodService() {
                 addView(TextView(context).apply {
                     text = meta
                     textSize = 10f; setTextColor(keySecondaryTextColor)
+                    gravity = android.view.Gravity.START
                     maxLines = 1
                     setSingleLine(true)
                 })
@@ -881,7 +883,7 @@ class GannyuInputMethodService : InputMethodService() {
 
     private fun expandedCandidateRow(): LinearLayout = LinearLayout(this).apply {
         orientation = LinearLayout.HORIZONTAL
-        gravity = android.view.Gravity.TOP
+        gravity = android.view.Gravity.START or android.view.Gravity.TOP
     }
 
     private fun candidateWidth(candidate: RankedCandidate, maximum: Int): Int {

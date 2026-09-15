@@ -98,6 +98,9 @@ def test_ios_keyboard_matches_android_composition_and_default_candidate_rules() 
     assert "systemFont(ofSize: 12, weight: .bold)" in keyboard
     assert "heightAnchor.constraint(equalToConstant: 16)" in keyboard
     assert "candidateStack.spacing = 3" in keyboard
+    assert "candidateStack.distribution = .fill" in keyboard
+    assert "candidateStack.setContentHuggingPriority(.required, for: .horizontal)" in keyboard
+    assert "button.contentHorizontalAlignment = .left" in keyboard
     assert "leading: 5, bottom: 1, trailing: 5" in keyboard
     assert "engine?.selectCandidate(globalIndex: index)" in keyboard
     assert "snapshot = (try? engine?.snapshot()) ?? .empty" in keyboard
@@ -139,6 +142,10 @@ def test_ios_keyboard_uses_compact_fixed_visuals_and_full_annotations() -> None:
     assert "button.setContentCompressionResistancePriority(.required, for: .horizontal)" in keyboard
     assert "private func loadMoreCandidates()" not in keyboard
     assert "candidateExpandedScroll.topAnchor.constraint(equalTo: view.topAnchor, constant: 20)" in keyboard
+    installer = (IOS / "install_device.sh").read_text(encoding="utf-8")
+    assert "embedded.mobileprovision" in installer
+    assert "profile_for_bundle" in installer
+    assert "devicectl device install app" in installer
     assert "if candidateExpanded {\n            collapseCandidateExpansion()" in keyboard
     assert "lessThanOrEqualTo: candidateScroll.frameLayoutGuide.widthAnchor" not in keyboard
     assert "NSLayoutConstraint.activate(pendingWidthConstraints)" in keyboard

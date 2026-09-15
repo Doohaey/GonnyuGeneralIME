@@ -213,6 +213,9 @@ final class KeyboardViewController: UIInputViewController {
         candidateStack.axis = .horizontal
         candidateStack.spacing = 3
         candidateStack.alignment = .fill
+        candidateStack.distribution = .fill
+        candidateStack.setContentHuggingPriority(.required, for: .horizontal)
+        candidateStack.setContentCompressionResistancePriority(.required, for: .horizontal)
         candidateStack.translatesAutoresizingMaskIntoConstraints = false
         candidateScroll.addSubview(candidateStack)
         NSLayoutConstraint.activate([
@@ -617,6 +620,12 @@ final class KeyboardViewController: UIInputViewController {
             return attributes
         }
         button.configuration = configuration
+        // Candidate rows are a compact reading order, not an evenly
+        // distributed toolbar. Keep each candidate's content anchored to the
+        // leading edge while the scroll view remains left-originated.
+        button.contentHorizontalAlignment = .left
+        button.setContentHuggingPriority(.required, for: .horizontal)
+        button.setContentCompressionResistancePriority(.required, for: .horizontal)
         button.titleLabel?.numberOfLines = 1
         button.setContentCompressionResistancePriority(.required, for: .horizontal)
         button.accessibilityLabel = candidate.text
