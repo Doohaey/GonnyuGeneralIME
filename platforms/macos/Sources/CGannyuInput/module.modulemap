@@ -1,5 +1,4 @@
 module CGannyuInput [system] {
     header "gannyu_input.h"
-    link "gannyu_input_ffi"
     export *
 }

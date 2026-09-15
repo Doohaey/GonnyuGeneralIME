@@ -16,19 +16,17 @@ if [[ -f "$test_env" ]]; then
   set +a
 fi
 
-export GANNYU_MANIFEST="${GANNYU_MANIFEST:-$repo_root/resources/manifest.toml}"
+export GANNYU_RIME_RESOURCE_ROOT="${GANNYU_RIME_RESOURCE_ROOT:-$repo_root/build/rime-macos/resources}"
+export GANNYU_RIME_USER_DATA_DIR="${GANNYU_RIME_USER_DATA_DIR:-$repo_root/build/rime-macos/smoke-user}"
 export GANNYU_REGION_ID="${GANNYU_REGION_ID:-}"
-export GANNYU_MACOS_SMOKE_RETRIEVE="${GANNYU_MACOS_SMOKE_RETRIEVE:-gau}"
-export GANNYU_MACOS_SMOKE_COMPOSE="${GANNYU_MACOS_SMOKE_COMPOSE:-吹牛}"
+export GANNYU_MACOS_SMOKE_INPUT="${GANNYU_MACOS_SMOKE_INPUT:-gau}"
 
 if [[ "$skip_build" -eq 0 ]]; then
   bash "$script_dir/build.sh"
 fi
 
 args=(
-  --manifest "$GANNYU_MANIFEST"
-  --retrieve "$GANNYU_MACOS_SMOKE_RETRIEVE"
-  --compose "$GANNYU_MACOS_SMOKE_COMPOSE"
+  --input "$GANNYU_MACOS_SMOKE_INPUT"
 )
 
 if [[ -n "$GANNYU_REGION_ID" ]]; then

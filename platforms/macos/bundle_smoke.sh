@@ -24,6 +24,6 @@ test -x "$binary"
 /usr/libexec/PlistBuddy -c "Print :ComponentInputModeDict:tsInputModeListKey:org.doohaey.inputmethod.gonnyu.native.Gan:TISInputSourceID" "$plist" | grep -qx "org.doohaey.inputmethod.gonnyu.native.Gan"
 codesign --verify --deep --strict "$bundle"
 
-export GANNYU_MANIFEST="${GANNYU_MANIFEST:-$repo_root/resources/manifest.toml}"
+test -f "$bundle/Contents/Resources/rime/resource-manifest.json"
 export GANNYU_IMK_SELFTEST=1
 "$binary"

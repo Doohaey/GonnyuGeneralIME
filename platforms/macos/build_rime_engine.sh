@@ -30,6 +30,16 @@ if [[ ! -d "$source_root/librime/.git" ]]; then
   "$python_bin" "$mobile_dir/fetch_sources.py" >/dev/null
 fi
 librime_root="$source_root/librime"
+for component in librime librime_lua librime_lua_thirdparty; do
+  expected="$("$python_bin" -c 'import json,sys; print(json.load(open(sys.argv[1]))[sys.argv[2]]["commit"])' "$mobile_dir/engine-lock.json" "$component")"
+  case "$component" in
+    librime) checkout="$librime_root" ;;
+    librime_lua) checkout="$librime_root/plugins/librime-lua" ;;
+    librime_lua_thirdparty) checkout="$librime_root/plugins/librime-lua/thirdparty" ;;
+  esac
+  actual="$(git -C "$checkout" rev-parse HEAD)"
+  [[ "$actual" == "$expected" ]] || { echo "locked $component source mismatch: $actual" >&2; exit 2; }
+done
 boost_include="${GANNYU_RIME_BOOST_INCLUDE:-$source_root/boost}"
 if [[ ! -f "$boost_include/boost/version.hpp" && -z "${GANNYU_RIME_BOOST_INCLUDE:-}" ]]; then
   "$python_bin" "$mobile_dir/fetch_sources.py" --boost-only >/dev/null

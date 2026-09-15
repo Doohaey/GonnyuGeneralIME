@@ -11,7 +11,6 @@ if [[ -f "$test_env" ]]; then
   set +a
 fi
 
-export GANNYU_MANIFEST="${GANNYU_MANIFEST:-$repo_root/resources/manifest.toml}"
 
 bash "$script_dir/build.sh"
 "${GANNYU_MACOS_APP_BUNDLE:-$repo_root/build/macos/GonnyuInputMethod.app}/Contents/MacOS/GannyuInputMethodHost"

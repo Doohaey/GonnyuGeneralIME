@@ -6,7 +6,7 @@ repo_root="$(cd "$script_dir/../.." && pwd)"
 source_root="${GANNYU_MACOS_RIME_RESOURCE_SOURCE:-$repo_root/build/rime-mobile/mobile-resources}"
 output_root="${GANNYU_MACOS_RIME_RESOURCE_OUTPUT:-$repo_root/build/rime-macos/resources}"
 
-if [[ ! -f "$source_root/resource-manifest.json" ]]; then
+if [[ "${GANNYU_MACOS_SKIP_RESOURCE_REBUILD:-0}" != "1" ]]; then
   bash "$repo_root/platforms/rime/mobile/prepare_resources.sh"
 fi
 

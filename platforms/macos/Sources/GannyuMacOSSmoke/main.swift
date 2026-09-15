@@ -2,10 +2,8 @@ import Foundation
 import GannyuMacOSSupport
 
 struct SmokeConfig {
-    var manifest: String?
     var region: String?
-    var retrieveInput = "gau"
-    var composeInput = "吹牛"
+    var input = "gau"
 }
 
 func parseArgs() throws -> SmokeConfig {
@@ -14,22 +12,14 @@ func parseArgs() throws -> SmokeConfig {
     var index = 0
     while index < args.count {
         switch args[index] {
-        case "--manifest":
-            index += 1
-            guard index < args.count else { throw SmokeArgumentError("missing value for --manifest") }
-            config.manifest = args[index]
         case "--region":
             index += 1
             guard index < args.count else { throw SmokeArgumentError("missing value for --region") }
             config.region = args[index]
-        case "--retrieve":
+        case "--input":
             index += 1
-            guard index < args.count else { throw SmokeArgumentError("missing value for --retrieve") }
-            config.retrieveInput = args[index]
-        case "--compose":
-            index += 1
-            guard index < args.count else { throw SmokeArgumentError("missing value for --compose") }
-            config.composeInput = args[index]
+            guard index < args.count else { throw SmokeArgumentError("missing value for --input") }
+            config.input = args[index]
         default:
             throw SmokeArgumentError("unknown argument: \(args[index])")
         }
@@ -48,12 +38,14 @@ struct SmokeArgumentError: Error, CustomStringConvertible {
 
 do {
     let config = try parseArgs()
-    let engine = try GannyuEngine(manifestPath: config.manifest, regionID: config.region)
-    print("entries=\(engine.entryCount())")
-    print("retrieve \(config.retrieveInput)")
-    print(try engine.retrieve(config.retrieveInput))
-    print("compose \(config.composeInput)")
-    print(try engine.compose(config.composeInput))
+    let engine = try GannyuEngine(regionID: config.region)
+    print("schema=\(try engine.snapshot().schemaId ?? "")")
+    for character in config.input {
+        let result = try engine.process(.text(String(character)))
+        print("input=\(result.rawInput) page=\(result.pageNumber) candidates=\(result.candidates.count)")
+    }
+    let result = try engine.snapshot()
+    print("first=\(result.candidates.first?.text ?? "")")
 } catch {
     fputs("smoke failed: \(error)\n", stderr)
     exit(1)

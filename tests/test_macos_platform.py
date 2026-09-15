@@ -11,7 +11,7 @@ def test_macos_platform_exposes_build_and_smoke_entrypoints() -> None:
     host_script = (ROOT / "platforms/macos/run_host.sh").read_text(encoding="utf-8")
     install_script = (ROOT / "platforms/macos/install_local.sh").read_text(encoding="utf-8")
 
-    assert 'cargo build -p gannyu-input-ffi --release' in build_script
+    assert 'cargo build -p gannyu-input-ffi --release' not in build_script
     assert 'build_rime_engine.sh' in build_script
     assert 'prepare_rime_resources.sh' in build_script
     assert 'Contents/Resources/rime' in build_script
@@ -23,7 +23,7 @@ def test_macos_platform_exposes_build_and_smoke_entrypoints() -> None:
     assert 'requested_signing_identity="${GANNYU_MACOS_SIGN_IDENTITY:-}"' in build_script
     assert 'export GANNYU_MACOS_SIGN_IDENTITY="$requested_signing_identity"' in build_script
     assert "GannyuMacOSSmoke" in smoke_script
-    assert "--manifest" in smoke_script
+    assert "--input" in smoke_script
     assert "plutil -lint" in bundle_smoke_script
     assert "GANNYU_IMK_SELFTEST=1" in bundle_smoke_script
     assert 'Contents/MacOS/GannyuInputMethodHost' in host_script
@@ -42,7 +42,7 @@ def test_macos_package_declares_host_and_smoke_targets() -> None:
     assert '.executable(name: "GannyuInputMethodHost"' in package
     assert '.executable(name: "GannyuMacOSSmoke"' in package
     assert '.systemLibrary(' in package
-    assert 'link "gannyu_input_ffi"' in (
+    assert 'link "gannyu_input_ffi"' not in (
         ROOT / "platforms/macos/Sources/CGannyuInput/module.modulemap"
     ).read_text(encoding="utf-8")
     assert '#include "../../../../crates/ffi/include/gannyu_input.h"' in (
@@ -80,15 +80,15 @@ def test_macos_controller_wires_minimal_input_loop() -> None:
     assert "@objc(handleEvent:client:)" in controller
     assert "override func recognizedEvents" in controller
     assert ".keyDown, .flagsChanged" in controller
-    assert "GannyuIMKDiagnostics" in controller
     assert "kVK_ANSI_KeypadEnter" in controller
     assert "override func didCommand" in controller
-    assert "commitCandidate(at: 0" in controller
+    assert "selectCandidate(globalIndex:" in engine
     assert "client.insertText" in controller
     assert "client.setMarkedText" in controller
-    assert "retrieveCandidates" in engine
-    assert "formatPreedit" in engine
-    assert "currentID(manifestPath:" in engine
+    assert "gannyu_engine_create" in engine
+    assert "gannyu_engine_process_key" in engine
+    assert "gannyu_engine_change_page" in engine
+    assert "currentID()" in engine
     assert "GannyuRegion.fallback" not in controller
 
 
@@ -97,6 +97,6 @@ def test_macos_region_selection_is_validated_against_embedded_catalog() -> None:
         ROOT / "platforms/macos/Sources/GannyuMacOSSupport/GannyuEngine.swift"
     ).read_text(encoding="utf-8")
 
-    assert "availableRegions(manifestPath:" in engine
+    assert "availableRegions()" in engine
     assert "regions.contains(where:" in engine
     assert "UserDefaults.standard.set(resolved" in engine

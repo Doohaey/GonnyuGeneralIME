@@ -17,10 +17,12 @@
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>@VERSION@</string>
+    <string>@SHORT_VERSION@</string>
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>CFBundleVersion</key>
+    <string>@BUILD_VERSION@</string>
+    <key>GannyuVersion</key>
     <string>@VERSION@</string>
     <key>ComponentInputModeDict</key>
     <dict>

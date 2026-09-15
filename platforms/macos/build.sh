@@ -32,14 +32,17 @@ if [[ -z "${GANNYU_RESOURCE_KEY:-}" ]]; then
   fi
 fi
 
-command -v cargo >/dev/null || { echo "cargo not found; install rustup first" >&2; exit 1; }
 command -v swift >/dev/null || { echo "swift not found; install Xcode Command Line Tools first" >&2; exit 1; }
 command -v python3 >/dev/null || { echo "python3 not found" >&2; exit 1; }
 
 cd "$repo_root"
-bash "$script_dir/build_rime_engine.sh"
-bash "$script_dir/prepare_rime_resources.sh"
-cargo build -p gannyu-input-ffi --release
+if [[ "${GANNYU_MACOS_REUSE_RIME_BUILD:-0}" != "1" ]]; then
+  bash "$script_dir/build_rime_engine.sh"
+  bash "$script_dir/prepare_rime_resources.sh"
+else
+  [[ -f "$repo_root/build/rime-macos/adapter/libgannyu_rime_engine.a" ]] || { echo "missing cached librime adapter" >&2; exit 2; }
+  [[ -f "$repo_root/build/rime-macos/resources/resource-manifest.json" ]] || { echo "missing cached Rime resources" >&2; exit 2; }
+fi
 swift build --package-path "$script_dir" -c release --arch arm64 --arch x86_64
 
 bin_dir="$(swift build --package-path "$script_dir" -c release --arch arm64 --arch x86_64 --show-bin-path)"
@@ -54,19 +57,23 @@ if not match:
 print(match.group(1))
 PYTHON
 )"
+short_version="${version%%-pre.*}"
+build_version="$(python3 "$script_dir/installer_version.py" "$version")"
 
 rm -rf "$bundle_root"
 mkdir -p "$bundle_root/Contents/MacOS" "$bundle_root/Contents/Resources"
 install -m 0755 "$bin_dir/GannyuInputMethodHost" "$bundle_root/Contents/MacOS/GannyuInputMethodHost"
 ditto "$repo_root/build/rime-macos/resources" "$bundle_root/Contents/Resources/rime"
-python3 - "$plist_template" "$bundle_root/Contents/Info.plist" "$version" "$bundle_id" "$connection_name" <<'PYTHON'
+python3 - "$plist_template" "$bundle_root/Contents/Info.plist" "$version" "$short_version" "$build_version" "$bundle_id" "$connection_name" <<'PYTHON'
 from pathlib import Path
 import sys
 
 template = Path(sys.argv[1]).read_text(encoding="utf-8")
 template = template.replace("@VERSION@", sys.argv[3])
-template = template.replace("@BUNDLE_ID@", sys.argv[4])
-template = template.replace("@CONNECTION_NAME@", sys.argv[5])
+template = template.replace("@SHORT_VERSION@", sys.argv[4])
+template = template.replace("@BUILD_VERSION@", sys.argv[5])
+template = template.replace("@BUNDLE_ID@", sys.argv[6])
+template = template.replace("@CONNECTION_NAME@", sys.argv[7])
 Path(sys.argv[2]).write_text(template, encoding="utf-8")
 PYTHON
 
@@ -76,8 +83,11 @@ signing_identity="${GANNYU_MACOS_SIGN_IDENTITY:-}"
 if [[ -z "$signing_identity" ]]; then
   signing_identity="$(security find-identity -v -p codesigning 2>/dev/null | awk '/"Apple Development:/{ print $2; exit }')"
 fi
-[[ -n "$signing_identity" && "$signing_identity" != "-" ]] || {
-  echo "no Apple signing identity found; refusing ad-hoc signing" >&2
+if [[ "${GANNYU_MACOS_CI_ADHOC:-0}" == "1" && -z "$signing_identity" ]]; then
+  signing_identity="-"
+fi
+[[ -n "$signing_identity" ]] || {
+  echo "no Apple signing identity found; set GANNYU_MACOS_CI_ADHOC=1 only for unsigned CI tests" >&2
   exit 1
 }
 if [[ "$signing_identity" == "Developer ID Application:"* ]]; then

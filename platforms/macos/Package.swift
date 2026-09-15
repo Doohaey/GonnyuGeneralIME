@@ -18,23 +18,24 @@ let package = Package(
         .target(
             name: "GannyuMacOSSupport",
             dependencies: ["CGannyuInput"],
-            path: "Sources/GannyuMacOSSupport"
+            path: "Sources/GannyuMacOSSupport",
+            linkerSettings: [.unsafeFlags([
+                "-L", "../../build/rime-macos/adapter",
+                "-L", "../../build/rime-macos/prefix/lib",
+                "-Xlinker", "-force_load", "-Xlinker", "../../build/rime-macos/adapter/libgannyu_rime_engine.a",
+                "-Xlinker", "-force_load", "-Xlinker", "../../build/rime-macos/prefix/lib/librime.a",
+                "-lleveldb", "-lmarisa", "-lopencc", "-lyaml-cpp", "-lglog", "-lboost_regex", "-lc++"
+            ])]
         ),
         .executableTarget(
             name: "GannyuInputMethodHost",
             dependencies: ["GannyuMacOSSupport"],
-            path: "Sources/GannyuInputMethodHost",
-            linkerSettings: [
-                .unsafeFlags(["-L", "../../target/release"]),
-            ]
+            path: "Sources/GannyuInputMethodHost"
         ),
         .executableTarget(
             name: "GannyuMacOSSmoke",
             dependencies: ["GannyuMacOSSupport"],
-            path: "Sources/GannyuMacOSSmoke",
-            linkerSettings: [
-                .unsafeFlags(["-L", "../../target/release"]),
-            ]
+            path: "Sources/GannyuMacOSSmoke"
         ),
     ]
 )

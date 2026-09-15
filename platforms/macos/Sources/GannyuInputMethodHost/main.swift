@@ -25,8 +25,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             print("registered input source: \(Bundle.main.bundleURL.path)")
         }
-        let manifest = env["GANNYU_MANIFEST"]
-        let region = env["GANNYU_REGION_ID"] ?? GannyuRegionStore.shared.currentID(manifestPath: manifest)
+        let region = env["GANNYU_REGION_ID"] ?? GannyuRegionStore.shared.currentID()
         let connection = env["GANNYU_IMK_CONNECTION"]
             ?? Bundle.main.object(forInfoDictionaryKey: "InputMethodConnectionName") as? String
             ?? "\(bundleID)_Connection"
@@ -46,16 +45,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             )
         }
 
-        engine = try GannyuEngine(manifestPath: manifest, regionID: region)
+        engine = try GannyuEngine(regionID: region)
         self.server = server
         if UserDefaults.standard.bool(forKey: "GannyuIMKDiagnostics") {
             NSLog("[GonnyuIMK] server-ready")
         }
-        let count = engine?.entryCount() ?? -1
         print("GannyuInputMethodHost ready")
-        print("manifest=\(manifest ?? "(embedded)")")
         print("region=\(region ?? "(default)")")
-        print("entries=\(count)")
+        print("schema=\(try engine?.snapshot().schemaId ?? "(unavailable)")")
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -71,9 +68,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func installStatusItem() {
         let item = statusItem ?? NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         let menu = NSMenu(title: "Gonnyu 地区")
-        let manifest = ProcessInfo.processInfo.environment["GANNYU_MANIFEST"]
-        let regions = (try? GannyuEngine.availableRegions(manifestPath: manifest)) ?? []
-        let currentID = GannyuRegionStore.shared.currentID(manifestPath: manifest)
+        let regions = (try? GannyuEngine.availableRegions()) ?? []
+        let currentID = GannyuRegionStore.shared.currentID()
         for region in regions {
             let item = NSMenuItem(title: region.nameZh, action: #selector(selectRegion(_:)), keyEquivalent: "")
             item.target = self
@@ -91,10 +87,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func selectRegion(_ sender: NSMenuItem) {
         guard let raw = sender.representedObject as? String else { return }
-        _ = GannyuRegionStore.shared.select(
-            raw,
-            manifestPath: ProcessInfo.processInfo.environment["GANNYU_MANIFEST"]
-        )
+        _ = GannyuRegionStore.shared.select(raw)
         installStatusItem()
     }
 }
