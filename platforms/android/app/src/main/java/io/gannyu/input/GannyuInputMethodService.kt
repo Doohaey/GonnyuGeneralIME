@@ -808,7 +808,7 @@ class GannyuInputMethodService : InputMethodService() {
 
             addView(TextView(context).apply {
                 text = candidate.text
-                textSize = 15f; setTextColor(keyTextColor)
+                textSize = 16f; setTextColor(keyTextColor)
                 setTypeface(null, Typeface.NORMAL)
                 maxLines = 1
                 setSingleLine(true)
@@ -883,7 +883,7 @@ class GannyuInputMethodService : InputMethodService() {
 
     private fun candidateWidth(candidate: RankedCandidate, maximum: Int): Int {
         val scale = resources.displayMetrics.scaledDensity
-        val wordWidth = android.graphics.Paint().apply { textSize = 15f * scale }.measureText(candidate.text)
+        val wordWidth = android.graphics.Paint().apply { textSize = 16f * scale }.measureText(candidate.text)
         val metaWidth = android.graphics.Paint().apply { textSize = 10f * scale }.measureText(buildCandidateMeta(candidate))
         return maxOf(dp(44), kotlin.math.ceil(maxOf(wordWidth, metaWidth).toDouble()).toInt() + dp(10))
     }

@@ -607,7 +607,7 @@ final class KeyboardViewController: UIInputViewController {
         configuration.subtitleLineBreakMode = .byClipping
         configuration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer {
             var attributes = $0
-            attributes.font = .systemFont(ofSize: 15, weight: .regular)
+            attributes.font = .systemFont(ofSize: 16, weight: .regular)
             return attributes
         }
         configuration.subtitleTextAttributesTransformer = UIConfigurationTextAttributesTransformer {
@@ -628,7 +628,7 @@ final class KeyboardViewController: UIInputViewController {
 
     private func candidateWidth(_ candidate: GonnyuAppleCandidate, maximum: CGFloat) -> CGFloat {
         let subtitle = candidate.annotation.isEmpty ? candidate.reading ?? "" : candidate.annotation
-        let titleWidth = (candidate.text as NSString).size(withAttributes: [.font: UIFont.systemFont(ofSize: 15)]).width
+        let titleWidth = (candidate.text as NSString).size(withAttributes: [.font: UIFont.systemFont(ofSize: 16)]).width
         let subtitleWidth = (subtitle as NSString).size(withAttributes: [.font: UIFont.systemFont(ofSize: 10)]).width
         return max(44, max(titleWidth, subtitleWidth) + 10)
     }
