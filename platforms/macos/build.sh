@@ -64,9 +64,9 @@ rm -rf "$bundle_root"
 mkdir -p "$bundle_root/Contents/MacOS" "$bundle_root/Contents/Resources"
 install -m 0755 "$bin_dir/GannyuInputMethodHost" "$bundle_root/Contents/MacOS/GannyuInputMethodHost"
 ditto "$repo_root/build/rime-macos/resources" "$bundle_root/Contents/Resources/rime"
-icon_resource="$repo_root/resources/Gonnyu.icns"
-[[ -f "$icon_resource" ]] || { echo "missing macOS icon resource: $icon_resource" >&2; exit 2; }
-cp "$icon_resource" "$bundle_root/Contents/Resources/Gonnyu.icns"
+icon_resource="$repo_root/resources/icon.png"
+[[ -f "$icon_resource" ]] || { echo "missing canonical icon resource: $icon_resource" >&2; exit 2; }
+cp "$icon_resource" "$bundle_root/Contents/Resources/icon.png"
 for localization in en zh-Hans; do
   localization_source="$repo_root/platforms/macos/Resources/$localization.lproj"
   [[ -d "$localization_source" ]] || { echo "missing macOS localization resource: $localization_source" >&2; exit 2; }

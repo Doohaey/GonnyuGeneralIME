@@ -53,15 +53,15 @@ def test_macos_package_declares_host_and_smoke_targets() -> None:
     ).read_text(encoding="utf-8")
     plist = (ROOT / "platforms/macos/Info.plist.template").read_text(encoding="utf-8")
     assert "Gonnyu 赣语键盘" in plist
-    assert "Gonnyu.icns" in plist
+    assert "icon.png" in plist
     assert "tsInputModeDisplayNameKey" in plist
     assert "tsInputMethodIconFileKey" in plist
     assert "tsInputModeMenuIconFileKey" in plist
     assert "tsInputModePaletteIconFileKey" in plist
-    assert 'icon_resource="$repo_root/resources/Gonnyu.icns"' in (
+    assert 'icon_resource="$repo_root/resources/icon.png"' in (
         ROOT / "platforms/macos/build.sh"
     ).read_text(encoding="utf-8")
-    assert (ROOT / "resources/Gonnyu.icns").is_file()
+    assert (ROOT / "resources/icon.png").is_file()
     assert (ROOT / "platforms/macos/Resources/en.lproj/InfoPlist.strings").is_file()
     assert (ROOT / "platforms/macos/Resources/zh-Hans.lproj/InfoPlist.strings").is_file()
 
