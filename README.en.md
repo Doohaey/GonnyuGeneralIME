@@ -52,6 +52,7 @@ Rime schema repositories for Lancong(Nanchang) and Fenni(Fenyi). Other installat
   - [References](#references)
     - [Literature](#literature)
     - [Dependency declarations](#dependency-declarations)
+    - [Licensing and rights reservation](#licensing-and-rights-reservation)
     - [Acknowledgements](#acknowledgements)
   - [Why Gon(Gan) Chinese Matters](#why-gongan-chinese-matters)
   - [Contributors and contact](#contributors-and-contact)
@@ -344,6 +345,14 @@ The mobile input engine directly uses the following open-source projects. Exact 
 
 1. RIME Developers. **librime** `1.17.0`, BSD 3-Clause License. <https://github.com/rime/librime>
 2. librime-lua Developers. **librime-lua** commit `ad1e4a6c98abf634dd34242a747f9b1d5d069fbe`, BSD 3-Clause License. <https://github.com/hchunhui/librime-lua>
+
+### Licensing and rights reservation
+
+The main body of this project is licensed under the GNU GPLv3; see `LICENSE` for details.
+The name and branding “赣语通用输入法” (abbreviated as “赣语输入法”), together with the image at
+`resources/icon.png`, are not covered by the GPLv3. All related copyrights, trademark rights,
+and other rights are reserved by their respective rights holder. Use of the name or image in
+derivative projects, redistributions, or commercial promotion requires permission.
 
 ### Acknowledgements
 

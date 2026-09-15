@@ -51,6 +51,7 @@
   - [参考](#参考)
     - [文献](#文献)
     - [依赖声明](#依赖声明)
+    - [许可与权利保留](#许可与权利保留)
     - [致谢](#致谢)
   - [缘起：赣语的失落](#缘起赣语的失落)
   - [参与名单与联系方式](#参与名单与联系方式)
@@ -332,6 +333,13 @@ macOS 鼠须管将压缩包内容复制到 `~/Library/Rime/`，重新部署后�
 
 1. RIME Developers. **librime**，版本 `1.17.0`，BSD 3-Clause License。<https://github.com/rime/librime>
 2. librime-lua Developers. **librime-lua**，固定提交 `ad1e4a6c98abf634dd34242a747f9b1d5d069fbe`，BSD 3-Clause License。<https://github.com/hchunhui/librime-lua>
+
+### 许可与权利保留
+
+本项目主体代码采用 GNU GPLv3 发布，具体以仓库中的 `LICENSE` 为准。
+“赣语通用输入法”（简称“赣语输入法”）这一名称及标识，以及
+`resources/icon.png` 图片，不属于 GPLv3 授权范围，其相关著作权、商标权及其他权利均由权利人保留。
+未经权利人许可，不得将上述名称或图片用于衍生项目、重新发布或商业宣传。
 
 ### 致谢
 
