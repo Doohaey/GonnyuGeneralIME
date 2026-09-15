@@ -57,6 +57,13 @@ def test_macos_workflow_rebuilds_and_inspects_pkg() -> None:
     assert "matrix:" in content
     assert "macos-15" in content and "macos-26" in content
 
+
+def test_release_notes_link_to_generated_metadata() -> None:
+    content = (ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
+    assert 'echo "所有下载产物的 SHA-256' in content
+    assert 'SHA256SUMS' in content
+    assert 'SBOM' in content
+
 def test_android_workflow_runs_installation_smoke_test() -> None:
     content = (ROOT / ".github/workflows" / "android.yml").read_text(encoding="utf-8")
     assert "reactivecircus/android-emulator-runner@v2" in content
