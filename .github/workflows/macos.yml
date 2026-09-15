@@ -121,3 +121,26 @@ jobs:
             security delete-keychain "$RUNNER_TEMP/gonnyu-signing/release.keychain-db" || true
             rm -rf "$RUNNER_TEMP/gonnyu-signing"
           fi
+  compatibility:
+    if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-15, macos-26]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: brew install cmake ninja
+      - name: Build and smoke-test the universal host
+        env:
+          GANNYU_MACOS_CI_ADHOC: "1"
+        run: |
+          set -euo pipefail
+          bash platforms/macos/build.sh
+          GANNYU_RIME_RESOURCE_ROOT=build/rime-macos/resources \
+          GANNYU_RIME_USER_DATA_DIR=build/rime-macos/matrix-user \
+            platforms/macos/.build/apple/Products/Release/GannyuMacOSSmoke --region lancong --input gau
+          lipo build/macos/GonnyuInputMethod.app/Contents/MacOS/GannyuInputMethodHost -verify_arch arm64 x86_64

@@ -54,6 +54,8 @@ def test_macos_workflow_rebuilds_and_inspects_pkg() -> None:
     assert "MACOS_DEVELOPER_ID_APPLICATION_P12_BASE64" in content
     assert "MACOS_DEVELOPER_ID_INSTALLER_P12_BASE64" in content
     assert "APPLE_NOTARY_KEY_P8_BASE64" in content
+    assert "matrix:" in content
+    assert "macos-15" in content and "macos-26" in content
 
 def test_android_workflow_runs_installation_smoke_test() -> None:
     content = (ROOT / ".github/workflows" / "android.yml").read_text(encoding="utf-8")
