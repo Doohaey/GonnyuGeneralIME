@@ -73,7 +73,7 @@ class GannyuInputMethodService : InputMethodService() {
     private lateinit var candidateScroll: HorizontalScrollView
     private lateinit var candidateBar: LinearLayout
     private lateinit var candidateExpandButton: Button
-    private lateinit var candidateExpansionContainer: LinearLayout
+    private lateinit var candidateExpansionContainer: FrameLayout
     private lateinit var candidateExpandedScroll: android.widget.ScrollView
     private lateinit var candidateExpandedRows: LinearLayout
     private lateinit var keyboardRows: LinearLayout
@@ -280,6 +280,7 @@ class GannyuInputMethodService : InputMethodService() {
         private val MORE_ROW_3 = listOf("常用", "!", "?", "'", "\"", ":", ";", "／", "⌫")
 
         private const val FUNCTION_KEY_WIDTH_MULTIPLIER = 1.12f
+        private const val SEGMENT_KEY_WIDTH_MULTIPLIER = 1.18f
         private const val IME_SWITCH_KEY = "🌐"
         private const val BACKSPACE_INITIAL_DELAY_MS = 380L
         private const val BACKSPACE_REPEAT_INTERVAL_MS = 55L
@@ -322,6 +323,19 @@ class GannyuInputMethodService : InputMethodService() {
             leftMargin = dp(6)
             topMargin = dp(20)
             rightMargin = dp(6)
+        })
+        val collapseButton = Button(this).apply {
+            text = "⌃"
+            textSize = 17f
+            setTextColor(keyTextColor)
+            background = getDrawable(R.drawable.key_action)
+            elevation = dp(4).toFloat()
+            setOnClickListener { toggleCandidateExpansion() }
+        }
+        overlay.addView(collapseButton, FrameLayout.LayoutParams(dp(32), dp(32)).apply {
+            gravity = android.view.Gravity.TOP or android.view.Gravity.END
+            topMargin = dp(4)
+            rightMargin = dp(4)
         })
         keyboardRows = root.findViewById(R.id.keyboardRows)
         keyPreview = root.findViewById(R.id.keyPreview)
@@ -526,7 +540,11 @@ class GannyuInputMethodService : InputMethodService() {
     }
 
     private fun functionKeyWidth(label: String, keyWidth: Int): Int =
-        if (label in FUNCTION_WIDTH_KEYS) (keyWidth * FUNCTION_KEY_WIDTH_MULTIPLIER).toInt() else keyWidth
+        when {
+            label == "分词" -> (keyWidth * SEGMENT_KEY_WIDTH_MULTIPLIER).toInt()
+            label in FUNCTION_WIDTH_KEYS -> (keyWidth * FUNCTION_KEY_WIDTH_MULTIPLIER).toInt()
+            else -> keyWidth
+        }
 
     private fun functionKeyExtraWidth(label: String, keyWidth: Int): Int = functionKeyWidth(label, keyWidth) - keyWidth
     private fun keyBtn(key: KeySpec, width: Int, gap: Int): Button = Button(this).apply {
@@ -791,8 +809,9 @@ class GannyuInputMethodService : InputMethodService() {
             addView(TextView(context).apply {
                 text = candidate.text
                 textSize = 15f; setTextColor(keyTextColor)
-                setTypeface(null, Typeface.BOLD)
-                if (expanded) maxLines = Int.MAX_VALUE else { maxLines = 1; setSingleLine(true) }
+                setTypeface(null, Typeface.NORMAL)
+                maxLines = 1
+                setSingleLine(true)
             })
 
             val meta = buildCandidateMeta(candidate)
@@ -800,7 +819,8 @@ class GannyuInputMethodService : InputMethodService() {
                 addView(TextView(context).apply {
                     text = meta
                     textSize = 10f; setTextColor(keySecondaryTextColor)
-                    if (expanded) maxLines = Int.MAX_VALUE else { maxLines = 1; setSingleLine(true) }
+                    maxLines = 1
+                    setSingleLine(true)
                 })
             }
             contentDescription = candidate.text + "，" + meta
@@ -865,7 +885,7 @@ class GannyuInputMethodService : InputMethodService() {
         val scale = resources.displayMetrics.scaledDensity
         val wordWidth = android.graphics.Paint().apply { textSize = 15f * scale }.measureText(candidate.text)
         val metaWidth = android.graphics.Paint().apply { textSize = 10f * scale }.measureText(buildCandidateMeta(candidate))
-        return minOf(maximum, maxOf(dp(44), kotlin.math.ceil(maxOf(wordWidth, metaWidth).toDouble()).toInt() + dp(10)))
+        return maxOf(dp(44), kotlin.math.ceil(maxOf(wordWidth, metaWidth).toDouble()).toInt() + dp(10))
     }
 
     private fun toggleCandidateExpansion() {

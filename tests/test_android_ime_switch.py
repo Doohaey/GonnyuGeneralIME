@@ -50,7 +50,7 @@ def test_android_keyboard_uses_a_system_adaptive_neutral_palette_on_all_pages() 
     assert "#FF1F2125" in dark_colors
     assert "<gradient" not in action
     assert 'android:background="@color/keyboard_panel"' in layout
-    assert 'android:textColor="@color/keyboard_secondary_text"' in layout
+    assert 'android:textColor="@color/keyboard_text"' in layout
     assert "private val keyTextColor: Int" in source
     assert "private val keySecondaryTextColor: Int" in source
     assert "key.label in ACTION_KEYS" in source

@@ -94,6 +94,7 @@ final class KeyboardViewController: UIInputViewController {
     private let candidateExpandButton = UIButton(type: .system)
     private let candidateExpandedScroll = UIScrollView()
     private let candidateExpandedStack = UIStackView()
+    private let candidateExpandedCloseButton = UIButton(type: .system)
     private var candidateExpanded = false
     private var expandedCandidates: [GonnyuAppleCandidate] = []
     private var expandedLayoutWidth: CGFloat = 0
@@ -182,8 +183,8 @@ final class KeyboardViewController: UIInputViewController {
         keyPreviewView.isHidden = true
         view.addSubview(keyPreviewView)
 
-        preeditLabel.font = .systemFont(ofSize: 10, weight: .regular)
-        preeditLabel.textColor = fixedSecondaryTextColor
+        preeditLabel.font = .systemFont(ofSize: 12, weight: .bold)
+        preeditLabel.textColor = fixedTextColor
         preeditLabel.backgroundColor = .clear
         preeditLabel.numberOfLines = 1
         preeditLabel.heightAnchor.constraint(equalToConstant: 16).isActive = true
@@ -228,6 +229,14 @@ final class KeyboardViewController: UIInputViewController {
         candidateExpandedScroll.isHidden = true
         view.addSubview(candidateExpandedScroll)
 
+        candidateExpandedCloseButton.setTitle("⌃", for: .normal)
+        candidateExpandedCloseButton.setTitleColor(fixedTextColor, for: .normal)
+        candidateExpandedCloseButton.backgroundColor = actionKeyColor
+        candidateExpandedCloseButton.layer.cornerRadius = 5
+        candidateExpandedCloseButton.translatesAutoresizingMaskIntoConstraints = false
+        candidateExpandedCloseButton.addTarget(self, action: #selector(toggleCandidateExpansion), for: .touchUpInside)
+        view.addSubview(candidateExpandedCloseButton)
+
         candidateExpandedStack.axis = .vertical
         candidateExpandedStack.spacing = 3
         candidateExpandedStack.translatesAutoresizingMaskIntoConstraints = false
@@ -237,12 +246,17 @@ final class KeyboardViewController: UIInputViewController {
             candidateExpandedScroll.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -6),
             candidateExpandedScroll.topAnchor.constraint(equalTo: view.topAnchor, constant: 20),
             candidateExpandedScroll.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -7),
+            candidateExpandedCloseButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 24),
+            candidateExpandedCloseButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10),
+            candidateExpandedCloseButton.widthAnchor.constraint(equalToConstant: 32),
+            candidateExpandedCloseButton.heightAnchor.constraint(equalToConstant: 32),
             candidateExpandedStack.leadingAnchor.constraint(equalTo: candidateExpandedScroll.contentLayoutGuide.leadingAnchor, constant: 3),
             candidateExpandedStack.trailingAnchor.constraint(equalTo: candidateExpandedScroll.contentLayoutGuide.trailingAnchor, constant: -3),
             candidateExpandedStack.topAnchor.constraint(equalTo: candidateExpandedScroll.contentLayoutGuide.topAnchor, constant: 3),
             candidateExpandedStack.bottomAnchor.constraint(equalTo: candidateExpandedScroll.contentLayoutGuide.bottomAnchor, constant: -3),
             candidateExpandedStack.widthAnchor.constraint(equalTo: candidateExpandedScroll.frameLayoutGuide.widthAnchor, constant: -6),
         ])
+        view.bringSubviewToFront(candidateExpandedCloseButton)
 
         keyboardStack.axis = .vertical
         keyboardStack.spacing = 6
@@ -460,7 +474,9 @@ final class KeyboardViewController: UIInputViewController {
 
     private func functionKeyWidth(for label: String) -> CGFloat {
         switch label {
-        case "🌐", "英", "中", "123", "ABC", "符号", "更多", "常用", "⇧", "分词":
+        case "分词":
+            return 1.18
+        case "🌐", "英", "中", "123", "ABC", "符号", "更多", "常用", "⇧":
             return functionKeyWidthMultiplier
         default:
             return 1
@@ -587,11 +603,11 @@ final class KeyboardViewController: UIInputViewController {
         configuration.contentInsets = NSDirectionalEdgeInsets(top: 1, leading: 5, bottom: 1, trailing: 5)
         configuration.title = candidate.text
         configuration.subtitle = candidate.annotation.isEmpty ? candidate.reading : candidate.annotation
-        configuration.titleLineBreakMode = expanded ? .byWordWrapping : .byClipping
-        configuration.subtitleLineBreakMode = expanded ? .byWordWrapping : .byClipping
+        configuration.titleLineBreakMode = .byClipping
+        configuration.subtitleLineBreakMode = .byClipping
         configuration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer {
             var attributes = $0
-            attributes.font = .systemFont(ofSize: 15, weight: .bold)
+            attributes.font = .systemFont(ofSize: 15, weight: .regular)
             return attributes
         }
         configuration.subtitleTextAttributesTransformer = UIConfigurationTextAttributesTransformer {
@@ -601,7 +617,7 @@ final class KeyboardViewController: UIInputViewController {
             return attributes
         }
         button.configuration = configuration
-        button.titleLabel?.numberOfLines = expanded ? 0 : 1
+        button.titleLabel?.numberOfLines = 1
         button.setContentCompressionResistancePriority(.required, for: .horizontal)
         button.accessibilityLabel = candidate.text
         button.accessibilityHint = candidate.annotation
@@ -614,7 +630,7 @@ final class KeyboardViewController: UIInputViewController {
         let subtitle = candidate.annotation.isEmpty ? candidate.reading ?? "" : candidate.annotation
         let titleWidth = (candidate.text as NSString).size(withAttributes: [.font: UIFont.systemFont(ofSize: 15)]).width
         let subtitleWidth = (subtitle as NSString).size(withAttributes: [.font: UIFont.systemFont(ofSize: 10)]).width
-        return min(maximum, max(44, max(titleWidth, subtitleWidth) + 10))
+        return max(44, max(titleWidth, subtitleWidth) + 10)
     }
 
     private func renderExpandedCandidates() {
@@ -624,8 +640,11 @@ final class KeyboardViewController: UIInputViewController {
         }
         guard candidateExpanded else {
             candidateExpandedScroll.isHidden = true
+            candidateExpandedCloseButton.isHidden = true
             return
         }
+        candidateExpandedCloseButton.isHidden = false
+        view.bringSubviewToFront(candidateExpandedCloseButton)
         let available = max(44, candidateExpandedScroll.bounds.width - 6)
         candidateExpandedScroll.isHidden = false
         expandedLayoutWidth = candidateExpandedScroll.bounds.width

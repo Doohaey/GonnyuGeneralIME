@@ -95,7 +95,7 @@ def test_ios_keyboard_matches_android_composition_and_default_candidate_rules() 
     assert "engine?.process(.space)" in keyboard
     assert "configuration.subtitle" in keyboard
     assert "开启“允许完全访问”后，用户词库才能保存" in keyboard
-    assert "systemFont(ofSize: 10, weight: .regular)" in keyboard
+    assert "systemFont(ofSize: 12, weight: .bold)" in keyboard
     assert "heightAnchor.constraint(equalToConstant: 16)" in keyboard
     assert "candidateStack.spacing = 3" in keyboard
     assert "leading: 5, bottom: 1, trailing: 5" in keyboard
@@ -132,10 +132,10 @@ def test_ios_keyboard_uses_compact_fixed_visuals_and_full_annotations() -> None:
     assert "traitCollectionDidChange" in keyboard
     assert "candidateScroll.backgroundColor = .clear" in keyboard
     assert "candidateRow.heightAnchor.constraint(equalToConstant: 39)" in keyboard
-    assert "attributes.font = .systemFont(ofSize: 15, weight: .bold)" in keyboard
+    assert "attributes.font = .systemFont(ofSize: 15, weight: .regular)" in keyboard
     assert "attributes.font = .systemFont(ofSize: 10)" in keyboard
-    assert "configuration.titleLineBreakMode = expanded ? .byWordWrapping : .byClipping" in keyboard
-    assert "configuration.subtitleLineBreakMode = expanded ? .byWordWrapping : .byClipping" in keyboard
+    assert "configuration.titleLineBreakMode = .byClipping" in keyboard
+    assert "configuration.subtitleLineBreakMode = .byClipping" in keyboard
     assert "button.setContentCompressionResistancePriority(.required, for: .horizontal)" in keyboard
     assert "private func loadMoreCandidates()" not in keyboard
     assert "candidateExpandedScroll.topAnchor.constraint(equalTo: view.topAnchor, constant: 20)" in keyboard

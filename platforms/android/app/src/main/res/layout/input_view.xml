@@ -20,8 +20,9 @@
         android:layout_marginStart="6dp"
         android:layout_marginEnd="6dp"
         android:gravity="center_vertical"
-        android:textColor="@color/keyboard_secondary_text"
-        android:textSize="10sp"
+        android:textColor="@color/keyboard_text"
+        android:textStyle="bold"
+        android:textSize="12sp"
         android:visibility="invisible" />
 
     <LinearLayout
@@ -64,21 +65,19 @@
             android:textSize="17sp" />
     </LinearLayout>
 
-    <LinearLayout
+    <FrameLayout
         android:id="@+id/candidateExpansionContainer"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginStart="6dp"
         android:layout_marginEnd="6dp"
-        android:orientation="vertical"
         android:background="@color/keyboard_panel"
         android:visibility="gone">
 
         <ScrollView
             android:id="@+id/candidateExpandedScroll"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_height="match_parent"
             android:fillViewport="false">
 
             <LinearLayout
@@ -88,7 +87,7 @@
                 android:orientation="vertical" />
         </ScrollView>
 
-    </LinearLayout>
+    </FrameLayout>
 
     <LinearLayout
         android:id="@+id/keyboardRows"
