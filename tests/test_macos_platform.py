@@ -123,6 +123,9 @@ def test_macos_controller_wires_minimal_input_loop() -> None:
     assert "selectCandidate(globalIndex:" in engine
     assert "client.insertText" in controller
     assert "client.setMarkedText" in controller
+    assert "as? IMKTextInput" in controller
+    assert "for client: IMKTextInput" in controller
+    assert "as? NSTextInputClient" not in controller
     assert "gannyu_engine_create" in engine
     assert "gannyu_engine_process_key" in engine
     assert "gannyu_engine_change_page" in engine

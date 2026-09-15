@@ -136,7 +136,7 @@ final class GannyuInputController: IMKInputController {
 
     @objc(replacementRange)
     override func replacementRange() -> NSRange {
-        guard let client = client() as? NSTextInputClient else {
+        guard let client = client() else {
             return NSRange(location: NSNotFound, length: 0)
         }
         return replacementRange(for: client)
@@ -243,18 +243,21 @@ final class GannyuInputController: IMKInputController {
             snapshot = nil
             displays = []
             candidatePanel.hide()
-            (sender as? NSTextInputClient)?.unmarkText()
+            if let client = sender as? IMKTextInput { clearMarkedText(on: client) }
         }
     }
 
     private func render(_ result: GannyuSnapshot, client sender: Any!) {
         snapshot = result
-        guard let client = sender as? NSTextInputClient else { return }
+        guard let client = sender as? IMKTextInput else {
+            log.error("IMK client does not conform to IMKTextInput")
+            return
+        }
         if let commit = result.commitText, !commit.isEmpty {
             client.insertText(commit, replacementRange: replacementRange(for: client))
         }
         if result.rawInput.isEmpty {
-            client.unmarkText()
+            clearMarkedText(on: client)
             candidatePanel.hide()
             displays = []
             return
@@ -263,7 +266,7 @@ final class GannyuInputController: IMKInputController {
         let caret = min(max(result.caret, 0), preedit.count)
         client.setMarkedText(
             preedit,
-            selectedRange: NSRange(location: (String(preedit.prefix(caret)) as NSString).length, length: 0),
+            selectionRange: NSRange(location: (String(preedit.prefix(caret)) as NSString).length, length: 0),
             replacementRange: replacementRange(for: client)
         )
         displays = result.candidates.map { candidate in
@@ -286,9 +289,17 @@ final class GannyuInputController: IMKInputController {
         candidatePanel.present(result, anchor: candidateAnchor(for: client))
     }
 
-    private func replacementRange(for client: NSTextInputClient) -> NSRange {
+    private func replacementRange(for client: IMKTextInput) -> NSRange {
         let marked = client.markedRange()
         return marked.location == NSNotFound ? client.selectedRange() : marked
+    }
+
+    private func clearMarkedText(on client: IMKTextInput) {
+        client.setMarkedText(
+            "",
+            selectionRange: NSRange(location: 0, length: 0),
+            replacementRange: NSRange(location: NSNotFound, length: NSNotFound)
+        )
     }
 
     private func candidateIndex(for display: NSAttributedString?) -> Int? {
@@ -296,11 +307,11 @@ final class GannyuInputController: IMKInputController {
         return snapshot?.candidates.first(where: { $0.text == display.string })?.globalIndex
     }
 
-    private func candidateAnchor(for client: NSTextInputClient) -> NSRect {
-        let marked = client.markedRange()
-        let range = marked.location == NSNotFound ? client.selectedRange() : marked
-        let rect = client.firstRect(forCharacterRange: range, actualRange: nil)
-        if !rect.isEmpty { return rect }
+    private func candidateAnchor(for client: IMKTextInput) -> NSRect {
+        // IMKTextInput does not promise NSTextInputClient's AppKit-only
+        // firstRect API.  Keep the native panel visible for every compliant
+        // IMK client; a later layout pass can refine this anchor from the
+        // optional line-height rectangle API.
         return NSRect(origin: NSEvent.mouseLocation, size: .zero)
     }
 
