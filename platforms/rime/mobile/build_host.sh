@@ -43,7 +43,19 @@ mkdir -p "$build_root"
 # expression.  Apple's BSD make expands it to an empty `-j` argument, which
 # makes the dependency build fail before CMake starts.  Disable that upstream
 # job injection; the CMake builds below retain their normal parallelism.
-perl -0pi -e 's/-DCMAKE_INSTALL_PREFIX:PATH="\\$\\(prefix\\)" \\\\\\n\\t&& cmake --build/-DCMAKE_INSTALL_PREFIX:PATH="\\$\\(prefix\\)" \\\\\\n\\t-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON \\\\\\n\\t&& cmake --build/g' "$deps_mk"
+"$python_bin" - "$deps_mk" <<'PYTHON'
+from pathlib import Path
+import sys
+
+path = Path(sys.argv[1])
+source = path.read_text(encoding="utf-8")
+needle = '-DCMAKE_INSTALL_PREFIX:PATH="$(prefix)" \\\n\t&& cmake --build'
+replacement = '-DCMAKE_INSTALL_PREFIX:PATH="$(prefix)" \\\n\t-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON \\\n\t&& cmake --build'
+updated = source.replace(needle, replacement)
+if updated == source:
+    raise SystemExit("failed to inject PIC into librime deps.mk")
+path.write_text(updated, encoding="utf-8")
+PYTHON
 make -C "$librime_root" NOPARALLEL=1 deps prefix="$prefix" build=build-host-deps
 
 env RIME_PLUGINS="librime-lua" cmake "${generator_args[@]}" "$librime_root" \
