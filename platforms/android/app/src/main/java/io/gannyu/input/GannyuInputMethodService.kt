@@ -28,6 +28,7 @@ private class NativePipelineBridge {
     external fun nativeSnapshot(handle: Long): String?
     external fun nativeProcessKey(handle: Long, eventJson: String): String?
     external fun nativeSelectCandidate(handle: Long, globalIndex: Int): String?
+    external fun nativeChangeCandidatePage(handle: Long, direction: Int): String?
     external fun nativeClearComposition(handle: Long): String?
     external fun nativeResetCurrentUserData(handle: Long): Boolean
     external fun nativeDestroy(handle: Long)
@@ -71,8 +72,16 @@ class GannyuInputMethodService : InputMethodService() {
     private lateinit var cacheTag: TextView
     private lateinit var candidateScroll: HorizontalScrollView
     private lateinit var candidateBar: LinearLayout
+    private lateinit var candidateExpandButton: Button
+    private lateinit var candidateExpansionContainer: LinearLayout
+    private lateinit var candidateExpandedScroll: android.widget.ScrollView
+    private lateinit var candidateExpandedRows: LinearLayout
+    private lateinit var candidateMoreButton: Button
     private lateinit var keyboardRows: LinearLayout
     private var lastSnapshot = EngineSnapshot()
+    private var candidateExpanded = false
+    private val expandedCandidates = mutableListOf<RankedCandidate>()
+    private val expandedPageNumbers = mutableSetOf<Int>()
     private var keyboardPage = KeyboardPage.LETTERS
     private var englishMode = false
     private var lastRenderedKeyboardWidth = 0
@@ -92,6 +101,7 @@ class GannyuInputMethodService : InputMethodService() {
     external fun nativeSnapshot(handle: Long): String?
     external fun nativeProcessKey(handle: Long, eventJson: String): String?
     external fun nativeSelectCandidate(handle: Long, globalIndex: Int): String?
+    external fun nativeChangeCandidatePage(handle: Long, direction: Int): String?
     external fun nativeClearComposition(handle: Long): String?
     external fun nativeResetCurrentUserData(handle: Long): Boolean
     external fun nativeDestroy(handle: Long)
@@ -304,6 +314,13 @@ class GannyuInputMethodService : InputMethodService() {
         val root = LayoutInflater.from(this).inflate(R.layout.input_view, null)
         candidateScroll = root.findViewById(R.id.candidateScroll)
         candidateBar = root.findViewById(R.id.candidateBar)
+        candidateExpandButton = root.findViewById(R.id.candidateExpandButton)
+        candidateExpansionContainer = root.findViewById(R.id.candidateExpansionContainer)
+        candidateExpandedScroll = root.findViewById(R.id.candidateExpandedScroll)
+        candidateExpandedRows = root.findViewById(R.id.candidateExpandedRows)
+        candidateMoreButton = root.findViewById(R.id.candidateMoreButton)
+        candidateExpandButton.setOnClickListener { toggleCandidateExpansion() }
+        candidateMoreButton.setOnClickListener { loadMoreCandidates() }
         keyboardRows = root.findViewById(R.id.keyboardRows)
         cacheTag = root.findViewById(R.id.cacheTag)
         keyboardRows.addOnLayoutChangeListener { _, left, _, right, _, _, _, _, _ ->
@@ -663,6 +680,7 @@ class GannyuInputMethodService : InputMethodService() {
         if (::candidateBar.isInitialized) refreshCandidates()
         renderCacheTag()
         if (::candidateBar.isInitialized) renderCandidateBar()
+        if (::candidateExpandedRows.isInitialized) renderExpandedCandidates()
     }
 
     private fun renderCacheTag() {
@@ -691,9 +709,11 @@ class GannyuInputMethodService : InputMethodService() {
         if (!::candidateBar.isInitialized) return
         candidateBar.removeAllViews()
         candidateBar.setPadding(0, 0, 0, 0)
+        candidateExpandButton.visibility = if (lastSnapshot.candidates.isEmpty()) View.GONE else View.VISIBLE
+        candidateExpandButton.text = if (candidateExpanded) "⌃" else "⌄"
         if (lastSnapshot.candidates.isEmpty()) return
         lastSnapshot.candidates.forEachIndexed { index, c ->
-            val cv = CandidateView(this, c, index)
+            val cv = CandidateView(this, c, index, expanded = false)
             candidateBar.addView(cv)
         }
         candidateScroll.post { candidateScroll.scrollTo(0, 0) }
@@ -703,27 +723,28 @@ class GannyuInputMethodService : InputMethodService() {
         context: android.content.Context,
         private val candidate: RankedCandidate,
         index: Int,
+        expanded: Boolean,
     ) : LinearLayout(context) {
         private var downX = 0f
         private var moved = false
 
         init {
             orientation = VERTICAL
-            setPadding(dp(5), dp(2), dp(5), dp(2))
+            setPadding(dp(5), dp(if (expanded) 2 else 1), dp(5), dp(if (expanded) 2 else 1))
             minimumWidth = dp(44)
-            minimumHeight = dp(40)
+            minimumHeight = dp(36)
             gravity = android.view.Gravity.START or android.view.Gravity.CENTER_VERTICAL
             layoutParams = LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT
             ).apply {
-                if (index < lastSnapshot.candidates.size - 1) marginEnd = dp(3)
+                if (!expanded && index < lastSnapshot.candidates.size - 1) marginEnd = dp(3)
             }
 
             addView(TextView(context).apply {
                 text = candidate.text
                 textSize = 16f; setTextColor(KEY_TEXT)
                 if (index == 0) setTypeface(null, Typeface.BOLD)
-                maxLines = 1; setSingleLine(true)
+                if (expanded) maxLines = Int.MAX_VALUE else { maxLines = 1; setSingleLine(true) }
             })
 
             val meta = buildCandidateMeta(candidate)
@@ -731,7 +752,7 @@ class GannyuInputMethodService : InputMethodService() {
                 addView(TextView(context).apply {
                     text = meta
                     textSize = 10f; setTextColor(0xFF626973.toInt())
-                    maxLines = 1; setSingleLine(true)
+                    if (expanded) maxLines = Int.MAX_VALUE else { maxLines = 1; setSingleLine(true) }
                 })
             }
             contentDescription = candidate.text + "，" + meta
@@ -756,6 +777,83 @@ class GannyuInputMethodService : InputMethodService() {
         return c.reading.orEmpty()
     }
 
+    private fun renderExpandedCandidates() {
+        if (!::candidateExpandedRows.isInitialized) return
+        candidateExpandedRows.removeAllViews()
+        if (!candidateExpanded) {
+            candidateExpansionContainer.visibility = View.GONE
+            return
+        }
+        candidateExpansionContainer.visibility = View.VISIBLE
+        candidateExpansionContainer.layoutParams = candidateExpansionContainer.layoutParams.apply { height = dp(154) }
+        val availableWidth = candidateExpandedScroll.width - dp(6)
+        if (availableWidth <= 0) {
+            candidateExpandedScroll.post { renderExpandedCandidates() }
+            return
+        }
+        var row = expandedCandidateRow()
+        var usedWidth = 0
+        expandedCandidates.forEachIndexed { index, candidate ->
+            val width = candidateWidth(candidate, availableWidth)
+            if (usedWidth > 0 && usedWidth + dp(3) + width > availableWidth) {
+                candidateExpandedRows.addView(row)
+                row = expandedCandidateRow()
+                usedWidth = 0
+            }
+            row.addView(CandidateView(this, candidate, index, expanded = true), LinearLayout.LayoutParams(width, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                if (usedWidth > 0) marginStart = dp(3)
+            })
+            usedWidth += (if (usedWidth == 0) 0 else dp(3)) + width
+        }
+        if (row.childCount > 0) candidateExpandedRows.addView(row)
+        candidateMoreButton.visibility = if (lastSnapshot.hasNextPage) View.VISIBLE else View.GONE
+    }
+
+    private fun expandedCandidateRow(): LinearLayout = LinearLayout(this).apply {
+        orientation = LinearLayout.HORIZONTAL
+        gravity = android.view.Gravity.TOP
+    }
+
+    private fun candidateWidth(candidate: RankedCandidate, maximum: Int): Int {
+        val scale = resources.displayMetrics.scaledDensity
+        val wordWidth = android.graphics.Paint().apply { textSize = 16f * scale }.measureText(candidate.text)
+        val metaWidth = android.graphics.Paint().apply { textSize = 10f * scale }.measureText(buildCandidateMeta(candidate))
+        return minOf(maximum, maxOf(dp(44), kotlin.math.ceil(maxOf(wordWidth, metaWidth).toDouble()).toInt() + dp(10)))
+    }
+
+    private fun toggleCandidateExpansion() {
+        if (candidateExpanded) {
+            collapseCandidateExpansion()
+            return
+        }
+        if (lastSnapshot.candidates.isEmpty()) return
+        candidateExpanded = true
+        expandedCandidates.clear()
+        expandedCandidates += lastSnapshot.candidates
+        expandedPageNumbers.clear()
+        expandedPageNumbers += lastSnapshot.pageNumber
+        renderState()
+    }
+
+    private fun loadMoreCandidates() {
+        if (!lastSnapshot.hasNextPage || pipelineHandle == 0L) return
+        val updated = nativeChangeCandidatePage(pipelineHandle, 1)?.let(::parseSnapshot) ?: return
+        lastSnapshot = updated
+        if (expandedPageNumbers.add(updated.pageNumber)) expandedCandidates += updated.candidates
+        renderState()
+    }
+
+    private fun collapseCandidateExpansion() {
+        while (lastSnapshot.hasPreviousPage && pipelineHandle != 0L) {
+            val updated = nativeChangeCandidatePage(pipelineHandle, -1)?.let(::parseSnapshot) ?: break
+            lastSnapshot = updated
+        }
+        candidateExpanded = false
+        expandedCandidates.clear()
+        expandedPageNumbers.clear()
+        renderState()
+    }
+
     private fun processEngineText(text: String): EngineSnapshot? {
         val escaped = JSONObject.quote(text)
         return processEngineEvent("""{"type":"text","text":$escaped}""")
@@ -768,10 +866,16 @@ class GannyuInputMethodService : InputMethodService() {
 
     private fun applyEngineSnapshot(snapshot: EngineSnapshot?, render: Boolean = true) {
         if (snapshot == null) return
+        val compositionChanged = lastSnapshot.rawInput != snapshot.rawInput || !snapshot.commitText.isNullOrEmpty()
         if (!snapshot.commitText.isNullOrEmpty()) {
             currentInputConnection?.commitText(snapshot.commitText, 1)
         }
         lastSnapshot = snapshot
+        if (compositionChanged) {
+            candidateExpanded = false
+            expandedCandidates.clear()
+            expandedPageNumbers.clear()
+        }
         if (render && ::candidateBar.isInitialized) {
             renderState()
         }

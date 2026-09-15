@@ -346,6 +346,12 @@ public final class GonnyuAppleEngine {
         }
     }
 
+    public func changeCandidatePage(direction: Int) throws -> GonnyuAppleSnapshot {
+        try jsonCall { handle, out in
+            gannyu_engine_change_page(handle, Int32(direction), out)
+        }
+    }
+
     public func clearComposition() throws -> GonnyuAppleSnapshot {
         try jsonCall { handle, out in
             gannyu_engine_clear_composition(handle, out)

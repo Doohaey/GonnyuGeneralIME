@@ -20,26 +20,79 @@
         android:textSize="10sp"
         android:visibility="invisible" />
 
-    <HorizontalScrollView
-        android:id="@+id/candidateScroll"
+    <LinearLayout
+        android:id="@+id/candidateRow"
         android:layout_width="match_parent"
-        android:layout_height="44dp"
+        android:layout_height="39dp"
         android:layout_marginStart="6dp"
         android:layout_marginEnd="6dp"
         android:layout_marginBottom="4dp"
-        android:fillViewport="false"
-        android:scrollbars="horizontal"
-        android:fadingEdge="horizontal"
-        android:fadeScrollbars="false"
-        android:overScrollMode="always">
+        android:orientation="horizontal">
 
-        <LinearLayout
-            android:id="@+id/candidateBar"
-            android:layout_width="wrap_content"
+        <HorizontalScrollView
+            android:id="@+id/candidateScroll"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:gravity="center_vertical"
-            android:orientation="horizontal" />
-    </HorizontalScrollView>
+            android:layout_weight="1"
+            android:fillViewport="false"
+            android:scrollbars="horizontal"
+            android:fadingEdge="horizontal"
+            android:fadeScrollbars="false"
+            android:overScrollMode="always">
+
+            <LinearLayout
+                android:id="@+id/candidateBar"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal" />
+        </HorizontalScrollView>
+
+        <Button
+            android:id="@+id/candidateExpandButton"
+            android:layout_width="32dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="3dp"
+            android:background="@drawable/key_action"
+            android:contentDescription="展开候选"
+            android:text="⌄"
+            android:textColor="#FF1B1D20"
+            android:textSize="17sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/candidateExpansionContainer"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginStart="6dp"
+        android:layout_marginEnd="6dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <ScrollView
+            android:id="@+id/candidateExpandedScroll"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:fillViewport="false">
+
+            <LinearLayout
+                android:id="@+id/candidateExpandedRows"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </ScrollView>
+
+        <Button
+            android:id="@+id/candidateMoreButton"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:background="@drawable/key_action"
+            android:contentDescription="加载更多候选"
+            android:text="加载更多候选"
+            android:textColor="#FF1B1D20"
+            android:textSize="12sp" />
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/keyboardRows"

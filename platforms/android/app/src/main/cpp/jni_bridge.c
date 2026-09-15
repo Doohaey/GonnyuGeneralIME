@@ -100,6 +100,16 @@ Java_io_gannyu_input_GannyuInputMethodService_nativeSelectCandidate(
 }
 
 JNIEXPORT jstring JNICALL
+Java_io_gannyu_input_GannyuInputMethodService_nativeChangeCandidatePage(
+    JNIEnv* env, jobject thiz, jlong handle, jint direction) {
+    (void)thiz;
+    if (direction == 0) return NULL;
+    char* out = NULL;
+    return gannyu_engine_change_page((GannyuPipelineHandle*)(intptr_t)handle, direction, &out) == 0
+        ? copy_out_string(env, out) : NULL;
+}
+
+JNIEXPORT jstring JNICALL
 Java_io_gannyu_input_GannyuInputMethodService_nativeClearComposition(
     JNIEnv* env, jobject thiz, jlong handle) {
     (void)thiz;
@@ -154,6 +164,11 @@ Java_io_gannyu_input_NativePipelineBridge_nativeProcessKey(JNIEnv* env, jobject 
 JNIEXPORT jstring JNICALL
 Java_io_gannyu_input_NativePipelineBridge_nativeSelectCandidate(JNIEnv* env, jobject thiz, jlong handle, jint global_index) {
     return Java_io_gannyu_input_GannyuInputMethodService_nativeSelectCandidate(env, thiz, handle, global_index);
+}
+
+JNIEXPORT jstring JNICALL
+Java_io_gannyu_input_NativePipelineBridge_nativeChangeCandidatePage(JNIEnv* env, jobject thiz, jlong handle, jint direction) {
+    return Java_io_gannyu_input_GannyuInputMethodService_nativeChangeCandidatePage(env, thiz, handle, direction);
 }
 
 JNIEXPORT jstring JNICALL

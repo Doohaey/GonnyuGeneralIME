@@ -64,7 +64,12 @@ def test_android_candidates_keep_full_metadata_with_independent_widths() -> None
     assert "ellipsize = TextUtils.TruncateAt.END" not in source
     assert "marginEnd = dp(3)" in source
     assert "minimumWidth = dp(44)" in source
-    assert 'android:layout_height="44dp"' in (ROOT / "platforms/android/app/src/main/res/layout/input_view.xml").read_text(encoding="utf-8")
+    layout = (ROOT / "platforms/android/app/src/main/res/layout/input_view.xml").read_text(encoding="utf-8")
+    assert 'android:layout_height="39dp"' in layout
+    assert "candidateExpandButton" in layout
+    assert "candidateExpansionContainer" in layout
+    assert "nativeChangeCandidatePage" in source
+    assert "private fun loadMoreCandidates()" in source
 
 
 def test_android_rime_regions_start_with_nanchang() -> None:

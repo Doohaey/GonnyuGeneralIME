@@ -25,8 +25,17 @@ final class KeyboardViewController: UIInputViewController {
     private var englishShift = false
     private var backspaceTimer: Timer?
     private let preeditLabel = UILabel()
+    private let candidateRow = UIStackView()
     private let candidateScroll = UIScrollView()
     private let candidateStack = UIStackView()
+    private let candidateExpandButton = UIButton(type: .system)
+    private let candidateExpandedScroll = UIScrollView()
+    private let candidateExpandedStack = UIStackView()
+    private var candidateExpandedHeightConstraint: NSLayoutConstraint?
+    private var candidateExpanded = false
+    private var expandedCandidates: [GonnyuAppleCandidate] = []
+    private var expandedPageNumbers = Set<Int>()
+    private var expandedLayoutWidth: CGFloat = 0
     private let keyboardStack = UIStackView()
     private weak var referenceKeyButton: UIButton?
     private var pendingWidthConstraints: [NSLayoutConstraint] = []
@@ -56,6 +65,13 @@ final class KeyboardViewController: UIInputViewController {
         reloadRegionIfNeeded(force: false)
     }
 
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        if candidateExpanded && candidateExpandedScroll.bounds.width != expandedLayoutWidth {
+            renderExpandedCandidates()
+        }
+    }
+
     deinit {
         stopBackspaceRepeat()
         NotificationCenter.default.removeObserver(self)
@@ -82,11 +98,25 @@ final class KeyboardViewController: UIInputViewController {
         preeditLabel.heightAnchor.constraint(equalToConstant: 16).isActive = true
         root.addArrangedSubview(preeditLabel)
 
+        candidateRow.axis = .horizontal
+        candidateRow.spacing = 3
+        candidateRow.alignment = .fill
+        candidateRow.heightAnchor.constraint(equalToConstant: 39).isActive = true
+        root.addArrangedSubview(candidateRow)
+
         candidateScroll.showsHorizontalScrollIndicator = false
         candidateScroll.backgroundColor = .clear
         candidateScroll.translatesAutoresizingMaskIntoConstraints = false
-        candidateScroll.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
-        root.addArrangedSubview(candidateScroll)
+        candidateRow.addArrangedSubview(candidateScroll)
+
+        candidateExpandButton.setTitle("⌄", for: .normal)
+        candidateExpandButton.setTitleColor(fixedTextColor, for: .normal)
+        candidateExpandButton.titleLabel?.font = .systemFont(ofSize: 17, weight: .medium)
+        candidateExpandButton.backgroundColor = actionKeyColor
+        candidateExpandButton.layer.cornerRadius = 5
+        candidateExpandButton.widthAnchor.constraint(equalToConstant: 32).isActive = true
+        candidateExpandButton.addTarget(self, action: #selector(toggleCandidateExpansion), for: .touchUpInside)
+        candidateRow.addArrangedSubview(candidateExpandButton)
 
         candidateStack.axis = .horizontal
         candidateStack.spacing = 3
@@ -99,6 +129,25 @@ final class KeyboardViewController: UIInputViewController {
             candidateStack.topAnchor.constraint(equalTo: candidateScroll.contentLayoutGuide.topAnchor),
             candidateStack.bottomAnchor.constraint(equalTo: candidateScroll.contentLayoutGuide.bottomAnchor),
             candidateStack.heightAnchor.constraint(equalTo: candidateScroll.frameLayoutGuide.heightAnchor),
+        ])
+
+        candidateExpandedScroll.showsVerticalScrollIndicator = true
+        candidateExpandedScroll.backgroundColor = .clear
+        candidateExpandedScroll.translatesAutoresizingMaskIntoConstraints = false
+        candidateExpandedHeightConstraint = candidateExpandedScroll.heightAnchor.constraint(equalToConstant: 0)
+        candidateExpandedHeightConstraint?.isActive = true
+        root.addArrangedSubview(candidateExpandedScroll)
+
+        candidateExpandedStack.axis = .vertical
+        candidateExpandedStack.spacing = 3
+        candidateExpandedStack.translatesAutoresizingMaskIntoConstraints = false
+        candidateExpandedScroll.addSubview(candidateExpandedStack)
+        NSLayoutConstraint.activate([
+            candidateExpandedStack.leadingAnchor.constraint(equalTo: candidateExpandedScroll.contentLayoutGuide.leadingAnchor, constant: 3),
+            candidateExpandedStack.trailingAnchor.constraint(equalTo: candidateExpandedScroll.contentLayoutGuide.trailingAnchor, constant: -3),
+            candidateExpandedStack.topAnchor.constraint(equalTo: candidateExpandedScroll.contentLayoutGuide.topAnchor, constant: 3),
+            candidateExpandedStack.bottomAnchor.constraint(equalTo: candidateExpandedScroll.contentLayoutGuide.bottomAnchor, constant: -3),
+            candidateExpandedStack.widthAnchor.constraint(equalTo: candidateExpandedScroll.frameLayoutGuide.widthAnchor, constant: -6),
         ])
 
         keyboardStack.axis = .vertical
@@ -390,38 +439,134 @@ final class KeyboardViewController: UIInputViewController {
 
     private func render() {
         preeditLabel.text = snapshot.preedit.isEmpty ? nil : snapshot.preedit
+        candidateExpandButton.isHidden = snapshot.candidates.isEmpty
+        candidateExpandButton.setTitle(candidateExpanded ? "⌃" : "⌄", for: .normal)
         candidateStack.arrangedSubviews.forEach {
             candidateStack.removeArrangedSubview($0)
             $0.removeFromSuperview()
         }
-        for (index, candidate) in snapshot.candidates.enumerated() {
-            let button = UIButton(type: .system)
-            var configuration = UIButton.Configuration.plain()
-            configuration.baseForegroundColor = fixedTextColor
-            configuration.contentInsets = NSDirectionalEdgeInsets(top: 2, leading: 5, bottom: 2, trailing: 5)
-            configuration.title = candidate.text
-            configuration.subtitle = candidate.annotation.isEmpty ? candidate.reading : candidate.annotation
-            configuration.titleLineBreakMode = .byClipping
-            configuration.subtitleLineBreakMode = .byClipping
-            configuration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer {
-                var attributes = $0
-                attributes.font = .systemFont(ofSize: 16)
-                return attributes
-            }
-            configuration.subtitleTextAttributesTransformer = UIConfigurationTextAttributesTransformer {
-                var attributes = $0
-                attributes.font = .systemFont(ofSize: 10)
-                attributes.foregroundColor = UIColor(red: 0.38, green: 0.40, blue: 0.44, alpha: 1)
-                return attributes
-            }
-            button.configuration = configuration
-            button.setContentCompressionResistancePriority(.required, for: .horizontal)
-            button.accessibilityLabel = candidate.text
-            button.accessibilityHint = candidate.annotation
-            button.tag = candidate.globalIndex
-            button.addTarget(self, action: #selector(candidatePressed(_:)), for: .touchUpInside)
-            candidateStack.addArrangedSubview(button)
+        for candidate in snapshot.candidates {
+            candidateStack.addArrangedSubview(makeCandidateButton(candidate, expanded: false))
         }
+        renderExpandedCandidates()
+    }
+
+    private func makeCandidateButton(_ candidate: GonnyuAppleCandidate, expanded: Bool) -> UIButton {
+        let button = UIButton(type: .system)
+        var configuration = UIButton.Configuration.plain()
+        configuration.baseForegroundColor = fixedTextColor
+        configuration.contentInsets = NSDirectionalEdgeInsets(top: 1, leading: 5, bottom: 1, trailing: 5)
+        configuration.title = candidate.text
+        configuration.subtitle = candidate.annotation.isEmpty ? candidate.reading : candidate.annotation
+        configuration.titleLineBreakMode = expanded ? .byWordWrapping : .byClipping
+        configuration.subtitleLineBreakMode = expanded ? .byWordWrapping : .byClipping
+        configuration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer {
+            var attributes = $0
+            attributes.font = .systemFont(ofSize: 16)
+            return attributes
+        }
+        configuration.subtitleTextAttributesTransformer = UIConfigurationTextAttributesTransformer {
+            var attributes = $0
+            attributes.font = .systemFont(ofSize: 10)
+            attributes.foregroundColor = self.fixedSecondaryTextColor
+            return attributes
+        }
+        button.configuration = configuration
+        button.titleLabel?.numberOfLines = expanded ? 0 : 1
+        button.setContentCompressionResistancePriority(.required, for: .horizontal)
+        button.accessibilityLabel = candidate.text
+        button.accessibilityHint = candidate.annotation
+        button.tag = candidate.globalIndex
+        button.addTarget(self, action: #selector(candidatePressed(_:)), for: .touchUpInside)
+        return button
+    }
+
+    private func candidateWidth(_ candidate: GonnyuAppleCandidate, maximum: CGFloat) -> CGFloat {
+        let subtitle = candidate.annotation.isEmpty ? candidate.reading ?? "" : candidate.annotation
+        let titleWidth = (candidate.text as NSString).size(withAttributes: [.font: UIFont.systemFont(ofSize: 16)]).width
+        let subtitleWidth = (subtitle as NSString).size(withAttributes: [.font: UIFont.systemFont(ofSize: 10)]).width
+        return min(maximum, max(44, max(titleWidth, subtitleWidth) + 10))
+    }
+
+    private func renderExpandedCandidates() {
+        candidateExpandedStack.arrangedSubviews.forEach {
+            candidateExpandedStack.removeArrangedSubview($0)
+            $0.removeFromSuperview()
+        }
+        guard candidateExpanded else {
+            candidateExpandedHeightConstraint?.constant = 0
+            return
+        }
+        let available = max(44, candidateExpandedScroll.bounds.width - 6)
+        expandedLayoutWidth = candidateExpandedScroll.bounds.width
+        var row = makeExpandedCandidateRow()
+        var usedWidth: CGFloat = 0
+        for candidate in expandedCandidates {
+            let width = candidateWidth(candidate, maximum: available)
+            if usedWidth > 0 && usedWidth + 3 + width > available {
+                candidateExpandedStack.addArrangedSubview(row)
+                row = makeExpandedCandidateRow()
+                usedWidth = 0
+            }
+            let button = makeCandidateButton(candidate, expanded: true)
+            button.widthAnchor.constraint(equalToConstant: width).isActive = true
+            row.addArrangedSubview(button)
+            usedWidth += (usedWidth == 0 ? 0 : 3) + width
+        }
+        if !row.arrangedSubviews.isEmpty {
+            candidateExpandedStack.addArrangedSubview(row)
+        }
+        if snapshot.hasNextPage {
+            let more = UIButton(type: .system)
+            more.setTitle("加载更多候选", for: .normal)
+            more.setTitleColor(fixedTextColor, for: .normal)
+            more.backgroundColor = actionKeyColor
+            more.layer.cornerRadius = 5
+            more.heightAnchor.constraint(equalToConstant: 30).isActive = true
+            more.addTarget(self, action: #selector(loadMoreCandidates), for: .touchUpInside)
+            candidateExpandedStack.addArrangedSubview(more)
+        }
+        candidateExpandedHeightConstraint?.constant = 154
+    }
+
+    private func makeExpandedCandidateRow() -> UIStackView {
+        let row = UIStackView()
+        row.axis = .horizontal
+        row.spacing = 3
+        row.alignment = .top
+        return row
+    }
+
+    @objc private func toggleCandidateExpansion() {
+        if candidateExpanded {
+            collapseCandidateExpansion()
+            return
+        }
+        guard !snapshot.candidates.isEmpty else { return }
+        candidateExpanded = true
+        expandedCandidates = snapshot.candidates
+        expandedPageNumbers = [snapshot.pageNumber]
+        render()
+    }
+
+    @objc private func loadMoreCandidates() {
+        guard let engine, snapshot.hasNextPage, let updated = try? engine.changeCandidatePage(direction: 1) else { return }
+        snapshot = updated
+        if expandedPageNumbers.insert(updated.pageNumber).inserted {
+            expandedCandidates.append(contentsOf: updated.candidates)
+        }
+        render()
+    }
+
+    private func collapseCandidateExpansion() {
+        while snapshot.hasPreviousPage {
+            guard let engine, let updated = try? engine.changeCandidatePage(direction: -1) else { break }
+            snapshot = updated
+        }
+        candidateExpanded = false
+        expandedCandidates.removeAll()
+        expandedPageNumbers.removeAll()
+        render()
     }
 
     @objc private func candidatePressed(_ sender: UIButton) {
@@ -459,10 +604,16 @@ final class KeyboardViewController: UIInputViewController {
 
     private func apply(_ updated: GonnyuAppleSnapshot?) {
         guard let updated else { return }
+        let compositionChanged = snapshot.rawInput != updated.rawInput || updated.commitText != nil
         if let commit = updated.commitText, !commit.isEmpty {
             textDocumentProxy.insertText(commit)
         }
         snapshot = updated
+        if compositionChanged {
+            candidateExpanded = false
+            expandedCandidates.removeAll()
+            expandedPageNumbers.removeAll()
+        }
         render()
     }
 
@@ -497,6 +648,9 @@ final class KeyboardViewController: UIInputViewController {
         )
         regionID = selected
         snapshot = (try? engine?.snapshot()) ?? .empty
+        candidateExpanded = false
+        expandedCandidates.removeAll()
+        expandedPageNumbers.removeAll()
         render()
     }
 }

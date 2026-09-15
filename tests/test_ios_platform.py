@@ -87,11 +87,12 @@ def test_ios_keyboard_matches_android_composition_and_default_candidate_rules() 
     assert "systemFont(ofSize: 10, weight: .regular)" in keyboard
     assert "heightAnchor.constraint(equalToConstant: 16)" in keyboard
     assert "candidateStack.spacing = 3" in keyboard
-    assert "leading: 5, bottom: 2, trailing: 5" in keyboard
+    assert "leading: 5, bottom: 1, trailing: 5" in keyboard
     assert "engine?.selectCandidate(globalIndex: index)" in keyboard
     assert "snapshot = (try? engine?.snapshot()) ?? .empty" in keyboard
     assert "gannyu_engine_process_key" in support
     assert "gannyu_engine_select_candidate" in support
+    assert "gannyu_engine_change_page" in support
     assert "gannyu_engine_create" in support
     assert "shared_data_dir" in support
     assert "prebuilt_data_dir" in support
@@ -118,12 +119,14 @@ def test_ios_keyboard_uses_compact_fixed_visuals_and_full_annotations() -> None:
     assert "multiplier: 1.6" in keyboard
     assert "overrideUserInterfaceStyle = .light" in keyboard
     assert "candidateScroll.backgroundColor = .clear" in keyboard
-    assert "greaterThanOrEqualToConstant: 44" in keyboard
+    assert "candidateRow.heightAnchor.constraint(equalToConstant: 39)" in keyboard
     assert "attributes.font = .systemFont(ofSize: 16)" in keyboard
     assert "attributes.font = .systemFont(ofSize: 10)" in keyboard
-    assert "configuration.titleLineBreakMode = .byClipping" in keyboard
-    assert "configuration.subtitleLineBreakMode = .byClipping" in keyboard
+    assert "configuration.titleLineBreakMode = expanded ? .byWordWrapping : .byClipping" in keyboard
+    assert "configuration.subtitleLineBreakMode = expanded ? .byWordWrapping : .byClipping" in keyboard
     assert "button.setContentCompressionResistancePriority(.required, for: .horizontal)" in keyboard
+    assert "private func loadMoreCandidates()" in keyboard
+    assert "candidateExpandedHeightConstraint?.constant = 154" in keyboard
     assert "lessThanOrEqualTo: candidateScroll.frameLayoutGuide.widthAnchor" not in keyboard
     assert "NSLayoutConstraint.activate(pendingWidthConstraints)" in keyboard
     assert keyboard.index("keyboardStack.addArrangedSubview(keyRow(\n            [\"🌐\"") < keyboard.index(
