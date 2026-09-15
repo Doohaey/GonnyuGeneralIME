@@ -40,9 +40,9 @@ cd "$repo_root"
 bash "$script_dir/build_rime_engine.sh"
 bash "$script_dir/prepare_rime_resources.sh"
 cargo build -p gannyu-input-ffi --release
-swift build --package-path "$script_dir" -c release
+swift build --package-path "$script_dir" -c release --arch arm64 --arch x86_64
 
-bin_dir="$(swift build --package-path "$script_dir" -c release --show-bin-path)"
+bin_dir="$(swift build --package-path "$script_dir" -c release --arch arm64 --arch x86_64 --show-bin-path)"
 version="$(python3 - <<'PYTHON'
 import re
 from pathlib import Path
@@ -86,5 +86,6 @@ else
   codesign --force --deep --sign "${signing_identity:--}" "$bundle_root"
 fi
 codesign --verify --deep --strict "$bundle_root"
+lipo "$bundle_root/Contents/MacOS/GannyuInputMethodHost" -verify_arch arm64 x86_64
 
 echo "packaged $bundle_root"
