@@ -28,7 +28,7 @@ if command -v ninja >/dev/null 2>&1; then
 fi
 
 if [[ ! -d "$source_root/librime/.git" ]]; then
-  source_root="$("$python_bin" "$script_dir/fetch_sources.py")"
+  "$python_bin" "$script_dir/fetch_sources.py" >/dev/null
 fi
 
 librime_root="$source_root/librime"
