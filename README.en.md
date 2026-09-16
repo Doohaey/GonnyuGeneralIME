@@ -6,21 +6,22 @@ Currently supports: **Lancong(Nanchang) and Fenni(Fenyi)**. More localities are 
 
 **An easy-to-use Gon(Gan) input method: users who know Pinyin can type immediately, with both local and Mandarin Pinyin input supported.**
 
-**Quick installation is available on every platform, together with Rime packages for each platform.**
+**Native installation is available on macOS, Android, Windows, and Linux, alongside Rime resource packages.**
 
 [![Rime Lancong (Nanchang)](https://img.shields.io/badge/Rime-Lancong%20%28Nanchang%29-0969da?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Doohaey/GonnyuGeneralIME-Rime-Lancong)
 [![Rime Fenni (Fenyi)](https://img.shields.io/badge/Rime-Fenni%20%28Fenyi%29-8250df?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Doohaey/GonnyuGeneralIME-Rime-Fenni)
 
 Rime schema repositories for Lancong(Nanchang) and Fenni(Fenyi). Other installation options are available in the [Installation](#installation) section below.
 
-## Test version 0.2.4-pre.18
+## Release 0.2.4
 
-- optimize(android): Improve kernel performance.
+- feat(platforms): complete cross-platform support for Android, Windows, Linux, macOS, and Rime resources
+- feat(macos): ship the native input method as a signed and notarized `.pkg` installer
 
 ## Contents
 
 - [GonnyuGeneralIME — A General Gon(Gan) Chinese Input Method](#gonnyugeneralime--a-general-gongan-chinese-input-method)
-  - [Test version 0.2.4-pre.18](#test-version-024-pre18)
+  - [Release 0.2.4](#release-024)
   - [Contents](#contents)
   - [Overview](#overview)
     - [What it provides](#what-it-provides)
@@ -124,13 +125,15 @@ Alternate Gan pronunciations, including older and newer patterns, are all ready 
 
 ## Installation
 
-The native input method is available for Linux, Android, and Windows. Input methods on macOS and iOS currently use only the universal Rime resource package; see the Rime section for installation.
+The native input method is available for macOS, Linux, Android, and Windows. iOS uses the universal Rime resource package; see the Rime section for installation.
 
 Download the file for your operating system or locality from [Releases](https://github.com/Doohaey/GonnyuGeneralIME/releases).
 
 ### macOS
 
-For input on macOS, see the Rime section.
+Download `GonnyuGeneralIME-version-macos.pkg` from [Releases](https://github.com/Doohaey/GonnyuGeneralIME/releases), open it, and complete the installation.
+
+If it does not appear automatically, open **System Settings → Keyboard → Text Input → Edit…**, click **+**, search for and add **Gonnyu**, then select it from the input menu. Upgrades preserve the user dictionary.
 
 ### iOS
 
@@ -172,7 +175,7 @@ Run `ibus-daemon -drx` (or restart IBus), then add **Gannyu Gon(Gan)** in the in
 
 Download `GonnyuGeneralIME-version-rime-region.zip` for the required locality. The archive works with Rime front ends on every platform.
 
-For macOS Squirrel, copy the archive contents into `~/Library/Rime/`, redeploy, then select the locality from the schema menu. For Windows Weasel, copy the contents into `%APPDATA%\Rime` and redeploy from the input-method menu. For Linux Fcitx5 Rime, copy the contents into `~/.local/share/fcitx5/rime/`, redeploy, then select the locality from the schema menu. For iOS and Android, import or deploy the ZIP in the installed Rime front end.
+For Windows Weasel, copy the archive contents into `%APPDATA%\Rime` and redeploy from the input-method menu. For Linux Fcitx5 Rime, copy the contents into `~/.local/share/fcitx5/rime/`, redeploy, then select the locality from the schema menu. For iOS and Android, import or deploy the ZIP in the installed Rime front end.
 
 ## The Gon-pin Romanisation
 

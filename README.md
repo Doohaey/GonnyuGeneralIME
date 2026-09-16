@@ -6,21 +6,22 @@
 
 **一键安装/简单易用/日常可用的赣语输入法，会拼音就能使用，方言拼音与普通话兼容支持。不会说赣语也能用来玩！用赣语思维也可以轻松大段输出普通话文本（比如本文）！**
 
-**现已支持全平台快捷安装（apk, windows installer等等）以及各平台Rime安装包。**
+**现已支持 macOS、Android、Windows、Linux 的快捷安装，以及各平台 Rime 资源包。**
 
 [![Rime 南昌话](https://img.shields.io/badge/Rime-%E5%8D%97%E6%98%8C%E8%AF%9D-0969da?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Doohaey/GonnyuGeneralIME-Rime-Lancong)
 [![Rime 分宜话](https://img.shields.io/badge/Rime-%E5%88%86%E5%AE%9C%E8%AF%9D-8250df?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Doohaey/GonnyuGeneralIME-Rime-Fenni)
 
 上方按钮列出南昌话与分宜话的 Rime 方案仓库。其他安装方案请在下方[安装方法](#安装方法)小节找到对应平台内容下载并且安装。
 
-## 测试版本 0.2.4-pre.19
+## 正式版本 0.2.4
 
-- chore:优化移动端布局
+- feat(platforms): 完成全平台适配，覆盖 Android、Windows、Linux、macOS 与 Rime 资源包
+- feat(macos): 适配 macOS 原生输入法，提供经签名和公证的 `.pkg` 安装包
 
 ## 目录
 
 - [赣语通用输入法 GonnyuGeneralIME](#赣语通用输入法-gonnyugeneralime)
-  - [测试版本 0.2.4-pre.19](#测试版本-024-pre19)
+  - [正式版本 0.2.4](#正式版本-024)
   - [目录](#目录)
   - [简介](#简介)
     - [特色](#特色)
@@ -128,9 +129,9 @@
 
 ### macOS
 
-下载 `GonnyuGeneralIME-版本号-macos.pkg` 并安装，在系统输入法设置中启用“Gonnyu”。安装包校验现有版本，接受较新版本覆盖，拒绝同版本和降级安装。用户词库保存在应用程序支持目录，升级时保留。
+从 [Releases](https://github.com/Doohaey/GonnyuGeneralIME/releases) 下载 `GonnyuGeneralIME-版本号-macos.pkg`，双击打开并完成安装。
 
-源码构建在 macOS 运行 `bash platforms/macos/build.sh`，构建脚本按 `platforms/rime/mobile/engine-lock.json` 重建 arm64、x86_64 的 librime 与预部署资源。正式安装包运行 `bash platforms/macos/package.sh`，需要 Developer ID Application、Developer ID Installer 签名身份及 notarytool 钥匙串配置。应用与安装包完成签名、苹果公证和 Gatekeeper 验证后产出 `build/macos/GonnyuInputMethod.pkg`。本机开发安装使用 `bash platforms/macos/install_local.sh`。
+若安装后未自动显示：打开“系统设置 → 键盘 → 文本输入 → 编辑…”，点击“+”，搜索并添加“Gonnyu”，再从输入法菜单切换至它。升级会保留用户词库。
 
 ### iOS
 
@@ -160,7 +161,7 @@ cd GonnyuGeneralIME-版本号-fcitx5
 
 下载所需区域的 `GonnyuGeneralIME-版本号-rime-地区.zip`。压缩包适用于各 Rime 前端。
 
-macOS 鼠须管将压缩包内容复制到 `~/Library/Rime/`，重新部署后从方案菜单选择对应地区。Windows 小狼毫将内容复制到 `%APPDATA%\Rime`，在输入法菜单中重新部署。Linux Fcitx5 Rime 将内容复制到 `~/.local/share/fcitx5/rime/`，重新部署后从方案菜单选择对应地区。iOS 与 Android 使用所安装 Rime 前端的导入或部署功能载入 ZIP。
+Windows 小狼毫将压缩包内容复制到 `%APPDATA%\Rime`，在输入法菜单中重新部署。Linux Fcitx5 Rime 将内容复制到 `~/.local/share/fcitx5/rime/`，重新部署后从方案菜单选择对应地区。iOS 与 Android 使用所安装 Rime 前端的导入或部署功能载入 ZIP。
 
 
 ## 本输入法采用的赣语拼音方案

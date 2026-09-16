@@ -59,7 +59,7 @@ jobs:
           done
           python3 platforms/release/generate_release_metadata.py \
             --version "$PRODUCT_VERSION" --output-dir release-assets
-          awk -v heading="## 测试版本 ${PRODUCT_VERSION}" "\$0 == heading { found = 1; next }
+          awk -v heading="## 正式版本 ${PRODUCT_VERSION}" "\$0 == heading { found = 1; next }
             found && /^## / { exit }
             found { print }
             END { if (!found) exit 1 }
