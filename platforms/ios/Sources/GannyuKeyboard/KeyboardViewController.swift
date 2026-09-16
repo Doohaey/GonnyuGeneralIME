@@ -605,7 +605,7 @@ final class KeyboardViewController: UIInputViewController {
         configuration.subtitleLineBreakMode = expanded ? .byCharWrapping : .byClipping
         configuration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer {
             var attributes = $0
-            attributes.font = .systemFont(ofSize: 16, weight: .regular)
+            attributes.font = .systemFont(ofSize: 18, weight: .regular)
             return attributes
         }
         configuration.subtitleTextAttributesTransformer = UIConfigurationTextAttributesTransformer {
@@ -636,7 +636,7 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func candidateWidth(_ candidate: GonnyuAppleCandidate) -> CGFloat {
-        let titleWidth = (candidate.text as NSString).size(withAttributes: [.font: UIFont.systemFont(ofSize: 16)]).width
+        let titleWidth = (candidate.text as NSString).size(withAttributes: [.font: UIFont.systemFont(ofSize: 18)]).width
         return max(44, titleWidth + 10)
     }
 
@@ -652,7 +652,7 @@ final class KeyboardViewController: UIInputViewController {
             attributes: [.font: subtitleFont, .paragraphStyle: paragraph],
             context: nil
         ).height
-        return max(37, ceil(UIFont.systemFont(ofSize: 16).lineHeight + subtitleHeight + 6))
+        return max(37, ceil(UIFont.systemFont(ofSize: 18).lineHeight + subtitleHeight + 6))
     }
 
     private func renderExpandedCandidates() {

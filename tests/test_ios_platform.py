@@ -138,7 +138,7 @@ def test_ios_keyboard_uses_compact_fixed_visuals_and_full_annotations() -> None:
     assert "traitCollectionDidChange" in keyboard
     assert "candidateScroll.backgroundColor = .clear" in keyboard
     assert "candidateRow.heightAnchor.constraint(equalToConstant: 39)" in keyboard
-    assert "attributes.font = .systemFont(ofSize: 16, weight: .regular)" in keyboard
+    assert "attributes.font = .systemFont(ofSize: 18, weight: .regular)" in keyboard
     assert "attributes.font = .systemFont(ofSize: 10)" in keyboard
     assert "configuration.titleLineBreakMode = .byClipping" in keyboard
     assert "configuration.subtitleLineBreakMode = expanded ? .byCharWrapping : .byClipping" in keyboard
