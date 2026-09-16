@@ -19,6 +19,12 @@ def test_platform_workflows_use_the_workspace_version() -> None:
         assert "0.2.1" not in content
 
 
+def test_quality_workflow_rejects_a_stale_cargo_lockfile() -> None:
+    content = (ROOT / ".github/workflows/quality.yml").read_text(encoding="utf-8")
+    assert "cargo clippy --workspace --all-targets --locked -- -D warnings" in content
+    assert "cargo test --workspace --locked" in content
+
+
 def test_release_workflow_uses_tagged_workspace_version() -> None:
     content = (ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
     assert "workflow_dispatch:" not in content
