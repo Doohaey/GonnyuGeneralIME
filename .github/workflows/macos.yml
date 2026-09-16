@@ -30,7 +30,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: macos-15
+    runs-on: macos-15-intel
     timeout-minutes: 60
     env:
       CMAKE_BUILD_PARALLEL_LEVEL: "2"
@@ -92,9 +92,9 @@ jobs:
           printf 'GANNYU_MACOS_SIGNING_KEYCHAIN=%s\n' "$keychain" >> "$GITHUB_ENV"
           printf 'GANNYU_MACOS_NOTARY_PROFILE=gonnyu-release\n' >> "$GITHUB_ENV"
           printf 'GANNYU_MACOS_NOTARY_KEYCHAIN=%s\n' "$keychain" >> "$GITHUB_ENV"
-      - name: Preflight installer signing and timestamp service
+      - name: Preflight installer private-key signing
         if: startsWith(github.ref, 'refs/tags/v') || inputs.release_signing
-        timeout-minutes: 3
+        timeout-minutes: 2
         shell: bash
         run: |
           set -euo pipefail
@@ -105,9 +105,20 @@ jobs:
             --identifier io.gannyu.input.signing-preflight --version 1 \
             "$preflight/unsigned.pkg"
           productsign --sign "$GANNYU_MACOS_INSTALLER_SIGN_IDENTITY" \
+            --keychain "$GANNYU_MACOS_SIGNING_KEYCHAIN" --timestamp=none \
+            "$preflight/unsigned.pkg" "$preflight/local-signed.pkg"
+          pkgutil --check-signature "$preflight/local-signed.pkg"
+      - name: Preflight installer trusted timestamp
+        if: startsWith(github.ref, 'refs/tags/v') || inputs.release_signing
+        timeout-minutes: 3
+        shell: bash
+        run: |
+          set -euo pipefail
+          preflight="$RUNNER_TEMP/gonnyu-installer-signing-preflight"
+          productsign --sign "$GANNYU_MACOS_INSTALLER_SIGN_IDENTITY" \
             --keychain "$GANNYU_MACOS_SIGNING_KEYCHAIN" --timestamp \
-            "$preflight/unsigned.pkg" "$preflight/signed.pkg"
-          pkgutil --check-signature "$preflight/signed.pkg"
+            "$preflight/unsigned.pkg" "$preflight/timestamped.pkg"
+          pkgutil --check-signature "$preflight/timestamped.pkg"
           rm -rf "$preflight"
       - name: Rebuild universal librime app from locked source
         shell: bash
