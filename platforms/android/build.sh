@@ -5,7 +5,7 @@ set -euo pipefail
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "$script_dir/../.." && pwd)"
 variant="${GANNYU_ANDROID_BUILD_VARIANT:-debug}"
-apk_dir="$script_dir/app/build/outputs/apk/$variant"
+apk_dir="$repo_root/build/android/gradle/app/outputs/apk/$variant"
 
 write_local_properties() {
   local sdk_root="$1"

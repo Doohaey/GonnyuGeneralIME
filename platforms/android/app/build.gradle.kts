@@ -5,6 +5,8 @@ plugins {
     kotlin("android")
 }
 
+layout.buildDirectory.set(rootProject.layout.projectDirectory.dir("../../build/android/gradle/app"))
+
 val workspaceManifest = rootProject.file("../../Cargo.toml").readText()
 val productVersion = Regex("""(?ms)^\[workspace\.package]\s.*?^version\s*=\s*"([^"]+)"""")
     .find(workspaceManifest)
