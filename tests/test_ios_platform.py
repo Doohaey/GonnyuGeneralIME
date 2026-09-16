@@ -124,7 +124,7 @@ def test_ios_keyboard_uses_compact_fixed_visuals_and_full_annotations() -> None:
     )
 
     assert "traits.userInterfaceStyle == .dark" in keyboard
-    assert "private let keyHeight: CGFloat = UIDevice.current.userInterfaceIdiom == .pad ? 92 : 46" in keyboard
+    assert "private let keyHeight: CGFloat = UIDevice.current.userInterfaceIdiom == .pad ? 69 : 46" in keyboard
     assert "equalToConstant: keyHeight" in keyboard
     assert "row.spacing = keySpacing" in keyboard
     assert "private let keySpacing: CGFloat = 6" in keyboard

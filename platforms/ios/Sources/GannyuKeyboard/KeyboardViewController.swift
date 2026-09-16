@@ -121,7 +121,7 @@ final class KeyboardViewController: UIInputViewController {
     private let fixedSecondaryTextColor = UIColor.secondaryLabel
     private let keySpacing: CGFloat = 6
     private let functionKeyWidthMultiplier: CGFloat = 1.12
-    private let keyHeight: CGFloat = UIDevice.current.userInterfaceIdiom == .pad ? 92 : 46
+    private let keyHeight: CGFloat = UIDevice.current.userInterfaceIdiom == .pad ? 69 : 46
 
     override func viewDidLoad() {
         super.viewDidLoad()
