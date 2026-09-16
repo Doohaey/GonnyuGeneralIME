@@ -30,7 +30,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: macos-26
+    runs-on: macos-15
     timeout-minutes: 60
     env:
       CMAKE_BUILD_PARALLEL_LEVEL: "2"
@@ -73,10 +73,13 @@ jobs:
           security set-keychain-settings -lut 21600 "$keychain"
           security import "$signing_dir/application.p12" -k "$keychain" -P "$CERT_PASSWORD" \
             -T /usr/bin/codesign -T /usr/bin/xcodebuild
-          security import "$signing_dir/installer.p12" -k "$keychain" -P "$CERT_PASSWORD" \
-            -T /usr/bin/pkgbuild -T /usr/bin/productbuild -T /usr/bin/productsign
           security set-key-partition-list -S apple-tool:,apple:,codesign: \
             -s -k "$keychain_password" "$keychain"
+          # productsign does not use the codesign partition-list path reliably on
+          # headless runners. This keychain is ephemeral, so allow non-interactive
+          # access to the installer key and delete the keychain after the job.
+          security import "$signing_dir/installer.p12" -k "$keychain" -P "$CERT_PASSWORD" -A
+          security default-keychain -d user -s "$keychain"
           security list-keychains -d user -s "$keychain"
           app_identity="$(security find-identity -v "$keychain" | awk -F '"' '/Developer ID Application:/ { print $2; exit }')"
           installer_identity="$(security find-identity -v "$keychain" | awk -F '"' '/Developer ID Installer:/ { print $2; exit }')"
@@ -89,6 +92,23 @@ jobs:
           printf 'GANNYU_MACOS_SIGNING_KEYCHAIN=%s\n' "$keychain" >> "$GITHUB_ENV"
           printf 'GANNYU_MACOS_NOTARY_PROFILE=gonnyu-release\n' >> "$GITHUB_ENV"
           printf 'GANNYU_MACOS_NOTARY_KEYCHAIN=%s\n' "$keychain" >> "$GITHUB_ENV"
+      - name: Preflight installer signing and timestamp service
+        if: startsWith(github.ref, 'refs/tags/v') || inputs.release_signing
+        timeout-minutes: 3
+        shell: bash
+        run: |
+          set -euo pipefail
+          preflight="$RUNNER_TEMP/gonnyu-installer-signing-preflight"
+          mkdir -p "$preflight/root"
+          printf 'signing preflight\n' > "$preflight/root/payload.txt"
+          pkgbuild --root "$preflight/root" \
+            --identifier io.gannyu.input.signing-preflight --version 1 \
+            "$preflight/unsigned.pkg"
+          productsign --sign "$GANNYU_MACOS_INSTALLER_SIGN_IDENTITY" \
+            --keychain "$GANNYU_MACOS_SIGNING_KEYCHAIN" --timestamp \
+            "$preflight/unsigned.pkg" "$preflight/signed.pkg"
+          pkgutil --check-signature "$preflight/signed.pkg"
+          rm -rf "$preflight"
       - name: Rebuild universal librime app from locked source
         shell: bash
         env:

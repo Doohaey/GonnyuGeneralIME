@@ -1,7 +1,10 @@
 use gannyu_input_core::{Dictionary, MandarinHintBook};
 use std::fs;
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
+
+static NEXT_FIXTURE_ID: AtomicU64 = AtomicU64::new(0);
 
 const FIXTURE_DICTIONARY: &str =
     "本词\t国际音标\t方言拼音\t汉语拼音\t词汇属性\t对应官话词\t官话拼音\t词频\t同义词\t新旧标记
@@ -15,7 +18,11 @@ fn write_fixture_dictionary() -> PathBuf {
         .duration_since(UNIX_EPOCH)
         .expect("clock should be after unix epoch")
         .as_nanos();
-    let path = std::env::temp_dir().join(format!("gannyu-input-mandarin-hints-{suffix}.tsv"));
+    let fixture_id = NEXT_FIXTURE_ID.fetch_add(1, Ordering::Relaxed);
+    let path = std::env::temp_dir().join(format!(
+        "gannyu-input-mandarin-hints-{}-{suffix}-{fixture_id}.tsv",
+        std::process::id()
+    ));
     fs::write(&path, FIXTURE_DICTIONARY).expect("fixture dictionary should write");
     path
 }

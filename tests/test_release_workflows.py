@@ -45,7 +45,7 @@ def test_fcitx5_workflow_runs_an_isolated_installer_smoke_test() -> None:
 
 def test_macos_workflow_rebuilds_and_inspects_pkg() -> None:
     content = (ROOT / ".github/workflows/macos.yml").read_text(encoding="utf-8")
-    assert "runs-on: macos-26" in content
+    assert "runs-on: macos-15" in content
     assert "bash platforms/macos/build.sh" in content
     assert "GannyuMacOSSmoke --region lancong --input gau" in content
     assert "bash platforms/macos/package.sh" in content
@@ -63,8 +63,14 @@ def test_macos_workflow_rebuilds_and_inspects_pkg() -> None:
 
 
 def test_macos_installer_signing_is_non_interactive_and_observable() -> None:
+    workflow = (ROOT / ".github/workflows/macos.yml").read_text(encoding="utf-8")
     package = (ROOT / "platforms/macos/package.sh").read_text(encoding="utf-8")
 
+    assert 'security import "$signing_dir/installer.p12"' in workflow
+    assert '"$CERT_PASSWORD" -A' in workflow
+    assert "Preflight installer signing and timestamp service" in workflow
+    assert "timeout-minutes: 3" in workflow
+    assert 'pkgutil --check-signature "$preflight/signed.pkg"' in workflow
     assert 'productsign_args=(--sign "$installer_identity" --timestamp)' in package
     assert 'productsign_args+=(--keychain "$signing_keychain")' in package
     assert '"$unsigned_package" "$final_package"' in package
