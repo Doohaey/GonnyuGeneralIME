@@ -1,5 +1,5 @@
 import AppKit
-import Carbon
+import Carbon.HIToolbox
 import Foundation
 import InputMethodKit
 import GannyuMacOSSupport
@@ -63,6 +63,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             NSApp.terminate(nil)
         }
         installStatusItem()
+        DistributedNotificationCenter.default().addObserver(
+            self,
+            selector: #selector(inputSourceDidChange),
+            name: NSNotification.Name("com.apple.Carbon.TISNotifySelectedKeyboardInputSourceChanged"),
+            object: nil
+        )
+    }
+
+    @objc private func inputSourceDidChange() {
+        guard let bundleID = Bundle.main.bundleIdentifier else { return }
+        let props = [kTISPropertyInputSourceIsSelected as String: true] as CFDictionary
+        let isActive: Bool
+        if let cfList = TISCreateInputSourceList(props, false)?.takeRetainedValue() {
+            let count = CFArrayGetCount(cfList)
+            isActive = (0..<count).contains { i in
+                guard let rawPtr = CFArrayGetValueAtIndex(cfList, i) else { return false }
+                let src = Unmanaged<TISInputSource>.fromOpaque(rawPtr).takeUnretainedValue()
+                guard let bidPtr = TISGetInputSourceProperty(src, kTISPropertyBundleID) else { return false }
+                return (Unmanaged<CFString>.fromOpaque(bidPtr).takeUnretainedValue() as String) == bundleID
+            }
+        } else {
+            isActive = false
+        }
+        statusItem?.isVisible = isActive
     }
 
     private func installStatusItem() {
