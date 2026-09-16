@@ -7,10 +7,13 @@ bundle="$repo_root/build/macos/GonnyuInputMethod.app"
 output_dir="${GANNYU_MACOS_PACKAGE_OUTPUT:-$repo_root/build/macos}"
 package_id="org.doohaey.inputmethod.gonnyu.pkg"
 unsigned_test="${GANNYU_MACOS_UNSIGNED_TEST:-0}"
+skip_notarization="${GANNYU_MACOS_PACKAGE_SKIP_NOTARIZATION:-0}"
 if [[ "$unsigned_test" != "1" ]]; then
   app_identity="${GANNYU_MACOS_APP_SIGN_IDENTITY:?set GANNYU_MACOS_APP_SIGN_IDENTITY to a Developer ID Application identity}"
   installer_identity="${GANNYU_MACOS_INSTALLER_SIGN_IDENTITY:?set GANNYU_MACOS_INSTALLER_SIGN_IDENTITY to a Developer ID Installer identity}"
-  notary_profile="${GANNYU_MACOS_NOTARY_PROFILE:?set GANNYU_MACOS_NOTARY_PROFILE to a notarytool keychain profile}"
+  if [[ "$skip_notarization" != "1" ]]; then
+    notary_profile="${GANNYU_MACOS_NOTARY_PROFILE:?set GANNYU_MACOS_NOTARY_PROFILE to a notarytool keychain profile}"
+  fi
   [[ "$app_identity" == "Developer ID Application:"* ]] || { echo "GANNYU_MACOS_APP_SIGN_IDENTITY must be a Developer ID Application identity" >&2; exit 1; }
   [[ "$installer_identity" == "Developer ID Installer:"* ]] || { echo "GANNYU_MACOS_INSTALLER_SIGN_IDENTITY must be a Developer ID Installer identity" >&2; exit 1; }
 fi
@@ -42,7 +45,7 @@ pkgbuild_args=(
 )
 if [[ "$unsigned_test" != "1" ]]; then pkgbuild_args+=(--sign "$installer_identity"); fi
 pkgbuild "${pkgbuild_args[@]}" "$output_dir/GonnyuInputMethod.pkg"
-if [[ "$unsigned_test" != "1" ]]; then
+if [[ "$unsigned_test" != "1" && "$skip_notarization" != "1" ]]; then
   notary_args=(--keychain-profile "$notary_profile" --wait)
   if [[ -n "${GANNYU_MACOS_NOTARY_KEYCHAIN:-}" ]]; then
     notary_args+=(--keychain "$GANNYU_MACOS_NOTARY_KEYCHAIN")

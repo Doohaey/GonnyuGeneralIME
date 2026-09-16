@@ -19,6 +19,7 @@ permissions:
 jobs:
   build:
     runs-on: macos-26
+    timeout-minutes: 60
     env:
       CMAKE_BUILD_PARALLEL_LEVEL: "2"
     steps:
@@ -94,6 +95,7 @@ jobs:
         shell: bash
         env:
           GANNYU_MACOS_PACKAGE_SKIP_BUILD: "1"
+          GANNYU_MACOS_PACKAGE_SKIP_NOTARIZATION: "1"
           GANNYU_MACOS_UNSIGNED_TEST: ${{ !startsWith(github.ref, 'refs/tags/v') && '1' || '0' }}
         run: |
           set -euo pipefail
@@ -104,8 +106,54 @@ jobs:
           test -x build/macos/pkg-inspection/Scripts/check_installer_version.sh
           expected="$(python3 platforms/macos/installer_version.py '${{ steps.product.outputs.version }}')"
           grep -Fq "version=\"$expected\"" build/macos/pkg-inspection/PackageInfo
-      - if: startsWith(github.ref, 'refs/tags/v')
-        run: pkgutil --check-signature build/macos/GonnyuInputMethod.pkg
+      - name: Submit PKG for notarization
+        if: startsWith(github.ref, 'refs/tags/v')
+        id: notarization
+        shell: bash
+        env:
+          NOTARY_PROFILE: ${{ env.GANNYU_MACOS_NOTARY_PROFILE }}
+          NOTARY_KEYCHAIN: ${{ env.GANNYU_MACOS_NOTARY_KEYCHAIN }}
+        run: |
+          set -euo pipefail
+          response="$(xcrun notarytool submit build/macos/GonnyuInputMethod.pkg \
+            --keychain-profile "$NOTARY_PROFILE" --keychain "$NOTARY_KEYCHAIN" \
+            --output-format json)"
+          submission_id="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["id"])' <<<"$response")"
+          test -n "$submission_id"
+          echo "submission_id=$submission_id" >> "$GITHUB_OUTPUT"
+          echo "Apple notarization submission: $submission_id"
+      - name: Wait for notarization
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        env:
+          NOTARY_PROFILE: ${{ env.GANNYU_MACOS_NOTARY_PROFILE }}
+          NOTARY_KEYCHAIN: ${{ env.GANNYU_MACOS_NOTARY_KEYCHAIN }}
+          SUBMISSION_ID: ${{ steps.notarization.outputs.submission_id }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 120); do
+            response="$(xcrun notarytool info "$SUBMISSION_ID" \
+              --keychain-profile "$NOTARY_PROFILE" --keychain "$NOTARY_KEYCHAIN" \
+              --output-format json)"
+            status="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["status"])' <<<"$response")"
+            echo "Notarization status ($attempt/120): $status"
+            case "$status" in
+              Accepted) exit 0 ;;
+              Invalid|Rejected) \
+                xcrun notarytool log "$SUBMISSION_ID" --keychain-profile "$NOTARY_PROFILE" --keychain "$NOTARY_KEYCHAIN" || true
+                exit 1 ;;
+            esac
+            sleep 15
+          done
+          echo "Apple notarization did not complete within 30 minutes" >&2
+          exit 1
+      - name: Staple and verify notarized PKG
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          set -euo pipefail
+          xcrun stapler staple build/macos/GonnyuInputMethod.pkg
+          spctl --assess --type install --verbose=4 build/macos/GonnyuInputMethod.pkg
+          pkgutil --check-signature build/macos/GonnyuInputMethod.pkg
       - shell: bash
         run: mv build/macos/GonnyuInputMethod.pkg "build/macos/GonnyuGeneralIME-${{ steps.product.outputs.version }}-macos.pkg"
       - uses: actions/upload-artifact@v4
