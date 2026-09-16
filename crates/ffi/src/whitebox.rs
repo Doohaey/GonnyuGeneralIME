@@ -1,22 +1,3 @@
-//! Whitebox key derivation via a Feistel network.
-//!
-//! The master resource key is never stored as a contiguous byte string in the
-//! binary. `build.rs` computes `embedded = feistel(key)` and embeds `embedded`
-//! (masked and interleaved with garbage). At runtime, `derive_master_key()`
-//! computes `key = feistel_inverse(embedded)`.
-//!
-//! A Feistel network is *always* invertible regardless of the round function,
-//! so the round function can be a strong non-linear S-box mix without needing
-//! to invert it. Recovering the key statically requires an attacker to:
-//!   1. Locate the embedded seed (interleaved + XOR-masked, not contiguous).
-//!   2. Locate the S-box and permutation constants (also interleaved).
-//!   3. Reverse the Feistel rounds to recover the key.
-//!
-//! This is substantially harder than the previous single-XOR-mask scheme and
-//! is intended to push a casual cracker past the 24h mark. It is still not a
-//! hard security boundary — a determined reverse engineer can always recover a
-//! key that must exist in the binary.
-
 struct Tables {
     sbox: [u8; 256],
     perm: [u8; 32],
@@ -26,7 +7,6 @@ struct Tables {
 
 static TABLES: std::sync::OnceLock<Tables> = std::sync::OnceLock::new();
 
-/// Number of Feistel rounds.
 const ROUNDS: usize = 10;
 
 /// Initialize the SPN tables from the build-time constants. Called once.

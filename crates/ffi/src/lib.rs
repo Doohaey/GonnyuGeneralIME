@@ -623,8 +623,6 @@ unsafe fn pipeline_create(
     }
     *out_handle = ptr::null_mut();
 
-    // Anti-debug / anti-Frida: refuse to deploy resources when a debugger or
-    // tracer is attached. This blocks the easiest dynamic-analysis shortcuts.
     if antidebug::debugger_present() {
         set_last_error("debugger or tracer detected");
         return STATUS_LOAD_FAILURE;

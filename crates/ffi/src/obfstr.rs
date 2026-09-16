@@ -1,29 +1,7 @@
-//! Compile-time string obfuscation.
-//!
-//! Sensitive string literals (magic headers, resource paths, error messages)
-//! are XOR-encoded at compile time so they do not appear as plaintext in the
-//! binary. `strings`/static scans will not find them. The decoded value is
-//! produced at runtime on first use.
-//!
-//! This is an anti-forensics measure that raises the cost of casual extraction;
-//! it is not a security boundary.
-//!
-//! IMPORTANT: the decode MUST happen at runtime (not in a `const`), otherwise
-//! the optimizer constant-folds the XOR and emits the plaintext directly into
-//! the binary, defeating the obfuscation. The encoded bytes are stored in a
-//! `static` and decoded into a runtime buffer.
-
-/// XOR-encode a string literal at compile time and decode it at runtime.
-///
-/// Usage: `obfstr!("manifest.toml")` yields a `&'static str`.
-///
-/// The decoded value is cached in a `OnceLock` so the plaintext is produced at
-/// runtime (not constant-folded into the binary) and only once.
 macro_rules! obfstr {
     ($s:expr) => {{
         const KEY: u8 = 0x5c;
         const LEN: usize = $s.len();
-        // Encoded bytes stored as a static — this is what appears in the binary.
         static ENC: [u8; LEN] = {
             let bytes = $s.as_bytes();
             let mut out = [0u8; LEN];

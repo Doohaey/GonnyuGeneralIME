@@ -1,25 +1,3 @@
-// build.rs — Encrypts resources/ and embeds them as Rust constants for the FFI crate.
-// At compile time: walks resources/, encrypts each file with XChaCha20-Poly1305,
-// and generates embedded_resources.rs in OUT_DIR.
-//
-// Output format per file: magic "GNYE"(4) + 种子(24) + 密文
-//
-// Key management (whitebox):
-//   * The 32-byte key is NOT hardcoded in this repository. It is supplied at
-//     build time via the GANNYU_RESOURCE_KEY environment variable (64 hex chars).
-//     CI injects it from GitHub Secrets; local/dev builds fall back to a random
-//     per-build key.
-//   * The key is never embedded directly. Instead, a per-build S-box and byte
-//     permutation are generated, and the key is run through a Feistel network
-//     to produce an "embedded seed". Only the seed (XOR-masked and interleaved
-//     with garbage) plus the S-box/permutation constants are embedded.
-//   * At runtime, `whitebox::derive_master_key()` inverts the Feistel to
-//     recover the key. Recovering it statically requires locating the
-//     interleaved constants and reversing the Feistel rounds.
-//   * This layer raises the cost of extracting the dictionary resources; it is
-//     NOT a hard security boundary — a determined attacker can still recover
-//     the key from the binary at runtime.
-
 use chacha20poly1305::aead::{Aead, KeyInit, OsRng};
 use chacha20poly1305::{XChaCha20Poly1305, XNonce};
 use hmac::{Hmac, Mac};
@@ -132,13 +110,6 @@ fn feistel_forward(block: &mut [u8; 32], sbox: &[u8; 256], perm: &[u8; 32]) {
     }
 }
 
-/// Interleave a byte array with garbage at odd indices.
-///
-/// The garbage byte is derived from the real byte via a per-fragment affine
-/// transform `b * mult + add` (mod 256). Varying `mult`/`add` per fragment
-/// defeats a uniform signature scan (previously every odd byte satisfied
-/// `odd = even*0x9e + 0x37`, which let an attacker locate the whole blob in
-/// one pass).
 fn interleave(data: &[u8], mult: u8, add: u8) -> Vec<u8> {
     let mut out = Vec::with_capacity(data.len() * 2);
     for &b in data {
@@ -292,22 +263,6 @@ fn main() {
         masked_seed[i] = embedded[i] ^ 掩码[i];
     }
 
-    // Generate scattered whitebox fragments.
-    //
-    // Previously the whole set of constants was emitted as one contiguous
-    // 704-byte blob (`spn_tables.bin`) with a uniform garbage signature, which
-    // let an attacker locate it in a single pass and reverse the Feistel to
-    // recover the key. Now the logical blob is split into several fragments,
-    // each written as its own `.bin` and included via a separate
-    // `include_bytes!`, so they land in different `.rodata` locations rather
-    // than one contiguous run. Each fragment additionally has its own XOR mask
-    // and its own garbage affine params, defeating both the contiguous-blob
-    // scan and the uniform-signature scan.
-    //
-    // Logical (de-interleaved) layout:
-    //   [sbox(256)][perm(32)][masked_seed(32)][mask(32)]  = 352 real bytes
-    // Each real byte is interleaved with a garbage byte, so the on-disk size
-    // is 704 bytes total across all fragments.
     let mut logical = Vec::with_capacity(256 + 32 + 32 + 32);
     logical.extend_from_slice(&sbox);
     logical.extend_from_slice(&perm);
@@ -387,13 +342,6 @@ fn main() {
     integrity_code.push_str("];\n");
     fs::write(out_dir.join("integrity.rs"), integrity_code).unwrap();
 
-    // Build the Rust source code as a match function.
-    //
-    // Resource paths are XOR-obfuscated at build time so they do not appear as
-    // contiguous plaintext strings in the binary. A per-build XOR key is
-    // embedded (itself obfuscated); at runtime the paths are decoded once and
-    // cached. This prevents `strings`/static scans from trivially listing the
-    // embedded resource layout.
     let mut code = String::new();
     code.push_str("#[allow(clippy::all)]\n");
 
