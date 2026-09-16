@@ -285,7 +285,7 @@
 			baseConfigurationReference = A0000000000000000000001A /* Config/Signing.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = GannyuInput/GannyuInput.entitlements;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				INFOPLIST_FILE = GannyuInput/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MARKETING_VERSION = 0.2.4;
@@ -310,7 +310,7 @@
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_ENTITLEMENTS = GannyuKeyboard/GannyuKeyboard.entitlements;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				INFOPLIST_FILE = GannyuKeyboard/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MARKETING_VERSION = 0.2.4;
