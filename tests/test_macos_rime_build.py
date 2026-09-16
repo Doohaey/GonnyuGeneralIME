@@ -15,6 +15,9 @@ def test_macos_rime_build_uses_pinned_mobile_engine_sources() -> None:
     assert 'RIME_DEPENDENCY_LIBRARIES=' in script
     assert 'libgannyu_rime_engine.a' in script
     assert 'lipo "$library" -verify_arch "$architecture"' in script
+    assert 'run_with_heartbeat()' in script
+    assert 'still running: $label' in script
+    assert 'run_with_heartbeat "librime build"' in script
 
 
 def test_rime_adapter_propagates_static_librime_dependencies() -> None:

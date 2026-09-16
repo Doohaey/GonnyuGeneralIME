@@ -61,11 +61,31 @@ common_cmake=(
 rm -rf "$build_root"
 mkdir -p "$build_root"
 
+run_with_heartbeat() {
+  local label="$1"
+  shift
+  local pid
+
+  echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] starting: $label"
+  "$@" &
+  pid=$!
+  while kill -0 "$pid" 2>/dev/null; do
+    sleep 60
+    if kill -0 "$pid" 2>/dev/null; then
+      echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] still running: $label (pid $pid)"
+    fi
+  done
+  wait "$pid"
+  echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] completed: $label"
+}
+
 build_dependency() {
   local name="$1"
   shift
-  cmake -S "$librime_root/deps/$name" -B "$build_root/deps/$name" "${common_cmake[@]}" "$@"
-  cmake --build "$build_root/deps/$name" --target install
+  run_with_heartbeat "$name configure" \
+    cmake -S "$librime_root/deps/$name" -B "$build_root/deps/$name" "${common_cmake[@]}" "$@"
+  run_with_heartbeat "$name build" \
+    cmake --build "$build_root/deps/$name" --target install
 }
 
 build_dependency glog -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTING=OFF -DWITH_GFLAGS=OFF
@@ -77,7 +97,8 @@ build_dependency yaml-cpp -DBUILD_SHARED_LIBS=OFF -DYAML_CPP_BUILD_CONTRIB=OFF -
 boost_build="$build_root/boost-regex"
 cmake -S "$mobile_dir/boost_regex" -B "$boost_build" "${common_cmake[@]}" \
   -DGANNYU_BOOST_ROOT="$boost_include"
-cmake --build "$boost_build" --target install
+run_with_heartbeat "boost-regex build" \
+  cmake --build "$boost_build" --target install
 boost_regex_library="$prefix/lib/libboost_regex.a"
 [[ -f "$boost_regex_library" ]] || { echo "Boost.Regex was not built: $boost_regex_library" >&2; exit 2; }
 
@@ -101,8 +122,8 @@ env RIME_PLUGINS="librime-lua" cmake -S "$librime_root" -B "$build_root/librime"
   -DLevelDb_INCLUDE_PATH="$prefix/include" -DLevelDb_LIBRARY="$prefix/lib/libleveldb.a" \
   -DMarisa_INCLUDE_PATH="$prefix/include" -DMarisa_LIBRARY="$prefix/lib/libmarisa.a" \
   -DOpencc_INCLUDE_PATH="$prefix/include" -DOpencc_LIBRARY="$prefix/lib/libopencc.a"
-cmake --build "$build_root/librime"
-cmake --install "$build_root/librime"
+run_with_heartbeat "librime build" cmake --build "$build_root/librime"
+run_with_heartbeat "librime install" cmake --install "$build_root/librime"
 
 cmake -S "$repo_root/engines/rime" -B "$build_root/adapter" "${common_cmake[@]}" \
   -DCMAKE_PREFIX_PATH="$prefix" \
@@ -110,7 +131,7 @@ cmake -S "$repo_root/engines/rime" -B "$build_root/adapter" "${common_cmake[@]}"
   -DRIME_LIBRARY="$prefix/lib/librime.a" \
   -DRIME_DEPENDENCY_LIBRARIES="$prefix/lib/libleveldb.a;$prefix/lib/libmarisa.a;$prefix/lib/libopencc.a;$prefix/lib/libyaml-cpp.a;$prefix/lib/libglog.a;$prefix/lib/libboost_regex.a" \
   -DGANNYU_RIME_BUILD_PROBES=ON
-cmake --build "$build_root/adapter"
+run_with_heartbeat "Gannyu Rime adapter build" cmake --build "$build_root/adapter"
 
 for library in "$build_root/adapter/libgannyu_rime_engine.a" "$prefix/lib/librime.a"; do
   [[ -f "$library" ]] || { echo "missing macOS Rime artifact: $library" >&2; exit 2; }
