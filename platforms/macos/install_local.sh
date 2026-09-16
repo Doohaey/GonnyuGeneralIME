@@ -53,12 +53,29 @@ fi
 GANNYU_REGISTER_INPUT_SOURCE=1 GANNYU_IMK_SELFTEST=1 \
   "$target_bundle/Contents/MacOS/GannyuInputMethodHost"
 bundle_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$target_bundle/Contents/Info.plist")"
-mode_id="$bundle_id.Gan"
+source_id="$bundle_id.Gan"
+# Earlier bundles exposed a child ".Gan" mode in addition to the primary
+# source. Remove only that obsolete enabled entry before enabling the single
+# source declared by the current bundle.
+preferences_dir="$(mktemp -d "${TMPDIR:-/private/tmp}/gonnyu-input-sources.XXXXXX")"
+preferences_plist="$preferences_dir/HIToolbox.plist"
+defaults export com.apple.HIToolbox "$preferences_plist" >/dev/null
+for array_key in AppleEnabledInputSources AppleSelectedInputSources AppleInputSourceHistory; do
+  for ((index = 99; index >= 0; index--)); do
+    entry_bundle="$(/usr/libexec/PlistBuddy -c "Print :$array_key:$index:'Bundle ID'" "$preferences_plist" 2>/dev/null || true)"
+    entry_mode="$(/usr/libexec/PlistBuddy -c "Print :$array_key:$index:'Input Mode'" "$preferences_plist" 2>/dev/null || true)"
+    if [[ "$entry_bundle" == "$bundle_id" && ( "$entry_mode" == "$bundle_id.Gan" || -z "$entry_mode" ) ]]; then
+      /usr/libexec/PlistBuddy -c "Delete :$array_key:$index" "$preferences_plist"
+    fi
+  done
+done
+defaults import com.apple.HIToolbox "$preferences_plist"
+rm -rf "$preferences_dir"
 if ! defaults export com.apple.HIToolbox - \
   | plutil -extract AppleEnabledInputSources xml1 -o - - \
-  | grep -Fq "<string>$mode_id</string>"; then
+  | grep -Fq "<string>$source_id</string>"; then
   defaults write com.apple.HIToolbox AppleEnabledInputSources -array-add \
-    "<dict><key>Bundle ID</key><string>$bundle_id</string><key>Input Mode</key><string>$mode_id</string><key>InputSourceKind</key><string>Input Mode</string></dict>"
+    "<dict><key>Bundle ID</key><string>$bundle_id</string><key>Input Mode</key><string>$source_id</string><key>InputSourceKind</key><string>Input Mode</string></dict>"
 fi
 trap - ERR
 if [[ -d "$backup_bundle" ]]; then rm -rf "$backup_bundle"; fi

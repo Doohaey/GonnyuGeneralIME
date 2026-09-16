@@ -603,11 +603,11 @@ final class KeyboardViewController: UIInputViewController {
         let button = UIButton(type: .system)
         var configuration = UIButton.Configuration.plain()
         configuration.baseForegroundColor = fixedTextColor
-        configuration.contentInsets = NSDirectionalEdgeInsets(top: 1, leading: 5, bottom: 1, trailing: 5)
+        configuration.contentInsets = NSDirectionalEdgeInsets(top: 1, leading: 5, bottom: expanded ? 2 : 1, trailing: 5)
         configuration.title = candidate.text
-        configuration.subtitle = candidate.annotation.isEmpty ? candidate.reading : candidate.annotation
+        configuration.subtitle = candidateSubtitle(candidate, expanded: expanded)
         configuration.titleLineBreakMode = .byClipping
-        configuration.subtitleLineBreakMode = .byClipping
+        configuration.subtitleLineBreakMode = expanded ? .byCharWrapping : .byClipping
         configuration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer {
             var attributes = $0
             attributes.font = .systemFont(ofSize: 16, weight: .regular)
@@ -635,11 +635,29 @@ final class KeyboardViewController: UIInputViewController {
         return button
     }
 
-    private func candidateWidth(_ candidate: GonnyuAppleCandidate, maximum: CGFloat) -> CGFloat {
+    private func candidateSubtitle(_ candidate: GonnyuAppleCandidate, expanded: Bool) -> String {
         let subtitle = candidate.annotation.isEmpty ? candidate.reading ?? "" : candidate.annotation
+        return expanded ? subtitle.replacingOccurrences(of: " / ", with: "/\n") : subtitle
+    }
+
+    private func candidateWidth(_ candidate: GonnyuAppleCandidate) -> CGFloat {
         let titleWidth = (candidate.text as NSString).size(withAttributes: [.font: UIFont.systemFont(ofSize: 16)]).width
-        let subtitleWidth = (subtitle as NSString).size(withAttributes: [.font: UIFont.systemFont(ofSize: 10)]).width
-        return max(44, max(titleWidth, subtitleWidth) + 10)
+        return max(44, titleWidth + 10)
+    }
+
+    private func candidateHeight(_ candidate: GonnyuAppleCandidate, width: CGFloat) -> CGFloat {
+        let subtitle = candidateSubtitle(candidate, expanded: true)
+        guard !subtitle.isEmpty else { return 37 }
+        let subtitleFont = UIFont.systemFont(ofSize: 10)
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.lineBreakMode = .byCharWrapping
+        let subtitleHeight = (subtitle as NSString).boundingRect(
+            with: CGSize(width: max(1, width - 10), height: .greatestFiniteMagnitude),
+            options: [.usesLineFragmentOrigin, .usesFontLeading],
+            attributes: [.font: subtitleFont, .paragraphStyle: paragraph],
+            context: nil
+        ).height
+        return max(37, ceil(UIFont.systemFont(ofSize: 16).lineHeight + subtitleHeight + 6))
     }
 
     private func renderExpandedCandidates() {
@@ -660,7 +678,7 @@ final class KeyboardViewController: UIInputViewController {
         var row = makeExpandedCandidateRow()
         var usedWidth: CGFloat = 0
         for candidate in expandedCandidates {
-            let width = candidateWidth(candidate, maximum: available)
+            let width = candidateWidth(candidate)
             if usedWidth > 0 && usedWidth + 3 + width > available {
                 candidateExpandedStack.addArrangedSubview(row)
                 row = makeExpandedCandidateRow()
@@ -668,6 +686,7 @@ final class KeyboardViewController: UIInputViewController {
             }
             let button = makeCandidateButton(candidate, expanded: true)
             button.widthAnchor.constraint(equalToConstant: width).isActive = true
+            button.heightAnchor.constraint(equalToConstant: candidateHeight(candidate, width: width)).isActive = true
             row.addArrangedSubview(button)
             usedWidth += (usedWidth == 0 ? 0 : 3) + width
         }

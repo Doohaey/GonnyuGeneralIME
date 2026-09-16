@@ -12,8 +12,15 @@ final class GannyuInputController: IMKInputController {
     private var shiftOnlyPress = false
     private var selectedLine = 0
     private var candidateWindow: IMKCandidates?
+    private let candidatePanel = GannyuCandidatePanel()
     private let pageHint = GannyuPageHint()
     private let modeHint = GannyuModeHint()
+    // A client is not required to provide a caret rectangle while no text is
+    // marked.  Keep only a coordinate that the client previously validated,
+    // rather than asking IMKCandidates to draw a one-item "candidate".
+    private var lastCandidateAnchor: NSRect?
+    private var candidatePresentationGeneration = 0
+    private let fullwidthPunctuationKey = "org.doohaey.gonnyu.fullwidthPunctuation"
     private let log = Logger(subsystem: "org.doohaey.inputmethod.gonnyu.native", category: "input")
 
     override init!(server: IMKServer!, delegate: Any!, client inputClient: Any!) {
@@ -30,7 +37,21 @@ final class GannyuInputController: IMKInputController {
                 kVK_ANSI_6, kVK_ANSI_7, kVK_ANSI_8, kVK_ANSI_9,
             ].map { NSNumber(value: $0) })
             window?.setDismissesAutomatically(false)
+            // IMKCandidates is used only to obtain Apple's candidate location
+            // when a client does not expose firstRectForCharacterRange.
+            window?.setAttributes([
+                IMKCandidatesOpacityAttributeName: NSNumber(value: 0),
+                IMKCandidatesSendServerKeyEventFirst: NSNumber(value: true),
+            ])
             candidateWindow = window
+        }
+        candidatePanel.onSelect = { [weak self] index in
+            guard let self else { return }
+            _ = self.select(index, client: self.client())
+        }
+        candidatePanel.onPage = { [weak self] direction in
+            guard let self else { return }
+            _ = self.page(direction, client: self.client())
         }
         pageHint.onPage = { [weak self] direction in
             guard let self else { return }
@@ -78,26 +99,28 @@ final class GannyuInputController: IMKInputController {
         // A following key means this was a modifier chord, not a standalone
         // Shift language toggle.
         shiftOnlyPress = false
+        let arrowKey = event.keyCode == kVK_UpArrow || event.keyCode == kVK_DownArrow
         if modifiers.contains(.command) || modifiers.contains(.control)
-            || modifiers.contains(.function) || modifiers.contains(.option) { return false }
+            || modifiers.contains(.option) || (modifiers.contains(.function) && !arrowKey) { return false }
 
         let active = !(snapshot?.rawInput.isEmpty ?? true)
         switch Int(event.keyCode) {
+        case kVK_Space where modifiers.contains(.shift) && !active && snapshot?.asciiMode != true:
+            setFullwidthPunctuation(!fullwidthPunctuation, client: sender)
+            return true
         case kVK_Delete, kVK_ForwardDelete:
             return active ? process(.backspace, client: sender) : false
         case kVK_Escape:
             if active { clear(client: sender); return true }
             return false
         case kVK_Return, kVK_ANSI_KeypadEnter:
-            // IMKCandidates owns Enter once its panel is visible. Returning
-            // false lets it emit candidateSelected with the native highlight.
-            return false
+            return active ? selectHighlighted(client: sender) : false
         case kVK_Tab:
-            return false
+            return active ? selectHighlighted(client: sender) : false
         case kVK_UpArrow:
-            return false
+            return active ? moveSelection(-1, client: sender) : false
         case kVK_DownArrow:
-            return false
+            return active ? moveSelection(1, client: sender) : false
         // Keep paging on the two physical punctuation keys, regardless of
         // whether Shift produces < / > on the active keyboard layout.
         case kVK_ANSI_Comma:
@@ -107,9 +130,9 @@ final class GannyuInputController: IMKInputController {
         default:
             break
         }
-        // Number keys are selection keys registered on IMKCandidates. Do not
-        // consume them here: the native panel paints 1–9 and dispatches the
-        // selected attributed string through candidateSelected(_:).
+        if active, let line = candidateLineNumber(event.keyCode) {
+            return selectLine(line, client: sender)
+        }
         let characters = event.characters?.isEmpty == false
             ? event.characters
             : event.charactersIgnoringModifiers
@@ -129,6 +152,9 @@ final class GannyuInputController: IMKInputController {
     @objc(didCommandBySelector:client:)
     override func didCommand(by selector: Selector!, client sender: Any!) -> Bool {
         guard let selector else { return false }
+        if diagnosticsEnabled {
+            log.notice("IMK command received selector=\(NSStringFromSelector(selector), privacy: .public)")
+        }
         let active = !(snapshot?.rawInput.isEmpty ?? true)
         switch NSStringFromSelector(selector) {
         case "deleteBackward:":
@@ -140,6 +166,10 @@ final class GannyuInputController: IMKInputController {
             return active ? process(.enter, client: sender) : false
         case "insertTab:":
             return active ? selectHighlighted(client: sender) : false
+        case "moveUp:":
+            return active ? moveSelection(-1, client: sender) : false
+        case "moveDown:":
+            return active ? moveSelection(1, client: sender) : false
         default:
             return false
         }
@@ -208,6 +238,11 @@ final class GannyuInputController: IMKInputController {
             client.insertText(text, replacementRange: NSRange(location: NSNotFound, length: 0))
             return true
         }
+        if !active, fullwidthPunctuation, let symbol = fullwidthSymbol(for: text) {
+            guard let client = sender as? IMKTextInput else { return false }
+            client.insertText(symbol, replacementRange: NSRange(location: NSNotFound, length: 0))
+            return true
+        }
         if active && (text == "," || text == "<") { return page(-1, client: sender) }
         if active && (text == "." || text == ">") { return page(1, client: sender) }
         if text == " " { return active ? process(.space, client: sender) : false }
@@ -215,6 +250,40 @@ final class GannyuInputController: IMKInputController {
             return selectLine(line - 1, client: sender)
         }
         return process(.text(text), client: sender)
+    }
+
+    private var fullwidthPunctuation: Bool {
+        let defaults = UserDefaults.standard
+        guard defaults.object(forKey: fullwidthPunctuationKey) != nil else { return true }
+        return defaults.bool(forKey: fullwidthPunctuationKey)
+    }
+
+    private func setFullwidthPunctuation(_ enabled: Bool, client sender: Any!) {
+        UserDefaults.standard.set(enabled, forKey: fullwidthPunctuationKey)
+        showModeHint(title: enabled ? "全" : "半", client: sender)
+    }
+
+    private func fullwidthSymbol(for text: String) -> String? {
+        guard text.count == 1 else { return nil }
+        switch text {
+        case ",": return "，"
+        case ".": return "。"
+        case "\\": return "、"
+        case ";": return "；"
+        case ":": return "："
+        case "?": return "？"
+        case "!": return "！"
+        case "(": return "（"
+        case ")": return "）"
+        case "[": return "【"
+        case "]": return "】"
+        case "<": return "《"
+        case ">": return "》"
+        case "\"": return "＂"
+        case "~": return "～"
+        case "-": return "－"
+        default: return nil
+        }
     }
 
     private func process(_ event: GannyuKeyEvent, client sender: Any!) -> Bool {
@@ -281,15 +350,24 @@ final class GannyuInputController: IMKInputController {
         if !(snapshot?.rawInput.isEmpty ?? true) { clear(client: sender) }
         guard let result = try? engine.setASCIIMode(!(snapshot?.asciiMode ?? false)) else { return false }
         render(result, client: sender)
-        guard let client = sender as? IMKTextInput, let rect = caretRect(for: client) else {
-            // Never leave a panel at its initial (0, 0) origin. Some clients
-            // cannot provide firstRectForCharacterRange; in that case there
-            // is no trustworthy screen coordinate for a cursor-adjacent hint.
-            modeHint.hide()
-            return true
-        }
-        modeHint.show(title: result.asciiMode ? "英" : "赣", near: rect)
+        showModeHint(title: result.asciiMode ? "英" : "赣", client: sender)
         return true
+    }
+
+    private func showModeHint(title: String, client sender: Any!) {
+        if let client = sender as? IMKTextInput, let rect = caretRect(for: client) {
+            lastCandidateAnchor = rect
+            modeHint.show(title: title, near: rect)
+            return
+        }
+        guard let anchor = lastCandidateAnchor else {
+            // There is no public InputMethodKit API that can supply a text
+            // cursor location when the client declines firstRectForCharacterRange.
+            // Do not display a detached or native candidate-shaped substitute.
+            modeHint.hide()
+            return
+        }
+        modeHint.show(title: title, near: anchor)
     }
 
     private func selectHighlighted(client sender: Any!) -> Bool {
@@ -327,6 +405,9 @@ final class GannyuInputController: IMKInputController {
             snapshot = nil
             displays = []
             candidateWindow?.hide()
+            candidatePanel.hide()
+            pageHint.hide()
+            modeHint.hide()
             if let client = sender as? IMKTextInput { clearMarkedText(on: client) }
         }
     }
@@ -344,6 +425,7 @@ final class GannyuInputController: IMKInputController {
             selectedLine = 0
             clearMarkedText(on: client)
             candidateWindow?.hide()
+            candidatePanel.hide()
             pageHint.hide()
             modeHint.hide()
             displays = []
@@ -361,20 +443,72 @@ final class GannyuInputController: IMKInputController {
     }
 
     private func presentCandidates() {
-        let candidates = snapshot?.candidates.sorted(by: { $0.pageIndex < $1.pageIndex }) ?? []
-        displays = candidates.enumerated().map { display(for: $0.element, selected: $0.offset == selectedLine) }
-        guard !displays.isEmpty else { candidateWindow?.hide(); return }
+        modeHint.hide()
+        guard let state = snapshot else { return }
+        let candidates = state.candidates.sorted(by: { $0.pageIndex < $1.pageIndex })
+        displays = candidates.enumerated().map { display(for: $0.element, line: $0.offset, selected: $0.offset == selectedLine) }
+        guard !displays.isEmpty else {
+            candidateWindow?.hide()
+            candidatePanel.hide()
+            pageHint.hide()
+            return
+        }
+        if let client = client(), let anchor = caretRect(for: client) {
+            lastCandidateAnchor = anchor
+            candidateWindow?.hide()
+            pageHint.hide()
+            candidatePanel.present(state, selectedLine: selectedLine, anchor: anchor)
+            return
+        }
+        candidatePanel.hide()
+        candidatePresentationGeneration += 1
+        let generation = candidatePresentationGeneration
         candidateWindow?.setCandidateData(displays)
-        // Swift imports Objective-C updateCandidates as update().
+        // update() calls candidates(_:), which returns the same displays
+        // array. The locator is transparent by documented API contract.
+        candidateWindow?.setAttributes([
+            IMKCandidatesOpacityAttributeName: NSNumber(value: 0),
+            IMKCandidatesSendServerKeyEventFirst: NSNumber(value: true),
+        ])
         candidateWindow?.update()
         candidateWindow?.show(kIMKLocateCandidatesBelowHint)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
-            guard let self, let frame = self.candidateWindow?.candidateFrame(),
-                  frame != .zero, frame.width > 0, frame.height > 0 else {
-                self?.pageHint.hide()
+        // IMK can return a correctly-sized but stale (0,0) frame for several
+        // run-loop turns. Keep that frame only as a baseline; it is never a
+        // usable anchor until IMK reports a non-origin position.
+        resolveLocatorFrame(generation: generation, attemptsRemaining: 15, baselineFrame: nil)
+    }
+
+    private func resolveLocatorFrame(generation: Int, attemptsRemaining: Int, baselineFrame: NSRect?) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.02) { [weak self] in
+            guard let self, self.candidatePresentationGeneration == generation else { return }
+            let frame = self.candidateWindow?.candidateFrame().standardized ?? .zero
+            let valid = frame.width > 0 && frame.height > 0 && frame.intersectsAnyScreen
+            // IMK reports a valid-sized (0, 0) frame before it has applied the
+            // client's location hint. Never use that initial frame.
+            let hasRealOrigin = frame.minX > 1 || frame.minY > 1
+            let moved = hasRealOrigin && (baselineFrame == nil || frame != baselineFrame)
+            if valid && moved {
+                self.candidateWindow?.hide()
+                self.lastCandidateAnchor = frame
+                self.pageHint.hide()
+                if let state = self.snapshot, !state.candidates.isEmpty {
+                    self.candidatePanel.present(state, selectedLine: self.selectedLine, replacing: frame)
+                } else {
+                    self.candidatePanel.hide()
+                }
                 return
             }
-            self.pageHint.show(near: frame)
+            guard attemptsRemaining > 0 else {
+                self.candidateWindow?.hide()
+                self.candidatePanel.hide()
+                self.pageHint.hide()
+                return
+            }
+            self.resolveLocatorFrame(
+                generation: generation,
+                attemptsRemaining: attemptsRemaining - 1,
+                baselineFrame: baselineFrame ?? (valid ? frame : nil)
+            )
         }
     }
 
@@ -397,11 +531,11 @@ final class GannyuInputController: IMKInputController {
         return zip(candidates, displays).first(where: { $0.1.string == display.string })?.0.globalIndex
     }
 
-    private func display(for candidate: GannyuCandidate, selected: Bool) -> NSAttributedString {
+    private func display(for candidate: GannyuCandidate, line: Int, selected: Bool) -> NSAttributedString {
         let primaryColor = selected ? NSColor.alternateSelectedControlTextColor : NSColor.labelColor
         let secondaryColor = selected ? NSColor.alternateSelectedControlTextColor.withAlphaComponent(0.85) : NSColor.secondaryLabelColor
         let display = NSMutableAttributedString(
-            string: candidate.text,
+            string: "\(line + 1). \(candidate.text)",
             attributes: [.font: NSFont.systemFont(ofSize: 18), .foregroundColor: primaryColor]
         )
         if !candidate.annotation.isEmpty {
@@ -425,7 +559,7 @@ final class GannyuInputController: IMKInputController {
                 log.notice("IMK caret range=\(range.location, privacy: .public):\(range.length, privacy: .public) actual=\(actualRange.location, privacy: .public):\(actualRange.length, privacy: .public) rect=\(rect.origin.x, privacy: .public),\(rect.origin.y, privacy: .public),\(rect.width, privacy: .public),\(rect.height, privacy: .public)")
             }
             guard rect.origin.x.isFinite, rect.origin.y.isFinite,
-                  rect.width > 0, rect.height > 0,
+                  rect.width >= 0, rect.height > 0,
                   rect.intersectsAnyScreen else { continue }
             return rect
         }
@@ -475,7 +609,7 @@ private final class GannyuPageHint: NSPanel {
         super.init(contentRect: NSRect(x: 0, y: 0, width: 58, height: 24), styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
         isOpaque = false
         backgroundColor = .clear
-        level = .statusBar
+        level = .popUpMenu
         hasShadow = true
         let stack = NSStackView(views: [previous, next])
         stack.spacing = 1
@@ -493,8 +627,10 @@ private final class GannyuPageHint: NSPanel {
         contentView = stack
     }
 
-    func show(near frame: NSRect) {
-        setFrameOrigin(NSPoint(x: frame.maxX - 62, y: frame.minY + 3))
+    func show(near frame: NSRect, hasPreviousPage: Bool, hasNextPage: Bool) {
+        previous.isEnabled = hasPreviousPage
+        next.isEnabled = hasNextPage
+        setFrameOrigin(NSPoint(x: frame.maxX - 62, y: frame.minY - 27))
         orderFrontRegardless()
     }
 
@@ -505,12 +641,13 @@ private final class GannyuPageHint: NSPanel {
 
 private final class GannyuModeHint: NSPanel {
     private let label = NSTextField(labelWithString: "赣")
+    private var generation = 0
 
     init() {
         super.init(contentRect: NSRect(x: 0, y: 0, width: 30, height: 26), styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
         isOpaque = false
         backgroundColor = .clear
-        level = .statusBar
+        level = .popUpMenu
         hasShadow = true
         label.alignment = .center
         label.font = .systemFont(ofSize: 14, weight: .bold)
@@ -518,14 +655,28 @@ private final class GannyuModeHint: NSPanel {
         label.wantsLayer = true
         label.layer?.backgroundColor = NSColor.controlAccentColor.cgColor
         label.layer?.cornerRadius = 6
-        contentView = label
+        label.translatesAutoresizingMaskIntoConstraints = false
+        let content = NSView(frame: NSRect(x: 0, y: 0, width: 30, height: 26))
+        content.addSubview(label)
+        NSLayoutConstraint.activate([
+            label.leadingAnchor.constraint(equalTo: content.leadingAnchor),
+            label.trailingAnchor.constraint(equalTo: content.trailingAnchor),
+            label.topAnchor.constraint(equalTo: content.topAnchor),
+            label.bottomAnchor.constraint(equalTo: content.bottomAnchor),
+        ])
+        contentView = content
     }
 
     func show(title: String, near rect: NSRect) {
+        generation += 1
+        let currentGeneration = generation
         label.stringValue = title
         setFrameOrigin(NSPoint(x: rect.maxX + 6, y: rect.minY))
         orderFrontRegardless()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in self?.hide() }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in
+            guard let self, self.generation == currentGeneration else { return }
+            self.hide()
+        }
     }
 
     func hide() { orderOut(nil) }

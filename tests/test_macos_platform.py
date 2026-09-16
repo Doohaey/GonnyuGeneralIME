@@ -33,8 +33,9 @@ def test_macos_platform_exposes_build_and_smoke_entrypoints() -> None:
     assert 'trap \'rm -rf "$staging_dir"\' EXIT' in install_script
     assert 'lsregister" -u "$bundle"' in install_script
     assert 'lsregister" -f "$target_bundle"' in install_script
-    assert 'mode_id="$bundle_id.Gan"' in install_script
-    assert "<string>$mode_id</string>" in install_script
+    assert 'source_id="$bundle_id.Gan"' in install_script
+    assert 'InputSourceKind</key><string>Input Mode</string>' in install_script
+    assert 'entry_mode" == "$bundle_id.Gan"' in install_script
 
 
 def test_macos_package_declares_host_and_smoke_targets() -> None:
@@ -55,10 +56,8 @@ def test_macos_package_declares_host_and_smoke_targets() -> None:
     assert "Gonnyu 赣语键盘" in plist
     assert "Gonny.icns" in plist
     assert "TISIconIsTemplate" in plist
-    assert "tsInputModeDisplayNameKey" in plist
     assert "tsInputMethodIconFileKey" in plist
-    assert "tsInputModeMenuIconFileKey" in plist
-    assert "tsInputModePaletteIconFileKey" in plist
+    assert "ComponentInputModeDict" in plist
     assert 'icon_resource="$repo_root/resources/icon.png"' in (
         ROOT / "platforms/macos/build.sh"
     ).read_text(encoding="utf-8")
@@ -70,7 +69,7 @@ def test_macos_package_declares_host_and_smoke_targets() -> None:
     assert (ROOT / "platforms/macos/Resources/zh-Hans.lproj/InfoPlist.strings").is_file()
 
 
-def test_macos_uses_native_candidate_panel() -> None:
+def test_macos_uses_custom_candidates_with_native_positioning_fallback() -> None:
     panel = (
         ROOT / "platforms/macos/Sources/GannyuInputMethodHost/GannyuCandidatePanel.swift"
     ).read_text(encoding="utf-8")
@@ -87,15 +86,33 @@ def test_macos_uses_native_candidate_panel() -> None:
     assert "moveSelection" in controller
     assert "setSelectionKeys" in controller
     assert "candidate.text" in controller
-    assert "updateCandidates" in controller
-    assert "IMKCandidates owns Enter" in controller
+    assert "IMKCandidatesOpacityAttributeName" in controller
+    assert "IMKCandidatesSendServerKeyEventFirst" in controller
     assert "GannyuPageHint" in controller
     assert "GannyuModeHint" in controller
     assert "candidateFrame()" in controller
-    assert "frame != .zero" in controller
+    assert "candidatePresentationGeneration" in controller
     assert 'NSButton(title: "<"' in controller
     assert 'NSButton(title: ">"' in controller
-    assert "candidatePanel.present" not in controller
+    assert "candidatePanel.present(state, selectedLine: selectedLine, anchor: anchor)" in controller
+    assert "candidatePanel.hide()" in controller
+    assert "rect.width >= 0, rect.height > 0" in controller
+    assert "return active ? moveSelection(-1, client: sender) : false" in controller
+    assert "return active ? moveSelection(1, client: sender) : false" in controller
+    assert "candidateLineNumber(event.keyCode)" in controller
+    assert 'string: "\\(line + 1). \\(candidate.text)"' in controller
+    assert "private func showModeHint" in controller
+    assert "lastCandidateAnchor" in controller
+    assert "candidateWindow?.setCandidateData([NSAttributedString(" not in controller
+    assert "replacing: frame" in controller
+    assert 'case "moveUp:"' in controller
+    assert 'case "moveDown:"' in controller
+    assert "fullwidthPunctuation" in controller
+    assert "fullwidthSymbol" in controller
+    assert "rows.spacing = 0" in panel
+    assert "selectedLine: Int" in panel
+    assert 'NSButton(title: "<"' in panel
+    assert 'NSButton(title: ">"' in panel
     host = (ROOT / "platforms/macos/Sources/GannyuInputMethodHost/main.swift").read_text(
         encoding="utf-8"
     )

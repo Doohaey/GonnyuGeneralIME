@@ -38,7 +38,7 @@ final class GannyuCandidatePanel: NSObject {
 
         rows.orientation = .vertical
         rows.alignment = .leading
-        rows.spacing = 1
+        rows.spacing = 0
         rows.translatesAutoresizingMaskIntoConstraints = false
         content.addSubview(rows)
 
@@ -68,10 +68,22 @@ final class GannyuCandidatePanel: NSObject {
         ])
     }
 
-    func present(_ snapshot: GannyuSnapshot, anchor: NSRect) {
+    func present(_ snapshot: GannyuSnapshot, selectedLine: Int, anchor: NSRect) {
+        present(snapshot, selectedLine: selectedLine) { frame in
+            position(frame, at: anchor)
+        }
+    }
+
+    func present(_ snapshot: GannyuSnapshot, selectedLine: Int, replacing nativeFrame: NSRect) {
+        present(snapshot, selectedLine: selectedLine) { frame in
+            position(frame, replacing: nativeFrame)
+        }
+    }
+
+    private func present(_ snapshot: GannyuSnapshot, selectedLine: Int, positionPanel: (NSRect) -> Void) {
         let candidates = snapshot.candidates.sorted { $0.pageIndex < $1.pageIndex }
         guard !candidates.isEmpty else { hide(); return }
-        rebuildRows(candidates, highlighted: snapshot.highlightedIndex)
+        rebuildRows(candidates, selectedLine: selectedLine)
         previous.isEnabled = snapshot.hasPreviousPage
         next.isEnabled = snapshot.hasNextPage
         width.constant = panelWidth(for: candidates)
@@ -79,7 +91,7 @@ final class GannyuCandidatePanel: NSObject {
         let height = content.fittingSize.height
         let frame = NSRect(x: 0, y: 0, width: width.constant, height: height)
         panel.setFrame(frame, display: true)
-        position(frame, at: anchor)
+        positionPanel(frame)
         panel.orderFrontRegardless()
     }
 
@@ -87,14 +99,13 @@ final class GannyuCandidatePanel: NSObject {
         panel.orderOut(nil)
     }
 
-    private func rebuildRows(_ candidates: [GannyuCandidate], highlighted: Int?) {
+    private func rebuildRows(_ candidates: [GannyuCandidate], selectedLine: Int) {
         rows.arrangedSubviews.forEach { view in
             rows.removeArrangedSubview(view)
             view.removeFromSuperview()
         }
-        for candidate in candidates {
-            let selected = candidate.pageIndex == highlighted
-            let button = CandidateRowButton(candidate: candidate, selected: selected)
+        for (line, candidate) in candidates.enumerated() {
+            let button = CandidateRowButton(candidate: candidate, line: line, selected: line == selectedLine)
             button.target = self
             button.action = #selector(selectCandidate(_:))
             rows.addArrangedSubview(button)
@@ -105,8 +116,9 @@ final class GannyuCandidatePanel: NSObject {
     private func panelWidth(for candidates: [GannyuCandidate]) -> CGFloat {
         let primary = NSFont.systemFont(ofSize: 18, weight: .regular)
         let secondary = NSFont.systemFont(ofSize: 12)
-        let widest = candidates.reduce(CGFloat(0)) { result, candidate in
-            let title = "\(candidate.pageIndex + 1). \(candidate.text)" as NSString
+        let widest = candidates.enumerated().reduce(CGFloat(0)) { result, entry in
+            let (line, candidate) = entry
+            let title = "\(line + 1). \(candidate.text)" as NSString
             let note = candidate.annotation.replacingOccurrences(of: "\n", with: " ") as NSString
             return max(
                 result,
@@ -123,6 +135,15 @@ final class GannyuCandidatePanel: NSObject {
         let x = min(max(anchor.minX, visible.minX + 4), visible.maxX - frame.width - 4)
         var y = anchor.minY - frame.height - 6
         if y < visible.minY + 4 { y = min(anchor.maxY + 6, visible.maxY - frame.height - 4) }
+        panel.setFrameOrigin(NSPoint(x: x, y: y))
+    }
+
+    private func position(_ frame: NSRect, replacing nativeFrame: NSRect) {
+        let nativeFrame = nativeFrame.standardized
+        let screen = NSScreen.screens.first(where: { $0.visibleFrame.intersects(nativeFrame) }) ?? NSScreen.main
+        guard let visible = screen?.visibleFrame else { return }
+        let x = min(max(nativeFrame.minX, visible.minX + 4), visible.maxX - frame.width - 4)
+        let y = min(max(nativeFrame.maxY - frame.height, visible.minY + 4), visible.maxY - frame.height - 4)
         panel.setFrameOrigin(NSPoint(x: x, y: y))
     }
 
@@ -151,7 +172,7 @@ final class GannyuCandidatePanel: NSObject {
 private final class CandidateRowButton: NSButton {
     let globalIndex: Int
 
-    init(candidate: GannyuCandidate, selected: Bool) {
+    init(candidate: GannyuCandidate, line: Int, selected: Bool) {
         globalIndex = candidate.globalIndex
         super.init(frame: .zero)
         isBordered = false
@@ -168,7 +189,7 @@ private final class CandidateRowButton: NSButton {
         let primaryColor = selected ? NSColor.alternateSelectedControlTextColor : NSColor.labelColor
         let secondaryColor = selected ? NSColor.alternateSelectedControlTextColor.withAlphaComponent(0.85) : NSColor.secondaryLabelColor
         let title = NSMutableAttributedString(
-            string: "\(candidate.pageIndex + 1). \(candidate.text)",
+            string: "\(line + 1). \(candidate.text)",
             attributes: [.font: NSFont.systemFont(ofSize: 18), .foregroundColor: primaryColor]
         )
         if !candidate.annotation.isEmpty {

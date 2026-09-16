@@ -101,7 +101,7 @@ def test_ios_keyboard_matches_android_composition_and_default_candidate_rules() 
     assert "candidateStack.distribution = .fill" in keyboard
     assert "candidateStack.setContentHuggingPriority(.required, for: .horizontal)" in keyboard
     assert "button.contentHorizontalAlignment = .left" in keyboard
-    assert "leading: 5, bottom: 1, trailing: 5" in keyboard
+    assert "leading: 5, bottom: expanded ? 2 : 1, trailing: 5" in keyboard
     assert "engine?.selectCandidate(globalIndex: index)" in keyboard
     assert "snapshot = (try? engine?.snapshot()) ?? .empty" in keyboard
     assert "gannyu_engine_process_key" in support
@@ -138,7 +138,16 @@ def test_ios_keyboard_uses_compact_fixed_visuals_and_full_annotations() -> None:
     assert "attributes.font = .systemFont(ofSize: 16, weight: .regular)" in keyboard
     assert "attributes.font = .systemFont(ofSize: 10)" in keyboard
     assert "configuration.titleLineBreakMode = .byClipping" in keyboard
-    assert "configuration.subtitleLineBreakMode = .byClipping" in keyboard
+    assert "configuration.subtitleLineBreakMode = expanded ? .byCharWrapping : .byClipping" in keyboard
+    assert 'subtitle.replacingOccurrences(of: " / ", with: "/\\n")' in keyboard
+    assert "bottom: expanded ? 2 : 1" in keyboard
+    candidate_width = keyboard.split("private func candidateWidth", 1)[1].split("private func renderExpandedCandidates", 1)[0]
+    assert "subtitleWidth" not in candidate_width
+    assert "return max(44, titleWidth + 10)" in candidate_width
+    assert ".boundingRect(" in candidate_width
+    assert "width: max(1, width - 10)" in candidate_width
+    assert "subtitleHeight + 6" in candidate_width
+    assert "candidateHeight(candidate, width: width)" in keyboard
     assert "button.setContentCompressionResistancePriority(.required, for: .horizontal)" in keyboard
     assert "private func loadMoreCandidates()" not in keyboard
     assert "candidateExpandedScroll.topAnchor.constraint(equalTo: view.topAnchor, constant: 20)" in keyboard

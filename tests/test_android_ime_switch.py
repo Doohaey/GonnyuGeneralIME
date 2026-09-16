@@ -30,6 +30,18 @@ def test_android_ime_switch_key_is_leftmost_on_all_pages() -> None:
     assert "KeyboardPage.SYMBOLS" in source
     assert "KeyboardPage.SYMBOLS_MORE" in source
     assert "IME_SWITCH_KEY)" in source.split("private val ACTION_KEYS", 1)[1].splitlines()[0]
+    assert "foreground = icon" in source
+    assert "foregroundGravity = android.view.Gravity.CENTER" in source
+    assert "setCompoundDrawables(icon, null, null, null)" not in source
+
+
+def test_android_delete_key_fills_each_auxiliary_row_remainder() -> None:
+    source = SERVICE.read_text(encoding="utf-8")
+    delete_width = source.split("private fun deleteKeyWidth", 1)[1].split("private fun functionKeyWidth", 1)[0]
+
+    assert "keys.dropLast(1).sumOf" in delete_width
+    assert "keyWidth * 10 + gap * 9 - occupiedWidth" in delete_width
+    assert "deleteKeyWidth(keys, keyWidth, gap)" in source
 
 
 def test_android_keyboard_uses_a_system_adaptive_neutral_palette_on_all_pages() -> None:
@@ -58,6 +70,8 @@ def test_android_keyboard_uses_a_system_adaptive_neutral_palette_on_all_pages() 
     assert "FUNCTION_KEY_WIDTH_MULTIPLIER = 1.12f" in source
     assert "private fun functionKeyWidth(label: String, keyWidth: Int): Int" in source
     assert "private val FUNCTION_WIDTH_KEYS" in source
+    assert "keyboardRows.width - keyboardRows.paddingLeft - keyboardRows.paddingRight" in source
+    assert "right - left - keyboardRows.paddingLeft - keyboardRows.paddingRight" in source
 
 
 def test_android_bottom_row_places_comma_and_period_after_space() -> None:
@@ -73,6 +87,14 @@ def test_android_candidates_keep_full_metadata_with_independent_widths() -> None
     assert "ellipsize = TextUtils.TruncateAt.END" not in source
     assert "marginEnd = dp(3)" in source
     assert "minimumWidth = dp(44)" in source
+    assert 'meta.replace(" / ", "/\\n")' in source
+    assert "maxLines = Int.MAX_VALUE" in source
+    assert "setHorizontallyScrolling(false)" in source
+    assert "dp(if (expanded) 3 else 1)" in source
+    assert "minimumHeight = dp(37)" in source
+    candidate_width = source.split("private fun candidateWidth", 1)[1].split("private fun toggleCandidateExpansion", 1)[0]
+    assert "metaWidth" not in candidate_width
+    assert "wordWidth.toDouble()" in candidate_width
     assert "gravity = android.view.Gravity.START" in source
     assert "android.view.Gravity.START or android.view.Gravity.TOP" in source
     layout = (ROOT / "platforms/android/app/src/main/res/layout/input_view.xml").read_text(encoding="utf-8")
@@ -81,6 +103,7 @@ def test_android_candidates_keep_full_metadata_with_independent_widths() -> None
     assert 'android:gravity="start|center_vertical"' in layout
     assert "candidateExpandButton" in layout
     assert "candidateExpansionContainer" in layout
+    assert "height = (parentHeight - topMargin).takeIf { it > 0 }" in source
     assert "nativeChangeCandidatePage" in source
     assert "private fun loadMoreCandidates()" not in source
     assert "textSize = 16f" in source

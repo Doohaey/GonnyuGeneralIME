@@ -341,10 +341,16 @@ class GannyuInputMethodService : InputMethodService() {
         keyPreview = root.findViewById(R.id.keyPreview)
         cacheTag = root.findViewById(R.id.cacheTag)
         keyboardRows.addOnLayoutChangeListener { _, left, _, right, _, _, _, _, _ ->
-            val width = right - left
+            val width = right - left - keyboardRows.paddingLeft - keyboardRows.paddingRight
             if (width > 0 && width != lastRenderedKeyboardWidth) {
-                keyboardRows.post { if (keyboardRows.width != lastRenderedKeyboardWidth) renderKeyboard() }
+                keyboardRows.post {
+                    val currentWidth = keyboardRows.width - keyboardRows.paddingLeft - keyboardRows.paddingRight
+                    if (currentWidth != lastRenderedKeyboardWidth) renderKeyboard()
+                }
             }
+        }
+        root.addOnLayoutChangeListener { _, _, top, _, bottom, _, oldTop, _, oldBottom ->
+            if (candidateExpanded && bottom - top != oldBottom - oldTop) renderExpandedCandidates()
         }
         renderKeyboard()
         renderState()
@@ -468,7 +474,8 @@ class GannyuInputMethodService : InputMethodService() {
     private fun renderKeyboard() {
         hideKeyPreview()
         keyboardRows.removeAllViews()
-        val width = keyboardRows.width.takeIf { it > 0 } ?: resources.displayMetrics.widthPixels - dp(12)
+        val measuredWidth = keyboardRows.width - keyboardRows.paddingLeft - keyboardRows.paddingRight
+        val width = measuredWidth.takeIf { it > 0 } ?: resources.displayMetrics.widthPixels - dp(12)
         lastRenderedKeyboardWidth = width
         val gap = dp(if (width <= dp(315)) 4 else if (width <= dp(350)) 5 else 6)
         val keyWidth = (width - gap * 9) / 10
@@ -524,19 +531,19 @@ class GannyuInputMethodService : InputMethodService() {
     private fun spacer(width: Int): View = View(this).apply { layoutParams = LinearLayout.LayoutParams(width, 1) }
     private fun keyRow(keys: List<KeySpec>, keyWidth: Int, gap: Int, deleteExtended: Boolean = false): LinearLayout = LinearLayout(this).apply {
         orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-        val functionalExtra = if (deleteExtended) {
-            keys.dropLast(1).fold(0) { total, key -> total + functionKeyExtraWidth(key.label, keyWidth) }
-        } else {
-            0
-        }
         keys.forEachIndexed { index, key ->
             val width = if (deleteExtended && index == keys.lastIndex) {
-                2 * keyWidth + gap - functionalExtra
+                deleteKeyWidth(keys, keyWidth, gap)
             } else {
                 functionKeyWidth(key.label, keyWidth)
             }
             addView(keyBtn(key, width, if (index == keys.lastIndex) 0 else gap))
         }
+    }
+
+    private fun deleteKeyWidth(keys: List<KeySpec>, keyWidth: Int, gap: Int): Int {
+        val occupiedWidth = keys.dropLast(1).sumOf { functionKeyWidth(it.label, keyWidth) + gap }
+        return (keyWidth * 10 + gap * 9 - occupiedWidth).coerceAtLeast(keyWidth)
     }
 
     private fun functionKeyWidth(label: String, keyWidth: Int): Int =
@@ -546,7 +553,6 @@ class GannyuInputMethodService : InputMethodService() {
             else -> keyWidth
         }
 
-    private fun functionKeyExtraWidth(label: String, keyWidth: Int): Int = functionKeyWidth(label, keyWidth) - keyWidth
     private fun keyBtn(key: KeySpec, width: Int, gap: Int): Button = Button(this).apply {
         text = when {
             key.label == IME_SWITCH_KEY -> ""
@@ -569,7 +575,8 @@ class GannyuInputMethodService : InputMethodService() {
             val icon = getDrawable(R.drawable.ic_globe)?.mutate()
             icon?.setTint(keyTextColor)
             icon?.setBounds(0, 0, dp(18), dp(18))
-            setCompoundDrawables(icon, null, null, null)
+            foreground = icon
+            foregroundGravity = android.view.Gravity.CENTER
             gravity = android.view.Gravity.CENTER
             contentDescription = "切换输入法"
             setOnClickListener { switchToNextEnabledInputMethod() }
@@ -799,7 +806,7 @@ class GannyuInputMethodService : InputMethodService() {
 
         init {
             orientation = VERTICAL
-            setPadding(dp(5), dp(if (expanded) 2 else 1), dp(5), dp(if (expanded) 2 else 1))
+            setPadding(dp(5), dp(if (expanded) 2 else 1), dp(5), dp(if (expanded) 3 else 1))
             minimumWidth = dp(44)
             minimumHeight = dp(36)
             gravity = android.view.Gravity.START or android.view.Gravity.CENTER_VERTICAL
@@ -820,12 +827,19 @@ class GannyuInputMethodService : InputMethodService() {
 
             val meta = buildCandidateMeta(candidate)
             if (meta.isNotEmpty()) {
+                val displayMeta = if (expanded) expandedCandidateMeta(meta) else meta
+                if (expanded) minimumHeight = dp(37)
                 addView(TextView(context).apply {
-                    text = meta
+                    text = displayMeta
                     textSize = 10f; setTextColor(keySecondaryTextColor)
                     gravity = android.view.Gravity.START
-                    maxLines = 1
-                    setSingleLine(true)
+                    if (expanded) {
+                        maxLines = Int.MAX_VALUE
+                        setHorizontallyScrolling(false)
+                    } else {
+                        maxLines = 1
+                        setSingleLine(true)
+                    }
                 })
             }
             contentDescription = candidate.text + "，" + meta
@@ -850,6 +864,8 @@ class GannyuInputMethodService : InputMethodService() {
         return c.reading.orEmpty()
     }
 
+    private fun expandedCandidateMeta(meta: String): String = meta.replace(" / ", "/\n")
+
     private fun renderExpandedCandidates() {
         if (!::candidateExpandedRows.isInitialized) return
         candidateExpandedRows.removeAllViews()
@@ -858,7 +874,11 @@ class GannyuInputMethodService : InputMethodService() {
             return
         }
         candidateExpansionContainer.visibility = View.VISIBLE
-        candidateExpansionContainer.layoutParams = candidateExpansionContainer.layoutParams.apply { height = dp(154) }
+        candidateExpansionContainer.layoutParams = candidateExpansionContainer.layoutParams.apply {
+            val parentHeight = (candidateExpansionContainer.parent as? View)?.height ?: 0
+            val topMargin = (this as? FrameLayout.LayoutParams)?.topMargin ?: dp(20)
+            height = (parentHeight - topMargin).takeIf { it > 0 } ?: dp(154)
+        }
         val availableWidth = candidateExpandedScroll.width - dp(6)
         if (availableWidth <= 0) {
             candidateExpandedScroll.post { renderExpandedCandidates() }
@@ -867,7 +887,7 @@ class GannyuInputMethodService : InputMethodService() {
         var row = expandedCandidateRow()
         var usedWidth = 0
         expandedCandidates.forEachIndexed { index, candidate ->
-            val width = candidateWidth(candidate, availableWidth)
+            val width = candidateWidth(candidate)
             if (usedWidth > 0 && usedWidth + dp(3) + width > availableWidth) {
                 candidateExpandedRows.addView(row)
                 row = expandedCandidateRow()
@@ -886,11 +906,10 @@ class GannyuInputMethodService : InputMethodService() {
         gravity = android.view.Gravity.START or android.view.Gravity.TOP
     }
 
-    private fun candidateWidth(candidate: RankedCandidate, maximum: Int): Int {
+    private fun candidateWidth(candidate: RankedCandidate): Int {
         val scale = resources.displayMetrics.scaledDensity
         val wordWidth = android.graphics.Paint().apply { textSize = 16f * scale }.measureText(candidate.text)
-        val metaWidth = android.graphics.Paint().apply { textSize = 10f * scale }.measureText(buildCandidateMeta(candidate))
-        return maxOf(dp(44), kotlin.math.ceil(maxOf(wordWidth, metaWidth).toDouble()).toInt() + dp(10))
+        return maxOf(dp(44), kotlin.math.ceil(wordWidth.toDouble()).toInt() + dp(10))
     }
 
     private fun toggleCandidateExpansion() {
