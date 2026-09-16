@@ -16,7 +16,7 @@ Rime schema repositories for Lancong(Nanchang) and Fenni(Fenyi). Other installat
 ## Release 0.2.4
 
 - feat(platforms): complete cross-platform support for Android, Windows, Linux, macOS, and Rime resources
-- feat(macos): ship the native input method as a signed and notarized `.pkg` installer
+- feat(macos): add a native macOS `.pkg` installer
 
 ## Contents
 

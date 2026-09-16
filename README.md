@@ -16,7 +16,7 @@
 ## 正式版本 0.2.4
 
 - feat(platforms): 完成全平台适配，覆盖 Android、Windows、Linux、macOS 与 Rime 资源包
-- feat(macos): 适配 macOS 原生输入法，提供经签名和公证的 `.pkg` 安装包
+- feat(macos): 适配 macOS 原生输入法，提供 `.pkg` 安装包
 
 ## 目录
 
