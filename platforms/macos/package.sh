@@ -8,6 +8,7 @@ output_dir="${GANNYU_MACOS_PACKAGE_OUTPUT:-$repo_root/build/macos}"
 package_id="org.doohaey.inputmethod.gonnyu.pkg"
 unsigned_test="${GANNYU_MACOS_UNSIGNED_TEST:-0}"
 skip_notarization="${GANNYU_MACOS_PACKAGE_SKIP_NOTARIZATION:-0}"
+signing_keychain="${GANNYU_MACOS_SIGNING_KEYCHAIN:-}"
 if [[ "$unsigned_test" != "1" ]]; then
   app_identity="${GANNYU_MACOS_APP_SIGN_IDENTITY:?set GANNYU_MACOS_APP_SIGN_IDENTITY to a Developer ID Application identity}"
   installer_identity="${GANNYU_MACOS_INSTALLER_SIGN_IDENTITY:?set GANNYU_MACOS_INSTALLER_SIGN_IDENTITY to a Developer ID Installer identity}"
@@ -16,6 +17,9 @@ if [[ "$unsigned_test" != "1" ]]; then
   fi
   [[ "$app_identity" == "Developer ID Application:"* ]] || { echo "GANNYU_MACOS_APP_SIGN_IDENTITY must be a Developer ID Application identity" >&2; exit 1; }
   [[ "$installer_identity" == "Developer ID Installer:"* ]] || { echo "GANNYU_MACOS_INSTALLER_SIGN_IDENTITY must be a Developer ID Installer identity" >&2; exit 1; }
+  if [[ -n "$signing_keychain" ]]; then
+    [[ -f "$signing_keychain" ]] || { echo "macOS signing keychain does not exist: $signing_keychain" >&2; exit 1; }
+  fi
 fi
 stage_dir="$(mktemp -d)"
 trap 'rm -rf "$stage_dir"' EXIT
@@ -39,20 +43,32 @@ cp "$script_dir/check_installer_version.sh" "$stage_dir/scripts/check_installer_
 cp "$script_dir/Scripts/postinstall" "$stage_dir/scripts/postinstall"
 sed "s/@VERSION@/$version/g" "$script_dir/Scripts/preinstall.template" > "$stage_dir/scripts/preinstall"
 chmod 0755 "$stage_dir/scripts/"*
-pkgbuild_args=(
-  --root "$stage_dir/root" --scripts "$stage_dir/scripts"
-  --identifier "$package_id" --version "$package_version" --install-location /
-)
-if [[ "$unsigned_test" != "1" ]]; then pkgbuild_args+=(--sign "$installer_identity"); fi
-pkgbuild "${pkgbuild_args[@]}" "$output_dir/GonnyuInputMethod.pkg"
+unsigned_package="$stage_dir/GonnyuInputMethod-unsigned.pkg"
+final_package="$output_dir/GonnyuInputMethod.pkg"
+echo "building unsigned installer package"
+pkgbuild \
+  --root "$stage_dir/root" --scripts "$stage_dir/scripts" \
+  --identifier "$package_id" --version "$package_version" --install-location / \
+  "$unsigned_package"
+if [[ "$unsigned_test" == "1" ]]; then
+  mv "$unsigned_package" "$final_package"
+else
+  productsign_args=(--sign "$installer_identity" --timestamp)
+  if [[ -n "$signing_keychain" ]]; then
+    productsign_args+=(--keychain "$signing_keychain")
+  fi
+  echo "signing installer package with Developer ID Installer"
+  productsign "${productsign_args[@]}" "$unsigned_package" "$final_package"
+  echo "installer package signing completed"
+fi
 if [[ "$unsigned_test" != "1" && "$skip_notarization" != "1" ]]; then
   notary_args=(--keychain-profile "$notary_profile" --wait)
   if [[ -n "${GANNYU_MACOS_NOTARY_KEYCHAIN:-}" ]]; then
     notary_args+=(--keychain "$GANNYU_MACOS_NOTARY_KEYCHAIN")
   fi
-  xcrun notarytool submit "$output_dir/GonnyuInputMethod.pkg" "${notary_args[@]}"
-  xcrun stapler staple "$output_dir/GonnyuInputMethod.pkg"
-  spctl --assess --type install --verbose=4 "$output_dir/GonnyuInputMethod.pkg"
+  xcrun notarytool submit "$final_package" "${notary_args[@]}"
+  xcrun stapler staple "$final_package"
+  spctl --assess --type install --verbose=4 "$final_package"
 fi
 
-echo "packaged $output_dir/GonnyuInputMethod.pkg (workspace $version, installer $package_version)"
+echo "packaged $final_package (workspace $version, installer $package_version)"

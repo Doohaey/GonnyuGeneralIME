@@ -2,7 +2,19 @@ name: macos
 
 on:
   workflow_call:
+    inputs:
+      release_signing:
+        description: Build, sign, and notarize the release PKG
+        required: false
+        type: boolean
+        default: false
   workflow_dispatch:
+    inputs:
+      release_signing:
+        description: Build, sign, and notarize the release PKG
+        required: false
+        type: boolean
+        default: false
   push:
     branches: [main]
     paths:
@@ -35,7 +47,7 @@ jobs:
           printf 'version=%s\n' "$version" >> "$GITHUB_OUTPUT"
       - run: brew install cmake ninja
       - name: Import release signing identities and notary credentials
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v') || inputs.release_signing
         shell: bash
         env:
           APP_P12: ${{ secrets.MACOS_DEVELOPER_ID_APPLICATION_P12_BASE64 }}
@@ -59,9 +71,12 @@ jobs:
           security create-keychain -p "$keychain_password" "$keychain"
           security unlock-keychain -p "$keychain_password" "$keychain"
           security set-keychain-settings -lut 21600 "$keychain"
-          security import "$signing_dir/application.p12" -k "$keychain" -P "$CERT_PASSWORD" -T /usr/bin/codesign
-          security import "$signing_dir/installer.p12" -k "$keychain" -P "$CERT_PASSWORD" -T /usr/bin/pkgbuild
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$keychain_password" "$keychain"
+          security import "$signing_dir/application.p12" -k "$keychain" -P "$CERT_PASSWORD" \
+            -T /usr/bin/codesign -T /usr/bin/xcodebuild
+          security import "$signing_dir/installer.p12" -k "$keychain" -P "$CERT_PASSWORD" \
+            -T /usr/bin/pkgbuild -T /usr/bin/productbuild -T /usr/bin/productsign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: \
+            -s -k "$keychain_password" "$keychain"
           security list-keychains -d user -s "$keychain"
           app_identity="$(security find-identity -v "$keychain" | awk -F '"' '/Developer ID Application:/ { print $2; exit }')"
           installer_identity="$(security find-identity -v "$keychain" | awk -F '"' '/Developer ID Installer:/ { print $2; exit }')"
@@ -71,13 +86,14 @@ jobs:
             --issuer "$NOTARY_ISSUER_ID" --keychain "$keychain"
           printf 'GANNYU_MACOS_APP_SIGN_IDENTITY=%s\n' "$app_identity" >> "$GITHUB_ENV"
           printf 'GANNYU_MACOS_INSTALLER_SIGN_IDENTITY=%s\n' "$installer_identity" >> "$GITHUB_ENV"
+          printf 'GANNYU_MACOS_SIGNING_KEYCHAIN=%s\n' "$keychain" >> "$GITHUB_ENV"
           printf 'GANNYU_MACOS_NOTARY_PROFILE=gonnyu-release\n' >> "$GITHUB_ENV"
           printf 'GANNYU_MACOS_NOTARY_KEYCHAIN=%s\n' "$keychain" >> "$GITHUB_ENV"
       - name: Rebuild universal librime app from locked source
         shell: bash
         env:
           GANNYU_MACOS_SIGN_IDENTITY: ${{ env.GANNYU_MACOS_APP_SIGN_IDENTITY }}
-          GANNYU_MACOS_CI_ADHOC: ${{ !startsWith(github.ref, 'refs/tags/v') && '1' || '0' }}
+          GANNYU_MACOS_CI_ADHOC: ${{ !(startsWith(github.ref, 'refs/tags/v') || inputs.release_signing) && '1' || '0' }}
         run: bash platforms/macos/build.sh
       - name: Validate bundled engine and input-method host
         shell: bash
@@ -92,11 +108,12 @@ jobs:
             platforms/macos/.build/apple/Products/Release/GannyuMacOSSmoke --region lancong --input gau
           GANNYU_IMK_SELFTEST=1 "$bundle/Contents/MacOS/GannyuInputMethodHost"
       - name: Build and inspect PKG
+        timeout-minutes: 15
         shell: bash
         env:
           GANNYU_MACOS_PACKAGE_SKIP_BUILD: "1"
           GANNYU_MACOS_PACKAGE_SKIP_NOTARIZATION: "1"
-          GANNYU_MACOS_UNSIGNED_TEST: ${{ !startsWith(github.ref, 'refs/tags/v') && '1' || '0' }}
+          GANNYU_MACOS_UNSIGNED_TEST: ${{ !(startsWith(github.ref, 'refs/tags/v') || inputs.release_signing) && '1' || '0' }}
         run: |
           set -euo pipefail
           bash platforms/macos/package.sh
@@ -107,7 +124,7 @@ jobs:
           expected="$(python3 platforms/macos/installer_version.py '${{ steps.product.outputs.version }}')"
           grep -Fq "version=\"$expected\"" build/macos/pkg-inspection/PackageInfo
       - name: Submit PKG for notarization
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v') || inputs.release_signing
         id: notarization
         shell: bash
         env:
@@ -123,7 +140,7 @@ jobs:
           echo "submission_id=$submission_id" >> "$GITHUB_OUTPUT"
           echo "Apple notarization submission: $submission_id"
       - name: Wait for notarization
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v') || inputs.release_signing
         shell: bash
         env:
           NOTARY_PROFILE: ${{ env.GANNYU_MACOS_NOTARY_PROFILE }}
@@ -148,7 +165,7 @@ jobs:
           echo "Apple notarization did not complete within 30 minutes" >&2
           exit 1
       - name: Staple and verify notarized PKG
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v') || inputs.release_signing
         run: |
           set -euo pipefail
           xcrun stapler staple build/macos/GonnyuInputMethod.pkg
@@ -162,7 +179,7 @@ jobs:
           path: build/macos/GonnyuGeneralIME-${{ steps.product.outputs.version }}-macos.pkg
           if-no-files-found: error
       - name: Remove temporary release credentials
-        if: always() && startsWith(github.ref, 'refs/tags/v')
+        if: always() && (startsWith(github.ref, 'refs/tags/v') || inputs.release_signing)
         shell: bash
         run: |
           if [[ -d "$RUNNER_TEMP/gonnyu-signing" ]]; then
@@ -170,7 +187,7 @@ jobs:
             rm -rf "$RUNNER_TEMP/gonnyu-signing"
           fi
   compatibility:
-    if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+    if: ${{ !(startsWith(github.ref, 'refs/tags/v') || inputs.release_signing) }}
     strategy:
       fail-fast: false
       matrix:

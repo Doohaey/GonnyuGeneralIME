@@ -54,8 +54,21 @@ def test_macos_workflow_rebuilds_and_inspects_pkg() -> None:
     assert "MACOS_DEVELOPER_ID_APPLICATION_P12_BASE64" in content
     assert "MACOS_DEVELOPER_ID_INSTALLER_P12_BASE64" in content
     assert "APPLE_NOTARY_KEY_P8_BASE64" in content
+    assert "GANNYU_MACOS_SIGNING_KEYCHAIN" in content
+    assert "timeout-minutes: 15" in content
+    assert "release_signing:" in content
+    assert "startsWith(github.ref, 'refs/tags/v') || inputs.release_signing" in content
     assert "matrix:" in content
     assert "macos-15" in content and "macos-26" in content
+
+
+def test_macos_installer_signing_is_non_interactive_and_observable() -> None:
+    package = (ROOT / "platforms/macos/package.sh").read_text(encoding="utf-8")
+
+    assert 'productsign_args=(--sign "$installer_identity" --timestamp)' in package
+    assert 'productsign_args+=(--keychain "$signing_keychain")' in package
+    assert '"$unsigned_package" "$final_package"' in package
+    assert "installer package signing completed" in package
 
 
 def test_release_notes_link_to_generated_metadata() -> None:
