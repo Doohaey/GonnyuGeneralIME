@@ -22,6 +22,17 @@ def test_android_ime_switch_uses_the_standard_platform_path_with_fallback() -> N
     assert "setOnLongClickListener" in source
 
 
+def test_android_ime_clears_window_state_without_releasing_its_pipeline() -> None:
+    source = SERVICE.read_text(encoding="utf-8")
+
+    assert "override fun onFinishInputView" in source
+    assert "override fun onWindowHidden" in source
+    assert source.count("stopBackspaceRepeat()") >= 4
+    assert "candidateExpanded = false" in source
+    assert "expandedCandidates.clear()" in source
+    assert "private fun releasePipelines()" not in source
+
+
 def test_android_ime_switch_key_is_leftmost_on_all_pages() -> None:
     source = SERVICE.read_text(encoding="utf-8")
     bottom = source.split("private fun renderBottomRow", 1)[1].split("private fun spacer", 1)[0]

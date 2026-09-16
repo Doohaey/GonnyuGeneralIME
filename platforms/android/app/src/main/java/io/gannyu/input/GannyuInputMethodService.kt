@@ -301,7 +301,6 @@ class GannyuInputMethodService : InputMethodService() {
 
     override fun onDestroy() {
         stopBackspaceRepeat()
-        // 不销毁 pipeline——staticHandle 保持全局唯一实例
         pipelineHandle = 0
         pipelineReady = false
         super.onDestroy()
@@ -373,6 +372,7 @@ class GannyuInputMethodService : InputMethodService() {
     }
 
     override fun onFinishInput() {
+        stopBackspaceRepeat()
         hideKeyPreview()
         englishShift = false
         resetState(clearAccumulated = true)
@@ -380,7 +380,7 @@ class GannyuInputMethodService : InputMethodService() {
     }
 
     override fun onFinishInputView(finishingInput: Boolean) {
-        // Input view is being finished (e.g., switching to another IME) — clear UI and composing state
+        stopBackspaceRepeat()
         englishShift = false
         hideKeyPreview()
         resetState(clearAccumulated = true)
@@ -399,7 +399,7 @@ class GannyuInputMethodService : InputMethodService() {
     }
 
     override fun onWindowHidden() {
-        // Window hidden (IME no longer visible) — ensure we don't keep composing spans
+        stopBackspaceRepeat()
         englishShift = false
         hideKeyPreview()
         resetState(clearAccumulated = true)
@@ -444,7 +444,6 @@ class GannyuInputMethodService : InputMethodService() {
                         preloadedRegionId = null
                     }
                 }
-                // No handle available — delegate to preload so only one pipeline is created.
                 Log.i(TAG, "Delegating to preload for region=${desired ?: "(default)"}")
                 preloadSelectedRegionAsync(this, desired)
                 synchronized(preloadLock) {
@@ -746,6 +745,8 @@ class GannyuInputMethodService : InputMethodService() {
             applyEngineSnapshot(nativeClearComposition(pipelineHandle)?.let(::parseSnapshot), render = false)
         }
         lastSnapshot = EngineSnapshot()
+        candidateExpanded = false
+        expandedCandidates.clear()
         if (::candidateBar.isInitialized) renderState()
     }
 
@@ -778,7 +779,9 @@ class GannyuInputMethodService : InputMethodService() {
     }
 
     private fun postUpdateCandidates() {
-        if (::candidateBar.isInitialized) candidateBar.post { renderState() }
+        if (::candidateBar.isInitialized) candidateBar.post {
+            if (candidateBar.isAttachedToWindow) renderState()
+        }
     }
 
     private fun renderCandidateBar() {
@@ -792,7 +795,9 @@ class GannyuInputMethodService : InputMethodService() {
             val cv = CandidateView(this, c, index, expanded = false)
             candidateBar.addView(cv)
         }
-        candidateScroll.post { candidateScroll.scrollTo(0, 0) }
+        candidateScroll.post {
+            if (candidateScroll.isAttachedToWindow) candidateScroll.scrollTo(0, 0)
+        }
     }
 
     private inner class CandidateView(

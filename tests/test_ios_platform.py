@@ -72,6 +72,9 @@ def test_ios_keyboard_keeps_auxiliary_input_outside_candidate_selection() -> Non
     assert "backspacePressed" in keyboard
     assert "stopBackspaceRepeat" in keyboard
     assert "override func viewWillDisappear" in keyboard
+    assert "endSession()" in keyboard
+    assert "engine?.clearComposition()" in keyboard
+    assert "snapshot = .empty" in keyboard
     assert "Timer.scheduledTimer(withTimeInterval: 0.38" in keyboard
     assert "Timer.scheduledTimer(withTimeInterval: 0.055, repeats: true)" in keyboard
     assert "textDocumentProxy.insertText(key)" in keyboard

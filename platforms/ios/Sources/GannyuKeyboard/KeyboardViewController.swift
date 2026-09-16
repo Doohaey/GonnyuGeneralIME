@@ -141,10 +141,7 @@ final class KeyboardViewController: UIInputViewController {
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        // A keyboard extension can be dismissed while a delete key is held.
-        // Never let its repeat timer survive that transition.
-        stopBackspaceRepeat()
-        hideKeyPreview()
+        endSession()
     }
 
     override func viewDidLayoutSubviews() {
@@ -757,6 +754,18 @@ final class KeyboardViewController: UIInputViewController {
         }
         snapshot = .empty
         render()
+    }
+
+    private func endSession() {
+        stopBackspaceRepeat()
+        hideKeyPreview()
+        candidateExpanded = false
+        expandedCandidates.removeAll()
+        _ = try? engine?.clearComposition()
+        snapshot = .empty
+        if isViewLoaded {
+            render()
+        }
     }
 
     private func apply(_ updated: GonnyuAppleSnapshot?) {
