@@ -113,10 +113,12 @@ final class GannyuInputController: IMKInputController {
             return active ? moveSelection(1, client: sender) : false
         // Keep paging on the two physical punctuation keys, regardless of
         // whether Shift produces < / > on the active keyboard layout.
+        // When not composing, fall through to character processing so the
+        // full-width punctuation handler in processText is reached.
         case kVK_ANSI_Comma:
-            return active ? page(-1, client: sender) : false
+            if active { return page(-1, client: sender) }
         case kVK_ANSI_Period:
-            return active ? page(1, client: sender) : false
+            if active { return page(1, client: sender) }
         default:
             break
         }
