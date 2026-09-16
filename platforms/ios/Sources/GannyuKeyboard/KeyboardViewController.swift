@@ -78,7 +78,7 @@ final class KeyboardViewController: UIInputViewController {
         case bottom
     }
 
-    private let store = GonnyuAppleRegionStore()
+    private lazy var store = GonnyuAppleRegionStore(preferSharedStorage: hasFullAccess)
     private var regions: [GonnyuAppleRegion] = []
     private var engine: GonnyuAppleEngine?
     private var regionID: String?
@@ -165,7 +165,7 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func buildKeyboard() {
-        view.backgroundColor = keyboardPanelColor
+        view.backgroundColor = .clear
         let root = UIStackView()
         root.axis = .vertical
         root.spacing = 4
@@ -581,9 +581,7 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func render() {
-        preeditLabel.text = snapshot.preedit.isEmpty
-            ? (hasFullAccess ? nil : "开启“允许完全访问”后，用户词库才能保存")
-            : snapshot.preedit
+        preeditLabel.text = snapshot.preedit
         candidateExpandButton.isHidden = snapshot.candidates.isEmpty
         candidateExpandButton.setTitle(candidateExpanded ? "⌃" : "⌄", for: .normal)
         candidateStack.arrangedSubviews.forEach {

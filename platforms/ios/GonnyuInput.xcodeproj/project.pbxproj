@@ -19,6 +19,9 @@
 		A00000000000000000000009 /* ../../build/ios/GannyuInputFFI.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = A00000000000000000000019 /* ../../build/ios/GannyuInputFFI.xcframework */; };
 		A0000000000000000000000A /* ../../build/ios/rime in Resources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000001D /* ../../build/ios/rime */; };
 		A0000000000000000000000B /* GonnyuKeyboard.appex in Embed Keyboard Extension */ = {isa = PBXBuildFile; fileRef = A0000000000000000000001B /* GonnyuKeyboard.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		A000000000000000000000F0 /* ../../build/ios/rime in Resources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000001D /* ../../build/ios/rime */; };
+		A000000000000000000000F1 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A000000000000000000000F3 /* PrivacyInfo.xcprivacy */; };
+		A000000000000000000000F2 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A000000000000000000000F3 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -62,6 +65,7 @@
 		A0000000000000000000001E /* TutorialViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialViewController.swift; sourceTree = "<group>"; };
 		A0000000000000000000001F /* tutorial.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = ../../resources/tutorial/tutorial.html; sourceTree = SOURCE_ROOT; };
 		A00000000000000000000025 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = GannyuInput/Assets.xcassets; sourceTree = SOURCE_ROOT; };
+		A000000000000000000000F3 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -102,6 +106,7 @@
 				A0000000000000000000001D /* ../../build/ios/rime */,
 				A0000000000000000000001F /* tutorial.html */,
 				A00000000000000000000025 /* Assets.xcassets */,
+				A000000000000000000000F3 /* PrivacyInfo.xcprivacy */,
 				A00000000000000000000024 /* Products */,
 				775AE7FD30559BCA007BB968 /* Recovered References */,
 			);
@@ -174,6 +179,7 @@
 			buildPhases = (
 				A00000000000000000000041 /* Sources */,
 				A00000000000000000000031 /* Frameworks */,
+				A00000000000000000000043 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -225,9 +231,18 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A0000000000000000000000A /* ../../build/ios/rime in Resources */,
 				A0000000000000000000000D /* tutorial.html in Resources */,
 				A0000000000000000000000E /* Assets.xcassets in Resources */,
+				A000000000000000000000F1 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A00000000000000000000043 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A000000000000000000000F0 /* ../../build/ios/rime in Resources */,
+				A000000000000000000000F2 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

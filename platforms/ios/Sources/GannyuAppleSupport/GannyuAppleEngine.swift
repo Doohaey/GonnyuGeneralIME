@@ -135,41 +135,23 @@ private final class GonnyuAppleResourceStore {
     private static let installLock = NSLock()
     private let bundle: Bundle
     private let fileManager = FileManager.default
-    private let resourcesRoot: URL
-    private let currentVersionFile: URL
-
-    let userDataDirectory: URL
+    private let resourcesRoot: URL?
+    private let currentVersionFile: URL?
 
     init(bundle: Bundle = .main) throws {
-        guard let group = bundle.object(forInfoDictionaryKey: "GannyuAppGroupIdentifier") as? String,
-              let container = FileManager.default.containerURL(
-                  forSecurityApplicationGroupIdentifier: group
-              ) else {
-            throw GonnyuAppleEngineError.resources("GannyuAppGroupIdentifier must resolve to an App Group")
-        }
         self.bundle = bundle
-        let applicationSupport = container
-            .appendingPathComponent("Library", isDirectory: true)
-            .appendingPathComponent("Application Support", isDirectory: true)
-            .appendingPathComponent("GonnyuInputMethod", isDirectory: true)
-        let resources = applicationSupport.appendingPathComponent("Resources", isDirectory: true)
-        resourcesRoot = resources
-        currentVersionFile = resources.appendingPathComponent("current-version", isDirectory: false)
-        userDataDirectory = applicationSupport.appendingPathComponent("UserData", isDirectory: true)
-        try fileManager.createDirectory(at: resourcesRoot, withIntermediateDirectories: true)
-        try fileManager.createDirectory(at: userDataDirectory, withIntermediateDirectories: true)
+        resourcesRoot = nil
+        currentVersionFile = nil
     }
 
     func prepare() throws -> [GonnyuAppleRegion] {
         Self.installLock.lock()
         defer { Self.installLock.unlock() }
-        if let bundled = bundle.url(forResource: "rime", withExtension: nil) {
-            try install(from: bundled)
-        }
-        return try currentPaths().regions
+        return try bundledPaths().regions
     }
 
     func currentPaths() throws -> GonnyuAppleResourcePaths {
+        guard let resourcesRoot, let currentVersionFile else { return try bundledPaths() }
         guard let versionData = fileManager.contents(atPath: currentVersionFile.path),
               let version = String(data: versionData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines),
               isSafeComponent(version) else {
@@ -185,10 +167,37 @@ private final class GonnyuAppleResourceStore {
         return GonnyuAppleResourcePaths(shared: shared, prebuilt: prebuilt, regions: manifest.regions)
     }
 
+    private func bundledPaths() throws -> GonnyuAppleResourcePaths {
+        guard let root = bundledResources() else {
+            throw GonnyuAppleEngineError.resources("Bundled keyboard resources are unavailable")
+        }
+        let manifest = try loadManifest(at: root)
+        let shared = root.appendingPathComponent("shared", isDirectory: true)
+        let prebuilt = root.appendingPathComponent("prebuilt", isDirectory: true)
+        guard fileManager.fileExists(atPath: shared.path), fileManager.fileExists(atPath: prebuilt.path) else {
+            throw GonnyuAppleEngineError.resources("Bundled keyboard resources are incomplete")
+        }
+        return GonnyuAppleResourcePaths(shared: shared, prebuilt: prebuilt, regions: manifest.regions)
+    }
+
+    private func bundledResources() -> URL? {
+        if let resources = bundle.url(forResource: "rime", withExtension: nil) {
+            return resources
+        }
+        guard let plugins = bundle.builtInPlugInsURL,
+              let keyboard = Bundle(url: plugins.appendingPathComponent("GonnyuKeyboard.appex")) else {
+            return nil
+        }
+        return keyboard.url(forResource: "rime", withExtension: nil)
+    }
+
     private func install(from source: URL) throws {
         let manifest = try loadManifest(at: source)
         guard isSafeComponent(manifest.schemaVersion) else {
             throw GonnyuAppleEngineError.resources("Invalid keyboard resource version")
+        }
+        guard let resourcesRoot else {
+            return
         }
         let target = resourcesRoot.appendingPathComponent(manifest.schemaVersion, isDirectory: true)
         if fileManager.fileExists(atPath: target.path), try verify(root: target, manifest: manifest) {
@@ -259,10 +268,12 @@ private final class GonnyuAppleResourceStore {
     }
 
     private func writeCurrentVersion(_ version: String) throws {
+        guard let currentVersionFile else { return }
         try Data((version + "\n").utf8).write(to: currentVersionFile, options: .atomic)
     }
 
     private func removeObsoleteResources(keeping target: URL) throws {
+        guard let resourcesRoot, let currentVersionFile else { return }
         for item in try fileManager.contentsOfDirectory(
             at: resourcesRoot,
             includingPropertiesForKeys: [.isDirectoryKey],
@@ -399,19 +410,24 @@ public final class GonnyuAppleRegionStore {
     private let resetRequestsDirectory: URL
     public let userDataDirectory: URL
 
-    public init(bundle: Bundle = .main) {
-        guard let group = bundle.object(forInfoDictionaryKey: "GannyuAppGroupIdentifier") as? String,
-              let defaults = UserDefaults(suiteName: group),
-              let container = FileManager.default.containerURL(
-                  forSecurityApplicationGroupIdentifier: group
-              ) else {
-            preconditionFailure("GannyuAppGroupIdentifier must resolve to an App Group")
+    public init(bundle: Bundle = .main, preferSharedStorage: Bool = true) {
+        let group = bundle.object(forInfoDictionaryKey: "GannyuAppGroupIdentifier") as? String
+        let sharedContainer = preferSharedStorage ? group.flatMap {
+            FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: $0)
+        } : nil
+        self.defaults = sharedContainer.flatMap { _ in
+            group.flatMap(UserDefaults.init(suiteName:))
+        } ?? .standard
+        let applicationSupport: URL
+        if let sharedContainer {
+            applicationSupport = sharedContainer
+                .appendingPathComponent("Library", isDirectory: true)
+                .appendingPathComponent("Application Support", isDirectory: true)
+                .appendingPathComponent("GonnyuInputMethod", isDirectory: true)
+        } else {
+            applicationSupport = FileManager.default.temporaryDirectory
+                .appendingPathComponent("GonnyuInputMethod", isDirectory: true)
         }
-        self.defaults = defaults
-        let applicationSupport = container
-            .appendingPathComponent("Library", isDirectory: true)
-            .appendingPathComponent("Application Support", isDirectory: true)
-            .appendingPathComponent("GonnyuInputMethod", isDirectory: true)
         self.userDataDirectory = applicationSupport.appendingPathComponent("UserData", isDirectory: true)
         self.resetRequestsDirectory = applicationSupport.appendingPathComponent(
             "PendingUserDataResets",

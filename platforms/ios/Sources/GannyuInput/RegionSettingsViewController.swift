@@ -85,8 +85,8 @@ final class RegionSettingsViewController: UITableViewController {
                 content.text = "1. 添加 Gonnyu 键盘"
                 content.secondaryText = "设置 > 通用 > 键盘 > 键盘 > 添加新键盘…"
             } else if indexPath.row == 1 {
-                content.text = "2. 开启允许完全访问"
-                content.secondaryText = "让用户词库与词频能保存在本机"
+                content.text = "2. 记住常用词（可选）"
+                content.secondaryText = "开启完全访问后生效"
             } else {
                 content.text = "3. 切换至 Gonnyu"
                 content.secondaryText = "在任意输入框点按或长按 🌐 选择 Gonnyu"
