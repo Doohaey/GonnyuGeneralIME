@@ -72,8 +72,8 @@ def test_macos_installer_signing_is_non_interactive_and_observable() -> None:
     workflow = (ROOT / ".github/workflows/macos.yml").read_text(encoding="utf-8")
     package = (ROOT / "platforms/macos/package.sh").read_text(encoding="utf-8")
 
-    assert 'security import "$signing_dir/installer.p12"' in workflow
-    assert '"$CERT_PASSWORD" -A' in workflow
+    assert 'security import "$signing_dir/installer.p12" -k "$keychain" -f pkcs12' in workflow
+    assert "-T /usr/bin/security" in workflow
     assert workflow.index('security import "$signing_dir/installer.p12"') < workflow.index(
         "security set-key-partition-list"
     )
