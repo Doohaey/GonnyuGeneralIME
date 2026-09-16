@@ -74,6 +74,9 @@ def test_macos_installer_signing_is_non_interactive_and_observable() -> None:
 
     assert 'security import "$signing_dir/installer.p12"' in workflow
     assert '"$CERT_PASSWORD" -A' in workflow
+    assert workflow.index('security import "$signing_dir/installer.p12"') < workflow.index(
+        "security set-key-partition-list"
+    )
     assert "Preflight installer private-key signing" in workflow
     assert "Preflight installer trusted timestamp" in workflow
     assert "--timestamp=none" in workflow
