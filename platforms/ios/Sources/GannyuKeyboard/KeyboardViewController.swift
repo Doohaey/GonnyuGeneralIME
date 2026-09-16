@@ -121,6 +121,7 @@ final class KeyboardViewController: UIInputViewController {
     private let fixedSecondaryTextColor = UIColor.secondaryLabel
     private let keySpacing: CGFloat = 6
     private let functionKeyWidthMultiplier: CGFloat = 1.12
+    private let keyHeight: CGFloat = UIDevice.current.userInterfaceIdiom == .pad ? 92 : 46
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -406,7 +407,7 @@ final class KeyboardViewController: UIInputViewController {
         button.layer.shadowOpacity = 0.28
         button.layer.shadowOffset = CGSize(width: 0, height: 1)
         button.layer.shadowRadius = 0
-        button.heightAnchor.constraint(equalToConstant: 46).isActive = true
+        button.heightAnchor.constraint(equalToConstant: keyHeight).isActive = true
         if supportsKeyPreview(label) {
             button.addTarget(self, action: #selector(showKeyPreview(_:)), for: .touchDown)
             button.addTarget(self, action: #selector(hideKeyPreview), for: [.touchUpInside, .touchUpOutside, .touchCancel, .touchDragExit])

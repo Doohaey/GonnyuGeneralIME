@@ -46,8 +46,9 @@ def test_ios_keyboard_and_host_share_manifest_driven_region_selection() -> None:
     assert "resource-manifest.json" in support
     assert "var hasher = SHA256()" in support
     assert "read(upToCount: 1024 * 1024)" in support
-    assert "UserDefaults(suiteName: group)" in support
-    assert "?? .standard" not in support
+    assert "group.flatMap(UserDefaults.init(suiteName:))" in support
+    assert "?? .standard" in support
+    assert "preferSharedStorage: hasFullAccess" in keyboard
     assert "regions.contains(where:" in support
     assert "GonnyuAppleEngine(" in keyboard
     assert "userDataDirectory: store.userDataDirectory" in keyboard
@@ -97,7 +98,7 @@ def test_ios_keyboard_matches_android_composition_and_default_candidate_rules() 
     assert "if snapshot.rawInput.isEmpty" in keyboard
     assert "engine?.process(.space)" in keyboard
     assert "configuration.subtitle" in keyboard
-    assert "开启“允许完全访问”后，用户词库才能保存" in keyboard
+    assert "开启“允许完全访问”后，用户词库才能保存" not in keyboard
     assert "systemFont(ofSize: 12, weight: .bold)" in keyboard
     assert "heightAnchor.constraint(equalToConstant: 16)" in keyboard
     assert "candidateStack.spacing = 3" in keyboard
@@ -123,7 +124,8 @@ def test_ios_keyboard_uses_compact_fixed_visuals_and_full_annotations() -> None:
     )
 
     assert "traits.userInterfaceStyle == .dark" in keyboard
-    assert "equalToConstant: 46" in keyboard
+    assert "private let keyHeight: CGFloat = UIDevice.current.userInterfaceIdiom == .pad ? 92 : 46" in keyboard
+    assert "equalToConstant: keyHeight" in keyboard
     assert "row.spacing = keySpacing" in keyboard
     assert "private let keySpacing: CGFloat = 6" in keyboard
     assert "case centered" in keyboard
@@ -199,7 +201,8 @@ def test_ios_host_uses_standard_settings_sections_and_offline_tutorial() -> None
     assert "设置 > 通用 > 键盘 > 键盘 > 添加新键盘…" in host
     assert "UIApplication.openSettingsURLString" in host
     assert "用户词库仅在本机离线存储。" in host
-    assert "开启允许完全访问" in host
+    assert "记住常用词（可选）" in host
+    assert "开启完全访问后生效" in host
     assert "openAppSettings" in host
     assert "TutorialViewController()" in host
     assert "WKWebView" in tutorial
