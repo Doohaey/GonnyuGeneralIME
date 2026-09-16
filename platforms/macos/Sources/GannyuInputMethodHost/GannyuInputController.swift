@@ -186,10 +186,10 @@ final class GannyuInputController: IMKInputController {
 
     @objc(replacementRange)
     override func replacementRange() -> NSRange {
-        guard let client = client() else {
+        guard let client = GannyuTextClient(client()) else {
             return NSRange(location: NSNotFound, length: 0)
         }
-        return replacementRange(for: client)
+        return client.replacementRange()
     }
 
     @objc(candidates:)
@@ -226,12 +226,12 @@ final class GannyuInputController: IMKInputController {
     private func processText(_ text: String, client sender: Any!) -> Bool {
         let active = !(snapshot?.rawInput.isEmpty ?? true)
         if snapshot?.asciiMode == true {
-            guard let client = sender as? IMKTextInput else { return false }
+            guard let client = GannyuTextClient(sender) else { return false }
             client.insertText(text, replacementRange: NSRange(location: NSNotFound, length: 0))
             return true
         }
         if !active, fullwidthPunctuation, let symbol = fullwidthSymbol(for: text) {
-            guard let client = sender as? IMKTextInput else { return false }
+            guard let client = GannyuTextClient(sender) else { return false }
             client.insertText(symbol, replacementRange: NSRange(location: NSNotFound, length: 0))
             return true
         }
@@ -399,22 +399,22 @@ final class GannyuInputController: IMKInputController {
             candidatePanel.hide()
             pageHint.hide()
             modeHint.hide()
-            if let client = sender as? IMKTextInput { clearMarkedText(on: client) }
+            GannyuTextClient(sender)?.clearMarkedText()
         }
     }
 
     private func render(_ result: GannyuSnapshot, client sender: Any!) {
         snapshot = result
-        guard let client = sender as? IMKTextInput else {
-            log.error("IMK client does not conform to IMKTextInput")
+        guard let client = GannyuTextClient(sender) else {
+            log.error("IMK client does not provide the required text input methods")
             return
         }
         if let commit = result.commitText, !commit.isEmpty {
-            client.insertText(commit, replacementRange: replacementRange(for: client))
+            client.insertText(commit, replacementRange: client.replacementRange())
         }
         if result.rawInput.isEmpty {
             selectedLine = 0
-            clearMarkedText(on: client)
+            client.clearMarkedText()
             candidatePanel.hide()
             pageHint.hide()
             modeHint.hide()
@@ -426,7 +426,7 @@ final class GannyuInputController: IMKInputController {
         client.setMarkedText(
             preedit,
             selectionRange: NSRange(location: (String(preedit.prefix(caret)) as NSString).length, length: 0),
-            replacementRange: replacementRange(for: client)
+            replacementRange: client.replacementRange()
         )
         selectedLine = min(selectedLine, max(result.candidates.count - 1, 0))
         presentCandidates()
@@ -474,19 +474,6 @@ final class GannyuInputController: IMKInputController {
 
         candidatePanel.hide()
         pageHint.hide()
-    }
-
-    private func replacementRange(for client: IMKTextInput) -> NSRange {
-        let marked = client.markedRange()
-        return marked.location == NSNotFound ? client.selectedRange() : marked
-    }
-
-    private func clearMarkedText(on client: IMKTextInput) {
-        client.setMarkedText(
-            "",
-            selectionRange: NSRange(location: 0, length: 0),
-            replacementRange: NSRange(location: NSNotFound, length: NSNotFound)
-        )
     }
 
     private func candidateIndex(for display: NSAttributedString?) -> Int? {
@@ -647,6 +634,85 @@ final class GannyuInputController: IMKInputController {
     @objc private func selectRegion(_ sender: NSMenuItem) {
         guard let region = sender.representedObject as? String else { return }
         _ = GannyuRegionStore.shared.select(region)
+    }
+}
+
+private struct GannyuTextClient {
+    private typealias InsertTextIMP = @convention(c) (AnyObject, Selector, NSString, NSRange) -> Void
+    private typealias SetMarkedTextIMP = @convention(c) (AnyObject, Selector, NSString, NSRange, NSRange) -> Void
+    private typealias RangeIMP = @convention(c) (AnyObject, Selector) -> NSRange
+
+    private static let insertTextSelector = #selector(NSTextInputClient.insertText(_:replacementRange:))
+    private static let setMarkedTextSelector = #selector(IMKTextInput.setMarkedText(_:selectionRange:replacementRange:))
+    private static let markedRangeSelector = Selector(("markedRange"))
+    private static let selectedRangeSelector = Selector(("selectedRange"))
+
+    private let native: IMKTextInput?
+    private let object: NSObject?
+
+    init?(_ sender: Any!) {
+        if let native = sender as? IMKTextInput {
+            self.native = native
+            object = nil
+            return
+        }
+        guard let object = sender as? NSObject,
+              object.responds(to: Self.insertTextSelector),
+              object.responds(to: Self.setMarkedTextSelector),
+              object.responds(to: Self.markedRangeSelector),
+              object.responds(to: Self.selectedRangeSelector) else {
+            return nil
+        }
+        native = nil
+        self.object = object
+    }
+
+    func insertText(_ text: String, replacementRange: NSRange) {
+        if let native {
+            native.insertText(text, replacementRange: replacementRange)
+            return
+        }
+        guard let object else { return }
+        let implementation = unsafeBitCast(
+            object.method(for: Self.insertTextSelector),
+            to: InsertTextIMP.self
+        )
+        implementation(object, Self.insertTextSelector, text as NSString, replacementRange)
+    }
+
+    func setMarkedText(_ text: String, selectionRange: NSRange, replacementRange: NSRange) {
+        if let native {
+            native.setMarkedText(text, selectionRange: selectionRange, replacementRange: replacementRange)
+            return
+        }
+        guard let object else { return }
+        let implementation = unsafeBitCast(
+            object.method(for: Self.setMarkedTextSelector),
+            to: SetMarkedTextIMP.self
+        )
+        implementation(object, Self.setMarkedTextSelector, text as NSString, selectionRange, replacementRange)
+    }
+
+    func replacementRange() -> NSRange {
+        let marked = range(for: Self.markedRangeSelector)
+        return marked.location == NSNotFound ? range(for: Self.selectedRangeSelector) : marked
+    }
+
+    func clearMarkedText() {
+        setMarkedText(
+            "",
+            selectionRange: NSRange(location: 0, length: 0),
+            replacementRange: NSRange(location: NSNotFound, length: NSNotFound)
+        )
+    }
+
+    private func range(for selector: Selector) -> NSRange {
+        if let native {
+            return selector == Self.markedRangeSelector ? native.markedRange() : native.selectedRange()
+        }
+        guard let object else { return NSRange(location: NSNotFound, length: 0) }
+        let implementation = unsafeBitCast(object.method(for: selector), to: RangeIMP.self)
+        return implementation(object, selector)
     }
 }
 
