@@ -1,4 +1,5 @@
 import AppKit
+import ApplicationServices
 import Carbon.HIToolbox
 import InputMethodKit
 import GannyuMacOSSupport
@@ -11,15 +12,11 @@ final class GannyuInputController: IMKInputController {
     private var displays: [NSAttributedString] = []
     private var shiftOnlyPress = false
     private var selectedLine = 0
-    private var candidateWindow: IMKCandidates?
     private let candidatePanel = GannyuCandidatePanel()
     private let pageHint = GannyuPageHint()
     private let modeHint = GannyuModeHint()
-    // A client is not required to provide a caret rectangle while no text is
-    // marked.  Keep only a coordinate that the client previously validated,
-    // rather than asking IMKCandidates to draw a one-item "candidate".
+    private var candidateWindow: IMKCandidates?
     private var lastCandidateAnchor: NSRect?
-    private var candidatePresentationGeneration = 0
     private let fullwidthPunctuationKey = "org.doohaey.gonnyu.fullwidthPunctuation"
     private let log = Logger(subsystem: "org.doohaey.inputmethod.gonnyu.native", category: "input")
 
@@ -27,23 +24,13 @@ final class GannyuInputController: IMKInputController {
         super.init(server: server, delegate: delegate, client: inputClient)
         createEngineIfNeeded()
         if let server {
-            let window = IMKCandidates(
-                server: server,
-                panelType: kIMKSingleColumnScrollingCandidatePanel,
-                styleType: kIMKMain
-            )
-            window?.setSelectionKeys([
-                kVK_ANSI_1, kVK_ANSI_2, kVK_ANSI_3, kVK_ANSI_4, kVK_ANSI_5,
-                kVK_ANSI_6, kVK_ANSI_7, kVK_ANSI_8, kVK_ANSI_9,
-            ].map { NSNumber(value: $0) })
-            window?.setDismissesAutomatically(false)
-            // IMKCandidates is used only to obtain Apple's candidate location
-            // when a client does not expose firstRectForCharacterRange.
-            window?.setAttributes([
+            let w = IMKCandidates(server: server, panelType: kIMKSingleColumnScrollingCandidatePanel, styleType: kIMKMain)
+            w?.setAttributes([
                 IMKCandidatesOpacityAttributeName: NSNumber(value: 0),
                 IMKCandidatesSendServerKeyEventFirst: NSNumber(value: true),
             ])
-            candidateWindow = window
+            w?.setDismissesAutomatically(false)
+            candidateWindow = w
         }
         candidatePanel.onSelect = { [weak self] index in
             guard let self else { return }
@@ -75,6 +62,9 @@ final class GannyuInputController: IMKInputController {
 
     @objc(deactivateServer:)
     override func deactivateServer(_ sender: Any!) {
+        // Discard the stale anchor so it is not mistakenly reused when this
+        // controller is next activated for the same or a different client.
+        lastCandidateAnchor = nil
         clear(client: sender)
     }
 
@@ -360,14 +350,14 @@ final class GannyuInputController: IMKInputController {
             modeHint.show(title: title, near: rect)
             return
         }
-        guard let anchor = lastCandidateAnchor else {
-            // There is no public InputMethodKit API that can supply a text
-            // cursor location when the client declines firstRectForCharacterRange.
-            // Do not display a detached or native candidate-shaped substitute.
-            modeHint.hide()
+        if let anchor = lastCandidateAnchor {
+            modeHint.show(title: title, near: anchor)
             return
         }
-        modeHint.show(title: title, near: anchor)
+        // No cursor position available via any API; fall back to near the mouse
+        // so the mode toggle is at least visible.
+        let mouse = NSEvent.mouseLocation
+        modeHint.show(title: title, near: NSRect(x: mouse.x, y: mouse.y - 4, width: 0, height: 18))
     }
 
     private func selectHighlighted(client sender: Any!) -> Bool {
@@ -404,7 +394,6 @@ final class GannyuInputController: IMKInputController {
         } else {
             snapshot = nil
             displays = []
-            candidateWindow?.hide()
             candidatePanel.hide()
             pageHint.hide()
             modeHint.hide()
@@ -424,7 +413,6 @@ final class GannyuInputController: IMKInputController {
         if result.rawInput.isEmpty {
             selectedLine = 0
             clearMarkedText(on: client)
-            candidateWindow?.hide()
             candidatePanel.hide()
             pageHint.hide()
             modeHint.hide()
@@ -448,68 +436,42 @@ final class GannyuInputController: IMKInputController {
         let candidates = state.candidates.sorted(by: { $0.pageIndex < $1.pageIndex })
         displays = candidates.enumerated().map { display(for: $0.element, line: $0.offset, selected: $0.offset == selectedLine) }
         guard !displays.isEmpty else {
-            candidateWindow?.hide()
             candidatePanel.hide()
             pageHint.hide()
             return
         }
+
+        // Primary: firstRect via marked/selected range (standard Cocoa clients).
         if let client = client(), let anchor = caretRect(for: client) {
             lastCandidateAnchor = anchor
-            candidateWindow?.hide()
             pageHint.hide()
             candidatePanel.present(state, selectedLine: selectedLine, anchor: anchor)
             return
         }
-        candidatePanel.hide()
-        candidatePresentationGeneration += 1
-        let generation = candidatePresentationGeneration
-        candidateWindow?.setCandidateData(displays)
-        // update() calls candidates(_:), which returns the same displays
-        // array. The locator is transparent by documented API contract.
-        candidateWindow?.setAttributes([
-            IMKCandidatesOpacityAttributeName: NSNumber(value: 0),
-            IMKCandidatesSendServerKeyEventFirst: NSNumber(value: true),
-        ])
-        candidateWindow?.update()
-        candidateWindow?.show(kIMKLocateCandidatesBelowHint)
-        // IMK can return a correctly-sized but stale (0,0) frame for several
-        // run-loop turns. Keep that frame only as a baseline; it is never a
-        // usable anchor until IMK reports a non-origin position.
-        resolveLocatorFrame(generation: generation, attemptsRemaining: 15, baselineFrame: nil)
-    }
 
-    private func resolveLocatorFrame(generation: Int, attemptsRemaining: Int, baselineFrame: NSRect?) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.02) { [weak self] in
-            guard let self, self.candidatePresentationGeneration == generation else { return }
-            let frame = self.candidateWindow?.candidateFrame().standardized ?? .zero
-            let valid = frame.width > 0 && frame.height > 0 && frame.intersectsAnyScreen
-            // IMK reports a valid-sized (0, 0) frame before it has applied the
-            // client's location hint. Never use that initial frame.
-            let hasRealOrigin = frame.minX > 1 || frame.minY > 1
-            let moved = hasRealOrigin && (baselineFrame == nil || frame != baselineFrame)
-            if valid && moved {
-                self.candidateWindow?.hide()
-                self.lastCandidateAnchor = frame
-                self.pageHint.hide()
-                if let state = self.snapshot, !state.candidates.isEmpty {
-                    self.candidatePanel.present(state, selectedLine: self.selectedLine, replacing: frame)
-                } else {
-                    self.candidatePanel.hide()
-                }
-                return
-            }
-            guard attemptsRemaining > 0 else {
-                self.candidateWindow?.hide()
-                self.candidatePanel.hide()
-                self.pageHint.hide()
-                return
-            }
-            self.resolveLocatorFrame(
-                generation: generation,
-                attemptsRemaining: attemptsRemaining - 1,
-                baselineFrame: baselineFrame ?? (valid ? frame : nil)
-            )
+        // Secondary: use the last successfully resolved anchor from this
+        // controller's context (e.g. keep the panel in place while the client
+        // briefly declines to report a position between keystrokes).
+        if let anchor = lastCandidateAnchor {
+            pageHint.hide()
+            candidatePanel.present(state, selectedLine: selectedLine, anchor: anchor)
+            return
         }
+
+        // Last resort: position the panel near the current mouse cursor so it
+        // is at least visible somewhere relevant on screen.  This path is
+        // taken for clients (e.g. Terminal.app) that report no cursor position
+        // through any available API.
+        let mouse = NSEvent.mouseLocation
+        let mouseAnchor = NSRect(x: mouse.x, y: mouse.y - 4, width: 0, height: 18)
+        if mouseAnchor.intersectsAnyScreen {
+            pageHint.hide()
+            candidatePanel.present(state, selectedLine: selectedLine, anchor: mouseAnchor)
+            return
+        }
+
+        candidatePanel.hide()
+        pageHint.hide()
     }
 
     private func replacementRange(for client: IMKTextInput) -> NSRange {
@@ -552,18 +514,110 @@ final class GannyuInputController: IMKInputController {
     }
 
     private func caretRect(for client: IMKTextInput) -> NSRect? {
+        // Primary: firstRect via marked/selected range.  Works for standard
+        // Cocoa text views (NSTextView, WebKit, Electron, etc.).
         for range in [client.markedRange(), client.selectedRange()] where range.location != NSNotFound {
             var actualRange = NSRange(location: NSNotFound, length: 0)
             let rect = client.firstRect(forCharacterRange: range, actualRange: &actualRange)
             if diagnosticsEnabled {
                 log.notice("IMK caret range=\(range.location, privacy: .public):\(range.length, privacy: .public) actual=\(actualRange.location, privacy: .public):\(actualRange.length, privacy: .public) rect=\(rect.origin.x, privacy: .public),\(rect.origin.y, privacy: .public),\(rect.width, privacy: .public),\(rect.height, privacy: .public)")
             }
+            // Some clients return only a vertical caret line at x=0 when
+            // they decline to expose their real insertion point.  That is
+            // not an anchor; accepting it pins every auxiliary panel to the
+            // screen's left/bottom edge.
+            let hasHorizontalPosition = rect.origin.x > 1 || rect.width > 0
             guard rect.origin.x.isFinite, rect.origin.y.isFinite,
-                  rect.width >= 0, rect.height > 0,
+                  rect.width >= 0, rect.height > 0, hasHorizontalPosition,
                   rect.intersectsAnyScreen else { continue }
             return rect
         }
+
+        // Secondary: lineHeightRectangle at character index 0.  Some clients
+        // (including terminal emulators) implement this but not firstRect.
+        var lineRect = NSRect.zero
+        _ = client.attributes(forCharacterIndex: 0, lineHeightRectangle: &lineRect)
+        if diagnosticsEnabled {
+            log.notice("IMK lineHeightRect rect=\(lineRect.origin.x, privacy: .public),\(lineRect.origin.y, privacy: .public),\(lineRect.width, privacy: .public),\(lineRect.height, privacy: .public)")
+        }
+        if lineRect.origin.x.isFinite, lineRect.origin.y.isFinite, lineRect.height > 0,
+           (lineRect.origin.x > 1 || lineRect.width > 0), lineRect.intersectsAnyScreen {
+            return lineRect
+        }
+
+        // Tertiary: Accessibility API.  Covers terminal apps that expose
+        // kAXBoundsForRangeParameterizedAttribute on the focused text element.
+        if let axRect = caretRectViaAccessibility() {
+            if diagnosticsEnabled {
+                log.notice("IMK AX caret rect=\(axRect.origin.x, privacy: .public),\(axRect.origin.y, privacy: .public),\(axRect.width, privacy: .public),\(axRect.height, privacy: .public)")
+            }
+            return axRect
+        }
+
         return nil
+    }
+
+    /// Returns the on-screen caret rect for the currently focused UI element
+    /// using the macOS Accessibility API.  Coordinates are converted from
+    /// Quartz (top-left origin) to AppKit screen space (bottom-left origin).
+    private func caretRectViaAccessibility() -> NSRect? {
+        guard let app = NSWorkspace.shared.frontmostApplication else { return nil }
+        let axApp = AXUIElementCreateApplication(app.processIdentifier)
+
+        var focusedRef: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(axApp, kAXFocusedUIElementAttribute as CFString, &focusedRef) == .success,
+              let focusedRef else { return nil }
+        // CFTypeRef to AXUIElement: safe because AXUIElement is a CF type.
+        let focused = focusedRef as! AXUIElement  // swiftlint:disable:this force_cast
+
+        // Try bounds for the selected text range first (precise cursor position).
+        var selectedRangeRef: CFTypeRef?
+        if AXUIElementCopyAttributeValue(focused, kAXSelectedTextRangeAttribute as CFString, &selectedRangeRef) == .success,
+           let selectedRangeRef {
+            var boundsRef: CFTypeRef?
+            if AXUIElementCopyParameterizedAttributeValue(
+                focused,
+                kAXBoundsForRangeParameterizedAttribute as CFString,
+                selectedRangeRef,
+                &boundsRef
+            ) == .success, let boundsRef {
+                var cgRect = CGRect.zero
+                if AXValueGetValue(boundsRef as! AXValue, AXValueType.cgRect, &cgRect), cgRect.height > 0 {  // swiftlint:disable:this force_cast
+                    if let r = axRectToAppKit(cgRect), r.intersectsAnyScreen { return r }
+                }
+            }
+        }
+
+        // Fall back to the bounding rect of the focused element itself (coarse
+        // but better than nothing — gives the correct quadrant of the screen).
+        var posRef: CFTypeRef?
+        var sizeRef: CFTypeRef?
+        if AXUIElementCopyAttributeValue(focused, kAXPositionAttribute as CFString, &posRef) == .success,
+           AXUIElementCopyAttributeValue(focused, kAXSizeAttribute as CFString, &sizeRef) == .success,
+           let posRef, let sizeRef {
+            var origin = CGPoint.zero
+            var size = CGSize.zero
+            if AXValueGetValue(posRef as! AXValue, AXValueType.cgPoint, &origin),  // swiftlint:disable:this force_cast
+               AXValueGetValue(sizeRef as! AXValue, AXValueType.cgSize, &size),
+               size.height > 0 {
+                let cgRect = CGRect(x: origin.x, y: origin.y, width: size.width, height: size.height)
+                if let r = axRectToAppKit(cgRect), r.intersectsAnyScreen { return r }
+            }
+        }
+
+        return nil
+    }
+
+    /// Converts an Accessibility/Quartz rect (top-left origin) to AppKit screen
+    /// coordinates (bottom-left origin).
+    private func axRectToAppKit(_ rect: CGRect) -> NSRect? {
+        guard let primary = NSScreen.screens.first else { return nil }
+        return NSRect(
+            x: rect.origin.x,
+            y: primary.frame.height - rect.origin.y - rect.size.height,
+            width: rect.size.width,
+            height: max(rect.size.height, 14)
+        )
     }
 
     private func candidateLineNumber(_ keyCode: UInt16) -> Int? {
