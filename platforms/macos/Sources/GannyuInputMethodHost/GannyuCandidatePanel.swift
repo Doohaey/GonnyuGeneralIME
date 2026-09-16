@@ -143,7 +143,10 @@ final class GannyuCandidatePanel: NSObject {
         let screen = NSScreen.screens.first(where: { $0.visibleFrame.intersects(nativeFrame) }) ?? NSScreen.main
         guard let visible = screen?.visibleFrame else { return }
         let x = min(max(nativeFrame.minX, visible.minX + 4), visible.maxX - frame.width - 4)
-        let y = min(max(nativeFrame.maxY - frame.height, visible.minY + 4), visible.maxY - frame.height - 4)
+        // candidateFrame() is already an AppKit screen-space window frame.
+        // Preserve its lower-left origin; recomputing from maxY introduces a
+        // second height-dependent offset and moves the replacement panel.
+        let y = min(max(nativeFrame.minY, visible.minY + 4), visible.maxY - frame.height - 4)
         panel.setFrameOrigin(NSPoint(x: x, y: y))
     }
 

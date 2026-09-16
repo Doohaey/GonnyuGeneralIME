@@ -548,7 +548,7 @@ class GannyuInputMethodService : InputMethodService() {
 
     private fun functionKeyWidth(label: String, keyWidth: Int): Int =
         when {
-            label == "分词" -> (keyWidth * SEGMENT_KEY_WIDTH_MULTIPLIER).toInt()
+            label == "分词" || label == "⇧" -> (keyWidth * SEGMENT_KEY_WIDTH_MULTIPLIER).toInt()
             label in FUNCTION_WIDTH_KEYS -> (keyWidth * FUNCTION_KEY_WIDTH_MULTIPLIER).toInt()
             else -> keyWidth
         }

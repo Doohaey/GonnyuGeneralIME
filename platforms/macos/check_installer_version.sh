@@ -23,6 +23,24 @@ parse_version() {
 parse_version "$incoming"
 incoming_parts=("${parsed[@]}")
 
+read_plist_version() {
+  local key="$1"
+  if [[ -x /usr/libexec/PlistBuddy ]]; then
+    /usr/libexec/PlistBuddy -c "Print :$key" "$installed_plist" 2>/dev/null
+    return
+  fi
+  python3 - "$installed_plist" "$key" <<'PY'
+import plistlib
+import sys
+
+with open(sys.argv[1], "rb") as source:
+    value = plistlib.load(source).get(sys.argv[2])
+if not isinstance(value, str):
+    raise SystemExit(1)
+print(value)
+PY
+}
+
 if [[ ! -f "$installed_plist" ]]; then
   bundle_root="${installed_plist%/Contents/Info.plist}"
   if [[ -e "$bundle_root" ]]; then
@@ -31,8 +49,8 @@ if [[ ! -f "$installed_plist" ]]; then
   fi
   exit 0
 fi
-installed="$(/usr/libexec/PlistBuddy -c 'Print :GannyuVersion' "$installed_plist" 2>/dev/null)" || \
-  installed="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$installed_plist" 2>/dev/null)" || {
+installed="$(read_plist_version GannyuVersion)" || \
+  installed="$(read_plist_version CFBundleShortVersionString)" || {
   echo "installed input method has no readable version: $installed_plist" >&2
   exit 2
 }

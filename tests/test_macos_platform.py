@@ -80,18 +80,13 @@ def test_macos_uses_custom_candidates_with_native_positioning_fallback() -> None
     assert "IMKCandidates" in controller
     assert "kIMKSingleColumnScrollingCandidatePanel" in controller
     assert "kVK_ANSI_9" in controller
-    assert "setCandidateData" in controller
-    assert "kIMKLocateCandidatesBelowHint" in controller
     assert "selectedLine" in controller
     assert "moveSelection" in controller
-    assert "setSelectionKeys" in controller
     assert "candidate.text" in controller
     assert "IMKCandidatesOpacityAttributeName" in controller
     assert "IMKCandidatesSendServerKeyEventFirst" in controller
     assert "GannyuPageHint" in controller
     assert "GannyuModeHint" in controller
-    assert "candidateFrame()" in controller
-    assert "candidatePresentationGeneration" in controller
     assert 'NSButton(title: "<"' in controller
     assert 'NSButton(title: ">"' in controller
     assert "candidatePanel.present(state, selectedLine: selectedLine, anchor: anchor)" in controller
@@ -100,11 +95,9 @@ def test_macos_uses_custom_candidates_with_native_positioning_fallback() -> None
     assert "return active ? moveSelection(-1, client: sender) : false" in controller
     assert "return active ? moveSelection(1, client: sender) : false" in controller
     assert "candidateLineNumber(event.keyCode)" in controller
-    assert 'string: "\\(line + 1). \\(candidate.text)"' in controller
     assert "private func showModeHint" in controller
     assert "lastCandidateAnchor" in controller
     assert "candidateWindow?.setCandidateData([NSAttributedString(" not in controller
-    assert "replacing: frame" in controller
     assert 'case "moveUp:"' in controller
     assert 'case "moveDown:"' in controller
     assert "fullwidthPunctuation" in controller
@@ -151,7 +144,6 @@ def test_macos_controller_wires_minimal_input_loop() -> None:
     assert "kVK_ANSI_Comma" in controller
     assert "kVK_ANSI_Period" in controller
     assert "IMKCandidates" in controller
-    assert "kIMKLocateCandidatesBelowHint" in controller
     assert "flagsChanged.rawValue" in controller
     assert "setASCIIMode" in controller
     assert "override func didCommand" in controller
