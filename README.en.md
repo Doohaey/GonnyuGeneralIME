@@ -15,10 +15,10 @@ Rime schema repositories for Lancong(Nanchang) and Fenni(Fenyi). Other installat
 
 ## Release 1.0.0
 
-- feat: 键盘触摸更顺畅，键位之间的空白区域也能自然操作。
-- fix: 候选词点击与滑动选择更连贯，输入过程更轻松。
-- feat: Android 首次使用与语言选择流程更清晰。
-- feat: macOS 输入过程更连贯，切换编辑位置后也能自然继续输入。
+- feat: make keyboard touch input smoother, including the spaces between keys
+- fix: make candidate tapping and swiping more fluid during input
+- feat: clarify the first-use and language-selection flow on Android
+- feat: make macOS input more consistent when continuing after moving the cursor
 
 ## Contents
 
