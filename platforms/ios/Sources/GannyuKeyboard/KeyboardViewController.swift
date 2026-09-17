@@ -1,5 +1,4 @@
 import UIKit
-
 private final class KeyPreviewView: UIView {
     private let label = UILabel()
     private let bubbleLayer = CAShapeLayer()
@@ -63,6 +62,263 @@ private final class KeyPreviewView: UIView {
     }
 }
 
+private enum KeyRowLayout {
+    case reference
+    case centered
+    case deleteExtended
+    case bottom
+}
+
+/// The control owns the complete logical key area. `faceView` draws the
+/// smaller key cap inside that area, so visible gaps never become touch gaps.
+private final class KeyboardKeyButton: UIButton {
+    private let faceView = UIView()
+    var faceInsets: UIEdgeInsets = .zero {
+        didSet { setNeedsLayout() }
+    }
+
+    var faceFrame: CGRect { bounds.inset(by: faceInsets) }
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        backgroundColor = .clear
+        faceView.isUserInteractionEnabled = false
+        faceView.layer.cornerRadius = 5
+        faceView.layer.cornerCurve = .continuous
+        faceView.layer.shadowColor = UIColor(red: 0.50, green: 0.51, blue: 0.53, alpha: 1).cgColor
+        faceView.layer.shadowOpacity = 0.28
+        faceView.layer.shadowOffset = CGSize(width: 0, height: 1)
+        faceView.layer.shadowRadius = 0
+        insertSubview(faceView, at: 0)
+    }
+
+    required init?(coder: NSCoder) { nil }
+
+    func setFaceColor(_ color: UIColor) {
+        faceView.backgroundColor = color
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        faceView.frame = faceFrame
+    }
+
+    override func contentRect(forBounds bounds: CGRect) -> CGRect {
+        bounds.inset(by: faceInsets)
+    }
+}
+
+/// Lays out the old visual key frames, then expands their logical controls to
+/// the midpoints between neighbouring key caps. The logical frames therefore
+/// tile the complete row with no ownerless pixels.
+private final class KeyboardKeyRowView: UIView {
+    let buttons: [KeyboardKeyButton]
+    private let labels: [String]
+    private let layout: KeyRowLayout
+    private let gap: CGFloat
+    private let keyHeight: CGFloat
+    private let topVisualInset: CGFloat
+    private let bottomVisualInset: CGFloat
+    private let widthMultiplier: (String) -> CGFloat
+
+    init(
+        labels: [String],
+        buttons: [KeyboardKeyButton],
+        layout: KeyRowLayout,
+        gap: CGFloat,
+        keyHeight: CGFloat,
+        topVisualInset: CGFloat,
+        bottomVisualInset: CGFloat,
+        widthMultiplier: @escaping (String) -> CGFloat
+    ) {
+        self.labels = labels
+        self.buttons = buttons
+        self.layout = layout
+        self.gap = gap
+        self.keyHeight = keyHeight
+        self.topVisualInset = topVisualInset
+        self.bottomVisualInset = bottomVisualInset
+        self.widthMultiplier = widthMultiplier
+        super.init(frame: .zero)
+        buttons.forEach(addSubview)
+    }
+
+    required init?(coder: NSCoder) { nil }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        let visualFrames = makeVisualFrames(width: bounds.width)
+        guard visualFrames.count == buttons.count else { return }
+        for index in buttons.indices {
+            let visual = visualFrames[index]
+            let minX = index == 0 ? bounds.minX : (visualFrames[index - 1].maxX + visual.minX) / 2
+            let maxX = index == buttons.index(before: buttons.endIndex)
+                ? bounds.maxX
+                : (visual.maxX + visualFrames[index + 1].minX) / 2
+            let logical = CGRect(x: minX, y: 0, width: maxX - minX, height: bounds.height)
+            let button = buttons[index]
+            button.frame = logical
+            button.faceInsets = UIEdgeInsets(
+                top: topVisualInset,
+                left: visual.minX - logical.minX,
+                bottom: bottomVisualInset,
+                right: logical.maxX - visual.maxX
+            )
+        }
+    }
+
+    /// Returns true only if the logical controls form an exact, gap-free row.
+    func hasContinuousLogicalCoverage(tolerance: CGFloat = 0.01) -> Bool {
+        guard let first = buttons.first, let last = buttons.last else { return false }
+        guard abs(first.frame.minX - bounds.minX) <= tolerance,
+              abs(last.frame.maxX - bounds.maxX) <= tolerance else { return false }
+        return zip(buttons, buttons.dropFirst()).allSatisfy { pair in
+            abs(pair.0.frame.maxX - pair.1.frame.minX) <= tolerance
+        }
+    }
+
+    private func makeVisualFrames(width: CGFloat) -> [CGRect] {
+        guard !labels.isEmpty else { return [] }
+        let referenceWidth = max(0, (width - gap * 9) / 10)
+        let widths: [CGFloat]
+        let originX: CGFloat
+        switch layout {
+        case .reference:
+            widths = Array(repeating: max(0, (width - gap * CGFloat(labels.count - 1)) / CGFloat(labels.count)), count: labels.count)
+            originX = 0
+        case .centered:
+            widths = labels.map { referenceWidth * widthMultiplier($0) }
+            let contentWidth = widths.reduce(0, +) + gap * CGFloat(max(0, labels.count - 1))
+            originX = max(0, (width - contentWidth) / 2)
+        case .deleteExtended:
+            let fixed = labels.dropLast().map { referenceWidth * widthMultiplier($0) }
+            let remaining = max(0, width - fixed.reduce(0, +) - gap * CGFloat(max(0, labels.count - 1)))
+            widths = fixed + [remaining]
+            originX = 0
+        case .bottom:
+            let fixedWidth = zip(labels, labels.indices).reduce(CGFloat.zero) { result, pair in
+                pair.0 == "空格" ? result : result + referenceWidth * widthMultiplier(pair.0)
+            }
+            let flexible = max(0, width - fixedWidth - gap * CGFloat(max(0, labels.count - 1)))
+            widths = labels.map { $0 == "空格" ? flexible : referenceWidth * widthMultiplier($0) }
+            originX = 0
+        }
+
+        var x = originX
+        return widths.map { itemWidth in
+            defer { x += itemWidth + gap }
+            return CGRect(x: x, y: topVisualInset, width: itemWidth, height: keyHeight)
+        }
+    }
+}
+
+/// A single owner for every touch in the keyboard rectangle. The key-cap
+/// buttons are display/action objects only; UIKit never has to hit-test the
+/// visual gaps between them. A touch keeps the key chosen at touch-down until
+/// release, matching the ownership model used by mature custom keyboards.
+private final class KeyboardTouchStackView: UIStackView {
+    func nearestButton(to point: CGPoint) -> KeyboardKeyButton? {
+        guard bounds.contains(point) else { return nil }
+        var nearest: (button: KeyboardKeyButton, distanceSquared: CGFloat)?
+        for case let row as KeyboardKeyRowView in arrangedSubviews {
+            for button in row.buttons {
+                let frame = row.convert(button.frame, to: self)
+                let dx = max(0, max(frame.minX - point.x, point.x - frame.maxX))
+                let dy = max(0, max(frame.minY - point.y, point.y - frame.maxY))
+                let distanceSquared = dx * dx + dy * dy
+                if nearest == nil || distanceSquared < nearest!.distanceSquared {
+                    nearest = (button, distanceSquared)
+                }
+            }
+        }
+        return nearest?.button
+    }
+}
+
+/// The sole UIKit hit-test target for the complete keyboard extension. Visual
+/// descendants remain display-only; the controller routes these raw touches
+/// to keys, candidates, scrolling, and candidate controls by geometry.
+private final class UnifiedInputTouchView: UIView {
+    var onBegan: ((UITouch, CGPoint) -> Void)?
+    var onMoved: ((UITouch, CGPoint) -> Void)?
+    var onEnded: ((UITouch, CGPoint, Bool) -> Void)?
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        backgroundColor = .clear
+        isMultipleTouchEnabled = true
+        isUserInteractionEnabled = true
+    }
+
+    required init?(coder: NSCoder) { nil }
+
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        guard !isHidden, alpha >= 0.01, isUserInteractionEnabled, bounds.contains(point) else {
+            return nil
+        }
+        return self
+    }
+
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        for touch in touches { onBegan?(touch, touch.location(in: self)) }
+    }
+
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        for touch in touches { onMoved?(touch, touch.location(in: self)) }
+    }
+
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        for touch in touches { onEnded?(touch, touch.location(in: self), false) }
+    }
+
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        for touch in touches { onEnded?(touch, touch.location(in: self), true) }
+    }
+}
+
+private final class CandidateCollectionViewCell: UICollectionViewCell {
+    static let reuseIdentifier = "CandidateCollectionViewCell"
+    private let titleLabel = UILabel()
+    private let subtitleLabel = UILabel()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        titleLabel.font = .systemFont(ofSize: 18, weight: .regular)
+        titleLabel.lineBreakMode = .byClipping
+        subtitleLabel.font = .systemFont(ofSize: 10)
+        let labels = UIStackView(arrangedSubviews: [titleLabel, subtitleLabel])
+        labels.axis = .vertical
+        labels.alignment = .leading
+        labels.isUserInteractionEnabled = false
+        labels.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(labels)
+        NSLayoutConstraint.activate([
+            labels.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 5),
+            // The final 3pt belongs to this cell's hit area and visually
+            // replaces the old, untappable inter-item spacing.
+            labels.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
+            labels.topAnchor.constraint(greaterThanOrEqualTo: contentView.topAnchor, constant: 1),
+            labels.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor, constant: -1),
+            labels.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+        ])
+    }
+
+    required init?(coder: NSCoder) { nil }
+
+    func configure(title: String, subtitle: String, expanded: Bool, textColor: UIColor, secondaryColor: UIColor) {
+        titleLabel.text = title
+        titleLabel.textColor = textColor
+        subtitleLabel.text = subtitle
+        subtitleLabel.textColor = secondaryColor
+        subtitleLabel.numberOfLines = expanded ? 0 : 1
+        subtitleLabel.lineBreakMode = expanded ? .byCharWrapping : .byClipping
+        isAccessibilityElement = true
+        accessibilityTraits = .button
+        accessibilityLabel = title
+        accessibilityHint = subtitle
+    }
+}
+
 final class KeyboardViewController: UIInputViewController {
     private enum KeyboardPage {
         case letters
@@ -71,11 +327,19 @@ final class KeyboardViewController: UIInputViewController {
         case symbolsMore
     }
 
-    private enum KeyRowLayout {
-        case reference
-        case centered
-        case deleteExtended
-        case bottom
+    private enum UnifiedTouchTarget {
+        case key(KeyboardKeyButton)
+        case candidate(UICollectionView, IndexPath?)
+        case expandCandidates
+        case collapseCandidates
+        case none
+    }
+
+    private struct UnifiedTouchState {
+        let target: UnifiedTouchTarget
+        let start: CGPoint
+        let initialContentOffset: CGPoint
+        var maximumDistance: CGFloat
     }
 
     private lazy var store = GonnyuAppleRegionStore(preferSharedStorage: hasFullAccess)
@@ -89,19 +353,20 @@ final class KeyboardViewController: UIInputViewController {
     private var backspaceTimer: Timer?
     private let preeditLabel = UILabel()
     private let candidateRow = UIStackView()
-    private let candidateScroll = UIScrollView()
-    private let candidateStack = UIStackView()
+    private let candidateLayout = UICollectionViewFlowLayout()
+    private lazy var candidateCollection = UICollectionView(frame: .zero, collectionViewLayout: candidateLayout)
     private let candidateExpandButton = UIButton(type: .system)
-    private let candidateExpandedScroll = UIScrollView()
-    private let candidateExpandedStack = UIStackView()
+    private let candidateExpandedLayout = UICollectionViewFlowLayout()
+    private lazy var candidateExpandedCollection = UICollectionView(frame: .zero, collectionViewLayout: candidateExpandedLayout)
     private let candidateExpandedCloseButton = UIButton(type: .system)
     private var candidateExpanded = false
     private var expandedCandidates: [GonnyuAppleCandidate] = []
     private var expandedLayoutWidth: CGFloat = 0
-    private let keyboardStack = UIStackView()
+    private let keyboardStack = KeyboardTouchStackView(frame: .zero)
+    private let unifiedTouchView = UnifiedInputTouchView(frame: .zero)
+    private var unifiedTouches: [UITouch: UnifiedTouchState] = [:]
     private let keyPreviewView = KeyPreviewView(frame: .zero)
-    private weak var referenceKeyButton: UIButton?
-    private var pendingWidthConstraints: [NSLayoutConstraint] = []
+    private var keyboardRowViews: [KeyboardKeyRowView] = []
     private let keyboardPanelColor = UIColor { traits in
         traits.userInterfaceStyle == .dark
             ? UIColor(red: 0.12, green: 0.13, blue: 0.15, alpha: 1)
@@ -147,7 +412,8 @@ final class KeyboardViewController: UIInputViewController {
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        if candidateExpanded && candidateExpandedScroll.bounds.width != expandedLayoutWidth {
+        keyboardRowViews.forEach { $0.layoutIfNeeded() }
+        if candidateExpanded && candidateExpandedCollection.bounds.width != expandedLayoutWidth {
             renderExpandedCandidates()
         }
     }
@@ -166,7 +432,9 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func buildKeyboard() {
-        view.backgroundColor = .clear
+        // Keep the complete remote keyboard surface rendered. The unified
+        // touch owner below covers the same bounds, including visual gaps.
+        view.backgroundColor = keyboardPanelColor
         let root = UIStackView()
         root.axis = .vertical
         root.spacing = 4
@@ -194,10 +462,15 @@ final class KeyboardViewController: UIInputViewController {
         candidateRow.heightAnchor.constraint(equalToConstant: 39).isActive = true
         root.addArrangedSubview(candidateRow)
 
-        candidateScroll.showsHorizontalScrollIndicator = false
-        candidateScroll.backgroundColor = .clear
-        candidateScroll.translatesAutoresizingMaskIntoConstraints = false
-        candidateRow.addArrangedSubview(candidateScroll)
+        candidateLayout.scrollDirection = .horizontal
+        candidateLayout.minimumLineSpacing = 0
+        candidateLayout.minimumInteritemSpacing = 0
+        candidateCollection.showsHorizontalScrollIndicator = false
+        candidateCollection.backgroundColor = .clear
+        candidateCollection.dataSource = self
+        candidateCollection.delegate = self
+        candidateCollection.register(CandidateCollectionViewCell.self, forCellWithReuseIdentifier: CandidateCollectionViewCell.reuseIdentifier)
+        candidateRow.addArrangedSubview(candidateCollection)
 
         candidateExpandButton.setTitle("⌄", for: .normal)
         candidateExpandButton.setTitleColor(fixedTextColor, for: .normal)
@@ -207,28 +480,18 @@ final class KeyboardViewController: UIInputViewController {
         candidateExpandButton.widthAnchor.constraint(equalToConstant: 32).isActive = true
         candidateExpandButton.addTarget(self, action: #selector(toggleCandidateExpansion), for: .touchUpInside)
         candidateRow.addArrangedSubview(candidateExpandButton)
-
-        candidateStack.axis = .horizontal
-        candidateStack.spacing = 3
-        candidateStack.alignment = .fill
-        candidateStack.distribution = .fill
-        candidateStack.setContentHuggingPriority(.required, for: .horizontal)
-        candidateStack.setContentCompressionResistancePriority(.required, for: .horizontal)
-        candidateStack.translatesAutoresizingMaskIntoConstraints = false
-        candidateScroll.addSubview(candidateStack)
-        NSLayoutConstraint.activate([
-            candidateStack.leadingAnchor.constraint(equalTo: candidateScroll.contentLayoutGuide.leadingAnchor),
-            candidateStack.trailingAnchor.constraint(equalTo: candidateScroll.contentLayoutGuide.trailingAnchor),
-            candidateStack.topAnchor.constraint(equalTo: candidateScroll.contentLayoutGuide.topAnchor),
-            candidateStack.bottomAnchor.constraint(equalTo: candidateScroll.contentLayoutGuide.bottomAnchor),
-            candidateStack.heightAnchor.constraint(equalTo: candidateScroll.frameLayoutGuide.heightAnchor),
-        ])
-
-        candidateExpandedScroll.showsVerticalScrollIndicator = true
-        candidateExpandedScroll.backgroundColor = keyboardPanelColor
-        candidateExpandedScroll.translatesAutoresizingMaskIntoConstraints = false
-        candidateExpandedScroll.isHidden = true
-        view.addSubview(candidateExpandedScroll)
+        candidateExpandedLayout.scrollDirection = .vertical
+        candidateExpandedLayout.minimumLineSpacing = 0
+        candidateExpandedLayout.minimumInteritemSpacing = 0
+        candidateExpandedCollection.showsVerticalScrollIndicator = true
+        candidateExpandedCollection.backgroundColor = keyboardPanelColor
+        candidateExpandedCollection.dataSource = self
+        candidateExpandedCollection.delegate = self
+        candidateExpandedCollection.contentInset = UIEdgeInsets(top: 3, left: 3, bottom: 3, right: 3)
+        candidateExpandedCollection.translatesAutoresizingMaskIntoConstraints = false
+        candidateExpandedCollection.isHidden = true
+        candidateExpandedCollection.register(CandidateCollectionViewCell.self, forCellWithReuseIdentifier: CandidateCollectionViewCell.reuseIdentifier)
+        view.addSubview(candidateExpandedCollection)
 
         candidateExpandedCloseButton.setTitle("⌃", for: .normal)
         candidateExpandedCloseButton.setTitleColor(fixedTextColor, for: .normal)
@@ -237,150 +500,217 @@ final class KeyboardViewController: UIInputViewController {
         candidateExpandedCloseButton.translatesAutoresizingMaskIntoConstraints = false
         candidateExpandedCloseButton.addTarget(self, action: #selector(toggleCandidateExpansion), for: .touchUpInside)
         view.addSubview(candidateExpandedCloseButton)
-
-        candidateExpandedStack.axis = .vertical
-        candidateExpandedStack.spacing = 3
-        candidateExpandedStack.translatesAutoresizingMaskIntoConstraints = false
-        candidateExpandedScroll.addSubview(candidateExpandedStack)
         NSLayoutConstraint.activate([
-            candidateExpandedScroll.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 6),
-            candidateExpandedScroll.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -6),
-            candidateExpandedScroll.topAnchor.constraint(equalTo: view.topAnchor, constant: 20),
-            candidateExpandedScroll.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -7),
+            candidateExpandedCollection.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 6),
+            candidateExpandedCollection.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -6),
+            candidateExpandedCollection.topAnchor.constraint(equalTo: view.topAnchor, constant: 20),
+            candidateExpandedCollection.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -7),
             candidateExpandedCloseButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 24),
             candidateExpandedCloseButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10),
             candidateExpandedCloseButton.widthAnchor.constraint(equalToConstant: 32),
             candidateExpandedCloseButton.heightAnchor.constraint(equalToConstant: 32),
-            candidateExpandedStack.leadingAnchor.constraint(equalTo: candidateExpandedScroll.contentLayoutGuide.leadingAnchor, constant: 3),
-            candidateExpandedStack.trailingAnchor.constraint(equalTo: candidateExpandedScroll.contentLayoutGuide.trailingAnchor, constant: -3),
-            candidateExpandedStack.topAnchor.constraint(equalTo: candidateExpandedScroll.contentLayoutGuide.topAnchor, constant: 3),
-            candidateExpandedStack.bottomAnchor.constraint(equalTo: candidateExpandedScroll.contentLayoutGuide.bottomAnchor, constant: -3),
-            candidateExpandedStack.widthAnchor.constraint(equalTo: candidateExpandedScroll.frameLayoutGuide.widthAnchor, constant: -6),
         ])
         view.bringSubviewToFront(candidateExpandedCloseButton)
 
         keyboardStack.axis = .vertical
-        keyboardStack.spacing = 6
+        keyboardStack.spacing = 0
+        keyboardStack.translatesAutoresizingMaskIntoConstraints = false
         root.addArrangedSubview(keyboardStack)
         renderKeyboard()
+
+        unifiedTouchView.translatesAutoresizingMaskIntoConstraints = false
+        unifiedTouchView.onBegan = { [weak self] touch, point in
+            self?.unifiedTouchBegan(touch, at: point)
+        }
+        unifiedTouchView.onMoved = { [weak self] touch, point in
+            self?.unifiedTouchMoved(touch, to: point)
+        }
+        unifiedTouchView.onEnded = { [weak self] touch, point, cancelled in
+            self?.unifiedTouchEnded(touch, at: point, cancelled: cancelled)
+        }
+        view.addSubview(unifiedTouchView)
+        NSLayoutConstraint.activate([
+            unifiedTouchView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            unifiedTouchView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            unifiedTouchView.topAnchor.constraint(equalTo: view.topAnchor),
+            unifiedTouchView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+        ])
+    }
+
+    private func unifiedTouchBegan(_ touch: UITouch, at point: CGPoint) {
+        let target: UnifiedTouchTarget
+        var initialOffset = CGPoint.zero
+        if candidateExpanded {
+            let closeFrame = candidateExpandedCloseButton.convert(candidateExpandedCloseButton.bounds, to: view)
+            let collectionFrame = candidateExpandedCollection.convert(candidateExpandedCollection.bounds, to: view)
+            if closeFrame.contains(point) {
+                target = .collapseCandidates
+            } else if collectionFrame.contains(point) {
+                let local = candidateExpandedCollection.convert(point, from: view)
+                target = .candidate(candidateExpandedCollection, candidateExpandedCollection.indexPathForItem(at: local))
+                initialOffset = candidateExpandedCollection.contentOffset
+            } else {
+                target = .none
+            }
+        } else {
+            let expandFrame = candidateExpandButton.convert(candidateExpandButton.bounds, to: view)
+            let candidateFrame = candidateCollection.convert(candidateCollection.bounds, to: view)
+            let keyboardFrame = keyboardStack.convert(keyboardStack.bounds, to: view)
+            if !candidateExpandButton.isHidden && expandFrame.contains(point) {
+                target = .expandCandidates
+            } else if candidateFrame.contains(point) {
+                let local = candidateCollection.convert(point, from: view)
+                target = .candidate(candidateCollection, candidateCollection.indexPathForItem(at: local))
+                initialOffset = candidateCollection.contentOffset
+            } else if keyboardFrame.contains(point) {
+                let local = keyboardStack.convert(point, from: view)
+                let button = keyboardStack.nearestButton(to: local)
+                target = button.map(UnifiedTouchTarget.key) ?? .none
+                button?.isHighlighted = true
+                button?.sendActions(for: .touchDown)
+            } else {
+                target = .none
+            }
+        }
+
+        unifiedTouches[touch] = UnifiedTouchState(
+            target: target,
+            start: point,
+            initialContentOffset: initialOffset,
+            maximumDistance: 0
+        )
+    }
+
+    private func unifiedTouchMoved(_ touch: UITouch, to point: CGPoint) {
+        guard var state = unifiedTouches[touch] else { return }
+        let dx = point.x - state.start.x
+        let dy = point.y - state.start.y
+        state.maximumDistance = max(state.maximumDistance, hypot(dx, dy))
+        if case .candidate(let collection, _) = state.target, state.maximumDistance >= 8 {
+            collection.layoutIfNeeded()
+            let inset = collection.adjustedContentInset
+            if collection === candidateCollection {
+                let minimum = -inset.left
+                let maximum = max(minimum, collection.contentSize.width - collection.bounds.width + inset.right)
+                let x = min(maximum, max(minimum, state.initialContentOffset.x - dx))
+                collection.setContentOffset(CGPoint(x: x, y: state.initialContentOffset.y), animated: false)
+            } else {
+                let minimum = -inset.top
+                let maximum = max(minimum, collection.contentSize.height - collection.bounds.height + inset.bottom)
+                let y = min(maximum, max(minimum, state.initialContentOffset.y - dy))
+                collection.setContentOffset(CGPoint(x: state.initialContentOffset.x, y: y), animated: false)
+            }
+        }
+        unifiedTouches[touch] = state
+    }
+
+    private func unifiedTouchEnded(_ touch: UITouch, at point: CGPoint, cancelled: Bool) {
+        guard var state = unifiedTouches.removeValue(forKey: touch) else { return }
+        state.maximumDistance = max(
+            state.maximumDistance,
+            hypot(point.x - state.start.x, point.y - state.start.y)
+        )
+
+        switch state.target {
+        case .key(let button):
+            button.isHighlighted = false
+            button.sendActions(for: cancelled ? .touchCancel : .touchUpInside)
+        case .candidate(let collection, let startIndex):
+            let outcome = !cancelled && state.maximumDistance < 8 ? "tap" : "pan"
+            let localEnd = collection.convert(point, from: view)
+            let indexPath = collection.indexPathForItem(at: localEnd) ?? startIndex
+            if outcome == "tap", let indexPath {
+                let candidates = collection === candidateCollection ? snapshot.candidates : expandedCandidates
+                if candidates.indices.contains(indexPath.item) {
+                    commitCandidate(at: candidates[indexPath.item].globalIndex)
+                }
+            }
+        case .expandCandidates:
+            if !cancelled && state.maximumDistance < 8 { toggleCandidateExpansion() }
+        case .collapseCandidates:
+            if !cancelled && state.maximumDistance < 8 { collapseCandidateExpansion() }
+        case .none:
+            break
+        }
+
     }
 
     private func renderKeyboard() {
         hideKeyPreview()
-        NSLayoutConstraint.deactivate(pendingWidthConstraints)
-        pendingWidthConstraints.removeAll()
         keyboardStack.arrangedSubviews.forEach {
             keyboardStack.removeArrangedSubview($0)
             $0.removeFromSuperview()
         }
-        referenceKeyButton = nil
+        keyboardRowViews.removeAll()
+        var rows: [([String], KeyRowLayout)] = []
         switch keyboardPage {
         case .letters:
-            keyboardStack.addArrangedSubview(keyRow("qwertyuiop".map(String.init), layout: .reference))
-            keyboardStack.addArrangedSubview(keyRow("asdfghjkl".map(String.init), layout: .centered))
-            keyboardStack.addArrangedSubview(keyRow(
-                [englishMode ? "⇧" : "分词"] + "zxcvbnm".map(String.init) + ["⌫"],
-                layout: .deleteExtended
-            ))
+            rows = [
+                ("qwertyuiop".map(String.init), .reference),
+                ("asdfghjkl".map(String.init), .centered),
+                ([englishMode ? "⇧" : "分词"] + "zxcvbnm".map(String.init) + ["⌫"], .deleteExtended),
+            ]
         case .numbers:
-            keyboardStack.addArrangedSubview(keyRow(
-                ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
-                layout: .reference
-            ))
-            keyboardStack.addArrangedSubview(keyRow(
-                ["-", "/", ":", ";", "(", ")", "¥", "&", "@", "\""],
-                layout: .reference
-            ))
-            keyboardStack.addArrangedSubview(keyRow(
-                [".", ",", "?", "!", "'", "%", "＋", "⌫"],
-                layout: .deleteExtended
-            ))
+            rows = [
+                (["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"], .reference),
+                (["-", "/", ":", ";", "(", ")", "¥", "&", "@", "\""], .reference),
+                ([".", ",", "?", "!", "'", "%", "＋", "⌫"], .deleteExtended),
+            ]
         case .symbols:
-            keyboardStack.addArrangedSubview(keyRow(
-                ["【", "】", "“", "”", "〈", "〉", "《", "》", "：", "；"],
-                layout: .reference
-            ))
-            keyboardStack.addArrangedSubview(keyRow(
-                ["，", "、", "。", "？", "！", "…", "—", "～", "·", "／"],
-                layout: .reference
-            ))
-            keyboardStack.addArrangedSubview(keyRow(
-                ["更多", "（", "）", "[", "]", "{", "}", "#", "⌫"],
-                layout: .deleteExtended
-            ))
+            rows = [
+                (["【", "】", "“", "”", "〈", "〉", "《", "》", "：", "；"], .reference),
+                (["，", "、", "。", "？", "！", "…", "—", "～", "·", "／"], .reference),
+                (["更多", "（", "）", "[", "]", "{", "}", "#", "⌫"], .deleteExtended),
+            ]
         case .symbolsMore:
-            keyboardStack.addArrangedSubview(keyRow(
-                ["+", "−", "=", "×", "÷", "<", ">", "^", "~", "_"],
-                layout: .reference
-            ))
-            keyboardStack.addArrangedSubview(keyRow(
-                ["@", "#", "$", "¥", "€", "£", "&", "*", "\\", "|"],
-                layout: .reference
-            ))
-            keyboardStack.addArrangedSubview(keyRow(
-                ["常用", "!", "?", "'", "\"", ":", ";", "／", "⌫"],
-                layout: .deleteExtended
-            ))
+            rows = [
+                (["+", "−", "=", "×", "÷", "<", ">", "^", "~", "_"], .reference),
+                (["@", "#", "$", "¥", "€", "£", "&", "*", "\\", "|"], .reference),
+                (["常用", "!", "?", "'", "\"", ":", ";", "／", "⌫"], .deleteExtended),
+            ]
         }
-        keyboardStack.addArrangedSubview(keyRow(
+        rows.append((
             [keyboardPage == .letters ? (englishMode ? "中" : "英") : (keyboardPage == .numbers ? "符号" : "123"),
              keyboardPage == .letters ? "123" : "ABC", "空格", englishMode ? "," : "，",
              englishMode ? "." : "。", "⏎"],
-            layout: .bottom
+            .bottom
         ))
-        NSLayoutConstraint.activate(pendingWidthConstraints)
-    }
 
-    private func keyRow(_ labels: [String], layout: KeyRowLayout) -> UIView {
-        let container = UIView()
-        let row = UIStackView()
-        row.axis = .horizontal
-        row.spacing = keySpacing
-        row.translatesAutoresizingMaskIntoConstraints = false
-        container.addSubview(row)
-        let buttons = labels.map(makeKeyButton)
-        buttons.forEach(row.addArrangedSubview)
-        NSLayoutConstraint.activate([
-            row.topAnchor.constraint(equalTo: container.topAnchor),
-            row.bottomAnchor.constraint(equalTo: container.bottomAnchor),
-        ])
-
-        switch layout {
-        case .reference:
-            row.distribution = .fillEqually
-            NSLayoutConstraint.activate([
-                row.leadingAnchor.constraint(equalTo: container.leadingAnchor),
-                row.trailingAnchor.constraint(equalTo: container.trailingAnchor),
-            ])
-            if referenceKeyButton == nil {
-                referenceKeyButton = buttons.first
-            }
-        case .centered:
-            constrainToReferenceWidth(buttons)
-            NSLayoutConstraint.activate([
-                row.centerXAnchor.constraint(equalTo: container.centerXAnchor),
-                row.leadingAnchor.constraint(greaterThanOrEqualTo: container.leadingAnchor),
-                row.trailingAnchor.constraint(lessThanOrEqualTo: container.trailingAnchor),
-            ])
-        case .deleteExtended:
-            constrainToReferenceWidth(Array(buttons.dropLast()))
-            buttons.last?.setContentHuggingPriority(.defaultLow, for: .horizontal)
-            NSLayoutConstraint.activate([
-                row.leadingAnchor.constraint(equalTo: container.leadingAnchor),
-                row.trailingAnchor.constraint(equalTo: container.trailingAnchor),
-            ])
-        case .bottom:
-            constrainBottomRow(buttons, labels: labels)
-            NSLayoutConstraint.activate([
-                row.leadingAnchor.constraint(equalTo: container.leadingAnchor),
-                row.trailingAnchor.constraint(equalTo: container.trailingAnchor),
-            ])
+        for (index, rowSpec) in rows.enumerated() {
+            let row = keyRow(
+                rowSpec.0,
+                layout: rowSpec.1,
+                topVisualInset: index == 0 ? 0 : keySpacing / 2,
+                bottomVisualInset: index == rows.count - 1 ? 0 : keySpacing / 2
+            )
+            keyboardRowViews.append(row)
+            keyboardStack.addArrangedSubview(row)
         }
-        return container
     }
 
-    private func makeKeyButton(_ label: String) -> UIButton {
-        let button = UIButton(type: .system)
+    private func keyRow(
+        _ labels: [String],
+        layout: KeyRowLayout,
+        topVisualInset: CGFloat,
+        bottomVisualInset: CGFloat
+    ) -> KeyboardKeyRowView {
+        let buttons = labels.map(makeKeyButton)
+        let row = KeyboardKeyRowView(
+            labels: labels,
+            buttons: buttons,
+            layout: layout,
+            gap: keySpacing,
+            keyHeight: keyHeight,
+            topVisualInset: topVisualInset,
+            bottomVisualInset: bottomVisualInset,
+            widthMultiplier: { [weak self] label in self?.functionKeyWidth(for: label) ?? 1 }
+        )
+        row.heightAnchor.constraint(equalToConstant: keyHeight + topVisualInset + bottomVisualInset).isActive = true
+        return row
+    }
+
+    private func makeKeyButton(_ label: String) -> KeyboardKeyButton {
+        let button = KeyboardKeyButton(frame: .zero)
         button.accessibilityIdentifier = label
         if label == "🌐" {
             button.setImage(UIImage(systemName: "globe"), for: .normal)
@@ -400,14 +730,7 @@ final class KeyboardViewController: UIInputViewController {
             ofSize: label.count > 2 ? 12 : (keyboardKeyColor(for: label) == actionKeyColor ? 15 : 23),
             weight: label.count == 1 && label.first?.isLetter == true ? .bold : .regular
         )
-        button.backgroundColor = keyboardKeyColor(for: label)
-        button.layer.cornerRadius = 5
-        button.layer.cornerCurve = .continuous
-        button.layer.shadowColor = UIColor(red: 0.50, green: 0.51, blue: 0.53, alpha: 1).cgColor
-        button.layer.shadowOpacity = 0.28
-        button.layer.shadowOffset = CGSize(width: 0, height: 1)
-        button.layer.shadowRadius = 0
-        button.heightAnchor.constraint(equalToConstant: keyHeight).isActive = true
+        button.setFaceColor(keyboardKeyColor(for: label))
         if supportsKeyPreview(label) {
             button.addTarget(self, action: #selector(showKeyPreview(_:)), for: .touchDown)
             button.addTarget(self, action: #selector(hideKeyPreview), for: [.touchUpInside, .touchUpOutside, .touchCancel, .touchDragExit])
@@ -427,7 +750,8 @@ final class KeyboardViewController: UIInputViewController {
 
     @objc private func showKeyPreview(_ sender: UIButton) {
         guard let label = sender.title(for: .normal), !label.isEmpty else { return }
-        let keyFrame = sender.convert(sender.bounds, to: view)
+        let visualBounds = (sender as? KeyboardKeyButton)?.faceFrame ?? sender.bounds
+        let keyFrame = sender.convert(visualBounds, to: view)
         let width: CGFloat = 58
         let height: CGFloat = 66
         let centerX = min(max(keyFrame.midX, width / 2 + 3), view.bounds.width - width / 2 - 3)
@@ -446,37 +770,12 @@ final class KeyboardViewController: UIInputViewController {
         keyPreviewView.isHidden = true
     }
 
-    private func constrainToReferenceWidth(_ buttons: [UIButton]) {
-        guard let referenceKeyButton else { return }
-        buttons.forEach { button in
-            pendingWidthConstraints.append(button.widthAnchor.constraint(
-                equalTo: referenceKeyButton.widthAnchor,
-                multiplier: functionKeyWidth(for: button.accessibilityIdentifier ?? "")
-            ))
-        }
-    }
-
-    private func constrainBottomRow(_ buttons: [UIButton], labels: [String]) {
-        guard let referenceKeyButton else { return }
-        for (button, label) in zip(buttons, labels) {
-            switch label {
-            case "空格":
-                button.setContentHuggingPriority(.defaultLow, for: .horizontal)
-            case "⏎":
-                pendingWidthConstraints.append(button.widthAnchor.constraint(equalTo: referenceKeyButton.widthAnchor, multiplier: 1.6))
-            default:
-                pendingWidthConstraints.append(button.widthAnchor.constraint(
-                    equalTo: referenceKeyButton.widthAnchor,
-                    multiplier: functionKeyWidth(for: label)
-                ))
-            }
-        }
-    }
-
     private func functionKeyWidth(for label: String) -> CGFloat {
         switch label {
         case "分词", "⇧":
             return 1.5
+        case "⏎":
+            return 1.6
         case "🌐", "英", "中", "123", "ABC", "符号", "更多", "常用":
             return functionKeyWidthMultiplier
         default:
@@ -585,50 +884,9 @@ final class KeyboardViewController: UIInputViewController {
         preeditLabel.text = snapshot.preedit
         candidateExpandButton.isHidden = snapshot.candidates.isEmpty
         candidateExpandButton.setTitle(candidateExpanded ? "⌃" : "⌄", for: .normal)
-        candidateStack.arrangedSubviews.forEach {
-            candidateStack.removeArrangedSubview($0)
-            $0.removeFromSuperview()
-        }
-        for candidate in snapshot.candidates {
-            candidateStack.addArrangedSubview(makeCandidateButton(candidate, expanded: false))
-        }
+        candidateCollection.reloadData()
+        candidateCollection.setContentOffset(.zero, animated: false)
         renderExpandedCandidates()
-    }
-
-    private func makeCandidateButton(_ candidate: GonnyuAppleCandidate, expanded: Bool) -> UIButton {
-        let button = UIButton(type: .system)
-        var configuration = UIButton.Configuration.plain()
-        configuration.baseForegroundColor = fixedTextColor
-        configuration.contentInsets = NSDirectionalEdgeInsets(top: 1, leading: 5, bottom: expanded ? 2 : 1, trailing: 5)
-        configuration.title = candidate.text
-        configuration.subtitle = candidateSubtitle(candidate, expanded: expanded)
-        configuration.titleLineBreakMode = .byClipping
-        configuration.subtitleLineBreakMode = expanded ? .byCharWrapping : .byClipping
-        configuration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer {
-            var attributes = $0
-            attributes.font = .systemFont(ofSize: 18, weight: .regular)
-            return attributes
-        }
-        configuration.subtitleTextAttributesTransformer = UIConfigurationTextAttributesTransformer {
-            var attributes = $0
-            attributes.font = .systemFont(ofSize: 10)
-            attributes.foregroundColor = self.fixedSecondaryTextColor
-            return attributes
-        }
-        button.configuration = configuration
-        // Candidate rows are a compact reading order, not an evenly
-        // distributed toolbar. Keep each candidate's content anchored to the
-        // leading edge while the scroll view remains left-originated.
-        button.contentHorizontalAlignment = .left
-        button.setContentHuggingPriority(.required, for: .horizontal)
-        button.setContentCompressionResistancePriority(.required, for: .horizontal)
-        button.titleLabel?.numberOfLines = 1
-        button.setContentCompressionResistancePriority(.required, for: .horizontal)
-        button.accessibilityLabel = candidate.text
-        button.accessibilityHint = candidate.annotation
-        button.tag = candidate.globalIndex
-        button.addTarget(self, action: #selector(candidatePressed(_:)), for: .touchUpInside)
-        return button
     }
 
     private func candidateSubtitle(_ candidate: GonnyuAppleCandidate, expanded: Bool) -> String {
@@ -639,6 +897,13 @@ final class KeyboardViewController: UIInputViewController {
     private func candidateWidth(_ candidate: GonnyuAppleCandidate) -> CGFloat {
         let titleWidth = (candidate.text as NSString).size(withAttributes: [.font: UIFont.systemFont(ofSize: 18)]).width
         return max(44, titleWidth + 10)
+    }
+
+    private func compactCandidateWidth(_ candidate: GonnyuAppleCandidate) -> CGFloat {
+        let titleWidth = (candidate.text as NSString).size(withAttributes: [.font: UIFont.systemFont(ofSize: 18)]).width
+        let subtitle = candidateSubtitle(candidate, expanded: false)
+        let subtitleWidth = (subtitle as NSString).size(withAttributes: [.font: UIFont.systemFont(ofSize: 10)]).width
+        return ceil(max(titleWidth, subtitleWidth) + 10)
     }
 
     private func candidateHeight(_ candidate: GonnyuAppleCandidate, width: CGFloat) -> CGFloat {
@@ -657,46 +922,19 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func renderExpandedCandidates() {
-        candidateExpandedStack.arrangedSubviews.forEach {
-            candidateExpandedStack.removeArrangedSubview($0)
-            $0.removeFromSuperview()
-        }
         guard candidateExpanded else {
-            candidateExpandedScroll.isHidden = true
+            candidateExpandedCollection.isHidden = true
             candidateExpandedCloseButton.isHidden = true
+            candidateExpandedCollection.reloadData()
             return
         }
         candidateExpandedCloseButton.isHidden = false
+        candidateExpandedCollection.isHidden = false
+        view.bringSubviewToFront(candidateExpandedCollection)
         view.bringSubviewToFront(candidateExpandedCloseButton)
-        let available = max(44, candidateExpandedScroll.bounds.width - 6)
-        candidateExpandedScroll.isHidden = false
-        expandedLayoutWidth = candidateExpandedScroll.bounds.width
-        var row = makeExpandedCandidateRow()
-        var usedWidth: CGFloat = 0
-        for candidate in expandedCandidates {
-            let width = candidateWidth(candidate)
-            if usedWidth > 0 && usedWidth + 3 + width > available {
-                candidateExpandedStack.addArrangedSubview(row)
-                row = makeExpandedCandidateRow()
-                usedWidth = 0
-            }
-            let button = makeCandidateButton(candidate, expanded: true)
-            button.widthAnchor.constraint(equalToConstant: width).isActive = true
-            button.heightAnchor.constraint(equalToConstant: candidateHeight(candidate, width: width)).isActive = true
-            row.addArrangedSubview(button)
-            usedWidth += (usedWidth == 0 ? 0 : 3) + width
-        }
-        if !row.arrangedSubviews.isEmpty {
-            candidateExpandedStack.addArrangedSubview(row)
-        }
-    }
-
-    private func makeExpandedCandidateRow() -> UIStackView {
-        let row = UIStackView()
-        row.axis = .horizontal
-        row.spacing = 3
-        row.alignment = .top
-        return row
+        expandedLayoutWidth = candidateExpandedCollection.bounds.width
+        candidateExpandedLayout.invalidateLayout()
+        candidateExpandedCollection.reloadData()
     }
 
     @objc private func toggleCandidateExpansion() {
@@ -714,10 +952,6 @@ final class KeyboardViewController: UIInputViewController {
         candidateExpanded = false
         expandedCandidates.removeAll()
         render()
-    }
-
-    @objc private func candidatePressed(_ sender: UIButton) {
-        commitCandidate(at: sender.tag)
     }
 
     private func commitCandidate(at index: Int) {
@@ -816,4 +1050,57 @@ final class KeyboardViewController: UIInputViewController {
         expandedCandidates.removeAll()
         render()
     }
+}
+
+extension KeyboardViewController: UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        collectionView === candidateCollection ? snapshot.candidates.count : expandedCandidates.count
+    }
+
+    func collectionView(
+        _ collectionView: UICollectionView,
+        cellForItemAt indexPath: IndexPath
+    ) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(
+            withReuseIdentifier: CandidateCollectionViewCell.reuseIdentifier,
+            for: indexPath
+        )
+        guard let candidateCell = cell as? CandidateCollectionViewCell else { return cell }
+        let expanded = collectionView === candidateExpandedCollection
+        let candidates = expanded ? expandedCandidates : snapshot.candidates
+        guard candidates.indices.contains(indexPath.item) else { return candidateCell }
+        let candidate = candidates[indexPath.item]
+        candidateCell.configure(
+            title: candidate.text,
+            subtitle: candidateSubtitle(candidate, expanded: expanded),
+            expanded: expanded,
+            textColor: fixedTextColor,
+            secondaryColor: fixedSecondaryTextColor
+        )
+        return candidateCell
+    }
+
+    func collectionView(
+        _ collectionView: UICollectionView,
+        layout collectionViewLayout: UICollectionViewLayout,
+        sizeForItemAt indexPath: IndexPath
+    ) -> CGSize {
+        let expanded = collectionView === candidateExpandedCollection
+        let candidates = expanded ? expandedCandidates : snapshot.candidates
+        guard candidates.indices.contains(indexPath.item) else { return .zero }
+        let candidate = candidates[indexPath.item]
+        let contentWidth = expanded ? candidateWidth(candidate) : compactCandidateWidth(candidate)
+        // The compact candidate row is constrained to 39pt.  Use that stable
+        // value even before the collection view's first layout pass.
+        let height = expanded ? candidateHeight(candidate, width: contentWidth) : 39
+        return CGSize(width: contentWidth + 3, height: height)
+    }
+
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let candidates = collectionView === candidateCollection ? snapshot.candidates : expandedCandidates
+        guard candidates.indices.contains(indexPath.item) else { return }
+        let candidate = candidates[indexPath.item]
+        commitCandidate(at: candidate.globalIndex)
+    }
+
 }

@@ -17,13 +17,14 @@ command -v xcrun >/dev/null || { echo "xcrun is required" >&2; exit 2; }
 bundle_id() { /usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$1/Info.plist"; }
 
 profile_for_bundle() {
-  local wanted="$1" profile app_id
+  local wanted="$1" profile app_id devices
   for profile in "$profiles_dir"/*.mobileprovision; do
     [[ -f "$profile" ]] || continue
     app_id="$(security cms -D -i "$profile" 2>/dev/null | plutil -extract Entitlements.application-identifier raw -o - - 2>/dev/null || true)"
-    [[ "$app_id" == *".$wanted" ]] && { printf '%s\n' "$profile"; return 0; }
+    devices="$(security cms -D -i "$profile" 2>/dev/null | plutil -extract ProvisionedDevices raw -o - - 2>/dev/null || true)"
+    [[ "$app_id" == *".$wanted" && -n "$devices" ]] && { printf '%s\n' "$profile"; return 0; }
   done
-  echo "no provisioning profile found for $wanted" >&2
+  echo "no device provisioning profile found for $wanted" >&2
   return 1
 }
 
