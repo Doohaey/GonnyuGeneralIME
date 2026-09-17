@@ -36,6 +36,7 @@ platforms/android/local.properties
 # 测试模块本地配置（含本机路径等敏感信息），仅提交 .example 模板
 platforms/**/test_local.env
 platforms/ios/Config/Signing.xcconfig
+platforms/ios/GonnyuInput.xcodeproj/project.pbxproj
 
 # edit_char_reading.py 会话文件（本地配置、输入历史）
 tools/.edit_config.json
