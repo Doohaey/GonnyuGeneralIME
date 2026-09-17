@@ -323,7 +323,7 @@ final class KeyboardViewController: UIInputViewController {
             ))
         }
         keyboardStack.addArrangedSubview(keyRow(
-            ["🌐", keyboardPage == .letters ? (englishMode ? "中" : "英") : (keyboardPage == .numbers ? "符号" : "123"),
+            [keyboardPage == .letters ? (englishMode ? "中" : "英") : (keyboardPage == .numbers ? "符号" : "123"),
              keyboardPage == .letters ? "123" : "ABC", "空格", englishMode ? "," : "，",
              englishMode ? "." : "。", "⏎"],
             layout: .bottom
