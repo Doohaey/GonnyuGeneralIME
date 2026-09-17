@@ -3,6 +3,7 @@
 #include <limits.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "gannyu_input.h"
@@ -38,6 +39,12 @@ Java_io_gannyu_input_GannyuInputMethodService_nativeCreate(
     if (child_path(shared_data_dir, sizeof(shared_data_dir), resource_root_c, "shared") == 0 &&
         child_path(prebuilt_data_dir, sizeof(prebuilt_data_dir), resource_root_c, "prebuilt") == 0 &&
         user_data_dir_c != NULL && user_data_dir_c[0] != '\0') {
+        // Android does not guarantee that the process-wide default temporary
+        // directory is writable by an IME service. Keep native temporary files
+        // inside the app-private directory supplied by the Kotlin layer.
+        if (setenv("TMPDIR", user_data_dir_c, 1) != 0) {
+            LOGE("could not set app-private TMPDIR");
+        }
         const GannyuEngineConfig config = {
             sizeof(GannyuEngineConfig), region_c, shared_data_dir, prebuilt_data_dir, user_data_dir_c};
         status = gannyu_engine_create(&config, &handle);

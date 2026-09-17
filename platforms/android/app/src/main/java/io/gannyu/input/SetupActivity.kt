@@ -70,8 +70,10 @@ class SetupActivity : Activity() {
 
     private fun updateImeSetupState() {
         val inputMethodManager = getSystemService(InputMethodManager::class.java)
-        val expectedId = ComponentName(this, GannyuInputMethodService::class.java).flattenToString()
-        val enabled = inputMethodManager?.enabledInputMethodList?.any { it.id == expectedId } == true
+        val component = ComponentName(this, GannyuInputMethodService::class.java)
+        val enabled = inputMethodManager?.enabledInputMethodList?.any {
+            ComponentName.unflattenFromString(it.id) == component
+        } == true
         openImePickerButton.isEnabled = enabled
     }
 
