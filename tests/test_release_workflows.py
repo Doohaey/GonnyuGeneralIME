@@ -92,11 +92,11 @@ def test_macos_installer_signing_is_non_interactive_and_observable() -> None:
     assert "installer package signing completed" in package
 
 
-def test_release_notes_link_to_generated_metadata() -> None:
+def test_release_notes_do_not_link_to_generated_metadata() -> None:
     content = (ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
-    assert 'echo "所有下载产物的 SHA-256' in content
-    assert "releases/download/${GITHUB_REF_NAME}/SHA256SUMS" in content
-    assert "releases/download/${GITHUB_REF_NAME}/GonnyuGeneralIME-${PRODUCT_VERSION}-SBOM.spdx.json" in content
+    assert "SHA256SUMS" not in content
+    assert "SBOM" not in content
+    assert "generate_release_metadata.py" not in content
 
 def test_android_workflow_runs_installation_smoke_test() -> None:
     content = (ROOT / ".github/workflows" / "android.yml").read_text(encoding="utf-8")
