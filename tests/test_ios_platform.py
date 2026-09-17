@@ -101,11 +101,10 @@ def test_ios_keyboard_matches_android_composition_and_default_candidate_rules() 
     assert "开启“允许完全访问”后，用户词库才能保存" not in keyboard
     assert "systemFont(ofSize: 12, weight: .bold)" in keyboard
     assert "heightAnchor.constraint(equalToConstant: 16)" in keyboard
-    assert "candidateStack.spacing = 3" in keyboard
-    assert "candidateStack.distribution = .fill" in keyboard
-    assert "candidateStack.setContentHuggingPriority(.required, for: .horizontal)" in keyboard
-    assert "button.contentHorizontalAlignment = .left" in keyboard
-    assert "leading: 5, bottom: expanded ? 2 : 1, trailing: 5" in keyboard
+    assert "candidateRow.spacing = 3" in keyboard
+    assert "candidateRow.addArrangedSubview(candidateCollection)" in keyboard
+    assert "candidateCollection.delegate = self" in keyboard
+    assert "labels.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 5)" in keyboard
     assert "engine?.selectCandidate(globalIndex: index)" in keyboard
     assert "snapshot = (try? engine?.snapshot()) ?? .empty" in keyboard
     assert "gannyu_engine_process_key" in support
@@ -131,41 +130,37 @@ def test_ios_keyboard_uses_compact_fixed_visuals_and_full_annotations() -> None:
     assert "case centered" in keyboard
     assert "case deleteExtended" in keyboard
     assert "case bottom" in keyboard
-    assert "row.centerXAnchor.constraint(equalTo: container.centerXAnchor)" in keyboard
+    assert "root.leadingAnchor.constraint(equalTo: view.leadingAnchor" in keyboard
     assert "functionKeyWidthMultiplier: CGFloat = 1.12" in keyboard
     assert "private func functionKeyWidth(for label: String) -> CGFloat" in keyboard
     assert "case \"分词\":" in keyboard
-    assert "multiplier: 1.6" in keyboard
+    assert "return 1.6" in keyboard
     assert "overrideUserInterfaceStyle = .light" not in keyboard
     assert "traitCollectionDidChange" in keyboard
-    assert "candidateScroll.backgroundColor = .clear" in keyboard
+    assert "candidateCollection.backgroundColor = .clear" in keyboard
     assert "candidateRow.heightAnchor.constraint(equalToConstant: 39)" in keyboard
-    assert "attributes.font = .systemFont(ofSize: 18, weight: .regular)" in keyboard
-    assert "attributes.font = .systemFont(ofSize: 10)" in keyboard
-    assert "configuration.titleLineBreakMode = .byClipping" in keyboard
-    assert "configuration.subtitleLineBreakMode = expanded ? .byCharWrapping : .byClipping" in keyboard
+    assert "titleLabel.font = .systemFont(ofSize: 18, weight: .regular)" in keyboard
+    assert "subtitleLabel.font = .systemFont(ofSize: 10)" in keyboard
+    assert "titleLabel.lineBreakMode = .byClipping" in keyboard
+    assert "subtitleLabel.lineBreakMode = expanded ? .byCharWrapping : .byClipping" in keyboard
     assert 'subtitle.replacingOccurrences(of: " / ", with: "/\\n")' in keyboard
-    assert "bottom: expanded ? 2 : 1" in keyboard
+    assert "labels.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor, constant: -1)" in keyboard
     candidate_width = keyboard.split("private func candidateWidth", 1)[1].split("private func renderExpandedCandidates", 1)[0]
-    assert "subtitleWidth" not in candidate_width
-    assert "return max(44, titleWidth + 10)" in candidate_width
+    assert "subtitleWidth" in candidate_width
+    assert "return ceil(max(titleWidth, subtitleWidth) + 10)" in candidate_width
     assert ".boundingRect(" in candidate_width
     assert "width: max(1, width - 10)" in candidate_width
     assert "subtitleHeight + 6" in candidate_width
-    assert "candidateHeight(candidate, width: width)" in keyboard
-    assert "button.setContentCompressionResistancePriority(.required, for: .horizontal)" in keyboard
+    assert "candidateHeight(candidate, width: contentWidth)" in keyboard
     assert "private func loadMoreCandidates()" not in keyboard
-    assert "candidateExpandedScroll.topAnchor.constraint(equalTo: view.topAnchor, constant: 20)" in keyboard
+    assert "candidateExpandedCollection.topAnchor.constraint(equalTo: view.topAnchor, constant: 20)" in keyboard
     installer = (IOS / "install_device.sh").read_text(encoding="utf-8")
     assert "embedded.mobileprovision" in installer
     assert "profile_for_bundle" in installer
     assert "devicectl device install app" in installer
     assert "if candidateExpanded {\n            collapseCandidateExpansion()" in keyboard
-    assert "lessThanOrEqualTo: candidateScroll.frameLayoutGuide.widthAnchor" not in keyboard
-    assert "NSLayoutConstraint.activate(pendingWidthConstraints)" in keyboard
-    assert keyboard.index("keyboardStack.addArrangedSubview(keyRow(\n            [\"🌐\"") < keyboard.index(
-        "NSLayoutConstraint.activate(pendingWidthConstraints)"
-    )
+    assert "lessThanOrEqualTo: candidateCollection.frameLayoutGuide.widthAnchor" not in keyboard
+    assert "keyboardStack.addArrangedSubview(row)" in keyboard
     assert "UIImage(systemName: \"globe\")" in keyboard
     assert '"空格", englishMode ? "," : "，"' in keyboard
 
