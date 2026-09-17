@@ -97,7 +97,7 @@ def test_ios_keyboard_matches_android_composition_and_default_candidate_rules() 
     assert "private func handleSpace()" in keyboard
     assert "if snapshot.rawInput.isEmpty" in keyboard
     assert "engine?.process(.space)" in keyboard
-    assert "configuration.subtitle" in keyboard
+    assert "subtitleLabel.text = subtitle" in keyboard
     assert "开启“允许完全访问”后，用户词库才能保存" not in keyboard
     assert "systemFont(ofSize: 12, weight: .bold)" in keyboard
     assert "heightAnchor.constraint(equalToConstant: 16)" in keyboard
@@ -126,7 +126,7 @@ def test_ios_keyboard_uses_compact_fixed_visuals_and_full_annotations() -> None:
     assert "traits.userInterfaceStyle == .dark" in keyboard
     assert "private let keyHeight: CGFloat = UIDevice.current.userInterfaceIdiom == .pad ? 69 : 46" in keyboard
     assert "equalToConstant: keyHeight" in keyboard
-    assert "row.spacing = keySpacing" in keyboard
+    assert "gap: keySpacing" in keyboard
     assert "private let keySpacing: CGFloat = 6" in keyboard
     assert "case centered" in keyboard
     assert "case deleteExtended" in keyboard
