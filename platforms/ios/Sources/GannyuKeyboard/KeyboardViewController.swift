@@ -245,7 +245,11 @@ private final class UnifiedInputTouchView: UIView {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        backgroundColor = .clear
+        // Custom keyboard extensions can discard touches on fully transparent
+        // pixels before UIKit hit-testing reaches this unified touch owner.
+        // A near-invisible fill keeps visual transparency while preserving the
+        // complete key-gap and candidate touch surface.
+        backgroundColor = UIColor(white: 0.5, alpha: 0.01)
         isMultipleTouchEnabled = true
         isUserInteractionEnabled = true
     }
@@ -434,7 +438,9 @@ final class KeyboardViewController: UIInputViewController {
     private func buildKeyboard() {
         // Keep the complete remote keyboard surface rendered. The unified
         // touch owner below covers the same bounds, including visual gaps.
-        view.backgroundColor = keyboardPanelColor
+        // Keep the keyboard surface visually transparent. Touch ownership is
+        // provided independently by UnifiedInputTouchView below.
+        view.backgroundColor = .clear
         let root = UIStackView()
         root.axis = .vertical
         root.spacing = 4
