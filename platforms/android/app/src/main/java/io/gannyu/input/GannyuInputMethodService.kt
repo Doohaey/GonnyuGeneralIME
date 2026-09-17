@@ -6,6 +6,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.graphics.Typeface
+import android.graphics.drawable.InsetDrawable
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -488,23 +489,31 @@ class GannyuInputMethodService : InputMethodService() {
     }
 
     private fun renderPinyinPage(keyWidth: Int, gap: Int) {
-        keyboardRows.addView(keyRow(ROW_1, keyWidth, gap).apply { (layoutParams as? LinearLayout.LayoutParams)?.bottomMargin = gap })
+        keyboardRows.addView(keyRow(ROW_1, keyWidth, gap, bottomGap = gap))
         val r2 = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { bottomMargin = gap }
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         }
-        r2.addView(spacer((keyWidth + gap) / 2))
-        ROW_2.forEachIndexed { index, key -> r2.addView(keyBtn(key, keyWidth, if (index == ROW_2.lastIndex) 0 else gap)) }
-        r2.addView(spacer((keyWidth + gap) / 2))
+        val edgeWidth = (keyWidth + gap) / 2
+        ROW_2.forEachIndexed { index, key ->
+            r2.addView(keyBtn(
+                key = key,
+                width = keyWidth,
+                gap = if (index == ROW_2.lastIndex) 0 else gap,
+                bottomGap = gap,
+                leadingExtra = if (index == 0) edgeWidth else 0,
+                trailingExtra = if (index == ROW_2.lastIndex) edgeWidth else 0,
+            ))
+        }
         keyboardRows.addView(r2)
         val third = listOf(KeySpec(if (englishMode) "⇧" else "分词")) + ROW_3_LETTERS + KeySpec("⌫")
-        keyboardRows.addView(keyRow(third, keyWidth, gap, deleteExtended = true).apply { (layoutParams as? LinearLayout.LayoutParams)?.bottomMargin = gap })
+        keyboardRows.addView(keyRow(third, keyWidth, gap, deleteExtended = true, bottomGap = gap))
     }
 
     private fun renderAuxiliaryPage(one: List<String>, two: List<String>, three: List<String>, keyWidth: Int, gap: Int) {
-        keyboardRows.addView(keyRow(one.map(::KeySpec), keyWidth, gap).apply { (layoutParams as? LinearLayout.LayoutParams)?.bottomMargin = gap })
-        keyboardRows.addView(keyRow(two.map(::KeySpec), keyWidth, gap).apply { (layoutParams as? LinearLayout.LayoutParams)?.bottomMargin = gap })
-        keyboardRows.addView(keyRow(three.map(::KeySpec), keyWidth, gap, deleteExtended = true).apply { (layoutParams as? LinearLayout.LayoutParams)?.bottomMargin = gap })
+        keyboardRows.addView(keyRow(one.map(::KeySpec), keyWidth, gap, bottomGap = gap))
+        keyboardRows.addView(keyRow(two.map(::KeySpec), keyWidth, gap, bottomGap = gap))
+        keyboardRows.addView(keyRow(three.map(::KeySpec), keyWidth, gap, deleteExtended = true, bottomGap = gap))
     }
 
     private fun renderBottomRow(keyWidth: Int, gap: Int) {
@@ -527,8 +536,13 @@ class GannyuInputMethodService : InputMethodService() {
         keyboardRows.addView(r4)
     }
 
-    private fun spacer(width: Int): View = View(this).apply { layoutParams = LinearLayout.LayoutParams(width, 1) }
-    private fun keyRow(keys: List<KeySpec>, keyWidth: Int, gap: Int, deleteExtended: Boolean = false): LinearLayout = LinearLayout(this).apply {
+    private fun keyRow(
+        keys: List<KeySpec>,
+        keyWidth: Int,
+        gap: Int,
+        deleteExtended: Boolean = false,
+        bottomGap: Int = 0,
+    ): LinearLayout = LinearLayout(this).apply {
         orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         keys.forEachIndexed { index, key ->
             val width = if (deleteExtended && index == keys.lastIndex) {
@@ -536,7 +550,7 @@ class GannyuInputMethodService : InputMethodService() {
             } else {
                 functionKeyWidth(key.label, keyWidth)
             }
-            addView(keyBtn(key, width, if (index == keys.lastIndex) 0 else gap))
+            addView(keyBtn(key, width, if (index == keys.lastIndex) 0 else gap, bottomGap = bottomGap))
         }
     }
 
@@ -552,7 +566,14 @@ class GannyuInputMethodService : InputMethodService() {
             else -> keyWidth
         }
 
-    private fun keyBtn(key: KeySpec, width: Int, gap: Int): Button = Button(this).apply {
+    private fun keyBtn(
+        key: KeySpec,
+        width: Int,
+        gap: Int,
+        bottomGap: Int = 0,
+        leadingExtra: Int = 0,
+        trailingExtra: Int = 0,
+    ): Button = Button(this).apply {
         text = when {
             key.label == IME_SWITCH_KEY -> ""
             key.label == "空格" -> ""
@@ -563,13 +584,22 @@ class GannyuInputMethodService : InputMethodService() {
         isAllCaps = false; textSize = if (key.isLetter) 23f else if (key.label.length > 2) 12f else 15f
         if (key.isLetter) setTypeface(Typeface.DEFAULT_BOLD)
         if (key.label == "空格") contentDescription = "空格"
-        layoutParams = LinearLayout.LayoutParams(width, dp(46), if (width == 0) 1f else 0f).apply {
-            marginEnd = gap
-        }
-        setPadding(0, 0, 0, 0)
+        val trailingInset = gap + trailingExtra
+        layoutParams = LinearLayout.LayoutParams(
+            if (width == 0) 0 else leadingExtra + width + trailingInset,
+            dp(46) + bottomGap,
+            if (width == 0) 1f else 0f,
+        )
+        setPadding(leadingExtra, 0, trailingInset, bottomGap)
         val useActionStyle = key.label in ACTION_KEYS
         setTextColor(keyTextColor)
-        setBackgroundResource(if (useActionStyle) R.drawable.key_action else R.drawable.key_normal)
+        background = InsetDrawable(
+            getDrawable(if (useActionStyle) R.drawable.key_action else R.drawable.key_normal),
+            leadingExtra,
+            0,
+            trailingInset,
+            bottomGap,
+        )
         if (key.label == IME_SWITCH_KEY) {
             val icon = getDrawable(R.drawable.ic_globe)?.mutate()
             icon?.setTint(keyTextColor)
@@ -811,15 +841,15 @@ class GannyuInputMethodService : InputMethodService() {
 
         init {
             orientation = VERTICAL
-            setPadding(dp(5), dp(if (expanded) 2 else 1), dp(5), dp(if (expanded) 3 else 1))
+            val trailingHitPadding = if (!expanded && index < lastSnapshot.candidates.lastIndex) dp(3) else 0
+            setPadding(dp(5), dp(if (expanded) 2 else 1), dp(5) + trailingHitPadding, dp(if (expanded) 3 else 1))
             minimumWidth = dp(44)
-            minimumHeight = dp(36)
+            minimumHeight = dp(if (expanded) 37 else 39)
             gravity = android.view.Gravity.START or android.view.Gravity.CENTER_VERTICAL
             layoutParams = LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {
-                if (!expanded && index < lastSnapshot.candidates.size - 1) marginEnd = dp(3)
-            }
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                if (expanded) ViewGroup.LayoutParams.WRAP_CONTENT else ViewGroup.LayoutParams.MATCH_PARENT,
+            )
 
             addView(TextView(context).apply {
                 text = candidate.text
@@ -851,14 +881,29 @@ class GannyuInputMethodService : InputMethodService() {
         }
 
         override fun onTouchEvent(event: MotionEvent): Boolean {
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> { downX = event.x; moved = false; parent.requestDisallowInterceptTouchEvent(true); return true }
-                MotionEvent.ACTION_MOVE -> {
-                    if (kotlin.math.abs(event.x - downX) > dp(8)) { moved = true; parent.requestDisallowInterceptTouchEvent(false) }
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    downX = event.x
+                    moved = false
+                    parent.requestDisallowInterceptTouchEvent(true)
                     return true
                 }
-                MotionEvent.ACTION_UP -> { parent.requestDisallowInterceptTouchEvent(false); if (!moved) commitCandidate(candidate); return true }
-                MotionEvent.ACTION_CANCEL -> { parent.requestDisallowInterceptTouchEvent(false); return true }
+                MotionEvent.ACTION_MOVE -> {
+                    if (kotlin.math.abs(event.x - downX) > dp(8)) {
+                        moved = true
+                        parent.requestDisallowInterceptTouchEvent(false)
+                    }
+                    return true
+                }
+                MotionEvent.ACTION_UP -> {
+                    parent.requestDisallowInterceptTouchEvent(false)
+                    if (!moved) commitCandidate(candidate)
+                    return true
+                }
+                MotionEvent.ACTION_CANCEL -> {
+                    parent.requestDisallowInterceptTouchEvent(false)
+                    return true
+                }
             }
             return super.onTouchEvent(event)
         }
@@ -893,7 +938,7 @@ class GannyuInputMethodService : InputMethodService() {
         var usedWidth = 0
         expandedCandidates.forEachIndexed { index, candidate ->
             val width = candidateWidth(candidate)
-            if (usedWidth > 0 && usedWidth + dp(3) + width > availableWidth) {
+            if (usedWidth > 0 && usedWidth + width > availableWidth) {
                 candidateExpandedRows.addView(row)
                 row = expandedCandidateRow()
                 usedWidth = 0
