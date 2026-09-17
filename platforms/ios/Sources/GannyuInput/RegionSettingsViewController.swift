@@ -67,7 +67,7 @@ final class RegionSettingsViewController: UITableViewController {
         case .setup: return 3
         case .regions: return regions.count
         case .userData: return 2
-        case .help: return 1
+        case .help: return 2
         case nil: return 0
         }
     }
@@ -101,8 +101,13 @@ final class RegionSettingsViewController: UITableViewController {
             content.text = ["清空当前地区学习数据", "清空全部地区学习数据"][indexPath.row]
             content.textProperties.color = .systemRed
         case .help:
-            content.text = "使用教程"
-            content.secondaryText = "拼音、词语标记与输入说明"
+            if indexPath.row == 0 {
+                content.text = "使用教程"
+                content.secondaryText = "拼音、词语标记与输入说明"
+            } else {
+                content.text = "隐私政策"
+                content.secondaryText = "查看 Gonnyu 的隐私政策"
+            }
             cell.accessoryType = .disclosureIndicator
         case nil:
             break
@@ -129,7 +134,11 @@ final class RegionSettingsViewController: UITableViewController {
         case .userData:
             confirmClear(allRegions: indexPath.row == 1)
         case .help:
-            navigationController?.pushViewController(TutorialViewController(), animated: true)
+            if indexPath.row == 0 {
+                navigationController?.pushViewController(TutorialViewController(), animated: true)
+            } else if let url = URL(string: "https://doohaey.github.io/GonnyuPrivacyPolicy/") {
+                UIApplication.shared.open(url)
+            }
         case nil:
             break
         }
