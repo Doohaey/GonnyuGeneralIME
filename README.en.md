@@ -13,15 +13,17 @@ Currently supports: **Lancong(Nanchang) and Fenni(Fenyi)**. More localities are 
 
 Rime schema repositories for Lancong(Nanchang) and Fenni(Fenyi). Other installation options are available in the [Installation](#installation) section below.
 
-## Release 0.2.4
+## Release 1.0.0
 
-- feat(platforms): complete cross-platform support for Android, Windows, Linux, macOS, and Rime resources
-- feat(macos): add a native macOS `.pkg` installer
+- feat: 键盘触摸更顺畅，键位之间的空白区域也能自然操作。
+- fix: 候选词点击与滑动选择更连贯，输入过程更轻松。
+- feat: Android 首次使用与语言选择流程更清晰。
+- feat: macOS 输入过程更连贯，切换编辑位置后也能自然继续输入。
 
 ## Contents
 
 - [GonnyuGeneralIME — A General Gon(Gan) Chinese Input Method](#gonnyugeneralime--a-general-gongan-chinese-input-method)
-  - [Release 0.2.4](#release-024)
+  - [Release 1.0.0](#release-100)
   - [Contents](#contents)
   - [Overview](#overview)
     - [What it provides](#what-it-provides)
