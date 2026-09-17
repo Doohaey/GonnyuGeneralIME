@@ -48,6 +48,7 @@ xcodebuild \
   -configuration Release \
   -sdk iphoneos \
   -destination 'generic/platform=iOS' \
+  -derivedDataPath "$output_root/DerivedData" \
   -xcconfig "$signing_config" \
   MARKETING_VERSION="$product_version" \
   CURRENT_PROJECT_VERSION="$build_number" \
