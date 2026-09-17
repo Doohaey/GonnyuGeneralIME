@@ -17,6 +17,8 @@ final class GannyuInputController: IMKInputController {
     private let modeHint = GannyuModeHint()
     private var candidateWindow: IMKCandidates?
     private var lastCandidateAnchor: NSRect?
+    private var lastMarkedRange: NSRange?
+    private var lastSelectedRange: NSRange?
     private let fullwidthPunctuationKey = "org.doohaey.gonnyu.fullwidthPunctuation"
     private let log = Logger(subsystem: "org.doohaey.inputmethod.gonnyu.native", category: "input")
 
@@ -57,6 +59,7 @@ final class GannyuInputController: IMKInputController {
 
     @objc(activateServer:)
     override func activateServer(_ sender: Any!) {
+        resetCompositionState()
         createEngineIfNeeded()
     }
 
@@ -186,10 +189,10 @@ final class GannyuInputController: IMKInputController {
 
     @objc(replacementRange)
     override func replacementRange() -> NSRange {
-        guard let client = GannyuTextClient(client()) else {
-            return NSRange(location: NSNotFound, length: 0)
-        }
-        return client.replacementRange()
+        // This input method always edits at the client's current insertion
+        // point.  Returning a client-reported marked range here lets stale
+        // ranges from editors such as Typora leak into the next composition.
+        return NSRange(location: NSNotFound, length: 0)
     }
 
     @objc(candidates:)
@@ -216,6 +219,7 @@ final class GannyuInputController: IMKInputController {
 
     @objc(candidateSelected:)
     override func candidateSelected(_ candidateString: NSAttributedString!) {
+        guard !(snapshot?.rawInput.isEmpty ?? true) else { return }
         guard let index = candidateIndex(for: candidateString) else { return }
         _ = select(index, client: client())
     }
@@ -224,6 +228,7 @@ final class GannyuInputController: IMKInputController {
     override func candidateSelectionChanged(_ candidateString: NSAttributedString!) {}
 
     private func processText(_ text: String, client sender: Any!) -> Bool {
+        synchronizeComposition(with: sender)
         let active = !(snapshot?.rawInput.isEmpty ?? true)
         if snapshot?.asciiMode == true {
             guard let client = GannyuTextClient(sender) else { return false }
@@ -401,6 +406,34 @@ final class GannyuInputController: IMKInputController {
             modeHint.hide()
             GannyuTextClient(sender)?.clearMarkedText()
         }
+        lastMarkedRange = nil
+        lastSelectedRange = nil
+    }
+
+    private func resetCompositionState() {
+        _ = try? engine?.clearComposition()
+        snapshot = nil
+        displays = []
+        selectedLine = 0
+        lastMarkedRange = nil
+        lastSelectedRange = nil
+        candidatePanel.hide()
+        pageHint.hide()
+        modeHint.hide()
+    }
+
+    private func synchronizeComposition(with sender: Any!) {
+        guard !(snapshot?.rawInput.isEmpty ?? true),
+              let client = GannyuTextClient(sender),
+              let expectedMarked = lastMarkedRange,
+              let expectedSelected = lastSelectedRange else { return }
+        let actualMarked = client.markedRange()
+        let actualSelected = client.selectedRange()
+        guard actualMarked != expectedMarked || actualSelected != expectedSelected else { return }
+        // The host moved the insertion point while Rime still had a live
+        // composition. Cancel that session before accepting the new text.
+        resetCompositionState()
+        client.clearMarkedText()
     }
 
     private func render(_ result: GannyuSnapshot, client sender: Any!) {
@@ -409,16 +442,24 @@ final class GannyuInputController: IMKInputController {
             log.error("IMK client does not provide the required text input methods")
             return
         }
+        let committed = result.commitText != nil
         if let commit = result.commitText, !commit.isEmpty {
-            client.insertText(commit, replacementRange: client.replacementRange())
+            // NSTextInputClient replaces the active marked text when the
+            // replacement range is empty.  Do not feed back a possibly stale
+            // markedRange obtained from the host editor.
+            client.insertText(commit, replacementRange: NSRange(location: NSNotFound, length: 0))
         }
         if result.rawInput.isEmpty {
             selectedLine = 0
-            client.clearMarkedText()
+            // insertText already terminates the active marked-text session.
+            // Only send an explicit empty marked text for cancellation paths.
+            if !committed { client.clearMarkedText() }
             candidatePanel.hide()
             pageHint.hide()
             modeHint.hide()
             displays = []
+            lastMarkedRange = nil
+            lastSelectedRange = nil
             return
         }
         let preedit = result.preedit.isEmpty ? result.rawInput : result.preedit
@@ -426,8 +467,10 @@ final class GannyuInputController: IMKInputController {
         client.setMarkedText(
             preedit,
             selectionRange: NSRange(location: (String(preedit.prefix(caret)) as NSString).length, length: 0),
-            replacementRange: client.replacementRange()
+            replacementRange: NSRange(location: NSNotFound, length: 0)
         )
+        lastMarkedRange = client.markedRange()
+        lastSelectedRange = client.selectedRange()
         selectedLine = min(selectedLine, max(result.candidates.count - 1, 0))
         presentCandidates()
     }
@@ -697,6 +740,10 @@ private struct GannyuTextClient {
         let marked = range(for: Self.markedRangeSelector)
         return marked.location == NSNotFound ? range(for: Self.selectedRangeSelector) : marked
     }
+
+    func markedRange() -> NSRange { range(for: Self.markedRangeSelector) }
+
+    func selectedRange() -> NSRange { range(for: Self.selectedRangeSelector) }
 
     func clearMarkedText() {
         setMarkedText(
