@@ -57,21 +57,12 @@ jobs:
           for suffix in android.apk fcitx5.tar.gz windows-installer.exe macos.pkg; do
             test -f "release-assets/GonnyuGeneralIME-${PRODUCT_VERSION}-${suffix}"
           done
-          python3 platforms/release/generate_release_metadata.py \
-            --version "$PRODUCT_VERSION" --output-dir release-assets
           awk -v heading="## 正式版本 ${PRODUCT_VERSION}" "\$0 == heading { found = 1; next }
             found && /^## / { exit }
             found { print }
             END { if (!found) exit 1 }
           " README.md > release-notes.md
           test -s release-notes.md
-          {
-            echo
-            echo "### 发布校验"
-            echo
-            echo "所有下载产物的 SHA-256 校验值见 [SHA256SUMS](https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/SHA256SUMS)。"
-            echo "软件物料清单见 [SPDX SBOM](https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/GonnyuGeneralIME-${PRODUCT_VERSION}-SBOM.spdx.json)。"
-          } >> release-notes.md
           if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
             gh release upload "$GITHUB_REF_NAME" release-assets/* --clobber
             gh release edit "$GITHUB_REF_NAME" --title "GonnyuGeneralIME ${PRODUCT_VERSION}" --notes-file release-notes.md
