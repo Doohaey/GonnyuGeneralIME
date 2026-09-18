@@ -369,3 +369,4 @@ Windows 小狼毫将压缩包内容复制到 `%APPDATA%\Rime`，在输入法菜�
 
 1. 东扯西掖编辑部. 项目计划、分宜词典. https://github.com/ComeRainOrComeShine
 2. Doohaey. 输入法框架与南昌词典作者 邮箱：doohaey@gmail.com
+3. Hialex. APP图标设计.
