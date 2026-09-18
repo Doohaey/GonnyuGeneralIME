@@ -633,8 +633,7 @@ private:
         }
     }
 
-    // Use the shared FFI formatter so every native frontend follows the same
-    // Fcitx5-compatible auto/manual separator rule without changing buffer.
+    // Use the shared FFI formatter for Fcitx5-compatible separators.
     std::string buildPreeditDisplay(const std::string &buf, int consumed) {
         if (!pipeline_) return buf;
         char *formatted = nullptr;
@@ -648,9 +647,7 @@ private:
         return display;
     }
 
-    // Map the buffer length to a cursor position in the display string. The
-    // display may contain visual separators (spaces) that are not part of the
-    // buffer, so the cursor must skip them to sit at the end of the real input.
+    // Map buffer length to its position in the formatted display string.
     int preeditCursorPosition(const std::string &buf, const std::string &display) {
         int non_sep = 0;
         for (int i = 0; i < (int)display.size(); ++i) {
@@ -664,14 +661,10 @@ private:
     void refresh(fcitx::InputContext *ic, GannyuEngineState *state) {
         ensureRuntimeReady();
         auto &panel = ic->inputPanel();
-        // Clear the candidate list but keep the preedit set below. Avoid
-        // panel.reset() which clears the preedit and can make fcitx5/apps
-        // spuriously commit the composing text while typing fast.
+        // Preserve preedit while refreshing the candidate list.
         panel.setCandidateList(nullptr);
         if (state->buffer.empty()) {
-            // Clear the preedit explicitly (setCandidateList(nullptr) does not
-            // clear it), so a leftover composing text does not linger after
-            // backspace empties the buffer.
+            // Reset preedit when backspace empties the buffer.
             panel.setClientPreedit(fcitx::Text());
             ic->updatePreedit();
             ic->updateUserInterface(fcitx::UserInterfaceComponent::InputPanel);
@@ -704,9 +697,7 @@ private:
         int firstConsumed = ranked.empty() ? 0 : ranked[0].consumedBytes;
         std::string display = buildPreeditDisplay(state->buffer, firstConsumed);
         fcitx::Text preedit(display, fcitx::TextFormatFlag::Underline);
-        // Cursor tracks the actual buffer length, not the display length, so
-        // fcitx5/apps do not see a cursor beyond the real input and spuriously
-        // commit part of the preedit.
+        // Track the cursor against the underlying buffer length.
         preedit.setCursor(preeditCursorPosition(state->buffer, display));
         panel.setClientPreedit(preedit);
 

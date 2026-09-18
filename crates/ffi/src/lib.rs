@@ -480,10 +480,8 @@ fn deploy_embedded_path(
     };
     let output = temp.path().join(path);
     decrypt_to_file(加密器, blob, &output)?;
-    // On Linux, unlink the decrypted file immediately and replace it with a
-    // symlink to /proc/self/fd/N. The data lives only in the open fd (never
-    // reachable by path), so a same-user process cannot read the plaintext by
-    // walking the temp dir. The fd is kept alive by the caller.
+    // Linux serves the unlinked file through /proc/self/fd/N while the caller
+    // retains its file descriptor.
     #[cfg(target_os = "linux")]
     {
         let file = std::fs::OpenOptions::new().read(true).open(&output)?;
@@ -503,12 +501,7 @@ fn path_needed_for_region(path: &str, region_id: &str) -> bool {
         || path.starts_with(&format!("{}/{}/", obfstr!("regions"), region_id))
 }
 
-/// Holds a deployed (decrypted) resource tree: the temp dir plus the open fds
-/// backing unlinked files (Linux; empty elsewhere). Dropping this cleans up both.
-///
-/// After the pipeline loads, the decrypted files are removed from disk (see
-/// `gannyu_pipeline_create`); the `TempDir` handle and open fds are kept only
-/// so the backing storage is reclaimed on drop.
+/// Holds the deployed resource tree and Linux file descriptors.
 struct DeployedResources {
     temp: tempfile::TempDir,
     _fds: Vec<std::fs::File>,
@@ -522,9 +515,7 @@ fn deploy_embedded_manifest() -> io::Result<DeployedResources> {
     Ok(DeployedResources { temp, _fds: fds })
 }
 
-/// Create a temp dir whose decrypted resources are readable only by the owning
-/// user. `tempfile::TempDir::new()` uses the process umask (typically 0o755,
-/// world-readable) on Unix, which would expose the decrypted dictionary data.
+/// Create a mode-0700 temporary directory for decrypted resources.
 fn private_temp_dir() -> io::Result<tempfile::TempDir> {
     #[cfg(unix)]
     {

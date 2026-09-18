@@ -12,9 +12,7 @@ staging_dir=""
 if [[ -n "${GANNYU_MACOS_APP_BUNDLE:-}" ]]; then
   bundle="$GANNYU_MACOS_APP_BUNDLE"
 else
-  # A build artifact with the production bundle ID must not remain discoverable
-  # beside the installed copy.  Build into private staging and remove it once
-  # the signed app has been copied to its final Input Methods location.
+  # Build in staging before copying the signed app to Input Methods.
   staging_dir="$(mktemp -d "${TMPDIR:-/private/tmp}/gonnyu-imk-install.XXXXXX")"
   bundle="$staging_dir/GonnyuInputMethod.app"
   export GANNYU_MACOS_APP_BUNDLE="$bundle"
@@ -41,9 +39,7 @@ trap rollback_install ERR
 if [[ -d "$target_bundle" ]]; then mv "$target_bundle" "$backup_bundle"; fi
 ditto "$bundle" "$target_bundle"
 codesign --verify --deep --strict "$target_bundle"
-# Do not leave the build/installer copy registered with the same bundle ID as
-# the installed input method.  Text Services must resolve this identifier to
-# exactly the copy in ~/Library/Input Methods when it launches the IMK server.
+# Register the installed copy as the Input Methods implementation.
 if [[ "$bundle" != "$target_bundle" && -x "$lsregister" ]]; then
   "$lsregister" -u "$bundle" >/dev/null 2>&1 || true
 fi
@@ -54,9 +50,7 @@ GANNYU_REGISTER_INPUT_SOURCE=1 GANNYU_IMK_SELFTEST=1 \
   "$target_bundle/Contents/MacOS/GannyuInputMethodHost"
 bundle_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$target_bundle/Contents/Info.plist")"
 source_id="$bundle_id.Gan"
-# Earlier bundles exposed a child ".Gan" mode in addition to the primary
-# source. Remove only that obsolete enabled entry before enabling the single
-# source declared by the current bundle.
+# Replace the legacy ".Gan" source entry with the current primary source.
 preferences_dir="$(mktemp -d "${TMPDIR:-/private/tmp}/gonnyu-input-sources.XXXXXX")"
 preferences_plist="$preferences_dir/HIToolbox.plist"
 defaults export com.apple.HIToolbox "$preferences_plist" >/dev/null

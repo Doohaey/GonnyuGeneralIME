@@ -18,8 +18,5 @@ lto = "fat"
 codegen-units = 1
 opt-level = 3
 panic = "abort"
-# strip = "true" removes both .symtab and .dynsym from the Rust static library,
-# so internal symbols (e.g. gannyu_input_ffi::whitebox::derive_master_key) do
-# not leak into the final .so/.dll. The final artifact is additionally stripped
-# and sanitized by tools/sanitize_binary.py in the platform build scripts.
+# Release binaries are stripped and sanitized by platform build scripts.
 strip = true

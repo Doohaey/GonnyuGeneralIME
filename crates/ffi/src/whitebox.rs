@@ -9,18 +9,10 @@ static TABLES: std::sync::OnceLock<Tables> = std::sync::OnceLock::new();
 
 const ROUNDS: usize = 10;
 
-/// Initialize the SPN tables from the build-time constants. Called once.
+/// Initialize the build-generated SPN tables once.
 ///
-/// The constants are provided by `build.rs` as several scattered fragments,
-/// each included via its own `include_bytes!`. Using raw bytes (rather than a
-/// Rust const array) prevents the optimizer from constant-folding the
-/// de-interleaving and emitting the raw key/mask as a contiguous constant in
-/// the binary.
-///
-/// Each fragment is stored interleaved (real byte at even index, garbage at
-/// odd index) with a per-fragment XOR mask and per-fragment garbage affine
-/// params. We read with volatile loads so the optimizer cannot constant-fold
-/// the de-interleaving and emit the raw key/mask as a contiguous constant.
+/// `build.rs` emits interleaved, masked byte fragments; volatile loads retain
+/// their layout in the release binary.
 fn tables() -> &'static Tables {
     TABLES.get_or_init(|| {
         let mut logical = [0u8; 256 + 32 + 32 + 32];

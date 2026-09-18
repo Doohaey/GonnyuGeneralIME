@@ -37,8 +37,7 @@ librime_root="$source_root/librime"
 boost_include="${GANNYU_RIME_BOOST_INCLUDE:-$source_root/boost}"
 [[ -f "$boost_include/boost/version.hpp" ]] || { echo "missing pinned Boost headers: $boost_include" >&2; exit 1; }
 
-# This directory contains only derived host tools and must never make a newer
-# resource or source revision appear to have been rebuilt successfully.
+# Recreate host tools from the pinned source revision.
 rm -rf "$build_root"
 mkdir -p "$build_root"
 
@@ -50,8 +49,7 @@ build_dependency() {
   cmake --build "$build_root/deps/$name" --target install
 }
 
-# Do not invoke or rewrite librime's Makefile.  These explicit dependency
-# builds are platform-neutral and leave the pinned source checkout untouched.
+# Build the pinned platform-neutral dependencies directly.
 build_dependency glog -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTING=OFF -DWITH_GFLAGS=OFF
 build_dependency leveldb -DBUILD_SHARED_LIBS=OFF -DLEVELDB_BUILD_BENCHMARKS=OFF -DLEVELDB_BUILD_TESTS=OFF -DHAVE_CRC32C=OFF -DHAVE_SNAPPY=OFF -DHAVE_TCMALLOC=OFF
 build_dependency marisa-trie -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTING=OFF -DENABLE_TOOLS=OFF

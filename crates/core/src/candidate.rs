@@ -1,10 +1,6 @@
 use std::collections::HashSet;
 
-/// The common, behavior-neutral part of every candidate stage.
-///
-/// Stage-specific metadata deliberately stays on `ComposedCandidate` and
-/// `RankedCandidate`; this view only supports operations whose semantics are
-/// shared by both pipelines.
+/// Shared view of candidate stages.
 pub(crate) trait CandidateView {
     fn text(&self) -> &str;
     fn reading(&self) -> Option<&str>;
@@ -21,11 +17,7 @@ pub(crate) fn owned_text_set<T: CandidateView>(candidates: &[T]) -> HashSet<Stri
         .collect()
 }
 
-/// Keep the first candidate for each composed-candidate identity.
-///
-/// A reading is part of the identity here because two readings of the same
-/// text are distinct composition results. Retrieval intentionally continues
-/// to deduplicate by text at its existing insertion points.
+/// Keep the first candidate for each text-and-reading identity.
 pub(crate) fn retain_unique_text_and_reading<T: CandidateView>(candidates: &mut Vec<T>) {
     let mut seen = HashSet::<(String, Option<String>)>::new();
     candidates.retain(|candidate| {

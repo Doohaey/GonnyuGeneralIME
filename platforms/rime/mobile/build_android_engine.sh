@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Cross-build the pinned Rime engine used only while packaging Android.
+# Cross-build the pinned Rime engine for Android packaging.
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -35,8 +35,7 @@ if [[ ! -f "$boost_include/boost/version.hpp" && -z "${GANNYU_RIME_BOOST_INCLUDE
 fi
 [[ -f "$boost_include/boost/version.hpp" ]] || { echo "Boost headers not found" >&2; exit 2; }
 
-# All Android native output is derived.  Clear it before the first CMake
-# configure so a prior local generator or dependency cannot mask a clean build.
+# Recreate the derived Android native output before CMake configuration.
 rm -rf "$build_root"
 mkdir -p "$build_root"
 
