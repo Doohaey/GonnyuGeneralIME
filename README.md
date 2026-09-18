@@ -86,40 +86,40 @@
 
 根据普通话拼音用户习惯的强大兼容，凭感觉就可以打出你心理所想。
 
-![无需学习，凭感觉输入](images/selection/yue.png)
+![无需学习，凭感觉输入](resources/images/selection/yue.png)
 
 ### 收词广泛，本地风土全概览，生僻输入无压力
 
 收录汉字20000+（UNICODE扩展B区已经大量覆盖，理论读音根据韵书推导），词汇100000+，大量本地地道表达，地名特有读音，并非只有少量字音的半成品！
 
-![表达收录广泛](images/selection/yongxyuot.png)
-![特有地名读音处理(尤口)](images/selection/xiukieu.png)
+![表达收录广泛](resources/images/selection/yongxyuot.png)
+![特有地名读音处理(尤口)](resources/images/selection/xiukieu.png)
 
 ### 赣语与普通话，同屏就能选
 
 输入赣语，相关普通话词也会一起出现；理解、确认、选词，一步到位。
 
-![赣语与普通话词汇同屏候选](images/selection/goxiet.png)
+![赣语与普通话词汇同屏候选](resources/images/selection/goxiet.png)
 
 ### 普通话拼音，直达赣语
 
 先想到普通话词？照样用汉语拼音输入，马上找到对应的赣语说法。
 
-![用普通话拼音输入赣语文本](images/selection/yitiandaowan.png)
+![用普通话拼音输入赣语文本](resources/images/selection/yitiandaowan.png)
 
 ### 文白异读，分得清也选得到
 
 赣语的日常口语和书面表达各有读法；输入法清楚整理，写得更贴切。
 
-![文白异读示例：明日](images/selection/miangnit.png)
+![文白异读示例：明日](resources/images/selection/miangnit.png)
 
-![文白异读示例：名称](images/selection/minceu.png)
+![文白异读示例：名称](resources/images/selection/minceu.png)
 
 ### 多读音、新老派，都照顾到
 
 不同赣语读音都能输入、都能找到；无论习惯新派还是老派，说话的声音不必将就。
 
-![多读音与新老派发音兼容](images/selection/xiuji.png)
+![多读音与新老派发音兼容](resources/images/selection/xiuji.png)
 
 
 

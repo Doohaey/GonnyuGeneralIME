@@ -89,40 +89,40 @@ The project currently maintains two regional dictionaries: urban Lancong(Nanchan
 
 Know Mandarin Pinyin and start typing right away. Enter a familiar Pinyin spelling, and the input method finds the corresponding Gan reading without requiring a separate input scheme.
 
-![No learning needed, type by instinct](images/selection/yue.png)
+![No learning needed, type by instinct](resources/images/selection/yue.png)
 
 ### Broad vocabulary, local life in full, rare characters no longer a barrier
 
 Over 20,000 Chinese characters, including extensive coverage of Unicode Extension B with theoretical readings derived from rhyme dictionaries; over 100,000 words; abundant idiomatic local expressions; and distinctive pronunciations for place names. The dictionary goes far beyond a bare list of character readings.
 
-![Broad coverage of local expressions](images/selection/yongxyuot.png)
-![Distinctive pronunciation for the place name Youkou](images/selection/xiukieu.png)
+![Broad coverage of local expressions](resources/images/selection/yongxyuot.png)
+![Distinctive pronunciation for the place name Youkou](resources/images/selection/xiukieu.png)
 
 ### Gan and Mandarin, side by side
 
 Type in Gan and see related Mandarin words at the same time. Recognise, confirm, and choose the word you want in one glance.
 
-![Gan and Mandarin candidates together](images/selection/goxiet.png)
+![Gan and Mandarin candidates together](resources/images/selection/goxiet.png)
 
 ### Mandarin Pinyin, straight to Gan
 
 Have the Mandarin word in mind first? Type its familiar Pinyin and find the Gan expression right away.
 
-![Type Gan text with Mandarin Pinyin](images/selection/yitiandaowan.png)
+![Type Gan text with Mandarin Pinyin](resources/images/selection/yitiandaowan.png)
 
 ### Literary or colloquial — clear at a glance
 
 Gan everyday speech and written expression can sound different. The input method lays both readings out clearly, so your writing always fits the moment.
 
-![Literary and colloquial reading example: miangnit](images/selection/miangnit.png)
+![Literary and colloquial reading example: miangnit](resources/images/selection/miangnit.png)
 
-![Literary and colloquial reading example: minceu](images/selection/minceu.png)
+![Literary and colloquial reading example: minceu](resources/images/selection/minceu.png)
 
 ### Every Gan reading welcome, old and new
 
 Alternate Gan pronunciations, including older and newer patterns, are all ready for input and lookup. Type the Gan you know, your way.
 
-![Compatibility with alternate, older, and newer pronunciations](images/selection/xiuji.png)
+![Compatibility with alternate, older, and newer pronunciations](resources/images/selection/xiuji.png)
 
 
 ## Installation
