@@ -1,5 +1,0 @@
-module CGannyuInput [system] {
-  header "gannyu_input.h"
-  link "c++"
-  export *
-}
