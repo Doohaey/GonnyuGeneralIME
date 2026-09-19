@@ -270,8 +270,8 @@ class GannyuInputMethodService : InputMethodService() {
             KeySpec("m", isLetter=true))
 
         private val NUM_ROW_1 = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
-        private val NUM_ROW_2 = listOf("-", "/", ":", ";", "(", ")", "¥", "&", "@", "\"")
-        private val NUM_ROW_3 = listOf(".", ",", "?", "!", "'", "%", "＋", "⌫")
+        private val NUM_ROW_2 = listOf("－", "／", "：", "；", "（", "）", "￥", "＆", "＠", "＂")
+        private val NUM_ROW_3 = listOf(".", ",", "？", "！", "＇", "％", "＋", "⌫")
         private val SYM_ROW_1 = listOf("【", "】", "“", "”", "〈", "〉", "《", "》", "：", "；")
         private val SYM_ROW_2 = listOf("，", "、", "。", "？", "！", "…", "—", "～", "·", "／")
         private val SYM_ROW_3 = listOf("更多", "（", "）", "[", "]", "{", "}", "#", "⌫")

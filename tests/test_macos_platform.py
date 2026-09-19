@@ -161,6 +161,15 @@ def test_macos_controller_wires_minimal_input_loop() -> None:
     assert "GannyuRegion.fallback" not in controller
 
 
+def test_ios_numbers_page_uses_fullwidth_symbols_except_comma_and_period() -> None:
+    controller = (
+        ROOT.parent / "platforms/ios/Sources/GannyuKeyboard/KeyboardViewController.swift"
+    ).read_text(encoding="utf-8")
+
+    assert '["－", "／", "：", "；", "（", "）", "￥", "＆", "＠", "＂"]' in controller
+    assert '[".", ",", "？", "！", "＇", "％", "＋", "⌫"]' in controller
+
+
 def test_macos_region_selection_is_validated_against_embedded_catalog() -> None:
     engine = (
         ROOT / "platforms/macos/Sources/GannyuMacOSSupport/GannyuEngine.swift"

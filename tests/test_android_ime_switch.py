@@ -91,6 +91,13 @@ def test_android_bottom_row_places_comma_and_period_after_space() -> None:
     assert 'listOf(mode, nav, "空格", if (englishMode) "," else "，", if (englishMode) "." else "。", "↵")' in bottom
 
 
+def test_android_numbers_page_uses_fullwidth_symbols_except_comma_and_period() -> None:
+    source = SERVICE.read_text(encoding="utf-8")
+
+    assert 'private val NUM_ROW_2 = listOf("－", "／", "：", "；", "（", "）", "￥", "＆", "＠", "＂")' in source
+    assert 'private val NUM_ROW_3 = listOf(".", ",", "？", "！", "＇", "％", "＋", "⌫")' in source
+
+
 def test_android_candidates_keep_full_metadata_with_independent_widths() -> None:
     source = SERVICE.read_text(encoding="utf-8")
 
