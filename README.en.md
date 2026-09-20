@@ -2,7 +2,7 @@
 
 > A digital writing system rooted in the Gon(Gan)–Poyang region.
 
-We have established three dictionary localities: urban Lancong (Nanchang), Fenni (Fenyi County in Xinyu), and Fungcen. We hope to expand substantially to other localities as well. Contributions to add and correct dictionary entries are welcome.
+Currently supports: **Lancong(Nanchang), Fenni(Fenyi), and Fungcen**. More localities are welcome.
 
 **An easy-to-use Gon(Gan) input method: users who know Pinyin can type immediately, with both local and Mandarin Pinyin input supported.**
 
