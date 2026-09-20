@@ -14,6 +14,7 @@ TIER_RANK = {"primary": 0, "secondary": 1, "fallback": 2}
 
 @dataclass(frozen=True)
 class FuzzyRule:
+    region: str
     source: str
     target: str
     applies: str
@@ -27,18 +28,22 @@ def strip_tone(value: str) -> str:
     return re.sub(r"\d+$", "", value)
 
 
-def load_rules(path: Path) -> list[FuzzyRule]:
+def load_rules(path: Path, region: str | None = None) -> list[FuzzyRule]:
     with path.open(encoding="utf-8", newline="") as handle:
         lines = (line for line in handle if line.strip() and not line.lstrip().startswith("#"))
         reader = csv.DictReader(lines, delimiter="\t")
         rules = []
         for row in reader:
+            rule_region = row.get("region", "").strip() or "common"
+            if rule_region != "common" and rule_region != region:
+                continue
             tier = row["priority_tier"].strip() or "primary"
             if tier not in TIER_RANK:
                 raise ValueError(f"invalid fuzzy priority tier: {tier}")
             rules.append(
                 FuzzyRule(
-                    source=row["gon_han"].strip(),
+                    region=rule_region,
+                    source=row["gon_fuzzy"].strip(),
                     target=row["gon_pin"].strip(),
                     applies=row["applies"].strip() or "anywhere",
                     bidirectional=row["bidirectional"].strip() != "false",

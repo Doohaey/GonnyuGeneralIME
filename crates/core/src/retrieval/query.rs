@@ -380,7 +380,7 @@ fn retrieve_inner_limited_with_boosts(
     }
 
     let mut fuzzy_forms: Vec<String> = Vec::new();
-    for scheme in [SyllableScheme::GonPin, SyllableScheme::GonHan] {
+    for scheme in [SyllableScheme::GonPin, SyllableScheme::GonFuzzy] {
         for normalized_fuzzy in fuzzy.normalize(&normalized, scheme) {
             if normalized_fuzzy.text != normalized && !fuzzy_forms.contains(&normalized_fuzzy.text)
             {

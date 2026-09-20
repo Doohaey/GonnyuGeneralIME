@@ -599,7 +599,10 @@ def build(region: str, output: Path, display_name: str = "short") -> dict[str, i
     region_dir = ROOT / "resources" / "regions" / region
     with (region_dir / "region.toml").open("rb") as handle:
         config = tomllib.load(handle)
-    rules = load_rules((region_dir / config["phonology"]["fuzzy_map"]).resolve())
+    rules = load_rules(
+        (region_dir / config["phonology"]["fuzzy_map"]).resolve(),
+        region,
+    )
     canonical = {
         strip_tone(reading)
         for entry in entries

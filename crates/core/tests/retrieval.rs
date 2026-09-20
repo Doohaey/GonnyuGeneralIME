@@ -45,7 +45,7 @@ fn sample_dictionary() -> Dictionary {
 }
 
 fn sample_fuzzy() -> FuzzyMap {
-    let body = "category\tgon_han\tgon_pin\tapplies\tbidirectional\tpriority_tier\n\
+    let body = "category\tgon_fuzzy\tgon_pin\tapplies\tbidirectional\tpriority_tier\n\
                 onset\tgi\tji\tsyllable-initial\ttrue\tsecondary\n";
     let path = write_fixture("fuzzy.tsv", body);
     FuzzyMap::load_tsv(&path).expect("load fuzzy")

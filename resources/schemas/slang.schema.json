@@ -6,7 +6,7 @@
     "id": { "type": "string" },
     "slang": { "type": "string" },
     "slang_reading": { "type": "string" },
-    "slang_scheme": { "type": "string", "enum": ["gon-han", "gon-pin"] },
+    "slang_scheme": { "type": "string", "enum": ["gon-fuzzy", "gon-pin"] },
     "local_forms": {
       "type": "array",
       "items": { "type": "string" }
@@ -24,7 +24,7 @@
           "text": { "type": "string" },
           "kind": { "type": "string", "enum": ["mandarin", "gan-vocab", "gan-fragment"] },
           "reading": { "type": "string" },
-          "scheme": { "type": "string", "enum": ["gon-han", "gon-pin"] }
+          "scheme": { "type": "string", "enum": ["gon-fuzzy", "gon-pin"] }
         }
       }
     },
@@ -38,4 +38,3 @@
     "note": { "type": "string" }
   }
 }
-

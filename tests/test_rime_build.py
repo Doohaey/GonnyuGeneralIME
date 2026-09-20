@@ -24,6 +24,27 @@ def test_active_regions_use_canonical_default_order() -> None:
     assert active_regions() == ("lancong", "fenni")
 
 
+def test_fuzzy_rules_are_scoped_to_the_selected_region(tmp_path: Path) -> None:
+    path = tmp_path / "fuzzy.tsv"
+    path.write_text(
+        "region\tcategory\tgon_fuzzy\tgon_pin\tapplies\tbidirectional\tchainable\tpriority_tier\tstarts_with\n"
+        "common\tonset\tzz\tz\tsyllable-initial\tfalse\tfalse\tprimary\t\n"
+        "lancong\tonset\tll\tl\tsyllable-initial\tfalse\tfalse\tprimary\t\n"
+        "fenni\tonset\tff\tf\tsyllable-initial\tfalse\tfalse\tprimary\t\n",
+        encoding="utf-8",
+    )
+
+    common = load_rules(path)
+    assert [rule.region for rule in common] == ["common"]
+    assert "za" in normalize("zza", common)
+    assert "la" not in normalize("lla", common)
+
+    lancong = load_rules(path, "lancong")
+    assert [rule.region for rule in lancong] == ["common", "lancong"]
+    assert "la" in normalize("lla", lancong)
+    assert "fa" not in normalize("ffa", lancong)
+
+
 def test_builds_rime_dictionary_annotations_and_relations(tmp_path: Path) -> None:
     counts = build("lancong", tmp_path)
 

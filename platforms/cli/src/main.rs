@@ -11,7 +11,7 @@ use std::process::ExitCode;
 
 mod forward;
 
-const USAGE: &str = "用法:\n  gannyu-input-cli regions list\n  gannyu-input-cli regions use <region_id>\n  gannyu-input-cli syllable normalize <input> [--scheme gon-han|gon-pin]\n  gannyu-input-cli tone classes [--region <id>]\n  gannyu-input-cli checked alternatives <syllable> [--region <id>]\n  gannyu-input-cli mandarin hint <term> [--region <id>]\n  gannyu-input-cli register check <grapheme> <syllable> [--region <id>]\n  gannyu-input-cli lookup <text> [--region <id>]\n  gannyu-input-cli pipeline compose <input> [--region <id>]\n  gannyu-input-cli pipeline retrieve <input> [--region <id>]\n  gannyu-input-cli forward             检测设备→安装→键盘转发到安卓\n  gannyu-input-cli forward --skip-install  跳过安装，直接开始键盘转发\n";
+const USAGE: &str = "用法:\n  gannyu-input-cli regions list\n  gannyu-input-cli regions use <region_id>\n  gannyu-input-cli syllable normalize <input> [--scheme gon-fuzzy|gon-pin] [--region <id>]\n  gannyu-input-cli tone classes [--region <id>]\n  gannyu-input-cli checked alternatives <syllable> [--region <id>]\n  gannyu-input-cli mandarin hint <term> [--region <id>]\n  gannyu-input-cli register check <grapheme> <syllable> [--region <id>]\n  gannyu-input-cli lookup <text> [--region <id>]\n  gannyu-input-cli pipeline compose <input> [--region <id>]\n  gannyu-input-cli pipeline retrieve <input> [--region <id>]\n  gannyu-input-cli forward             检测设备→安装→键盘转发到安卓\n  gannyu-input-cli forward --skip-install  跳过安装，直接开始键盘转发\n";
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().skip(1).collect();
@@ -81,9 +81,17 @@ fn syllable(manifest_path: &Path, rest: &[String]) -> Result<(), Box<dyn Error>>
     match rest.first().map(String::as_str) {
         Some("normalize") => {
             let input = rest.get(1).ok_or("syllable normalize 缺少输入串")?;
-            let scheme = parse_scheme_flag(&rest[2..])?;
-            let fuzzy_path = resolve_fuzzy_map_path(manifest_path)?;
-            let fuzzy = FuzzyMap::load_tsv(&fuzzy_path)?;
+            let (scheme, region_id) = parse_syllable_flags(&rest[2..])?;
+            let region_id = region_id.unwrap_or(default_region_entry(manifest_path)?.id);
+            let resource = load_region_from_manifest(manifest_path, &region_id)?;
+            let fuzzy_map = resource
+                .config
+                .phonology
+                .fuzzy_map
+                .as_deref()
+                .ok_or_else(|| format!("地区 {region_id} 未配置模糊音方案表"))?;
+            let fuzzy_path = resource.root.join(fuzzy_map);
+            let fuzzy = FuzzyMap::load_tsv_for_region(&fuzzy_path, &region_id)?;
             let outputs = fuzzy.normalize(input, scheme);
             print_normalized(input, scheme, &outputs);
             Ok(())
@@ -93,8 +101,11 @@ fn syllable(manifest_path: &Path, rest: &[String]) -> Result<(), Box<dyn Error>>
     }
 }
 
-fn parse_scheme_flag(args: &[String]) -> Result<SyllableScheme, Box<dyn Error>> {
+fn parse_syllable_flags(
+    args: &[String],
+) -> Result<(SyllableScheme, Option<String>), Box<dyn Error>> {
     let mut scheme = SyllableScheme::GonPin;
+    let mut region_id = None;
     let mut index = 0;
     while index < args.len() {
         let token = args[index].as_str();
@@ -111,21 +122,19 @@ fn parse_scheme_flag(args: &[String]) -> Result<SyllableScheme, Box<dyn Error>> 
             index += 1;
             continue;
         }
+        if token == "--region" {
+            region_id = Some(args.get(index + 1).ok_or("--region 缺少参数值")?.clone());
+            index += 2;
+            continue;
+        }
+        if let Some(value) = token.strip_prefix("--region=") {
+            region_id = Some(value.to_string());
+            index += 1;
+            continue;
+        }
         return Err(format!("未知参数: {token}").into());
     }
-    Ok(scheme)
-}
-
-fn resolve_fuzzy_map_path(manifest_path: &Path) -> Result<PathBuf, Box<dyn Error>> {
-    let root = manifest_path
-        .parent()
-        .map(Path::to_path_buf)
-        .unwrap_or_else(|| PathBuf::from("."));
-    let path = root.join("fuzzy_scheme.tsv");
-    if !path.is_file() {
-        return Err(format!("找不到模糊音方案表: {}", path.display()).into());
-    }
-    Ok(path)
+    Ok((scheme, region_id))
 }
 
 fn print_normalized(input: &str, scheme: SyllableScheme, outputs: &[NormalizedSyllable]) {

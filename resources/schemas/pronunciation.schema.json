@@ -16,7 +16,7 @@
           "tone_class": { "type": "integer", "minimum": 1, "maximum": 7 },
           "tone_value": { "type": "string" },
           "register": { "type": "string", "enum": ["wen", "bai", "common"] },
-          "scheme": { "type": "string", "enum": ["gon-han", "gon-pin"] },
+          "scheme": { "type": "string", "enum": ["gon-fuzzy", "gon-pin"] },
           "coda": { "type": "string", "enum": ["t", "k", "p", ""] },
           "weight": { "type": "number" },
           "priority_tier": { "type": "integer" },

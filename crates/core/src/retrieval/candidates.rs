@@ -971,7 +971,7 @@ fn collect_per_syllable_hits(
             }
 
             let mut fuzzy_forms: Vec<String> = Vec::new();
-            for scheme in [SyllableScheme::GonPin, SyllableScheme::GonHan] {
+            for scheme in [SyllableScheme::GonPin, SyllableScheme::GonFuzzy] {
                 for normalized_syl in fuzzy.normalize(syl, scheme) {
                     if normalized_syl.text != *syl && !fuzzy_forms.contains(&normalized_syl.text) {
                         fuzzy_forms.push(normalized_syl.text);

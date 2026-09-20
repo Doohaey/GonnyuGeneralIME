@@ -1,5 +1,7 @@
 use gannyu_input_core::{FuzzyMap, PriorityTier, SyllableScheme};
+use std::io::Write;
 use std::path::PathBuf;
+use tempfile::NamedTempFile;
 
 fn fuzzy_path() -> PathBuf {
     PathBuf::from(concat!(
@@ -15,7 +17,67 @@ fn fuzzy_map_loads() {
 }
 
 #[test]
-fn gon_han_to_gon_pin_initial_i_to_y() {
+fn fuzzy_map_scopes_regional_rules() {
+    let mut file = NamedTempFile::new().expect("temporary fuzzy map");
+    writeln!(
+        file,
+        "region\tcategory\tgon_fuzzy\tgon_pin\tapplies\tbidirectional\tchainable\tpriority_tier\tstarts_with"
+    )
+    .expect("write header");
+    writeln!(
+        file,
+        "common\tonset\tzz\tz\tsyllable-initial\tfalse\tfalse\tprimary\t"
+    )
+    .expect("write common rule");
+    writeln!(
+        file,
+        "lancong\tonset\tll\tl\tsyllable-initial\tfalse\tfalse\tprimary\t"
+    )
+    .expect("write lancong rule");
+    writeln!(
+        file,
+        "fenni\tonset\tff\tf\tsyllable-initial\tfalse\tfalse\tprimary\t"
+    )
+    .expect("write fenni rule");
+
+    let common = FuzzyMap::load_tsv(file.path()).expect("load common rules");
+    assert_eq!(
+        common
+            .iter()
+            .map(|rule| rule.region.as_str())
+            .collect::<Vec<_>>(),
+        ["common"]
+    );
+    assert!(common
+        .normalize("zza", SyllableScheme::GonPin)
+        .iter()
+        .any(|item| item.text == "za"));
+    assert!(!common
+        .normalize("lla", SyllableScheme::GonPin)
+        .iter()
+        .any(|item| item.text == "la"));
+
+    let lancong =
+        FuzzyMap::load_tsv_for_region(file.path(), "lancong").expect("load lancong rules");
+    assert_eq!(
+        lancong
+            .iter()
+            .map(|rule| rule.region.as_str())
+            .collect::<Vec<_>>(),
+        ["common", "lancong"]
+    );
+    assert!(lancong
+        .normalize("lla", SyllableScheme::GonPin)
+        .iter()
+        .any(|item| item.text == "la"));
+    assert!(!lancong
+        .normalize("ffa", SyllableScheme::GonPin)
+        .iter()
+        .any(|item| item.text == "fa"));
+}
+
+#[test]
+fn gon_fuzzy_to_gon_pin_initial_i_to_y() {
     let map = FuzzyMap::load_tsv(fuzzy_path()).expect("fuzzy_map should load");
     let outputs = map.normalize("ia", SyllableScheme::GonPin);
     assert!(outputs.iter().any(|item| item.text == "ia"));
@@ -27,8 +89,8 @@ fn ao_au_normalization_is_bidirectional() {
     let map = FuzzyMap::load_tsv(fuzzy_path()).expect("fuzzy_map should load");
     let to_pin = map.normalize("pao", SyllableScheme::GonPin);
     assert!(to_pin.iter().any(|item| item.text == "pau"));
-    let to_han = map.normalize("pau", SyllableScheme::GonHan);
-    assert!(to_han.iter().any(|item| item.text == "pao"));
+    let to_fuzzy = map.normalize("pau", SyllableScheme::GonFuzzy);
+    assert!(to_fuzzy.iter().any(|item| item.text == "pao"));
 }
 
 #[test]
@@ -97,17 +159,17 @@ fn yu_accepts_u_and_v_as_fuzzy_inputs() {
 fn checked_k_and_t_fuzz_mutually() {
     let map = FuzzyMap::load_tsv(fuzzy_path()).expect("fuzzy_map should load");
     let mut outputs = map.normalize("nik", SyllableScheme::GonPin);
-    outputs.extend(map.normalize("nik", SyllableScheme::GonHan));
+    outputs.extend(map.normalize("nik", SyllableScheme::GonFuzzy));
     // t↔k 入声尾互相模糊保留；h/p 不是入声尾
     assert!(outputs.iter().any(|item| item.text == "nit"));
     assert!(!outputs.iter().any(|item| item.text == "nih"));
     assert!(!outputs.iter().any(|item| item.text == "nip"));
     let mut t_outputs = map.normalize("nit", SyllableScheme::GonPin);
-    t_outputs.extend(map.normalize("nit", SyllableScheme::GonHan));
+    t_outputs.extend(map.normalize("nit", SyllableScheme::GonFuzzy));
     assert!(t_outputs.iter().any(|item| item.text == "nik"));
     // 无尾输入单向回退到 t/k 带尾形式
     let mut bare_outputs = map.normalize("ni", SyllableScheme::GonPin);
-    bare_outputs.extend(map.normalize("ni", SyllableScheme::GonHan));
+    bare_outputs.extend(map.normalize("ni", SyllableScheme::GonFuzzy));
     assert!(bare_outputs.iter().any(|item| item.text == "nit"));
     assert!(bare_outputs.iter().any(|item| item.text == "nik"));
 }

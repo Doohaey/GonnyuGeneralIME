@@ -14,7 +14,7 @@
           "reading": { "type": "string" },
           "tone_class": { "type": "integer", "minimum": 1, "maximum": 7 },
           "register": { "type": "string", "enum": ["wen", "bai", "common"] },
-          "scheme": { "type": "string", "enum": ["gon-han", "gon-pin", "mandarin"] },
+          "scheme": { "type": "string", "enum": ["gon-fuzzy", "gon-pin", "mandarin"] },
           "language": { "type": "string", "enum": ["gan", "mandarin"] },
           "coda": { "type": "string", "enum": ["t", "k", "p", ""] },
           "weight": { "type": "number" },
@@ -34,4 +34,3 @@
     }
   }
 }
-

@@ -721,7 +721,7 @@ fn fuzzy_forms_for(fuzzy: &FuzzyMap, syl: &str, cache: &mut SegmentationCache) -
         return cached.clone();
     }
     let mut forms: Vec<String> = Vec::new();
-    for scheme in [SyllableScheme::GonPin, SyllableScheme::GonHan] {
+    for scheme in [SyllableScheme::GonPin, SyllableScheme::GonFuzzy] {
         for normalized_syl in fuzzy.normalize(syl, scheme) {
             if normalized_syl.text != syl && !forms.contains(&normalized_syl.text) {
                 forms.push(normalized_syl.text);

@@ -7,21 +7,21 @@ use std::path::Path;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SyllableScheme {
-    GonHan,
+    GonFuzzy,
     GonPin,
 }
 
 impl SyllableScheme {
     pub fn as_str(&self) -> &'static str {
         match self {
-            SyllableScheme::GonHan => "gon-han",
+            SyllableScheme::GonFuzzy => "gon-fuzzy",
             SyllableScheme::GonPin => "gon-pin",
         }
     }
 
     pub fn parse(value: &str) -> Option<SyllableScheme> {
         match value {
-            "gon-han" | "gon_han" | "han" => Some(SyllableScheme::GonHan),
+            "gon-fuzzy" | "gon_fuzzy" | "fuzzy" => Some(SyllableScheme::GonFuzzy),
             "gon-pin" | "gon_pin" | "pin" => Some(SyllableScheme::GonPin),
             _ => None,
         }
@@ -60,7 +60,9 @@ pub enum PriorityTier {
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct FuzzyEntry {
-    pub gon_han: String,
+    #[serde(default = "default_fuzzy_region")]
+    pub region: String,
+    pub gon_fuzzy: String,
     pub gon_pin: String,
     pub category: FuzzyCategory,
     #[serde(default)]
@@ -81,6 +83,14 @@ pub struct FuzzyEntry {
 
 fn default_true() -> bool {
     true
+}
+
+fn default_fuzzy_region() -> String {
+    "common".to_string()
+}
+
+fn fuzzy_region_applies(entry_region: &str, region_id: Option<&str>) -> bool {
+    entry_region == "common" || region_id == Some(entry_region)
 }
 
 #[derive(Debug, Clone)]
@@ -115,6 +125,20 @@ impl From<std::io::Error> for SyllableError {
 
 impl FuzzyMap {
     pub fn load(path: impl AsRef<Path>) -> Result<FuzzyMap, SyllableError> {
+        Self::load_scoped(path, None)
+    }
+
+    pub fn load_for_region(
+        path: impl AsRef<Path>,
+        region_id: &str,
+    ) -> Result<FuzzyMap, SyllableError> {
+        Self::load_scoped(path, Some(region_id))
+    }
+
+    fn load_scoped(
+        path: impl AsRef<Path>,
+        region_id: Option<&str>,
+    ) -> Result<FuzzyMap, SyllableError> {
         let content = fs::read_to_string(path)?;
         let mut entries = Vec::new();
         for (index, raw) in content.lines().enumerate() {
@@ -122,17 +146,36 @@ impl FuzzyMap {
             if line.is_empty() || line.starts_with('#') {
                 continue;
             }
-            let entry: FuzzyEntry =
+            let mut entry: FuzzyEntry =
                 serde_json::from_str(line).map_err(|error| SyllableError::Parse {
                     line: index + 1,
                     message: error.to_string(),
                 })?;
-            entries.push(entry);
+            if entry.region.trim().is_empty() {
+                entry.region = default_fuzzy_region();
+            }
+            if fuzzy_region_applies(&entry.region, region_id) {
+                entries.push(entry);
+            }
         }
         Ok(FuzzyMap { entries })
     }
 
     pub fn load_tsv(path: impl AsRef<Path>) -> Result<FuzzyMap, SyllableError> {
+        Self::load_tsv_scoped(path, None)
+    }
+
+    pub fn load_tsv_for_region(
+        path: impl AsRef<Path>,
+        region_id: &str,
+    ) -> Result<FuzzyMap, SyllableError> {
+        Self::load_tsv_scoped(path, Some(region_id))
+    }
+
+    fn load_tsv_scoped(
+        path: impl AsRef<Path>,
+        region_id: Option<&str>,
+    ) -> Result<FuzzyMap, SyllableError> {
         let content = fs::read_to_string(path)?;
         let mut header: Option<Vec<String>> = None;
         let mut entries = Vec::new();
@@ -194,8 +237,12 @@ impl FuzzyMap {
                 other => return Err(parse_error(format!("invalid chainable: {other}"))),
             };
             let optional = |value: Option<String>| value.filter(|text| !text.is_empty());
-            entries.push(FuzzyEntry {
-                gon_han: value_for("gon_han").unwrap_or_default(),
+            let region = value_for("region")
+                .filter(|value| !value.is_empty())
+                .unwrap_or_else(default_fuzzy_region);
+            let entry = FuzzyEntry {
+                region,
+                gon_fuzzy: value_for("gon_fuzzy").unwrap_or_default(),
                 gon_pin: value_for("gon_pin").unwrap_or_default(),
                 category,
                 applies,
@@ -205,7 +252,10 @@ impl FuzzyMap {
                 starts_with: parse_csv_list(value_for("starts_with")),
                 example: optional(value_for("example")),
                 note: optional(value_for("note")),
-            });
+            };
+            if fuzzy_region_applies(&entry.region, region_id) {
+                entries.push(entry);
+            }
         }
         Ok(FuzzyMap { entries })
     }
@@ -240,12 +290,12 @@ impl FuzzyMap {
                     continue;
                 }
                 let (from, to) = match target {
-                    SyllableScheme::GonPin => (entry.gon_han.as_str(), entry.gon_pin.as_str()),
-                    SyllableScheme::GonHan => {
+                    SyllableScheme::GonPin => (entry.gon_fuzzy.as_str(), entry.gon_pin.as_str()),
+                    SyllableScheme::GonFuzzy => {
                         if !entry.bidirectional {
                             continue;
                         }
-                        (entry.gon_pin.as_str(), entry.gon_han.as_str())
+                        (entry.gon_pin.as_str(), entry.gon_fuzzy.as_str())
                     }
                 };
                 let substituted = match entry.applies {

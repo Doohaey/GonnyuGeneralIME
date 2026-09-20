@@ -292,7 +292,7 @@ impl InputPipeline {
         if let Some(relative) = resource.config.phonology.fuzzy_map.as_deref() {
             let path = resource.root.join(relative);
             if path.is_file() && file_has_content(&path) {
-                pipeline.fuzzy = FuzzyMap::load_tsv(&path)?;
+                pipeline.fuzzy = FuzzyMap::load_tsv_for_region(&path, &resource.config.region.id)?;
             }
         }
         pipeline.tone_values = eight_tone_class_map(&resource.config.tone_classes);
