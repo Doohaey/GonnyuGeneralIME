@@ -187,26 +187,26 @@ The spelling system is intended to represent Gon(Gan) pronunciation while remain
 
 ### Initials
 
-| gon-pin | IPA | Accepted alternative input | Notes |
-| --- | --- | --- | --- |
-| b | [p] | — | |
-| p | [pʰ] | — | |
-| m | [m] | — | |
-| f | [f] | — | May differ from Mandarin *f*; some descriptions use [ɸ]. |
-| d | [t] | — | |
-| t | [tʰ] | — | |
-| l | [l] | — | |
-| z | [ts] | — | |
-| c | [tsʰ] | — | |
-| s | [s] | — | |
-| j | [tɕ] | — | |
-| q | [tɕʰ] | — | |
-| n | [ȵ] | — | |
-| x | [ɕ] | — | |
-| g | [k] | — | |
-| k | [kʰ] | — | |
-| ng | [ŋ] | — | A velar nasal; for example, 五 *ng3*. |
-| h | [h] | — | Articulated farther back than Mandarin *h*. |
+| gon-pin | Default IPA | yiyong IPA | Accepted alternative input | Notes |
+| --- | --- | --- | --- | --- |
+| b | [p] | - | — | |
+| p | [pʰ] | - | — | |
+| m | [m] | - | — | |
+| f | [f] | - | — | May differ from Mandarin *f*; some descriptions use [ɸ]. |
+| d | [t] | - | — | |
+| t | [tʰ] | - | — | |
+| l | [l] | - | — | |
+| z | [ts] | - | — | |
+| c | [tsʰ] | - | — | |
+| s | [s] | - | — | |
+| j | [tɕ] | - | — | |
+| q | [tɕʰ] | - | — | |
+| n | [ȵ] | - | — | |
+| x | [ɕ] | - | — | |
+| g | [k] | - | — | |
+| k | [kʰ] | - | — | |
+| ng | [ŋ] | - | — | A velar nasal; for example, 五 *ng3*. |
+| h | [h] | - | — | Articulated farther back than Mandarin *h*. |
 
 ### Finals
 
@@ -214,26 +214,28 @@ The spelling system is intended to represent Gon(Gan) pronunciation while remain
 
 #### Open finals
 
-| gon-pin | IPA | Accepted alternative input | Notes |
-| --- | --- | --- | --- |
-| a | [a] | — | |
-| o | [o] or [ɵ] | — | |
-| e | [e] | — | |
-| ai | [ai] | — | |
-| oi | [oi] | — | |
-| ei | [ei] or [ɨi] | — | [ei] is only a contracted vowel. |
-| au | [au] | ao | |
-| eu | [ɛu] or [ɨu] | ou (after some initials) | |
-| an | [an] | — | |
-| en | [ɛn] or [ɨn] | — | |
-| on | [on] | — | |
-| ang | [ɑŋ] | — | |
-| ong | [ɔŋ] | — | |
-| at | [at] | — | |
-| ot | [ot] | — | |
-| et | [ɛt] or [ɨt] | — | |
-| ak | [aʔ] | — | |
-| ok | [ɔʔ] | — | |
+| gon-pin | Default IPA | yiyong IPA | Accepted alternative input | Notes |
+| --- | --- | --- | --- | --- |
+| a | [a] | - | — | |
+| o | [o] or [ɵ] | - | — | |
+| e | [e] | [ɛ] or [ə] or [ɯ] | — | |
+| ai | [ai] | - | — | |
+| oi | [oi] | - | — | |
+| ei | [ei] or [ɨi] | - | — | [ei] is only a contracted vowel. |
+| au | [au] | - | ao | |
+| eu | [ɛu] or [ɨu] | - | ou (after some initials) | |
+| an | [an] | - | — | |
+| en | [ɛn] or [ɨn] | - | — | |
+| on | [on] | - | — | |
+| ang | [ɑŋ] | - | — | |
+| ong | [ɔŋ] | - | on (yiyong) | yiyong does not distinguish front and back variants of ong. |
+| eng | - | [ən] | en (yiyong) | Most speakers no longer distinguish en and eng. |
+| at | [at] | - | — | |
+| ot | [ot] | - | — | |
+| et | [ɛt] or [ɨt] | - | — | |
+| ak | [aʔ] | - | — | |
+| ok | [ɔʔ] | - | — | |
+| ek | - | [ɛʔ] or [ɤʔ] | — | [ɤʔ] can be written ek or uk. |
 
 #### Front-vowel finals
 
@@ -242,23 +244,24 @@ With no initial consonant:
 - Before `-a`, `-o`, or `-e`, initial `i` is written `y`.
 - In other positions, it is written `yi`.
 
-| gon-pin | IPA | Accepted alternative input | Notes |
-| --- | --- | --- | --- |
-| i | [i] or [ɿ] | — | |
-| ia | [ia] | — | |
-| ie | [iɛ] | — | |
-| iu | [iu] | you (no initial) | |
-| ieu | [iɛu] | — | |
-| in | [in] | — | |
-| ien | [iɛn] | — | |
-| iang | [iɑŋ] | — | |
-| iong | [iɔŋ] | — | |
-| iung | [iuŋ] | — | |
-| it | [it] | it | |
-| iet | [iet] | — | |
-| iak | [iaʔ] | — | |
-| iok | [iɔʔ] | — | |
-| iuk | [iuʔ] | — | |
+| gon-pin | Default IPA | yiyong IPA | Accepted alternative input | Notes |
+| --- | --- | --- | --- | --- |
+| i | [i] or [ɿ] | - | — | |
+| ia | [ia] | - | — | |
+| ie | [iɛ] | - | — | |
+| iu | [iu] | - | you (no initial) | |
+| ieu | [iɛu] | [iəu] or [iɛu] | - | |
+| in | [in] | - | — | |
+| ien | [iɛn] | - | - | |
+| iang | [iɑŋ] | - | - | |
+| iong | [iɔŋ] | - | - | |
+| it | [it] | - | it | |
+| iet | [iet] | - | - | |
+| ik | - | [iʔ] or [ɪʔ] | | |
+| iak | [iaʔ] | - | - | |
+| iok | [iɔʔ] | - | - | |
+| iek | - | [iɛʔ] | | |
+| iuk | [iuʔ] | - | - | |
 
 #### Rounded finals
 
@@ -267,48 +270,55 @@ With no initial consonant:
 - Before `-a`, `-o`, or `-e`, initial `u` is written `w`.
 - In other positions, it is written `wu`.
 
-| gon-pin | IPA | Accepted alternative input | Notes |
-| --- | --- | --- | --- |
-| u | [u] | — | |
-| ua | [ua] | — | |
-| uo | [uo] | — | |
-| ue | [ue] | — | |
-| ui | [uei] | wei (no initial), wi | |
-| uai | [uai] | — | |
-| un | [un] or [uen] | uen | |
-| uan | [uan] | — | |
-| uon | [uon] | uen, wen (no initial) | |
-| ung | [uŋ] | — | |
-| uang | [uɑŋ] | — | |
-| uong | [uɔŋ] | — | |
-| ut | [ut] | — | |
-| uat | [uat] | — | |
-| uot | [uot] | — | |
-| uet | [uɛt] | — | |
-| uk | [uʔ] | — | |
-| uak | [uaʔ] | — | |
-| uok | [uoʔ] | — | |
+| gon-pin | Default IPA | yiyong IPA | Accepted alternative input | Notes |
+| --- | --- | --- | --- | --- |
+| u | [u] | - | - | |
+| ua | [ua] | - | - | |
+| uo | [uo] | - | - | |
+| ue | [ue] | - | - | |
+| ui | [uei] | - | wei (no initial), wi | |
+| uai | [uai] | - | - | |
+| uoi | - | [uoi] | oi | |
+| un | [un] or [uen] | - | uen | |
+| uan | [uan] | - | - | |
+| uon | [uon] | - | uen, wen (no initial) | |
+| ung | [uŋ] | - | — | |
+| uang | [uɑŋ] | - | - | |
+| uong | [uɔŋ] | - | uon (yiyong) | |
+| ut | [ut] | - | - | |
+| uat | [uat] | - | - | |
+| uot | [uot] | - | - | |
+| uet | [uɛt] | - | - | |
+| uk | [uʔ] | [uʔ] or [ɤʔ] | - | |
+| uak | [uaʔ] | - | - | |
+| uok | [uoʔ] | - | | |
+| uek | — | [uɛʔ] or [uɤʔ] or [uɪʔ] | uik | |
 
 #### Rounded front-vowel finals
 
 `yu` is provisionally used throughout for [y].
 
-| gon-pin | IPA | Accepted alternative input | Notes |
-| --- | --- | --- | --- |
-| yu | [y] | y, v, u | |
-| yue | [ye] | — | |
-| yun | [yn] | — | |
-| yuon | [yon] | yuen, yoin | |
-| yut | [yt] | — | |
-| yuot | [yot] | yue, yuet | |
+| gon-pin | Default IPA | yiyong IPA | Accepted alternative input | Notes |
+| --- | --- | --- | --- | --- |
+| yu | [y] | - | y, v, u | |
+| yue | [ye] | - | - | |
+| yun | [yn] | - | — | |
+| yuon | [yon] | - | yuen, yoin | |
+| yuen | - | [yɛn] or [yɛŋ] | yueng | |
+| yung | - | [yn] | yun | |
+| yut | [yt] | - | - | |
+| yuot | [yot] | - | yue, yuet | |
+| yuak | - | [yaʔ] | - | |
+| yuok | - | [yɔʔ] | - | |
+| yuek | - | [yɛʔ] or [yɪʔ] | yuik | |
 
 #### Syllabic nasals
 
-| gon-pin | IPA | Notes |
-| --- | --- | --- |
-| m | [m̩] | |
-| n | [n̩] | |
-| ng | [ŋ̩] | |
+| gon-pin | Default IPA | yiyong IPA | Notes |
+| --- | --- | --- | --- |
+| m | [m̩] | - | |
+| n | [n̩] | - | |
+| ng | [ŋ̩] | - | |
 
 #### Other segments
 
