@@ -23,11 +23,11 @@ common	rime	iu	yiu	iu	有	syllable-final	false	false	primary	iu	单写 iu→yiu
 common	rime	iong	yong	iuŋ	用	syllable-final	false	false	primary	iong	iong→yong
 common	rime	u	wu	u	乌	syllable-final	false	false	primary	u	单写 u→wu
 common	rime	ui	wui	uei	为	syllable-final	false	false	primary	ui	单写 ui→wui
+common	rime	uei	ui	uei	为	syllable-final	false	false	primary		uei 输入兼容规范 ui
 common	rime	ung	wung	uŋ	翁	syllable-final	false	false	primary	ung	仅零声母 ung→wung；当前词表无此项，仅保留规则
 common	rime	ve	yue	ye	月	anywhere	false	true	primary	ve,jve,lve,nve,qve,xve	ve 系专用桥接，须先于通用 v→yu
 common	rime	ue	yue	ye	月	anywhere	false	true	primary	ue,jue,lue,nue,que,xue	ue 系专用桥接，须先于通用 u→yu
 common	rime	v	yu	y	与	anywhere	false	false	primary		yu 可从 v 输入，涵盖 von→yuon、vot→yuot 等
-common	rime	u	yu	y	与	anywhere	false	false	secondary		yu 可从 u 输入，涵盖 uon→yuon、uot→yuot 等
 common	rime	you	yiu	iu	有	syllable-final	false	false	primary	you	yiu 可从 you 模糊输入
 common	rime	wei	wui	uei	为	syllable-final	false	false	primary	wei	wui 可从 wei 模糊输入
 common	rime	wi	wui	uei	为	syllable-final	false	false	secondary	wi	wui 可从 wi 模糊输入
@@ -69,3 +69,4 @@ common	rime	suon	son		算	syllable-final	false	true	primary
 common	onset	siu	seu		兽	syllable-final	false	false	primary		
 common	rime	en	ien			syllable-final	false	false	primary	ng,k,g	
 common	rime	et	iet		额	syllable-final	false	false	primary	ng	
+common	rime	u	yu	y	与	anywhere	false	false	secondary		yu 可从 u 输入，涵盖 uon→yuon、uot→yuot 等

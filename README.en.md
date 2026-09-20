@@ -2,7 +2,7 @@
 
 > A digital writing system rooted in the Gon(Gan)–Poyang region.
 
-Currently supports: **Lancong(Nanchang), Fenni(Fenyi), and Fungcen**. More localities are welcome.
+We have established three dictionary localities: urban Lancong (Nanchang), Fenni (Fenyi County in Xinyu), and Fungcen. We hope to expand substantially to other localities as well. Contributions to add and correct dictionary entries are welcome.
 
 **An easy-to-use Gon(Gan) input method: users who know Pinyin can type immediately, with both local and Mandarin Pinyin input supported.**
 
@@ -13,17 +13,15 @@ Currently supports: **Lancong(Nanchang), Fenni(Fenyi), and Fungcen**. More local
 
 Rime schema repositories for Lancong(Nanchang) and Fenni(Fenyi). Other installation options, including Fungcen resources, are available in the [Installation](#installation) section below.
 
-## Release 1.0.0
+## Release 1.0.1
 
-- feat: make keyboard touch input smoother, including the spaces between keys
-- fix: make candidate tapping and swiping more fluid during input
-- feat: clarify the first-use and language-selection flow on Android
-- feat: make macOS input more consistent when continuing after moving the cursor
+- feat: initialise the Fungcen dictionary
+- feat: add Gan original characters for Lancong (Nanchang) and Fungcen
 
 ## Contents
 
 - [GonnyuGeneralIME — A General Gon(Gan) Chinese Input Method](#gonnyugeneralime--a-general-gongan-chinese-input-method)
-  - [Release 1.0.0](#release-100)
+  - [Release 1.0.1](#release-101)
   - [Contents](#contents)
   - [Overview](#overview)
     - [What it provides](#what-it-provides)
@@ -79,7 +77,7 @@ Beyond the dictionaries themselves, the input method currently provides:
 - Cross-references between common Mandarin words and local Gon(Gan) vocabulary. When either side is found, the corresponding expression is also offered as a candidate.
 - Compatible input and clear annotation for literary and colloquial readings, newer and older readings, and other alternate pronunciations.
 
-The project currently maintains three regional dictionaries: urban Lancong(Nanchang), Fenni(Fenyi) County in Xinyu, and Fungcen. More localities are welcome. Contributions that expand and correct the dictionaries are welcome.
+The project currently maintains three regional dictionaries: urban Lancong (Nanchang), Fenni (Fenyi County in Xinyu), and Fungcen. We hope to expand substantially to other localities as well. Contributions to add and correct dictionary entries are welcome.
 
 ## See Gan in action
 

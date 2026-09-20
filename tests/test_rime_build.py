@@ -253,13 +253,13 @@ def test_builds_separate_fenni_schema(tmp_path: Path) -> None:
     assert (tmp_path / "lua" / "gannyu_fenni_data.lua").is_file()
 
 
-def test_builds_fungcen_validation_dictionary(tmp_path: Path) -> None:
+def test_builds_fungcen_dictionary(tmp_path: Path) -> None:
     counts = build("fungcen", tmp_path, "apple")
 
     dictionary = (tmp_path / "gannyu_fungcen.dict.yaml").read_text(encoding="utf-8")
     schema = (tmp_path / "gannyu_fungcen.schema.yaml").read_text(encoding="utf-8")
 
-    assert counts["entries"] == 3
+    assert counts["entries"] > 2800
     assert "八\tGbaet\t120873" in dictionary
     assert "插\tGcaek\t121214" in dictionary
     assert "煠\tGsaep\t120692" in dictionary
