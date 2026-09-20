@@ -21,7 +21,7 @@ RULES_PATH = Path(__file__).resolve().parents[1] / "resources" / "fuzzy_scheme.t
 
 
 def test_active_regions_use_canonical_default_order() -> None:
-    assert active_regions() == ("lancong", "fenni")
+    assert active_regions() == ("lancong", "fenni", "fungcen")
 
 
 def test_fuzzy_rules_are_scoped_to_the_selected_region(tmp_path: Path) -> None:
@@ -43,6 +43,20 @@ def test_fuzzy_rules_are_scoped_to_the_selected_region(tmp_path: Path) -> None:
     assert [rule.region for rule in lancong] == ["common", "lancong"]
     assert "la" in normalize("lla", lancong)
     assert "fa" not in normalize("ffa", lancong)
+
+
+def test_entering_tone_rules_are_scoped_to_lancong_and_fungcen() -> None:
+    lancong = load_rules(RULES_PATH, "lancong")
+    assert "baet" in normalize("bae", lancong)
+    assert "baek" in normalize("bae", lancong)
+    assert "baep" not in normalize("bae", lancong)
+
+    fungcen = load_rules(RULES_PATH, "fungcen")
+    assert {"baet", "baep", "baek"}.issubset(normalize("bae", fungcen))
+    assert "baet" in normalize("baep", fungcen, reverse=True)
+
+    fenni = load_rules(RULES_PATH, "fenni")
+    assert not {"baet", "baep", "baek"}.intersection(normalize("bae", fenni))
 
 
 def test_builds_rime_dictionary_annotations_and_relations(tmp_path: Path) -> None:
@@ -239,6 +253,19 @@ def test_builds_separate_fenni_schema(tmp_path: Path) -> None:
     assert (tmp_path / "lua" / "gannyu_fenni_data.lua").is_file()
 
 
+def test_builds_fungcen_validation_dictionary(tmp_path: Path) -> None:
+    counts = build("fungcen", tmp_path, "apple")
+
+    dictionary = (tmp_path / "gannyu_fungcen.dict.yaml").read_text(encoding="utf-8")
+    schema = (tmp_path / "gannyu_fungcen.schema.yaml").read_text(encoding="utf-8")
+
+    assert counts["entries"] == 3
+    assert "八\tGbaet\t120873" in dictionary
+    assert "插\tGcaek\t121214" in dictionary
+    assert "煠\tGsaep\t120692" in dictionary
+    assert "schema_id: gannyu_fungcen" in schema
+
+
 def test_sentence_readings_use_highest_frequency_toned_character_entries() -> None:
     _, entries = load_entries("lancong")
     readings = build_preferred_readings(entries)
@@ -287,7 +314,7 @@ def test_single_character_frequency_uses_the_highest_canonical_value() -> None:
 
 
 def test_fuzzy_rules_keep_core_directions_and_non_chainable_boundary() -> None:
-    rules = load_rules(RULES_PATH)
+    rules = load_rules(RULES_PATH, "lancong")
 
     bare = normalize("ni", rules)
     assert "nit" in bare
@@ -346,7 +373,7 @@ def test_mandarin_ao_and_ou_inputs_normalize_to_au_and_eu() -> None:
 
 
 def test_algebra_is_explicit_and_scoped_to_gan_syllables() -> None:
-    rules = load_rules(RULES_PATH)
+    rules = load_rules(RULES_PATH, "lancong")
     algebra = compile_algebra({"nit", "nik", "yuon"}, rules)
 
     assert "    - fuzz/^Gnit$/Fni/" in algebra

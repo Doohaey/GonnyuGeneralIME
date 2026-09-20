@@ -15,6 +15,7 @@ fn region_entries_can_be_listed() {
     let regions = list_region_entries(MANIFEST_PATH).expect("regions should load");
     assert!(regions.iter().any(|region| region.id == "lancong"));
     assert!(regions.iter().any(|region| region.id == "fenni"));
+    assert!(regions.iter().any(|region| region.id == "fungcen"));
 }
 
 #[test]
@@ -26,6 +27,13 @@ fn region_resource_files_exist() {
 }
 
 #[test]
+fn fungcen_validation_resources_load() {
+    let resource =
+        load_region_from_manifest(MANIFEST_PATH, "fungcen").expect("fungcen resource should load");
+    assert_eq!(resource.config.region.name_zh, "丰城");
+}
+
+#[test]
 fn unknown_region_returns_error() {
     let error = load_region_from_manifest(MANIFEST_PATH, "unknown").unwrap_err();
     assert!(matches!(error, ResourceError::UnknownRegion(region) if region == "unknown"));
@@ -34,8 +42,9 @@ fn unknown_region_returns_error() {
 #[test]
 fn manifest_registers_active_regions() {
     let regions = list_region_entries(MANIFEST_PATH).expect("regions should load");
-    assert_eq!(regions.len(), 2);
+    assert_eq!(regions.len(), 3);
     assert!(regions.iter().all(|region| region.status == "active"));
     assert!(regions.iter().any(|region| region.id == "lancong"));
     assert!(regions.iter().any(|region| region.id == "fenni"));
+    assert!(regions.iter().any(|region| region.id == "fungcen"));
 }

@@ -111,8 +111,9 @@ fn primary_tier_appears_before_fallback() {
 }
 
 #[test]
-fn entering_tone_coda_is_expanded_from_bare() {
-    let map = FuzzyMap::load_tsv(fuzzy_path()).expect("fuzzy_map should load");
+fn lancong_entering_tone_coda_is_expanded_from_bare() {
+    let map =
+        FuzzyMap::load_tsv_for_region(fuzzy_path(), "lancong").expect("fuzzy_map should load");
     let outputs = map.normalize("ka", SyllableScheme::GonPin);
     assert!(outputs.iter().any(|item| item.text == "kat"));
     assert!(outputs.iter().any(|item| item.text == "kak"));
@@ -156,8 +157,9 @@ fn yu_accepts_u_and_v_as_fuzzy_inputs() {
 }
 
 #[test]
-fn checked_k_and_t_fuzz_mutually() {
-    let map = FuzzyMap::load_tsv(fuzzy_path()).expect("fuzzy_map should load");
+fn lancong_entering_tone_t_and_k_fuzz_mutually() {
+    let map =
+        FuzzyMap::load_tsv_for_region(fuzzy_path(), "lancong").expect("fuzzy_map should load");
     let mut outputs = map.normalize("nik", SyllableScheme::GonPin);
     outputs.extend(map.normalize("nik", SyllableScheme::GonFuzzy));
     // t↔k 入声尾互相模糊保留；h/p 不是入声尾
@@ -172,6 +174,36 @@ fn checked_k_and_t_fuzz_mutually() {
     bare_outputs.extend(map.normalize("ni", SyllableScheme::GonFuzzy));
     assert!(bare_outputs.iter().any(|item| item.text == "nit"));
     assert!(bare_outputs.iter().any(|item| item.text == "nik"));
+}
+
+#[test]
+fn entering_tone_rules_are_scoped_by_region() {
+    let lancong =
+        FuzzyMap::load_tsv_for_region(fuzzy_path(), "lancong").expect("load lancong rules");
+    assert!(!lancong
+        .normalize("baep", SyllableScheme::GonPin)
+        .iter()
+        .any(|item| item.text == "baet"));
+
+    let fungcen =
+        FuzzyMap::load_tsv_for_region(fuzzy_path(), "fungcen").expect("load fungcen rules");
+    let bare: Vec<_> = fungcen
+        .normalize("bae", SyllableScheme::GonPin)
+        .into_iter()
+        .map(|item| item.text)
+        .collect();
+    assert!(bare.iter().any(|item| item == "baet"));
+    assert!(bare.iter().any(|item| item == "baep"));
+    assert!(bare.iter().any(|item| item == "baek"));
+    let mut p_outputs = fungcen.normalize("baep", SyllableScheme::GonPin);
+    p_outputs.extend(fungcen.normalize("baep", SyllableScheme::GonFuzzy));
+    assert!(p_outputs.iter().any(|item| item.text == "baet"));
+
+    let fenni = FuzzyMap::load_tsv_for_region(fuzzy_path(), "fenni").expect("load fenni rules");
+    assert!(!fenni
+        .normalize("bae", SyllableScheme::GonPin)
+        .iter()
+        .any(|item| matches!(item.text.as_str(), "baet" | "baep" | "baek")));
 }
 
 #[test]

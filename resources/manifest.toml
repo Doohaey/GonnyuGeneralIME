@@ -11,3 +11,9 @@ id = "fenni"
 name_zh = "分宜"
 status = "active"
 path = "regions/fenni/region.toml"
+
+[[regions]]
+id = "fungcen"
+name_zh = "丰城"
+status = "active"
+path = "regions/fungcen/region.toml"

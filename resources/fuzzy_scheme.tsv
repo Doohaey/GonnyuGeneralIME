@@ -47,9 +47,15 @@ common	rime	nyoin	on	on	袁	syllable-final	false	false	secondary		允许 nyoin /
 common	rime	uoin	won	uon	碗	syllable-final	false	false	secondary	uoin	零声母旧写向后兼容
 common	rime	yoin	yuon	yon	袁	syllable-final	false	false	secondary	yoin	零声母旧写向后兼容
 common	coda	n	ng	ŋ	牙	syllable-final	true	true	primary		音节尾
-common	coda		t		客	syllable-final	false	false	fallback		入声尾：输入不带尾可模糊匹配带尾（za→zat）
-common	coda		k		学	syllable-final	false	false	fallback		入声尾：输入不带尾可模糊匹配带 k 形式（lok）
-common	coda	t	k		客/学	syllable-final	true	false	secondary		入声尾互相模糊
+lancong	coda		t		客	syllable-final	false	false	fallback		入声尾：输入不带尾可模糊匹配带尾（za→zat）
+lancong	coda		k		学	syllable-final	false	false	fallback		入声尾：输入不带尾可模糊匹配带 k 形式（lok）
+lancong	coda	t	k		客/学	syllable-final	true	false	secondary		入声尾互相模糊
+fungcen	coda		t		八	syllable-final	false	false	fallback		
+fungcen	coda		p		煠	syllable-final	false	false	fallback		
+fungcen	coda		k		插	syllable-final	false	false	fallback		
+fungcen	coda	t	p			syllable-final	true	false	secondary		
+fungcen	coda	t	k			syllable-final	true	false	secondary		
+fungcen	coda	p	k			syllable-final	true	false	secondary		
 common	rime	yuen	yuon	yon	渲	syllable-final	false	false	primary	yuen,jyuen,nyuen,qyuen,xyuen	覆盖现有全部 yuon 规范音
 common	rime	yue	yuot	yot	月	syllable-final	false	false	primary	yue,jyue,lyue,nyue,qyue,xyue	省略入声尾时兼容到 yuot
 common	rime	yuet	yuot	yot	月	syllable-final	false	false	primary	yue,jyue,lyue,nyue,qyue,xyue	正确 t 尾兼容到 yuot

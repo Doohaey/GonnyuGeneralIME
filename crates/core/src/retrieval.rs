@@ -653,10 +653,13 @@ mod tests {
     #[test]
     fn sentence_input_prefers_higher_weight_exact_suffix() {
         let dictionary = sentence_mixed_suffix_priority_dictionary(100000, 0);
-        let fuzzy = FuzzyMap::load_tsv(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/../../resources/fuzzy_scheme.tsv"
-        ))
+        let fuzzy = FuzzyMap::load_tsv_for_region(
+            concat!(
+                env!("CARGO_MANIFEST_DIR"),
+                "/../../resources/fuzzy_scheme.tsv"
+            ),
+            "lancong",
+        )
         .expect("load fuzzy");
         let tone_values = HashMap::new();
 
@@ -736,10 +739,13 @@ mod tests {
     #[test]
     fn sentence_input_prefers_higher_weight_fuzzy_suffix() {
         let dictionary = sentence_mixed_suffix_priority_dictionary(0, 100000);
-        let fuzzy = FuzzyMap::load_tsv(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/../../resources/fuzzy_scheme.tsv"
-        ))
+        let fuzzy = FuzzyMap::load_tsv_for_region(
+            concat!(
+                env!("CARGO_MANIFEST_DIR"),
+                "/../../resources/fuzzy_scheme.tsv"
+            ),
+            "lancong",
+        )
         .expect("load fuzzy");
         let tone_values = HashMap::new();
 
@@ -759,10 +765,13 @@ mod tests {
     #[test]
     fn sentence_input_keeps_alternative_open_syllable_path_for_entering_tone_ambiguity() {
         let dictionary = sentence_entering_tone_ambiguity_dictionary(100000, 0);
-        let fuzzy = FuzzyMap::load_tsv(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/../../resources/fuzzy_scheme.tsv"
-        ))
+        let fuzzy = FuzzyMap::load_tsv_for_region(
+            concat!(
+                env!("CARGO_MANIFEST_DIR"),
+                "/../../resources/fuzzy_scheme.tsv"
+            ),
+            "lancong",
+        )
         .expect("load fuzzy");
         let tone_values = HashMap::new();
 

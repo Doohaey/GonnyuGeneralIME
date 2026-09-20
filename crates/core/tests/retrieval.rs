@@ -56,7 +56,7 @@ fn repo_fuzzy() -> FuzzyMap {
         env!("CARGO_MANIFEST_DIR"),
         "/../../resources/fuzzy_scheme.tsv"
     ));
-    FuzzyMap::load_tsv(&path).expect("load fuzzy")
+    FuzzyMap::load_tsv_for_region(&path, "lancong").expect("load fuzzy")
 }
 
 fn tone_values() -> HashMap<String, u8> {
