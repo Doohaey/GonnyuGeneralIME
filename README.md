@@ -10,6 +10,7 @@
 
 [![Rime 南昌话](https://img.shields.io/badge/Rime-%E5%8D%97%E6%98%8C%E8%AF%9D-0969da?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Doohaey/GonnyuGeneralIME-Rime-Lancong)
 [![Rime 分宜话](https://img.shields.io/badge/Rime-%E5%88%86%E5%AE%9C%E8%AF%9D-8250df?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Doohaey/GonnyuGeneralIME-Rime-Fenni)
+[![Rime 丰城话](https://img.shields.io/badge/Rime-%E4%B8%B0%E5%9F%8E%E8%AF%9D-e16a3d?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Doohaey/GonnyuGeneralIME-Rime-Fungcen)
 
 上方按钮列出已发布的 Rime 方案仓库。其他安装方案请在下方[安装方法](#安装方法)小节找到对应平台内容下载并且安装。
 
