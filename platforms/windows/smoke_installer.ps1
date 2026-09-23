@@ -16,7 +16,9 @@ $clsidKey = "HKCR\CLSID\{7A6B9C3E-4A1F-4D58-8B2E-9A1C7D3A2F11}\InprocServer32"
 New-Item -ItemType Directory -Force -Path $logDir | Out-Null
 
 function Invoke-Burn([string[]]$Arguments) {
+  Write-Host "Burn: $($Arguments -join ' ')"
   $process = Start-Process -FilePath $installer -ArgumentList $Arguments -Wait -PassThru
+  Write-Host "Burn exit code: $($process.ExitCode)"
   if ($process.ExitCode -notin 0, 3010) {
     throw "Installer exited with $($process.ExitCode)"
   }
@@ -37,6 +39,7 @@ function Get-PeMachine([string]$Path) {
 
 function Assert-ComRegistration([string]$View, [string]$ExpectedDll) {
   $output = & reg.exe query $clsidKey "/reg:$View" 2>&1
+  Write-Host "$View-bit COM query:`n$($output -join "`n")"
   if ($LASTEXITCODE -ne 0) {
     throw "Missing $View-bit COM registration: $clsidKey"
   }
@@ -53,6 +56,9 @@ function Assert-ComRegistrationAbsent([string]$View) {
 }
 
 Invoke-Burn @("/quiet", "/norestart", "/log", $installLog)
+Write-Host "x64 DLL: $installedDllX64 exists=$(Test-Path -LiteralPath $installedDllX64 -PathType Leaf)"
+Write-Host "x86 DLL: $installedDllX86 exists=$(Test-Path -LiteralPath $installedDllX86 -PathType Leaf)"
+Write-Host "Tutorial: $installedTutorial exists=$(Test-Path -LiteralPath $installedTutorial -PathType Leaf)"
 if (-not (Test-Path -LiteralPath $installedDllX64 -PathType Leaf)) {
   throw "Installed x64 text service is missing: $installedDllX64"
 }

@@ -20,6 +20,8 @@ def test_windows_workflow_runs_installer_smoke_test() -> None:
     assert 'Assert-ComRegistration "32"' in script
     assert 'Assert-ComRegistrationAbsent "64"' in script
     assert 'Assert-ComRegistrationAbsent "32"' in script
+    assert 'if: always()' in workflow
+    assert "windows-installer-smoke-logs" in workflow
 
 
 def test_windows_installer_builds_and_registers_both_process_architectures() -> None:
