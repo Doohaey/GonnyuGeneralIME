@@ -69,6 +69,7 @@ def test_windows_registers_its_ui_less_candidate_capabilities() -> None:
 
     assert "GUID_TFCAT_TIP_KEYBOARD" in categories
     assert "GUID_TFCAT_TIPCAP_UIELEMENTENABLED" in categories
+    assert "GUID_TFCAT_TIPCAP_INPUTMODECOMPARTMENT" in categories
     assert "GUID_TFCAT_TIPCAP_IMMERSIVESUPPORT" in categories
 
 
@@ -84,10 +85,26 @@ def test_windows_search_provider_wiring_is_present() -> None:
     for unsupported in (
         "GUID_TFCAT_TIPCAP_SECUREMODE",
         "GUID_TFCAT_TIPCAP_COMLESS",
-        "GUID_TFCAT_TIPCAP_INPUTMODECOMPARTMENT",
         "GUID_TFCAT_TIPCAP_SYSTRAYSUPPORT",
     ):
         assert unsupported not in categories
+
+
+def test_windows_syncs_the_tsf_input_mode_compartments() -> None:
+    source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
+    installer = (ROOT / "platforms/windows/Installer.wxs").read_text(encoding="utf-8")
+
+    assert "public ITfCompartmentEventSink" in source
+    assert "STDMETHODIMP OnChange(REFGUID compartment) override" in source
+    assert "void AdviseInputModeCompartments()" in source
+    assert "void UnadviseInputModeCompartments()" in source
+    assert "SetKeyboardOpen(TRUE);" in source
+    assert "SetKeyboardConversionMode(englishMode_);" in source
+    assert "TF_CONVERSIONMODE_NATIVE" in source
+    assert "SetKeyboardOpen(englishMode_ ? FALSE : TRUE)" not in source
+    assert "GUID_COMPARTMENT_KEYBOARD_OPENCLOSE" in source
+    assert "GUID_COMPARTMENT_KEYBOARD_INPUTMODE_CONVERSION" in source
+    assert 'Condition=\'NOT (REMOVE="ALL")\'' in installer
 
 
 def test_windows_ui_less_candidates_follow_searchbox_contract() -> None:
@@ -98,6 +115,18 @@ def test_windows_ui_less_candidates_follow_searchbox_contract() -> None:
     assert "0xe6d1bd11" in source
     assert "*eaten = TRUE" in element
     assert "*show = TRUE" in element
+    assert "TF_CLUIE_DOCUMENTMGR" in element
+    assert "if (show_) show_(show);" in element
+
+
+def test_windows_ui_less_candidates_apply_the_show_state_after_beginning() -> None:
+    source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
+    ui_update = source.split("void UpdateCandidateUiElement()", 1)[1].split("void EndCandidateUiElement", 1)[0]
+
+    assert "candidateUi_->Show(show);" in ui_update
+    assert "candidateUiShown_ = show;" in ui_update
+    assert "UpdateCandidateWindow();" in ui_update
+    assert "HideCandidateWindow();" in ui_update
 
 
 def test_windows_ui_less_candidate_pages_are_bounded_and_host_configurable() -> None:

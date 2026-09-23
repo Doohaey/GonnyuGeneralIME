@@ -58,6 +58,10 @@ static constexpr size_t kMaxDisplayCharacters = 30;
 static const GUID kSupportedCategories[] = {
     GUID_TFCAT_TIP_KEYBOARD,
     GUID_TFCAT_TIPCAP_UIELEMENTENABLED,
+    // Some TSF hosts (notably WeChat) keep a per-thread input mode. This
+    // service listens to and maintains its Chinese/English state through
+    // TSF's input-mode compartments.
+    GUID_TFCAT_TIPCAP_INPUTMODECOMPARTMENT,
     GUID_TFCAT_TIPCAP_IMMERSIVESUPPORT,
 };
 
@@ -171,9 +175,11 @@ public:
                                  const std::vector<CandidateItem> &items, size_t selection,
                                  std::function<void(size_t)> finalize,
                                  std::function<void()> abort,
-                                 std::function<void()> finalizeExact)
+                                 std::function<void()> finalizeExact,
+                                 std::function<void(BOOL)> show)
         : refs_(1), owner_(owner), context_(context), items_(items), selection_(selection),
-          finalize_(std::move(finalize)), abort_(std::move(abort)), finalizeExact_(std::move(finalizeExact)) {
+          finalize_(std::move(finalize)), abort_(std::move(abort)), finalizeExact_(std::move(finalizeExact)),
+          show_(std::move(show)) {
         if (owner_) owner_->AddRef();
         if (context_) context_->AddRef();
         RebuildDefaultPages();
@@ -207,9 +213,13 @@ public:
     STDMETHODIMP_(ULONG) Release() override { LONG refs = InterlockedDecrement(&refs_); if (!refs) delete this; return static_cast<ULONG>(refs); }
     STDMETHODIMP GetDescription(BSTR *value) override { if (!value) return E_POINTER; *value = SysAllocString(L"Gonnyu candidates"); return *value ? S_OK : E_OUTOFMEMORY; }
     STDMETHODIMP GetGUID(GUID *value) override { if (!value) return E_POINTER; *value = GannyuCandidateUiGuid; return S_OK; }
-    STDMETHODIMP Show(BOOL show) override { shown_ = show; return S_OK; }
+    STDMETHODIMP Show(BOOL show) override {
+        shown_ = show;
+        if (show_) show_(show);
+        return S_OK;
+    }
     STDMETHODIMP IsShown(BOOL *show) override { if (!show) return E_POINTER; *show = shown_; return S_OK; }
-    STDMETHODIMP GetUpdatedFlags(DWORD *flags) override { if (!flags) return E_POINTER; *flags = TF_CLUIE_STRING | TF_CLUIE_COUNT | TF_CLUIE_SELECTION | TF_CLUIE_PAGEINDEX | TF_CLUIE_CURRENTPAGE; return S_OK; }
+    STDMETHODIMP GetUpdatedFlags(DWORD *flags) override { if (!flags) return E_POINTER; *flags = TF_CLUIE_DOCUMENTMGR | TF_CLUIE_STRING | TF_CLUIE_COUNT | TF_CLUIE_SELECTION | TF_CLUIE_PAGEINDEX | TF_CLUIE_CURRENTPAGE; return S_OK; }
     STDMETHODIMP GetDocumentMgr(ITfDocumentMgr **manager) override {
         if (!manager) return E_POINTER;
         *manager = nullptr;
@@ -267,6 +277,7 @@ private:
     std::function<void(size_t)> finalize_;
     std::function<void()> abort_;
     std::function<void()> finalizeExact_;
+    std::function<void(BOOL)> show_;
     BOOL shown_ = FALSE;
 };
 
@@ -1019,7 +1030,8 @@ private:
 
 class GannyuTextService : public ITfTextInputProcessorEx, public ITfThreadMgrEventSink,
                           public ITfKeyEventSink, public ITfActiveLanguageProfileNotifySink,
-                          public ITfFunctionProvider, public ITfCompositionSink {
+                          public ITfFunctionProvider, public ITfCompositionSink,
+                          public ITfCompartmentEventSink {
 public:
     GannyuTextService() : refs_(1) {
         g_moduleRefs.fetch_add(1);
@@ -1080,6 +1092,8 @@ public:
             *ppv = static_cast<ITfActiveLanguageProfileNotifySink *>(this);
         } else if (IsEqualIID(riid, IID_ITfFunctionProvider)) {
             *ppv = static_cast<ITfFunctionProvider *>(this);
+        } else if (IsEqualIID(riid, IID_ITfCompartmentEventSink)) {
+            *ppv = static_cast<ITfCompartmentEventSink *>(this);
         } else if (IsEqualIID(riid, IID_ITfCompositionSink)) {
             *ppv = static_cast<ITfCompositionSink *>(this);
         }
@@ -1168,6 +1182,13 @@ public:
             }
         }
         threadMgr_->QueryInterface(IID_ITfUIElementMgr, reinterpret_cast<void **>(&uiElementMgr_));
+        BOOL keyboardOpen = TRUE;
+        if (!ReadKeyboardOpen(&keyboardOpen) || !keyboardOpen) SetKeyboardOpen(TRUE);
+        AdviseInputModeCompartments();
+        DWORD conversionMode = 0;
+        if (ReadKeyboardConversionMode(&conversionMode)) {
+            englishMode_ = (conversionMode & TF_CONVERSIONMODE_NATIVE) == 0;
+        }
         if (langBarButton_ && regionIds_.size() > 1) {
             ITfLangBarItemMgr *langBarMgr = nullptr;
             if (SUCCEEDED(threadMgr_->QueryInterface(IID_ITfLangBarItemMgr, reinterpret_cast<void **>(&langBarMgr))) && langBarMgr) {
@@ -1186,6 +1207,7 @@ public:
         profileActive_ = false;
         foregroundFocused_ = false;
         ResetShiftState();
+        UnadviseInputModeCompartments();
         SetActiveContext(nullptr);
         DestroyCandidateWindow();
         if (threadMgr_ && langBarButton_ && langBarItemAdded_) {
@@ -1335,6 +1357,30 @@ public:
             return E_POINTER;
         }
         *eaten = FALSE;
+        return S_OK;
+    }
+
+    STDMETHODIMP OnChange(REFGUID compartment) override {
+        if (IsEqualGUID(compartment, GUID_COMPARTMENT_KEYBOARD_OPENCLOSE)) {
+            BOOL open = TRUE;
+            if (ReadKeyboardOpen(&open)) {
+                Reset();
+                if (statusWindow_) {
+                    InvalidateRect(statusWindow_, nullptr, TRUE);
+                    UpdateWindow(statusWindow_);
+                }
+            }
+        } else if (IsEqualGUID(compartment, GUID_COMPARTMENT_KEYBOARD_INPUTMODE_CONVERSION)) {
+            DWORD conversionMode = 0;
+            if (ReadKeyboardConversionMode(&conversionMode)) {
+                englishMode_ = (conversionMode & TF_CONVERSIONMODE_NATIVE) == 0;
+                Reset();
+                if (statusWindow_) {
+                    InvalidateRect(statusWindow_, nullptr, TRUE);
+                    UpdateWindow(statusWindow_);
+                }
+            }
+        }
         return S_OK;
     }
 
@@ -1575,8 +1621,148 @@ private:
         return foreground && GetWindowThreadProcessId(foreground, nullptr) == GetCurrentThreadId();
     }
 
+    bool ReadKeyboardOpen(BOOL *open) const {
+        if (!open || !threadMgr_) return false;
+        ITfCompartmentMgr *compartmentMgr = nullptr;
+        if (FAILED(threadMgr_->QueryInterface(IID_ITfCompartmentMgr,
+                                              reinterpret_cast<void **>(&compartmentMgr))) ||
+            !compartmentMgr) return false;
+        ITfCompartment *compartment = nullptr;
+        const HRESULT hr = compartmentMgr->GetCompartment(GUID_COMPARTMENT_KEYBOARD_OPENCLOSE, &compartment);
+        if (FAILED(hr) || !compartment) {
+            compartmentMgr->Release();
+            return false;
+        }
+        VARIANT value;
+        VariantInit(&value);
+        const HRESULT get = compartment->GetValue(&value);
+        if (SUCCEEDED(get) && value.vt == VT_I4) *open = value.lVal != 0;
+        VariantClear(&value);
+        compartment->Release();
+        compartmentMgr->Release();
+        return SUCCEEDED(get);
+    }
+
+    bool ReadKeyboardConversionMode(DWORD *mode) const {
+        if (!mode || !threadMgr_) return false;
+        ITfCompartmentMgr *compartmentMgr = nullptr;
+        if (FAILED(threadMgr_->QueryInterface(IID_ITfCompartmentMgr,
+                                              reinterpret_cast<void **>(&compartmentMgr))) ||
+            !compartmentMgr) return false;
+        ITfCompartment *compartment = nullptr;
+        const HRESULT hr = compartmentMgr->GetCompartment(
+            GUID_COMPARTMENT_KEYBOARD_INPUTMODE_CONVERSION, &compartment);
+        if (FAILED(hr) || !compartment) {
+            compartmentMgr->Release();
+            return false;
+        }
+        VARIANT value;
+        VariantInit(&value);
+        const HRESULT get = compartment->GetValue(&value);
+        if (SUCCEEDED(get) && value.vt == VT_I4) *mode = static_cast<DWORD>(value.lVal);
+        VariantClear(&value);
+        compartment->Release();
+        compartmentMgr->Release();
+        return SUCCEEDED(get);
+    }
+
+    void SetKeyboardOpen(BOOL open) {
+        if (!threadMgr_ || clientId_ == TF_CLIENTID_NULL) return;
+        ITfCompartmentMgr *compartmentMgr = nullptr;
+        if (FAILED(threadMgr_->QueryInterface(IID_ITfCompartmentMgr,
+                                              reinterpret_cast<void **>(&compartmentMgr))) ||
+            !compartmentMgr) return;
+        ITfCompartment *compartment = nullptr;
+        if (SUCCEEDED(compartmentMgr->GetCompartment(GUID_COMPARTMENT_KEYBOARD_OPENCLOSE, &compartment)) && compartment) {
+            VARIANT value;
+            VariantInit(&value);
+            value.vt = VT_I4;
+            value.lVal = open;
+            compartment->SetValue(clientId_, &value);
+            VariantClear(&value);
+            compartment->Release();
+        }
+        compartmentMgr->Release();
+    }
+
+    void SetKeyboardConversionMode(bool english) {
+        if (!threadMgr_ || clientId_ == TF_CLIENTID_NULL) return;
+        ITfCompartmentMgr *compartmentMgr = nullptr;
+        if (FAILED(threadMgr_->QueryInterface(IID_ITfCompartmentMgr,
+                                              reinterpret_cast<void **>(&compartmentMgr))) ||
+            !compartmentMgr) return;
+        ITfCompartment *compartment = nullptr;
+        if (SUCCEEDED(compartmentMgr->GetCompartment(
+                          GUID_COMPARTMENT_KEYBOARD_INPUTMODE_CONVERSION, &compartment)) &&
+            compartment) {
+            DWORD mode = 0;
+            ReadKeyboardConversionMode(&mode);
+            VARIANT value;
+            VariantInit(&value);
+            value.vt = VT_I4;
+            value.lVal = english ? mode & ~TF_CONVERSIONMODE_NATIVE
+                                 : mode | TF_CONVERSIONMODE_NATIVE;
+            compartment->SetValue(clientId_, &value);
+            VariantClear(&value);
+            compartment->Release();
+        }
+        compartmentMgr->Release();
+    }
+
+    bool AdviseInputModeCompartment(REFGUID guid, ITfCompartment **compartment, DWORD *cookie) {
+        if (!threadMgr_ || !compartment || !cookie) return false;
+        *compartment = nullptr;
+        *cookie = TF_INVALID_COOKIE;
+        ITfCompartmentMgr *compartmentMgr = nullptr;
+        if (FAILED(threadMgr_->QueryInterface(IID_ITfCompartmentMgr,
+                                              reinterpret_cast<void **>(&compartmentMgr))) ||
+            !compartmentMgr) return false;
+        HRESULT hr = compartmentMgr->GetCompartment(guid, compartment);
+        compartmentMgr->Release();
+        if (FAILED(hr) || !*compartment) return false;
+        ITfSource *source = nullptr;
+        hr = (*compartment)->QueryInterface(IID_ITfSource, reinterpret_cast<void **>(&source));
+        if (SUCCEEDED(hr) && source) {
+            hr = source->AdviseSink(IID_ITfCompartmentEventSink,
+                                    static_cast<ITfCompartmentEventSink *>(this), cookie);
+            source->Release();
+        }
+        if (FAILED(hr)) {
+            (*compartment)->Release();
+            *compartment = nullptr;
+            *cookie = TF_INVALID_COOKIE;
+        }
+        return SUCCEEDED(hr);
+    }
+
+    void UnadviseInputModeCompartment(ITfCompartment **compartment, DWORD *cookie) {
+        if (!compartment || !*compartment || !cookie) return;
+        ITfSource *source = nullptr;
+        if (SUCCEEDED((*compartment)->QueryInterface(IID_ITfSource, reinterpret_cast<void **>(&source))) && source) {
+            if (*cookie != TF_INVALID_COOKIE) source->UnadviseSink(*cookie);
+            source->Release();
+        }
+        (*compartment)->Release();
+        *compartment = nullptr;
+        *cookie = TF_INVALID_COOKIE;
+    }
+
+    void AdviseInputModeCompartments() {
+        AdviseInputModeCompartment(GUID_COMPARTMENT_KEYBOARD_OPENCLOSE,
+                                   &keyboardOpenCompartment_, &keyboardOpenCookie_);
+        AdviseInputModeCompartment(GUID_COMPARTMENT_KEYBOARD_INPUTMODE_CONVERSION,
+                                   &conversionCompartment_, &conversionCookie_);
+    }
+
+    void UnadviseInputModeCompartments() {
+        UnadviseInputModeCompartment(&keyboardOpenCompartment_, &keyboardOpenCookie_);
+        UnadviseInputModeCompartment(&conversionCompartment_, &conversionCookie_);
+    }
+
     void ToggleEnglishMode() {
         englishMode_ = !englishMode_;
+        SetKeyboardOpen(TRUE);
+        SetKeyboardConversionMode(englishMode_);
         Reset();
         if (statusWindow_) {
             InvalidateRect(statusWindow_, nullptr, TRUE);
@@ -1927,6 +2113,15 @@ private:
                     if (generation == contextGeneration_ && activeContext_ && !buffer_.empty()) {
                         if (CommitText(activeContext_, Utf8ToWide(buffer_))) Reset(false);
                     }
+                },
+                [this, generation](BOOL show) {
+                    if (generation != contextGeneration_) return;
+                    candidateUiShown_ = show;
+                    if (show) {
+                        UpdateCandidateWindow();
+                    } else {
+                        HideCandidateWindow();
+                    }
                 });
             if (!candidateUi_) return;
             BOOL show = TRUE;
@@ -1934,6 +2129,7 @@ private:
                 candidateUi_->Release(); candidateUi_ = nullptr; return;
             }
             candidateUiShown_ = show;
+            candidateUi_->Show(show);
         } else {
             candidateUi_->UpdateSnapshot(candidates_, selectedIndex_);
         }
@@ -2545,6 +2741,8 @@ private:
     ITfThreadMgr *threadMgr_ = nullptr;
     ITfKeystrokeMgr *keystrokeMgr_ = nullptr;
     ITfUIElementMgr *uiElementMgr_ = nullptr;
+    ITfCompartment *keyboardOpenCompartment_ = nullptr;
+    ITfCompartment *conversionCompartment_ = nullptr;
     GannyuCandidateListUiElement *candidateUi_ = nullptr;
     DWORD candidateUiId_ = TF_INVALID_UIELEMENTID;
     BOOL candidateUiShown_ = FALSE;
@@ -2554,6 +2752,8 @@ private:
     TfClientId clientId_ = TF_CLIENTID_NULL;
     DWORD thmgrCookie_ = TF_INVALID_COOKIE;
     DWORD profileCookie_ = TF_INVALID_COOKIE;
+    DWORD keyboardOpenCookie_ = TF_INVALID_COOKIE;
+    DWORD conversionCookie_ = TF_INVALID_COOKIE;
     GannyuPipelineHandle *pipeline_ = nullptr;
     GannyuSearchCandidateProvider *searchProvider_ = nullptr;
     GannyuFunctionProvider *functionProvider_ = nullptr;

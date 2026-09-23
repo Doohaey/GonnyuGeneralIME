@@ -39,7 +39,7 @@
       Return="check" />
 
     <InstallExecuteSequence>
-      <Custom Action="RegisterGannyuTextService" After="InstallFiles" Condition="NOT Installed" />
+      <Custom Action="RegisterGannyuTextService" After="InstallFiles" Condition='NOT (REMOVE="ALL")' />
       <Custom Action="UnregisterGannyuTextService" Before="RemoveFiles" Condition='REMOVE="ALL"' />
     </InstallExecuteSequence>
 
