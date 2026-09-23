@@ -3168,6 +3168,9 @@ HRESULT RegisterTextServiceProfile(const wchar_t *modulePath) {
     }
     for (const GUID &category : kSupportedCategories) {
         hr = categories->RegisterCategory(CLSID_GannyuTextService, category, CLSID_GannyuTextService);
+        if (hr == TF_E_ALREADY_EXISTS) {
+            hr = S_OK;
+        }
         if (FAILED(hr)) {
             break;
         }

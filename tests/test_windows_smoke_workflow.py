@@ -110,6 +110,15 @@ def test_windows_registers_its_ui_less_candidate_capabilities() -> None:
     assert "GUID_TFCAT_TIPCAP_IMMERSIVESUPPORT" in categories
 
 
+def test_windows_registration_is_idempotent_across_bitness_views() -> None:
+    source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
+    registration = source.split("HRESULT RegisterTextServiceProfile", 1)[1].split("HRESULT UnregisterTextServiceProfile", 1)[0]
+
+    assert "RegisterCategory(CLSID_GannyuTextService" in registration
+    assert "if (hr == TF_E_ALREADY_EXISTS)" in registration
+    assert "hr = S_OK;" in registration
+
+
 def test_windows_search_provider_wiring_is_present() -> None:
     source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
     categories = source.split("static const GUID kSupportedCategories[]", 1)[1].split("};", 1)[0]
