@@ -10,9 +10,10 @@ def test_tutorial_resource_contains_the_requested_content() -> None:
     for text in (
         "可使用汉语拼音普通话发音或者赣语拼音输入。显示发音为赣语拼音。",
         "ng为舌根鼻音，例字：五ng3 我ngo3",
-        "t/k分别为两种入声。入声是赣语韵尾塞音。t是舌尖处塞音。k是声门塞音。为方便，输入法兼容不输入入声或者输入错误入声的情况。",
+        "t/p/k分别为三种入声。入声是赣语韵尾塞音。t是舌尖处塞音。p是唇音入声。k是声门塞音。为方便，输入法兼容不输入入声或者输入错误入声的情况。",
         "韵母yu统一采用yu拼写。",
-        "南昌词典中，数字1-7为南昌话七个声调，具体调值见下",
+        "（1）南昌词典中，数字1-7为南昌话七个声调，具体调值见下。",
+        "（2）丰城词典中，数字1-6为丰城话六个声调，具体调值见下。",
         "拼音说明",
         "词语标记说明",
         "A词语后面接“[义]B词语”时，B为A在普通话中的对应义。",
@@ -25,6 +26,10 @@ def test_tutorial_resource_contains_the_requested_content() -> None:
         "https://github.com/Doohaey/GonnyuGeneralIME",
     ):
         assert text in tutorial
+
+    assert tutorial.index("（1）南昌词典中") < tutorial.index("<tr><td>1</td><td>阴平</td><td>42</td></tr>")
+    assert tutorial.index("<tr><td>1</td><td>阴平</td><td>42</td></tr>") < tutorial.index("（2）丰城词典中")
+    assert tutorial.index("（2）丰城词典中") < tutorial.index("<tr><td>1</td><td>阴平</td><td>33</td></tr>")
 
 
 def test_android_and_windows_package_the_same_tutorial_resource() -> None:
