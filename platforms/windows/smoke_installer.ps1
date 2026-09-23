@@ -96,3 +96,4 @@ if (Test-Path -LiteralPath $installedTutorial -PathType Leaf) {
 }
 Assert-ComRegistrationAbsent "64"
 Assert-ComRegistrationAbsent "32"
+exit 0
