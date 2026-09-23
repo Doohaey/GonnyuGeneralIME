@@ -12,6 +12,7 @@
 #include <fcitx/statusarea.h>
 #include <fcitx/text.h>
 #include <fcitx/userinterfacemanager.h>
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 #include <functional>
@@ -170,6 +171,7 @@ std::vector<RankedItem> parseRankedItems(const std::string &json) {
 class GannyuEngineState : public fcitx::InputContextProperty {
 public:
     std::string buffer;
+    size_t cursor = 0;
     bool sentenceMode = false;
     std::vector<std::vector<RankedItem>> sentenceSegments;
     int currentSegment = 0;
@@ -276,6 +278,9 @@ public:
         }
         if (state->buffer.size() >= 4 && consumed > 0 && consumed < (int)state->buffer.size()) {
             state->buffer = state->buffer.substr(consumed);
+            state->cursor = state->cursor > static_cast<size_t>(consumed)
+                ? state->cursor - static_cast<size_t>(consumed) : 0;
+            state->cursor = std::min(state->cursor, state->buffer.size());
             lastCandidates_.clear();
             refresh(ic, state);
             return;
@@ -377,13 +382,47 @@ public:
         }
         if (sym == FcitxKey_BackSpace) {
             if (!state->buffer.empty()) {
-                state->buffer.pop_back();
-                refresh(ic, state);
+                if (state->cursor > 0) {
+                    state->buffer.erase(state->cursor - 1, 1);
+                    --state->cursor;
+                    refresh(ic, state);
+                }
                 event.filterAndAccept();
             }
             return;
         }
-        if (sym == FcitxKey_period && !lastCandidates_.empty()) {
+        if (sym == FcitxKey_Delete) {
+            if (!state->buffer.empty()) {
+                if (state->cursor < state->buffer.size()) {
+                    state->buffer.erase(state->cursor, 1);
+                    refresh(ic, state);
+                }
+                event.filterAndAccept();
+            }
+            return;
+        }
+        if (sym == FcitxKey_Left) {
+            if (!state->buffer.empty()) {
+                if (state->cursor > 0) {
+                    --state->cursor;
+                    refresh(ic, state);
+                }
+                event.filterAndAccept();
+            }
+            return;
+        }
+        if (sym == FcitxKey_Right) {
+            if (!state->buffer.empty()) {
+                if (state->cursor < state->buffer.size()) {
+                    ++state->cursor;
+                    refresh(ic, state);
+                }
+                event.filterAndAccept();
+            }
+            return;
+        }
+        if ((sym == FcitxKey_period || sym == FcitxKey_greater ||
+             sym == FcitxKey_equal || sym == FcitxKey_plus) && !lastCandidates_.empty()) {
             auto cl = ic->inputPanel().candidateList();
             if (cl && cl->toPageable() && cl->toPageable()->hasNext()) {
                 cl->toPageable()->next();
@@ -393,7 +432,7 @@ public:
                     ? lastCandidates_[firstOnPage].consumedBytes : 0;
                 std::string display = buildPreeditDisplay(state->buffer, consumed);
                 fcitx::Text preedit(display, fcitx::TextFormatFlag::Underline);
-                preedit.setCursor(preeditCursorPosition(state->buffer, display));
+                preedit.setCursor(preeditCursorPosition(state->buffer, state->cursor, display));
                 auto &panel = ic->inputPanel();
                 panel.setClientPreedit(preedit);
                 ic->updatePreedit();
@@ -402,7 +441,8 @@ public:
             event.filterAndAccept();
             return;
         }
-        if (sym == FcitxKey_comma && !lastCandidates_.empty()) {
+        if ((sym == FcitxKey_comma || sym == FcitxKey_less ||
+             sym == FcitxKey_minus || sym == FcitxKey_underscore) && !lastCandidates_.empty()) {
             auto cl = ic->inputPanel().candidateList();
             if (cl && cl->toPageable() && cl->toPageable()->hasPrev()) {
                 cl->toPageable()->prev();
@@ -412,7 +452,7 @@ public:
                     ? lastCandidates_[firstOnPage].consumedBytes : 0;
                 std::string display = buildPreeditDisplay(state->buffer, consumed);
                 fcitx::Text preedit(display, fcitx::TextFormatFlag::Underline);
-                preedit.setCursor(preeditCursorPosition(state->buffer, display));
+                preedit.setCursor(preeditCursorPosition(state->buffer, state->cursor, display));
                 auto &panel = ic->inputPanel();
                 panel.setClientPreedit(preedit);
                 ic->updatePreedit();
@@ -438,7 +478,8 @@ public:
                 state->accumulatedReading.clear();
                 state->accumulatedMandarinReading.clear();
             }
-            state->buffer.push_back(static_cast<char>(sym));
+            state->buffer.insert(state->cursor, 1, static_cast<char>(sym));
+            ++state->cursor;
             state->originalInput = state->buffer;
             refresh(ic, state);
             event.filterAndAccept();
@@ -450,7 +491,8 @@ public:
                 state->accumulatedReading.clear();
                 state->accumulatedMandarinReading.clear();
             }
-            state->buffer.push_back(static_cast<char>(sym - FcitxKey_A + FcitxKey_a));
+            state->buffer.insert(state->cursor, 1, static_cast<char>(sym - FcitxKey_A + FcitxKey_a));
+            ++state->cursor;
             state->originalInput = state->buffer;
             refresh(ic, state);
             event.filterAndAccept();
@@ -462,7 +504,8 @@ public:
                 state->accumulatedReading.clear();
                 state->accumulatedMandarinReading.clear();
             }
-            state->buffer.push_back('\'');
+            state->buffer.insert(state->cursor, 1, '\'');
+            ++state->cursor;
             state->originalInput = state->buffer;
             refresh(ic, state);
             event.filterAndAccept();
@@ -648,12 +691,12 @@ private:
     }
 
     // Map buffer length to its position in the formatted display string.
-    int preeditCursorPosition(const std::string &buf, const std::string &display) {
-        int non_sep = 0;
+    int preeditCursorPosition(const std::string &buf, size_t cursor, const std::string &display) {
+        if (cursor == 0) return 0;
+        size_t bufferIndex = 0;
         for (int i = 0; i < (int)display.size(); ++i) {
-            if (display[i] == ' ' || display[i] == '\'') continue;
-            non_sep++;
-            if (non_sep >= (int)buf.size()) return i + 1;
+            if (bufferIndex < buf.size() && display[i] == buf[bufferIndex]) ++bufferIndex;
+            if (bufferIndex >= std::min(cursor, buf.size())) return i + 1;
         }
         return (int)display.size();
     }
@@ -698,7 +741,7 @@ private:
         std::string display = buildPreeditDisplay(state->buffer, firstConsumed);
         fcitx::Text preedit(display, fcitx::TextFormatFlag::Underline);
         // Track the cursor against the underlying buffer length.
-        preedit.setCursor(preeditCursorPosition(state->buffer, display));
+        preedit.setCursor(preeditCursorPosition(state->buffer, state->cursor, display));
         panel.setClientPreedit(preedit);
 
         if (!ranked.empty()) {
@@ -751,6 +794,7 @@ private:
 
     void resetState(fcitx::InputContext *ic, GannyuEngineState *state) {
         state->buffer.clear();
+        state->cursor = 0;
         state->sentenceMode = false;
         state->sentenceSegments.clear();
         state->currentSegment = 0;

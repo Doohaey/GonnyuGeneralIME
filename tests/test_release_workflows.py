@@ -49,6 +49,20 @@ def test_fcitx5_workflow_runs_an_isolated_installer_smoke_test() -> None:
     assert 'tar -xzf "$artifact" -C "$smoke_root"' in content
 
 
+def test_fcitx5_buffer_supports_middle_editing() -> None:
+    source = (ROOT / "platforms/linux/fcitx5/gannyu_fcitx5.cpp").read_text(encoding="utf-8")
+
+    assert "size_t cursor = 0" in source
+    assert "state->buffer.insert(state->cursor" in source
+    assert "state->buffer.erase(state->cursor - 1, 1)" in source
+    assert "state->buffer.erase(state->cursor, 1)" in source
+    assert "sym == FcitxKey_Left" in source
+    assert "sym == FcitxKey_Right" in source
+    assert "sym == FcitxKey_Delete" in source
+    assert "FcitxKey_minus" in source
+    assert "FcitxKey_equal" in source
+
+
 def test_macos_workflow_rebuilds_and_inspects_pkg() -> None:
     content = (ROOT / ".github/workflows/macos.yml").read_text(encoding="utf-8")
     assert "runs-on: macos-15-intel" in content
