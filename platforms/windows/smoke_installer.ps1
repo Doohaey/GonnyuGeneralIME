@@ -78,6 +78,13 @@ Assert-ComRegistration "64" $installedDllX64
 Assert-ComRegistration "32" $installedDllX86
 
 Invoke-Burn @("/uninstall", "/quiet", "/norestart", "/log", $uninstallLog)
+Write-Host "After uninstall x64 DLL exists=$(Test-Path -LiteralPath $installedDllX64 -PathType Leaf)"
+Write-Host "After uninstall x86 DLL exists=$(Test-Path -LiteralPath $installedDllX86 -PathType Leaf)"
+Write-Host "After uninstall tutorial exists=$(Test-Path -LiteralPath $installedTutorial -PathType Leaf)"
+foreach ($view in @("64", "32")) {
+  $remaining = & reg.exe query $clsidKey "/reg:$view" 2>&1
+  Write-Host "After uninstall $view-bit COM query exit=$LASTEXITCODE:`n$($remaining -join "`n")"
+}
 if (Test-Path -LiteralPath $installedDllX64 -PathType Leaf) {
   throw "x64 text service remains after uninstall: $installedDllX64"
 }
