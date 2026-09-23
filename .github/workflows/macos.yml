@@ -35,6 +35,7 @@ jobs:
     timeout-minutes: 60
     env:
       CMAKE_BUILD_PARALLEL_LEVEL: "2"
+      GANNYU_MACOS_RIME_RESOURCE_OUTPUT: ${{ github.workspace }}/build/rime-macos-resources
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -239,10 +240,11 @@ jobs:
       - name: Build and smoke-test the universal host
         env:
           GANNYU_MACOS_CI_ADHOC: "1"
+          GANNYU_MACOS_RIME_RESOURCE_OUTPUT: ${{ github.workspace }}/build/rime-macos-resources
         run: |
           set -euo pipefail
           bash platforms/macos/build.sh
-          GANNYU_RIME_RESOURCE_ROOT=build/rime-macos/resources \
+          GANNYU_RIME_RESOURCE_ROOT=build/rime-macos-resources \
           GANNYU_RIME_USER_DATA_DIR=build/rime-macos/matrix-user \
             platforms/macos/.build/apple/Products/Release/GannyuMacOSSmoke --region lancong --input gau
           lipo build/macos/GonnyuInputMethod.app/Contents/MacOS/GannyuInputMethodHost -verify_arch arm64 x86_64
