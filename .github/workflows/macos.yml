@@ -141,7 +141,8 @@ jobs:
           plutil -lint "$bundle/Contents/Info.plist"
           codesign --verify --deep --strict "$bundle"
           lipo "$bundle/Contents/MacOS/GannyuInputMethodHost" -verify_arch arm64 x86_64
-          GANNYU_RIME_RESOURCE_ROOT=build/rime-macos/resources \
+          test -f "$GANNYU_MACOS_RIME_RESOURCE_OUTPUT/resource-manifest.json"
+          GANNYU_RIME_RESOURCE_ROOT="$GANNYU_MACOS_RIME_RESOURCE_OUTPUT" \
           GANNYU_RIME_USER_DATA_DIR=build/rime-macos/ci-user \
             platforms/macos/.build/apple/Products/Release/GannyuMacOSSmoke --region lancong --input gau
           GANNYU_IMK_SELFTEST=1 "$bundle/Contents/MacOS/GannyuInputMethodHost"
