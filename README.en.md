@@ -14,15 +14,19 @@ Currently supports: **Lancong(Nanchang), Fenni(Fenyi), and Fungcen**. More local
 
 Rime schema repositories for Lancong(Nanchang), Fenni(Fenyi), and Fungcen. Other installation options are available in the [Installation](#installation) section below.
 
-## Release 1.0.1
+## Release 1.0.2
 
-- feat: initialise the Fungcen dictionary
-- feat: add Gan original characters for Lancong (Nanchang) and Fungcen
+- feat(dict): update Fungcen and Lancong dictionary entries
+- fix(core): preserve the composition cursor across Rime sessions
+- fix(macos): improve composition-cursor and candidate-window anchoring
+- fix(windows): preserve the TSF composition cursor
+- fix(linux): support cursor movement and editing within composition
+- fix(macos): strengthen resource builds and compatibility validation
 
 ## Contents
 
 - [GonnyuGeneralIME — A General Gon(Gan) Chinese Input Method](#gonnyugeneralime--a-general-gongan-chinese-input-method)
-  - [Release 1.0.1](#release-101)
+  - [Release 1.0.2](#release-102)
   - [Contents](#contents)
   - [Overview](#overview)
     - [What it provides](#what-it-provides)
