@@ -554,6 +554,28 @@ HRESULT SetSelectionAtRangeEnd(ITfContext *context, TfEditCookie editCookie, ITf
     return hr;
 }
 
+HRESULT SetSelectionAtRangeOffset(ITfContext *context, TfEditCookie editCookie, ITfRange *range, LONG offset) {
+    if (!context || !range) return E_INVALIDARG;
+    ITfRange *caret = nullptr;
+    HRESULT hr = range->Clone(&caret);
+    if (FAILED(hr) || !caret) return FAILED(hr) ? hr : E_FAIL;
+    hr = caret->Collapse(editCookie, TF_ANCHOR_START);
+    LONG shifted = 0;
+    if (SUCCEEDED(hr) && offset > 0) {
+        hr = caret->ShiftEnd(editCookie, offset, &shifted, nullptr);
+    }
+    if (SUCCEEDED(hr)) hr = caret->Collapse(editCookie, TF_ANCHOR_END);
+    if (SUCCEEDED(hr)) {
+        TF_SELECTION selection{};
+        selection.range = caret;
+        selection.style.ase = TF_AE_NONE;
+        selection.style.fInterimChar = FALSE;
+        hr = context->SetSelection(editCookie, 1, &selection);
+    }
+    caret->Release();
+    return hr;
+}
+
 class InsertTextEditSession final : public ITfEditSession {
 public:
     InsertTextEditSession(ITfContext *context, std::wstring text) : refs_(1), context_(context), text_(std::move(text)) {
@@ -644,10 +666,10 @@ class CompositionEditSession final : public ITfEditSession {
 public:
     CompositionEditSession(ITfContext *context, ITfCompositionSink *sink,
                            std::shared_ptr<CompositionState> state,
-                           CompositionEditAction action, std::wstring text,
+                           CompositionEditAction action, std::wstring text, LONG caret,
                            std::function<void(HRESULT)> completion)
         : refs_(1), context_(context), sink_(sink), state_(std::move(state)),
-          action_(action), text_(std::move(text)), completion_(std::move(completion)) {
+          action_(action), text_(std::move(text)), caret_(caret), completion_(std::move(completion)) {
         if (context_) context_->AddRef();
         if (sink_) sink_->AddRef();
     }
@@ -720,7 +742,7 @@ private:
             HRESULT hr = state_->composition->GetRange(&range);
             if (SUCCEEDED(hr) && range) {
                 hr = range->SetText(editCookie, 0, text_.c_str(), static_cast<LONG>(text_.size()));
-                if (SUCCEEDED(hr)) hr = SetSelectionAtRangeEnd(context_, editCookie, range);
+                if (SUCCEEDED(hr)) hr = SetSelectionAtRangeOffset(context_, editCookie, range, caret_);
             }
             ReleaseUnknown(range);
             return hr;
@@ -749,7 +771,7 @@ private:
                 state_->composition = composition;
                 state_->context = context_;
                 state_->context->AddRef();
-                hr = SetSelectionAtRangeEnd(context_, editCookie, range);
+                hr = SetSelectionAtRangeOffset(context_, editCookie, range, caret_);
             } else {
                 range->SetText(editCookie, 0, L"", 0);
                 if (SUCCEEDED(hr)) hr = E_FAIL;
@@ -810,6 +832,7 @@ private:
     std::shared_ptr<CompositionState> state_;
     CompositionEditAction action_;
     std::wstring text_;
+    LONG caret_;
     std::function<void(HRESULT)> completion_;
 };
 
@@ -1570,11 +1593,11 @@ private:
     }
 
     bool IsPageUpKey(WPARAM key) const {
-        return key == VK_PRIOR || key == VK_OEM_COMMA;
+        return key == VK_PRIOR || key == VK_OEM_COMMA || key == VK_OEM_MINUS;
     }
 
     bool IsPageDownKey(WPARAM key) const {
-        return key == VK_NEXT || key == VK_OEM_PERIOD;
+        return key == VK_NEXT || key == VK_OEM_PERIOD || key == VK_OEM_PLUS;
     }
 
     size_t CurrentPageStart() const {
@@ -1588,7 +1611,7 @@ private:
         if (englishMode_ || HasBlockedModifiers()) {
             return false;
         }
-        if (key == VK_ESCAPE || key == VK_BACK) {
+        if (key == VK_ESCAPE || key == VK_BACK || key == VK_DELETE) {
             return !buffer_.empty();
         }
         if (key == VK_SPACE || key == VK_RETURN) {
@@ -1600,7 +1623,10 @@ private:
         if (!candidates_.empty() && (IsPageUpKey(key) || IsPageDownKey(key))) {
             return true;
         }
-        if (key == VK_LEFT || key == VK_RIGHT || key == VK_UP || key == VK_DOWN || key == VK_TAB || key == VK_PRIOR || key == VK_NEXT) {
+        if (key == VK_LEFT || key == VK_RIGHT) {
+            return !buffer_.empty();
+        }
+        if (key == VK_UP || key == VK_DOWN || key == VK_TAB || key == VK_PRIOR || key == VK_NEXT) {
             return !candidates_.empty();
         }
         wchar_t translated = 0;
@@ -1641,7 +1667,34 @@ private:
             if (buffer_.empty()) {
                 return false;
             }
-            buffer_.pop_back();
+            if (cursor_ > 0) {
+                buffer_.erase(cursor_ - 1, 1);
+                --cursor_;
+            }
+            RefreshCandidates();
+            return true;
+        }
+
+        if (key == VK_DELETE) {
+            if (buffer_.empty()) {
+                return false;
+            }
+            if (cursor_ < buffer_.size()) {
+                buffer_.erase(cursor_, 1);
+            }
+            RefreshCandidates();
+            return true;
+        }
+
+        if (key == VK_LEFT || key == VK_RIGHT) {
+            if (buffer_.empty()) {
+                return false;
+            }
+            if (key == VK_LEFT && cursor_ > 0) {
+                --cursor_;
+            } else if (key == VK_RIGHT && cursor_ < buffer_.size()) {
+                ++cursor_;
+            }
             RefreshCandidates();
             return true;
         }
@@ -1665,7 +1718,7 @@ private:
                 UpdateCandidateWindow();
                 return true;
             }
-            if (key == VK_LEFT || key == VK_UP) {
+            if (key == VK_UP) {
                 if (selectedIndex_ == 0) {
                     selectedIndex_ = candidates_.size() - 1;
                 } else {
@@ -1675,7 +1728,7 @@ private:
                 UpdateCandidateWindow();
                 return true;
             }
-            if (key == VK_RIGHT || key == VK_DOWN || key == VK_TAB) {
+            if (key == VK_DOWN || key == VK_TAB) {
                 selectedIndex_ = (selectedIndex_ + 1) % candidates_.size();
                 UpdateCandidateUiElement();
                 UpdateCandidateWindow();
@@ -1722,12 +1775,14 @@ private:
 
     bool HandlePrintableKey(wchar_t translated) {
         if (std::iswalpha(translated)) {
-            buffer_.push_back(static_cast<char>(std::towlower(translated)));
+            buffer_.insert(cursor_, 1, static_cast<char>(std::towlower(translated)));
+            ++cursor_;
             RefreshCandidates();
             return true;
         }
         if (!buffer_.empty() && (std::iswdigit(translated) || translated == L'\'' || translated == L'-')) {
-            buffer_.push_back(static_cast<char>(translated));
+            buffer_.insert(cursor_, 1, static_cast<char>(translated));
+            ++cursor_;
             RefreshCandidates();
             return true;
         }
@@ -1758,6 +1813,7 @@ private:
         if (!context || !compositionState_ || clientId_ == TF_CLIENTID_NULL) return false;
         CompositionEditSession *session = new (std::nothrow) CompositionEditSession(
             context, static_cast<ITfCompositionSink *>(this), compositionState_, action, text,
+            static_cast<LONG>(action == CompositionEditAction::Update ? std::min(cursor_, text.size()) : text.size()),
             std::move(completion));
         if (!session) return false;
         HRESULT editResult = E_FAIL;
@@ -1781,6 +1837,8 @@ private:
         }
         if (!buffer_.empty() && item.consumedBytes > 0 && item.consumedBytes < buffer_.size()) {
             buffer_.erase(0, item.consumedBytes);
+            cursor_ = cursor_ > item.consumedBytes ? cursor_ - item.consumedBytes : 0;
+            cursor_ = std::min(cursor_, buffer_.size());
             selectedIndex_ = 0;
             RefreshCandidates();
             return;
@@ -1791,6 +1849,7 @@ private:
 
     void RefreshPreeditDisplay() {
         preeditDisplay_ = Utf8ToWide(buffer_);
+        preeditCursor_ = std::min(cursor_, preeditDisplay_.size());
         if (buffer_.empty() || !pipeline_) {
             return;
         }
@@ -1801,6 +1860,22 @@ private:
                 pipeline_, buffer_.c_str(), consumedBytes, &formatted) == 0 && formatted) {
             preeditDisplay_ = Utf8ToWide(formatted);
             gannyu_string_destroy(formatted);
+            if (cursor_ == 0) {
+                preeditCursor_ = 0;
+            } else {
+                size_t bufferIndex = 0;
+                preeditCursor_ = preeditDisplay_.size();
+                for (size_t index = 0; index < preeditDisplay_.size(); ++index) {
+                    if (bufferIndex < buffer_.size() &&
+                        preeditDisplay_[index] == static_cast<unsigned char>(buffer_[bufferIndex])) {
+                        ++bufferIndex;
+                    }
+                    if (bufferIndex >= std::min(cursor_, buffer_.size())) {
+                        preeditCursor_ = index + 1;
+                        break;
+                    }
+                }
+            }
         }
     }
 
@@ -2258,6 +2333,17 @@ private:
         preeditText.right -= horizontalInset;
         const std::wstring &preedit = preeditDisplay_;
         DrawTextW(hdc, preedit.c_str(), -1, &preeditText, DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX);
+        const std::wstring prefix = preedit.substr(0, std::min(preeditCursor_, preedit.size()));
+        const int caretX = std::min(
+            preeditText.left + MeasureTextWidth(hdc, preeditFont_, prefix),
+            preeditText.right
+        );
+        HPEN caretPen = CreatePen(PS_SOLID, std::max(1, ScaleForDpi(1, fontDpi_)), RGB(32, 36, 40));
+        HGDIOBJ oldPen = SelectObject(hdc, caretPen);
+        MoveToEx(hdc, caretX, preeditText.top + ScaleForDpi(5, fontDpi_), nullptr);
+        LineTo(hdc, caretX, preeditText.bottom - ScaleForDpi(5, fontDpi_));
+        SelectObject(hdc, oldPen);
+        DeleteObject(caretPen);
 
         if (!candidateRects_.empty()) {
             RECT separator{horizontalInset, preeditRect_.bottom + ScaleForDpi(4, fontDpi_),
@@ -2345,8 +2431,10 @@ private:
 
     void ClearInputModel() {
         buffer_.clear();
+        cursor_ = 0;
         candidates_.clear();
         preeditDisplay_.clear();
+        preeditCursor_ = 0;
         selectedIndex_ = 0;
         EndCandidateUiElement();
         HideCandidateWindow();
@@ -2475,7 +2563,9 @@ private:
     std::vector<std::string> regionIds_;
     std::vector<std::string> regionLabels_;
     std::string buffer_;
+    size_t cursor_ = 0;
     std::wstring preeditDisplay_;
+    size_t preeditCursor_ = 0;
     std::vector<CandidateItem> candidates_;
     size_t selectedIndex_ = 0;
     std::vector<RECT> candidateRects_;

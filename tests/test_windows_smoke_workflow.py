@@ -139,16 +139,36 @@ def test_windows_preedit_is_a_real_tsf_composition() -> None:
     assert "CompositionEditAction::Cancel" in source
 
 
-def test_windows_commits_and_compositions_move_the_caret_to_the_range_end() -> None:
+def test_windows_composition_tracks_buffer_caret_and_commits_at_range_end() -> None:
     source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
     insert = source.split("class InsertTextEditSession", 1)[1].split("struct CompositionState", 1)[0]
     composition = source.split("class CompositionEditSession", 1)[1].split("class SelectionRectEditSession", 1)[0]
 
     assert "HRESULT SetSelectionAtRangeEnd" in source
+    assert "HRESULT SetSelectionAtRangeOffset" in source
     assert "TF_ANCHOR_END" in source
     assert "SetSelectionAtRangeEnd(context_, editCookie, range)" in insert
-    assert composition.count("SetSelectionAtRangeEnd(context_, editCookie, range)") >= 4
+    assert composition.count("SetSelectionAtRangeOffset(context_, editCookie, range, caret_)") == 2
+    assert composition.count("SetSelectionAtRangeEnd(context_, editCookie, range)") >= 2
     assert "state_->context != context_" in composition
+
+
+def test_windows_buffer_supports_middle_editing() -> None:
+    source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
+
+    assert "size_t cursor_ = 0" in source
+    assert "buffer_.insert(cursor_" in source
+    assert "buffer_.erase(cursor_ - 1, 1)" in source
+    assert "buffer_.erase(cursor_, 1)" in source
+    assert "key == VK_LEFT || key == VK_RIGHT" in source
+    assert "preeditCursor_" in source
+
+
+def test_windows_rime_page_keys_include_minus_and_equal() -> None:
+    source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
+
+    assert "key == VK_OEM_COMMA || key == VK_OEM_MINUS" in source
+    assert "key == VK_OEM_PERIOD || key == VK_OEM_PLUS" in source
 
 
 def test_windows_focus_changes_isolate_composition_state_and_hide_stale_ui() -> None:
