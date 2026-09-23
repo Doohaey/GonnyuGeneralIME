@@ -69,6 +69,7 @@ def test_windows_registers_its_ui_less_candidate_capabilities() -> None:
 
     assert "GUID_TFCAT_TIP_KEYBOARD" in categories
     assert "GUID_TFCAT_TIPCAP_UIELEMENTENABLED" in categories
+    assert "GUID_TFCAT_TIPCAP_COMLESS" in categories
     assert "GUID_TFCAT_TIPCAP_INPUTMODECOMPARTMENT" in categories
     assert "GUID_TFCAT_TIPCAP_IMMERSIVESUPPORT" in categories
 
@@ -84,7 +85,6 @@ def test_windows_search_provider_wiring_is_present() -> None:
     assert "GetSearchCandidates" in source
     for unsupported in (
         "GUID_TFCAT_TIPCAP_SECUREMODE",
-        "GUID_TFCAT_TIPCAP_COMLESS",
         "GUID_TFCAT_TIPCAP_SYSTRAYSUPPORT",
     ):
         assert unsupported not in categories
@@ -102,6 +102,7 @@ def test_windows_syncs_the_tsf_input_mode_compartments() -> None:
     assert "SetKeyboardConversionMode(englishMode_);" in source
     assert "TF_CONVERSIONMODE_NATIVE" in source
     assert "SetKeyboardOpen(englishMode_ ? FALSE : TRUE)" not in source
+    assert source.count("const bool valid = SUCCEEDED(get) && value.vt == VT_I4;") >= 2
     assert "GUID_COMPARTMENT_KEYBOARD_OPENCLOSE" in source
     assert "GUID_COMPARTMENT_KEYBOARD_INPUTMODE_CONVERSION" in source
     assert 'Condition=\'NOT (REMOVE="ALL")\'' in installer
@@ -238,8 +239,34 @@ def test_windows_enables_composition_only_for_ui_less_threads() -> None:
     assert "IID_ITfThreadMgr2" in activation
     assert "GetActiveFlags" in activation
     assert "TF_TMF_UIELEMENTENABLEDONLY" in activation
-    assert "uiLessMode_ = (activeFlags" in activation
+    assert "uiLessMode_ = (effectiveFlags & TF_TMF_UIELEMENTENABLEDONLY) != 0" in activation
+    assert "immersiveMode_ = (effectiveFlags & TF_TMF_IMMERSIVEMODE) != 0" in activation
+    assert "TF_TMF_UIELEMENTENABLEDONLY | TF_TMF_IMMERSIVEMODE" not in activation
     assert "uiLessMode_ && activeContext_" in refresh
+
+
+def test_windows_immersive_popup_is_owned_by_the_active_view() -> None:
+    source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
+    ensure = source.split("bool EnsureCandidateWindow()", 1)[1].split("bool EnsureStatusBar", 1)[0]
+
+    assert "immersiveMode_ && TryGetContextViewWindow(&ownerWindow)" in ensure
+    assert "GetAncestor(ownerWindow, GA_ROOT)" in ensure
+    assert "ownerProcessId != GetCurrentProcessId()" in ensure
+    assert "GWLP_HWNDPARENT" in ensure
+
+
+def test_windows_host_diagnostics_are_opt_in_and_scoped() -> None:
+    source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
+
+    assert 'L"DiagnosticsEnabled"' in source
+    assert 'L"SearchHost.exe"' in source
+    assert 'L"WeChat.exe"' in source
+    assert 'L"Weixin.exe"' in source
+    assert 'L"\\\\Diagnostics"' in source
+    assert 'DiagnosticLog("candidate-ui-begin"' in source
+    assert 'DiagnosticLog("candidate-window-show"' in source
+    assert 'DiagnosticLog("read-conversion"' in source
+    assert 'L"QQ.exe"' not in source
 
 
 def test_windows_toolbar_clicks_use_drawn_button_rectangles() -> None:
