@@ -49,6 +49,9 @@ public struct GannyuSnapshot: Decodable {
 public enum GannyuKeyEvent: Encodable {
     case text(String)
     case backspace
+    case deleteForward
+    case moveLeft
+    case moveRight
     case space
     case enter
 
@@ -62,6 +65,12 @@ public enum GannyuKeyEvent: Encodable {
             try values.encode(text, forKey: .text)
         case .backspace:
             try values.encode("backspace", forKey: .type)
+        case .deleteForward:
+            try values.encode("deleteForward", forKey: .type)
+        case .moveLeft:
+            try values.encode("moveLeft", forKey: .type)
+        case .moveRight:
+            try values.encode("moveRight", forKey: .type)
         case .space:
             try values.encode("space", forKey: .type)
         case .enter:

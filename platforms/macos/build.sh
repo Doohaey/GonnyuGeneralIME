@@ -7,6 +7,8 @@ test_env="$script_dir/test_local.env"
 bundle_id="${GANNYU_IMK_BUNDLE_ID:-org.doohaey.inputmethod.gonnyu.native}"
 connection_name="${GANNYU_IMK_CONNECTION:-${bundle_id}_Connection}"
 bundle_root="${GANNYU_MACOS_APP_BUNDLE:-$repo_root/build/macos/GonnyuInputMethod.app}"
+rime_build_root="${GANNYU_MACOS_RIME_BUILD_ROOT:-$repo_root/../dependencies/cache/macos/rime-engine}"
+rime_resource_root="${GANNYU_MACOS_RIME_RESOURCE_OUTPUT:-$repo_root/../build/rime-macos-resources}"
 plist_template="$script_dir/Info.plist.template"
 requested_signing_identity="${GANNYU_MACOS_SIGN_IDENTITY:-}"
 
@@ -36,12 +38,47 @@ command -v swift >/dev/null || { echo "swift not found; install Xcode Command Li
 command -v python3 >/dev/null || { echo "python3 not found" >&2; exit 1; }
 
 cd "$repo_root"
-if [[ "${GANNYU_MACOS_REUSE_RIME_BUILD:-0}" != "1" ]]; then
-  bash "$script_dir/build_rime_engine.sh"
-  bash "$script_dir/prepare_rime_resources.sh"
+adapter_library="$rime_build_root/adapter/libgannyu_rime_engine.a"
+librime_library="$rime_build_root/prefix/lib/librime.a"
+resource_manifest="$rime_resource_root/resource-manifest.json"
+engine_inputs=(
+  "$repo_root/engines/rime/CMakeLists.txt"
+  "$repo_root/engines/rime/gannyu_rime_engine.cpp"
+  "$repo_root/platforms/rime/mobile/engine-lock.json"
+)
+
+engine_rebuild=0
+if [[ "${GANNYU_MACOS_FORCE_RIME_REBUILD:-0}" == "1" || ! -f "$adapter_library" || ! -f "$librime_library" ]]; then
+  engine_rebuild=1
 else
-  [[ -f "$repo_root/build/rime-macos/adapter/libgannyu_rime_engine.a" ]] || { echo "missing cached librime adapter" >&2; exit 2; }
-  [[ -f "$repo_root/build/rime-macos/resources/resource-manifest.json" ]] || { echo "missing cached Rime resources" >&2; exit 2; }
+  for input in "${engine_inputs[@]}"; do
+    if [[ "$input" -nt "$adapter_library" ]]; then
+      engine_rebuild=1
+      break
+    fi
+  done
+fi
+if [[ "$engine_rebuild" == "1" ]]; then
+  GANNYU_MACOS_RIME_BUILD_ROOT="$rime_build_root" bash "$script_dir/build_rime_engine.sh"
+else
+  echo "reusing cached macOS librime engine: $rime_build_root"
+fi
+
+resource_rebuild=0
+if [[ "${GANNYU_MACOS_FORCE_RIME_REBUILD:-0}" == "1" || ! -f "$resource_manifest" || ! -d "$rime_resource_root/shared" || ! -d "$rime_resource_root/prebuilt" ]]; then
+  resource_rebuild=1
+elif find "$repo_root/resources" "$repo_root/platforms/rime/mobile" -type f -newer "$resource_manifest" -print -quit | grep -q .; then
+  resource_rebuild=1
+fi
+if [[ "$resource_rebuild" == "1" ]]; then
+  GANNYU_MACOS_RIME_RESOURCE_OUTPUT="$rime_resource_root" bash "$script_dir/prepare_rime_resources.sh"
+else
+  echo "reusing cached macOS Rime resources: $rime_resource_root"
+fi
+package_rime_root="$repo_root/build/rime-macos"
+if [[ ! -e "$package_rime_root" ]]; then
+  mkdir -p "$(dirname "$package_rime_root")"
+  ln -s "$rime_build_root" "$package_rime_root"
 fi
 swift build --package-path "$script_dir" -c release --arch arm64 --arch x86_64
 
@@ -63,7 +100,7 @@ build_version="$(python3 "$script_dir/installer_version.py" "$version")"
 rm -rf "$bundle_root"
 mkdir -p "$bundle_root/Contents/MacOS" "$bundle_root/Contents/Resources"
 install -m 0755 "$bin_dir/GannyuInputMethodHost" "$bundle_root/Contents/MacOS/GannyuInputMethodHost"
-ditto "$repo_root/build/rime-macos/resources" "$bundle_root/Contents/Resources/rime"
+ditto "$rime_resource_root" "$bundle_root/Contents/Resources/rime"
 icon_resource="$repo_root/resources/icon.png"
 [[ -f "$icon_resource" ]] || { echo "missing canonical icon resource: $icon_resource" >&2; exit 2; }
 cp "$icon_resource" "$bundle_root/Contents/Resources/icon.png"

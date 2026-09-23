@@ -77,14 +77,11 @@ def test_macos_uses_custom_candidates_with_native_positioning_fallback() -> None
         ROOT / "platforms/macos/Sources/GannyuInputMethodHost/GannyuInputController.swift"
     ).read_text(encoding="utf-8")
 
-    assert "IMKCandidates" in controller
-    assert "kIMKSingleColumnScrollingCandidatePanel" in controller
+    assert "IMKCandidates" not in controller
     assert "kVK_ANSI_9" in controller
     assert "selectedLine" in controller
     assert "moveSelection" in controller
     assert "candidate.text" in controller
-    assert "IMKCandidatesOpacityAttributeName" in controller
-    assert "IMKCandidatesSendServerKeyEventFirst" in controller
     assert "GannyuPageHint" in controller
     assert "GannyuModeHint" in controller
     assert 'NSButton(title: "<"' in controller
@@ -111,6 +108,9 @@ def test_macos_uses_custom_candidates_with_native_positioning_fallback() -> None
     )
     assert "guard let server = IMKServer" in host
     assert "self.server = server" in host
+    assert "kIMKSingleColumnScrollingCandidatePanel" in host
+    assert "IMKCandidatesOpacityAttributeName" in host
+    assert "IMKCandidatesSendServerKeyEventFirst" in host
     assert "tsInputMethodCharacterRepertoireKey" in (
         ROOT / "platforms/macos/Info.plist.template"
     ).read_text(encoding="utf-8")
@@ -143,7 +143,14 @@ def test_macos_controller_wires_minimal_input_loop() -> None:
     assert "kVK_ANSI_KeypadEnter" in controller
     assert "kVK_ANSI_Comma" in controller
     assert "kVK_ANSI_Period" in controller
-    assert "IMKCandidates" in controller
+    assert "kVK_ANSI_Minus" in controller
+    assert "kVK_ANSI_Equal" in controller
+    assert "kVK_LeftArrow" in controller
+    assert "kVK_RightArrow" in controller
+    assert "process(.moveLeft" in controller
+    assert "process(.moveRight" in controller
+    assert "process(.deleteForward" in controller
+    assert "IMKCandidates" not in controller
     assert "flagsChanged.rawValue" in controller
     assert "setASCIIMode" in controller
     assert "override func didCommand" in controller
@@ -157,8 +164,39 @@ def test_macos_controller_wires_minimal_input_loop() -> None:
     assert "gannyu_engine_process_key" in engine
     assert "gannyu_engine_change_page" in engine
     assert "gannyu_engine_set_ascii_mode" in engine
+    assert 'case moveLeft' in engine
+    assert 'case moveRight' in engine
+    assert 'case deleteForward' in engine
     assert "currentID()" in engine
     assert "GannyuRegion.fallback" not in controller
+
+
+def test_macos_keeps_the_transparent_imk_candidate_window_with_the_server() -> None:
+    host = (ROOT / "platforms/macos/Sources/GannyuInputMethodHost/main.swift").read_text(
+        encoding="utf-8"
+    )
+
+    assert "private var candidateWindow: IMKCandidates?" in host
+    assert "candidateWindow = IMKCandidates(" in host
+    assert "IMKCandidatesOpacityAttributeName" in host
+    assert "IMKCandidatesSendServerKeyEventFirst" in host
+
+
+def test_macos_build_reuses_complete_rime_caches_until_their_inputs_change() -> None:
+    build_script = (ROOT / "platforms/macos/build.sh").read_text(encoding="utf-8")
+    package_script = (ROOT.parent / "modules/local-packaging/platforms/macos/package.sh").read_text(
+        encoding="utf-8"
+    )
+
+    assert "GANNYU_MACOS_FORCE_RIME_REBUILD" in build_script
+    assert "reusing cached macOS librime engine" in build_script
+    assert "reusing cached macOS Rime resources" in build_script
+    assert '"$repo_root/engines/rime/gannyu_rime_engine.cpp"' in build_script
+    assert "GANNYU_MACOS_RIME_BUILD_ROOT=$macos_rime_cache" in package_script
+    assert 'ln -s "$macos_rime_cache" "$public_root/build/rime-macos"' in package_script
+    assert "GANNYU_MACOS_RIME_RESOURCE_OUTPUT=$macos_resource_cache" in package_script
+    assert "dependencies/cache/macos/rime-engine" in build_script
+    assert "build/rime-macos-resources" in build_script
 
 def test_macos_region_selection_is_validated_against_embedded_catalog() -> None:
     engine = (

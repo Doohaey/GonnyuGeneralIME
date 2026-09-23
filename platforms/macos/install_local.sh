@@ -3,6 +3,9 @@ set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "$script_dir/../.." && pwd)"
+private_root="$(cd "$repo_root/.." && pwd)"
+engine_cache="${GANNYU_MACOS_RIME_BUILD_ROOT:-$private_root/dependencies/cache/macos/rime-engine}"
+resource_cache="${GANNYU_MACOS_RIME_RESOURCE_OUTPUT:-$private_root/build/rime-macos-resources}"
 target_dir="${HOME}/Library/Input Methods"
 target_bundle="$target_dir/GonnyuInputMethod.app"
 backup_bundle="$target_dir/.GonnyuInputMethod.previous.app"
@@ -20,7 +23,24 @@ else
 fi
 
 if [[ "${GANNYU_MACOS_INSTALL_SKIP_BUILD:-0}" != "1" ]]; then
-  bash "$script_dir/build.sh"
+  mkdir -p "$repo_root/build"
+  if [[ ! -e "$repo_root/build/rime-macos" ]]; then
+    ln -s "$engine_cache" "$repo_root/build/rime-macos"
+  fi
+  build_environment=(
+    "GANNYU_MACOS_RIME_BUILD_ROOT=$engine_cache"
+    "GANNYU_MACOS_RIME_RESOURCE_OUTPUT=$resource_cache"
+  )
+  if [[ -d "$private_root/dependencies/ios/rime-mobile/sources/librime/.git" ]]; then
+    build_environment+=("GANNYU_RIME_MOBILE_SOURCE_ROOT=$private_root/dependencies/ios/rime-mobile/sources")
+  fi
+  if [[ -f "$private_root/build/ios/rime-mobile/mobile-resources/resource-manifest.json" ]]; then
+    build_environment+=(
+      "GANNYU_MACOS_RIME_RESOURCE_SOURCE=$private_root/build/ios/rime-mobile/mobile-resources"
+      "GANNYU_MACOS_SKIP_RESOURCE_REBUILD=1"
+    )
+  fi
+  env "${build_environment[@]}" bash "$script_dir/build.sh"
 fi
 [[ -d "$bundle" ]] || { echo "missing built app bundle: $bundle" >&2; exit 1; }
 codesign --verify --deep --strict "$bundle"

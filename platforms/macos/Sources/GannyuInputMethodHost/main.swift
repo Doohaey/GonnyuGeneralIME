@@ -6,6 +6,7 @@ import GannyuMacOSSupport
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var server: IMKServer?
+    private var candidateWindow: IMKCandidates?
     private var engine: GannyuEngine?
     private var statusItem: NSStatusItem?
 
@@ -47,6 +48,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         engine = try GannyuEngine(regionID: region)
         self.server = server
+        let candidateWindow = IMKCandidates(
+            server: server,
+            panelType: kIMKSingleColumnScrollingCandidatePanel,
+            styleType: kIMKMain
+        )
+        candidateWindow?.setAttributes([
+            IMKCandidatesOpacityAttributeName: NSNumber(value: 0),
+            IMKCandidatesSendServerKeyEventFirst: NSNumber(value: true),
+        ])
+        candidateWindow?.setDismissesAutomatically(false)
+        self.candidateWindow = candidateWindow
         if UserDefaults.standard.bool(forKey: "GannyuIMKDiagnostics") {
             NSLog("[GonnyuIMK] server-ready")
         }

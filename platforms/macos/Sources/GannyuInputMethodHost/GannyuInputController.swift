@@ -15,25 +15,13 @@ final class GannyuInputController: IMKInputController {
     private let candidatePanel = GannyuCandidatePanel()
     private let pageHint = GannyuPageHint()
     private let modeHint = GannyuModeHint()
-    private var candidateWindow: IMKCandidates?
     private var lastCandidateAnchor: NSRect?
-    private var lastMarkedRange: NSRange?
-    private var lastSelectedRange: NSRange?
     private let fullwidthPunctuationKey = "org.doohaey.gonnyu.fullwidthPunctuation"
     private let log = Logger(subsystem: "org.doohaey.inputmethod.gonnyu.native", category: "input")
 
     override init!(server: IMKServer!, delegate: Any!, client inputClient: Any!) {
         super.init(server: server, delegate: delegate, client: inputClient)
         createEngineIfNeeded()
-        if let server {
-            let w = IMKCandidates(server: server, panelType: kIMKSingleColumnScrollingCandidatePanel, styleType: kIMKMain)
-            w?.setAttributes([
-                IMKCandidatesOpacityAttributeName: NSNumber(value: 0),
-                IMKCandidatesSendServerKeyEventFirst: NSNumber(value: true),
-            ])
-            w?.setDismissesAutomatically(false)
-            candidateWindow = w
-        }
         candidatePanel.onSelect = { [weak self] index in
             guard let self else { return }
             _ = self.select(index, client: self.client())
@@ -92,17 +80,21 @@ final class GannyuInputController: IMKInputController {
         // A following key means this was a modifier chord, not a standalone
         // Shift language toggle.
         shiftOnlyPress = false
-        let arrowKey = event.keyCode == kVK_UpArrow || event.keyCode == kVK_DownArrow
+        let functionNavigationKey = event.keyCode == kVK_UpArrow || event.keyCode == kVK_DownArrow
+            || event.keyCode == kVK_LeftArrow || event.keyCode == kVK_RightArrow
+            || event.keyCode == kVK_ForwardDelete
         if modifiers.contains(.command) || modifiers.contains(.control)
-            || modifiers.contains(.option) || (modifiers.contains(.function) && !arrowKey) { return false }
+            || modifiers.contains(.option) || (modifiers.contains(.function) && !functionNavigationKey) { return false }
 
         let active = !(snapshot?.rawInput.isEmpty ?? true)
         switch Int(event.keyCode) {
         case kVK_Space where modifiers.contains(.shift) && !active && snapshot?.asciiMode != true:
             setFullwidthPunctuation(!fullwidthPunctuation, client: sender)
             return true
-        case kVK_Delete, kVK_ForwardDelete:
-            return active ? process(.backspace, client: sender) : false
+        case kVK_Delete:
+            return active ? process(.backspace, client: sender, consume: true) : false
+        case kVK_ForwardDelete:
+            return active ? process(.deleteForward, client: sender, consume: true) : false
         case kVK_Escape:
             if active { clear(client: sender); return true }
             return false
@@ -114,6 +106,10 @@ final class GannyuInputController: IMKInputController {
             return active ? moveSelection(-1, client: sender) : false
         case kVK_DownArrow:
             return active ? moveSelection(1, client: sender) : false
+        case kVK_LeftArrow:
+            return active ? process(.moveLeft, client: sender, consume: true) : false
+        case kVK_RightArrow:
+            return active ? process(.moveRight, client: sender, consume: true) : false
         // Keep paging on the two physical punctuation keys, regardless of
         // whether Shift produces < / > on the active keyboard layout.
         // When not composing, fall through to character processing so the
@@ -121,6 +117,10 @@ final class GannyuInputController: IMKInputController {
         case kVK_ANSI_Comma:
             if active { return page(-1, client: sender) }
         case kVK_ANSI_Period:
+            if active { return page(1, client: sender) }
+        case kVK_ANSI_Minus:
+            if active { return page(-1, client: sender) }
+        case kVK_ANSI_Equal:
             if active { return page(1, client: sender) }
         default:
             break
@@ -153,7 +153,9 @@ final class GannyuInputController: IMKInputController {
         let active = !(snapshot?.rawInput.isEmpty ?? true)
         switch NSStringFromSelector(selector) {
         case "deleteBackward:":
-            return active ? process(.backspace, client: sender) : false
+            return active ? process(.backspace, client: sender, consume: true) : false
+        case "deleteForward:":
+            return active ? process(.deleteForward, client: sender, consume: true) : false
         case "cancelOperation:":
             if active { clear(client: sender); return true }
             return false
@@ -165,6 +167,10 @@ final class GannyuInputController: IMKInputController {
             return active ? moveSelection(-1, client: sender) : false
         case "moveDown:":
             return active ? moveSelection(1, client: sender) : false
+        case "moveLeft:":
+            return active ? process(.moveLeft, client: sender, consume: true) : false
+        case "moveRight:":
+            return active ? process(.moveRight, client: sender, consume: true) : false
         default:
             return false
         }
@@ -183,8 +189,7 @@ final class GannyuInputController: IMKInputController {
     @objc(selectionRange)
     override func selectionRange() -> NSRange {
         let preedit = snapshot?.preedit ?? ""
-        let caret = min(max(snapshot?.caret ?? 0, 0), preedit.count)
-        return NSRange(location: (String(preedit.prefix(caret)) as NSString).length, length: 0)
+        return NSRange(location: utf16Offset(in: preedit, at: snapshot?.caret ?? 0), length: 0)
     }
 
     @objc(replacementRange)
@@ -228,7 +233,6 @@ final class GannyuInputController: IMKInputController {
     override func candidateSelectionChanged(_ candidateString: NSAttributedString!) {}
 
     private func processText(_ text: String, client sender: Any!) -> Bool {
-        synchronizeComposition(with: sender)
         let active = !(snapshot?.rawInput.isEmpty ?? true)
         if snapshot?.asciiMode == true {
             guard let client = GannyuTextClient(sender) else { return false }
@@ -242,6 +246,8 @@ final class GannyuInputController: IMKInputController {
         }
         if active && (text == "," || text == "<") { return page(-1, client: sender) }
         if active && (text == "." || text == ">") { return page(1, client: sender) }
+        if active && (text == "-" || text == "_") { return page(-1, client: sender) }
+        if active && (text == "=" || text == "+") { return page(1, client: sender) }
         if text == " " { return active ? process(.space, client: sender) : false }
         if active && text.count == 1, let line = Int(text), line > 0 {
             return selectLine(line - 1, client: sender)
@@ -283,7 +289,7 @@ final class GannyuInputController: IMKInputController {
         }
     }
 
-    private func process(_ event: GannyuKeyEvent, client sender: Any!) -> Bool {
+    private func process(_ event: GannyuKeyEvent, client sender: Any!, consume: Bool = false) -> Bool {
         guard let engine else {
             log.error("Rime engine is unavailable while processing input")
             return false
@@ -292,7 +298,7 @@ final class GannyuInputController: IMKInputController {
             let result = try engine.process(event)
             guard result.handled else { return false }
             render(result, client: sender)
-            return true
+            return result.handled || consume
         } catch {
             log.error("Rime engine failed to process input: \(String(describing: error), privacy: .public)")
             return false
@@ -406,8 +412,6 @@ final class GannyuInputController: IMKInputController {
             modeHint.hide()
             GannyuTextClient(sender)?.clearMarkedText()
         }
-        lastMarkedRange = nil
-        lastSelectedRange = nil
     }
 
     private func resetCompositionState() {
@@ -415,25 +419,9 @@ final class GannyuInputController: IMKInputController {
         snapshot = nil
         displays = []
         selectedLine = 0
-        lastMarkedRange = nil
-        lastSelectedRange = nil
         candidatePanel.hide()
         pageHint.hide()
         modeHint.hide()
-    }
-
-    private func synchronizeComposition(with sender: Any!) {
-        guard !(snapshot?.rawInput.isEmpty ?? true),
-              let client = GannyuTextClient(sender),
-              let expectedMarked = lastMarkedRange,
-              let expectedSelected = lastSelectedRange else { return }
-        let actualMarked = client.markedRange()
-        let actualSelected = client.selectedRange()
-        guard actualMarked != expectedMarked || actualSelected != expectedSelected else { return }
-        // The host moved the insertion point while Rime still had a live
-        // composition. Cancel that session before accepting the new text.
-        resetCompositionState()
-        client.clearMarkedText()
     }
 
     private func render(_ result: GannyuSnapshot, client sender: Any!) {
@@ -458,19 +446,17 @@ final class GannyuInputController: IMKInputController {
             pageHint.hide()
             modeHint.hide()
             displays = []
-            lastMarkedRange = nil
-            lastSelectedRange = nil
             return
         }
         let preedit = result.preedit.isEmpty ? result.rawInput : result.preedit
-        let caret = min(max(result.caret, 0), preedit.count)
+        let caret = utf16Offset(in: preedit, at: result.caret)
+        let attrs = mark(forStyle: kTSMHiliteSelectedRawText, at: NSRange(location: 0, length: preedit.utf16.count))
+            as? [NSAttributedString.Key: Any]
         client.setMarkedText(
-            preedit,
-            selectionRange: NSRange(location: (String(preedit.prefix(caret)) as NSString).length, length: 0),
+            NSMutableAttributedString(string: preedit, attributes: attrs),
+            selectionRange: NSRange(location: caret, length: 0),
             replacementRange: NSRange(location: NSNotFound, length: 0)
         )
-        lastMarkedRange = client.markedRange()
-        lastSelectedRange = client.selectedRange()
         selectedLine = min(selectedLine, max(result.candidates.count - 1, 0))
         presentCandidates()
     }
@@ -546,9 +532,18 @@ final class GannyuInputController: IMKInputController {
     }
 
     private func caretRect(for client: IMKTextInput) -> NSRect? {
-        // Primary: firstRect via marked/selected range.  Works for standard
-        // Cocoa text views (NSTextView, WebKit, Electron, etc.).
-        for range in [client.markedRange(), client.selectedRange()] where range.location != NSNotFound {
+        let state = snapshot
+        let preedit = state.map { $0.preedit.isEmpty ? $0.rawInput : $0.preedit } ?? ""
+        let caret = utf16Offset(in: preedit, at: state?.caret ?? 0)
+
+        var ranges: [NSRange] = []
+        let marked = client.markedRange()
+        if marked.location != NSNotFound, !preedit.isEmpty {
+            ranges.append(NSRange(location: marked.location + caret, length: 0))
+        }
+        // Host-compatible fallbacks.
+        ranges.append(contentsOf: [marked, client.selectedRange()])
+        for range in ranges where range.location != NSNotFound {
             var actualRange = NSRange(location: NSNotFound, length: 0)
             let rect = client.firstRect(forCharacterRange: range, actualRange: &actualRange)
             if diagnosticsEnabled {
@@ -558,11 +553,7 @@ final class GannyuInputController: IMKInputController {
             // they decline to expose their real insertion point.  That is
             // not an anchor; accepting it pins every auxiliary panel to the
             // screen's left/bottom edge.
-            let hasHorizontalPosition = rect.origin.x > 1 || rect.width > 0
-            guard rect.origin.x.isFinite, rect.origin.y.isFinite,
-                  rect.width >= 0, rect.height > 0, hasHorizontalPosition,
-                  rect.intersectsAnyScreen else { continue }
-            return rect
+            if validCaretRect(rect) { return rect }
         }
 
         // Secondary: lineHeightRectangle at character index 0.  Some clients
@@ -572,10 +563,7 @@ final class GannyuInputController: IMKInputController {
         if diagnosticsEnabled {
             log.notice("IMK lineHeightRect rect=\(lineRect.origin.x, privacy: .public),\(lineRect.origin.y, privacy: .public),\(lineRect.width, privacy: .public),\(lineRect.height, privacy: .public)")
         }
-        if lineRect.origin.x.isFinite, lineRect.origin.y.isFinite, lineRect.height > 0,
-           (lineRect.origin.x > 1 || lineRect.width > 0), lineRect.intersectsAnyScreen {
-            return lineRect
-        }
+        if validCaretRect(lineRect) { return lineRect }
 
         // Tertiary: Accessibility API.  Covers terminal apps that expose
         // kAXBoundsForRangeParameterizedAttribute on the focused text element.
@@ -587,6 +575,16 @@ final class GannyuInputController: IMKInputController {
         }
 
         return nil
+    }
+
+    private func utf16Offset(in text: String, at scalarOffset: Int) -> Int {
+        let offset = min(max(scalarOffset, 0), text.unicodeScalars.count)
+        return String(text.unicodeScalars.prefix(offset)).utf16.count
+    }
+
+    private func validCaretRect(_ rect: NSRect) -> Bool {
+        return rect.origin.x.isFinite && rect.origin.y.isFinite && rect.width >= 0
+            && rect.height > 0 && rect.intersectsAnyScreen
     }
 
     /// Returns the on-screen caret rect for the currently focused UI element
@@ -682,7 +680,7 @@ final class GannyuInputController: IMKInputController {
 
 private struct GannyuTextClient {
     private typealias InsertTextIMP = @convention(c) (AnyObject, Selector, NSString, NSRange) -> Void
-    private typealias SetMarkedTextIMP = @convention(c) (AnyObject, Selector, NSString, NSRange, NSRange) -> Void
+    private typealias SetMarkedTextIMP = @convention(c) (AnyObject, Selector, AnyObject, NSRange, NSRange) -> Void
     private typealias RangeIMP = @convention(c) (AnyObject, Selector) -> NSRange
 
     private static let insertTextSelector = #selector(NSTextInputClient.insertText(_:replacementRange:))
@@ -723,7 +721,7 @@ private struct GannyuTextClient {
         implementation(object, Self.insertTextSelector, text as NSString, replacementRange)
     }
 
-    func setMarkedText(_ text: String, selectionRange: NSRange, replacementRange: NSRange) {
+    func setMarkedText(_ text: Any, selectionRange: NSRange, replacementRange: NSRange) {
         if let native {
             native.setMarkedText(text, selectionRange: selectionRange, replacementRange: replacementRange)
             return
@@ -733,7 +731,7 @@ private struct GannyuTextClient {
             object.method(for: Self.setMarkedTextSelector),
             to: SetMarkedTextIMP.self
         )
-        implementation(object, Self.setMarkedTextSelector, text as NSString, selectionRange, replacementRange)
+        implementation(object, Self.setMarkedTextSelector, text as AnyObject, selectionRange, replacementRange)
     }
 
     func replacementRange() -> NSRange {
