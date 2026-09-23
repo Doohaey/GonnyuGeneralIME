@@ -23,6 +23,7 @@ on:
       - platforms/rime/mobile/**
       - engines/rime/**
       - resources/**
+      - tests/test_macos_platform.py
       - .github/workflows/macos.yml
 
 permissions:

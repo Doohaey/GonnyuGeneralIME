@@ -8,7 +8,7 @@ bundle_id="${GANNYU_IMK_BUNDLE_ID:-org.doohaey.inputmethod.gonnyu.native}"
 connection_name="${GANNYU_IMK_CONNECTION:-${bundle_id}_Connection}"
 bundle_root="${GANNYU_MACOS_APP_BUNDLE:-$repo_root/build/macos/GonnyuInputMethod.app}"
 rime_build_root="${GANNYU_MACOS_RIME_BUILD_ROOT:-$repo_root/../dependencies/cache/macos/rime-engine}"
-rime_resource_root="${GANNYU_MACOS_RIME_RESOURCE_OUTPUT:-$repo_root/../build/rime-macos-resources}"
+rime_resource_root="${GANNYU_MACOS_RIME_RESOURCE_OUTPUT:-$repo_root/build/rime-macos/resources}"
 plist_template="$script_dir/Info.plist.template"
 requested_signing_identity="${GANNYU_MACOS_SIGN_IDENTITY:-}"
 
