@@ -88,7 +88,10 @@ def test_macos_uses_custom_candidates_with_native_positioning_fallback() -> None
     assert 'NSButton(title: ">"' in controller
     assert "candidatePanel.present(state, selectedLine: selectedLine, anchor: anchor)" in controller
     assert "candidatePanel.hide()" in controller
-    assert "rect.width >= 0, rect.height > 0" in controller
+    assert "validCaretRect" in controller
+    assert "rect.width >= 0" in controller
+    assert "rect.height > 0" in controller
+    assert "rect.intersectsAnyScreen" in controller
     assert "return active ? moveSelection(-1, client: sender) : false" in controller
     assert "return active ? moveSelection(1, client: sender) : false" in controller
     assert "candidateLineNumber(event.keyCode)" in controller
