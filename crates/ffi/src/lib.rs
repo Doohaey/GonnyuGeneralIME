@@ -91,6 +91,7 @@ const SESSION_PAGE_SIZE: usize = 100;
 #[derive(Debug, Default)]
 struct EngineSessionState {
     raw_input: String,
+    cursor: usize,
     page_number: usize,
     candidate_limit: Option<usize>,
     ascii_mode: bool,
@@ -104,6 +105,9 @@ struct EngineSessionState {
 enum EngineKeyEvent {
     Text { text: String },
     Backspace,
+    DeleteForward,
+    MoveLeft,
+    MoveRight,
     Space,
     Enter,
 }
@@ -198,6 +202,7 @@ fn commit_raw_input(session: &mut EngineSessionState) -> Option<String> {
         return None;
     }
     let committed = std::mem::take(&mut session.raw_input);
+    session.cursor = 0;
     session.page_number = 0;
     clear_accumulated_selection(session);
     Some(committed)
@@ -226,9 +231,12 @@ fn select_candidate_internal(
     let consumed = candidate.consumed_bytes.min(session.raw_input.len());
     if consumed < session.raw_input.len() && session.raw_input.is_char_boundary(consumed) {
         session.raw_input = session.raw_input[consumed..].to_string();
+        session.cursor = session.cursor.saturating_sub(consumed);
     } else {
         session.raw_input.clear();
+        session.cursor = 0;
     }
+    session.cursor = session.cursor.min(session.raw_input.len());
     session.page_number = 0;
     if session.raw_input.is_empty() {
         maybe_save_user_word(pipeline, session);
@@ -251,6 +259,26 @@ fn is_composition_input(text: &str) -> bool {
         && text
             .chars()
             .all(|character| character.is_ascii_alphabetic() || character == '\'')
+}
+
+fn preedit_caret(raw_input: &str, cursor: usize, preedit: &str) -> usize {
+    let target = raw_input[..cursor.min(raw_input.len())].chars().count();
+    if target == 0 {
+        return 0;
+    }
+    let mut raw_index = 0;
+    for (preedit_index, character) in preedit.chars().enumerate() {
+        if character.is_whitespace() {
+            continue;
+        }
+        if raw_input.chars().nth(raw_index) == Some(character) {
+            raw_index += 1;
+            if raw_index >= target {
+                return preedit_index + 1;
+            }
+        }
+    }
+    preedit.chars().count().min(target)
 }
 
 fn build_snapshot(
@@ -290,7 +318,7 @@ fn build_snapshot(
             commit_text,
             raw_input: session.raw_input.clone(),
             preedit: preedit.clone(),
-            caret: preedit.chars().count(),
+            caret: preedit_caret(&session.raw_input, session.cursor, &preedit),
             highlighted_index: (!candidates.is_empty()).then_some(0),
             candidates,
             page_number: 0,
@@ -335,7 +363,7 @@ fn build_snapshot(
             .first()
             .map_or(0, |candidate| candidate.consumed_bytes),
     );
-    let caret = preedit.chars().count();
+    let caret = preedit_caret(&session.raw_input, session.cursor, &preedit);
     EngineSnapshot {
         handled,
         commit_text,
@@ -1067,7 +1095,10 @@ pub unsafe extern "C" fn gannyu_engine_process_key(
     let (handled, commit_text) = match event {
         EngineKeyEvent::Text { text } => {
             if is_composition_input(&text) {
-                session.raw_input.push_str(&text.to_lowercase());
+                let text = text.to_lowercase();
+                let cursor = session.cursor;
+                session.raw_input.insert_str(cursor, &text);
+                session.cursor += text.len();
                 session.page_number = 0;
                 (true, None)
             } else if session.raw_input.is_empty() {
@@ -1080,7 +1111,18 @@ pub unsafe extern "C" fn gannyu_engine_process_key(
             }
         }
         EngineKeyEvent::Backspace => {
-            let removed = session.raw_input.pop().is_some();
+            let start = session.raw_input[..session.cursor]
+                .char_indices()
+                .next_back()
+                .map(|(index, _)| index);
+            let removed = if let Some(start) = start {
+                let cursor = session.cursor;
+                session.raw_input.drain(start..cursor);
+                session.cursor = start;
+                true
+            } else {
+                false
+            };
             if session.raw_input.is_empty() {
                 clear_accumulated_selection(&mut session);
             }
@@ -1088,6 +1130,42 @@ pub unsafe extern "C" fn gannyu_engine_process_key(
                 session.page_number = 0;
             }
             (removed, None)
+        }
+        EngineKeyEvent::DeleteForward => {
+            let end = session.raw_input[session.cursor..]
+                .char_indices()
+                .nth(1)
+                .map(|(index, _)| session.cursor + index)
+                .unwrap_or(session.raw_input.len());
+            let removed = end > session.cursor;
+            if removed {
+                let cursor = session.cursor;
+                session.raw_input.drain(cursor..end);
+                session.page_number = 0;
+            }
+            if session.raw_input.is_empty() {
+                clear_accumulated_selection(&mut session);
+            }
+            (removed, None)
+        }
+        EngineKeyEvent::MoveLeft => {
+            if let Some((index, _)) = session.raw_input[..session.cursor]
+                .char_indices()
+                .next_back()
+            {
+                session.cursor = index;
+                (true, None)
+            } else {
+                (false, None)
+            }
+        }
+        EngineKeyEvent::MoveRight => {
+            if let Some((index, _)) = session.raw_input[session.cursor..].char_indices().nth(1) {
+                session.cursor += index;
+                (true, None)
+            } else {
+                (false, None)
+            }
         }
         EngineKeyEvent::Space => {
             if session.raw_input.is_empty() {
@@ -1185,6 +1263,7 @@ pub unsafe extern "C" fn gannyu_engine_clear_composition(
     {
         let mut session = handle.session.lock();
         session.raw_input.clear();
+        session.cursor = 0;
         session.page_number = 0;
         clear_accumulated_selection(&mut session);
     }

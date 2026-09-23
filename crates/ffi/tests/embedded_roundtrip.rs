@@ -159,3 +159,36 @@ fn engine_snapshot_api_returns_current_state() {
 
     unsafe { gannyu_pipeline_destroy(handle) };
 }
+
+#[test]
+fn engine_cursor_events_edit_inside_composition() {
+    let mut handle: *mut gannyu_input_ffi::GannyuPipelineHandle = std::ptr::null_mut();
+    let status = unsafe { gannyu_pipeline_create(std::ptr::null(), std::ptr::null(), &mut handle) };
+    assert_eq!(status, gannyu_ffi_status_ok(), "pipeline_create failed");
+
+    let process = |event: &str| {
+        let event = CString::new(event).unwrap();
+        let mut out: *mut c_char = std::ptr::null_mut();
+        let status = unsafe { gannyu_engine_process_key(handle, event.as_ptr(), &mut out) };
+        assert_eq!(
+            status,
+            gannyu_ffi_status_ok(),
+            "process_key failed for {event:?}"
+        );
+        let snapshot: Value = serde_json::from_str(&cstr(out)).unwrap();
+        unsafe { gannyu_string_destroy(out) };
+        snapshot
+    };
+
+    process(r#"{"type":"text","text":"lan"}"#);
+    process(r#"{"type":"move-left"}"#);
+    let inserted = process(r#"{"type":"text","text":"c"}"#);
+    assert_eq!(inserted["rawInput"], "lacn");
+    assert_eq!(inserted["caret"], 4);
+    let deleted = process(r#"{"type":"delete-forward"}"#);
+    assert_eq!(deleted["rawInput"], "lac");
+    let deleted = process(r#"{"type":"backspace"}"#);
+    assert_eq!(deleted["rawInput"], "la");
+
+    unsafe { gannyu_pipeline_destroy(handle) };
+}

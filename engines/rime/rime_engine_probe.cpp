@@ -24,24 +24,53 @@ int main(int argc, char** argv) {
       return 3;
     }
     char* snapshot = nullptr;
+    if (gannyu_engine_process_key(handle, "{\"type\":\"text\",\"text\":\"gau\"}", &snapshot) != 0 ||
+        snapshot == nullptr) {
+      gannyu_pipeline_destroy(handle);
+      return 4;
+    }
+    gannyu_string_destroy(snapshot);
+    snapshot = nullptr;
+    if (gannyu_engine_process_key(handle, "{\"type\":\"moveLeft\"}", &snapshot) != 0 ||
+        snapshot == nullptr) {
+      gannyu_pipeline_destroy(handle);
+      return 5;
+    }
+    gannyu_string_destroy(snapshot);
+    snapshot = nullptr;
+    if (gannyu_engine_process_key(handle, "{\"type\":\"text\",\"text\":\"i\"}", &snapshot) != 0 ||
+        snapshot == nullptr || std::strstr(snapshot, "\"rawInput\":\"gaiu\"") == nullptr ||
+        std::strstr(snapshot, "\"caret\":3") == nullptr) {
+      gannyu_string_destroy(snapshot);
+      gannyu_pipeline_destroy(handle);
+      return 6;
+    }
+    gannyu_string_destroy(snapshot);
+    snapshot = nullptr;
+    if (gannyu_engine_clear_composition(handle, &snapshot) != 0 || snapshot == nullptr) {
+      gannyu_pipeline_destroy(handle);
+      return 7;
+    }
+    gannyu_string_destroy(snapshot);
+    snapshot = nullptr;
     const int status = gannyu_engine_process_key(handle, "{\"type\":\"text\",\"text\":\"nhk\"}", &snapshot);
     if (status != 0 || snapshot == nullptr) {
       gannyu_pipeline_destroy(handle);
-      return 4;
+      return 8;
     }
     const bool has_bank_card = std::strstr(snapshot, "银行卡") != nullptr;
     std::puts(snapshot);
     gannyu_string_destroy(snapshot);
-    if (!has_bank_card) return 5;
+    if (!has_bank_card) return 9;
     snapshot = nullptr;
     if (gannyu_engine_select_candidate(handle, 0, &snapshot) != 0 || snapshot == nullptr) {
       gannyu_pipeline_destroy(handle);
-      return 6;
+      return 10;
     }
     const bool commits_bank_card = std::strstr(snapshot, "\"commitText\":\"银行卡\"") != nullptr;
     std::puts(snapshot);
     gannyu_string_destroy(snapshot);
-    if (!commits_bank_card) return 7;
+    if (!commits_bank_card) return 11;
 
     const std::string schema_id = std::string("gannyu_") + region;
     const std::filesystem::path userdb = std::filesystem::path(argv[3]) / (schema_id + ".userdb");
@@ -50,21 +79,21 @@ int main(int argc, char** argv) {
     std::filesystem::create_directories(userdb, directory_error);
     if (directory_error) {
       gannyu_pipeline_destroy(handle);
-      return 8;
+      return 12;
     }
     std::ofstream(marker) << "reset must remove this file\n";
     snapshot = nullptr;
     if (gannyu_engine_reset_user_data(handle, GANNYU_USER_DATA_ALL, &snapshot) != 0 ||
         snapshot == nullptr) {
       gannyu_pipeline_destroy(handle);
-      return 9;
+      return 13;
     }
     const bool restored_schema = std::strstr(snapshot, schema_id.c_str()) != nullptr;
     std::puts(snapshot);
     gannyu_string_destroy(snapshot);
     if (!restored_schema || std::filesystem::exists(marker)) {
       gannyu_pipeline_destroy(handle);
-      return 10;
+      return 14;
     }
     gannyu_pipeline_destroy(handle);
   }

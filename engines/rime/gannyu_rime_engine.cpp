@@ -29,8 +29,11 @@ constexpr int kLoadFailure = 2;
 constexpr int kSerializeFailure = 3;
 constexpr int kBackspace = 0xff08;
 constexpr int kReturn = 0xff0d;
+constexpr int kLeft = 0xff51;
+constexpr int kRight = 0xff53;
 constexpr int kPageUp = 0xff55;
 constexpr int kPageDown = 0xff56;
+constexpr int kDelete = 0xffff;
 
 thread_local std::string g_last_error;
 
@@ -239,7 +242,11 @@ std::string Snapshot(GannyuPipelineHandle* handle, bool handled, const std::opti
   output << "{\"handled\":" << (handled ? "true" : "false") << ",\"rawInput\":\"";
   const char* preedit = has_context && context.composition.preedit ? context.composition.preedit : "";
   output << JsonEscape(raw_input) << "\",\"preedit\":\"" << JsonEscape(preedit) << "\",\"caret\":";
-  output << Utf8CountBefore(raw_input, Api()->get_caret_pos(handle->session));
+  const char* caret_text = has_context ? preedit : raw_input;
+  const size_t caret_bytes = has_context
+      ? static_cast<size_t>(std::max(context.composition.cursor_pos, 0))
+      : Api()->get_caret_pos(handle->session);
+  output << Utf8CountBefore(caret_text, caret_bytes);
   if (commit.has_value() && !commit->empty()) output << ",\"commitText\":\"" << JsonEscape(*commit) << "\"";
   output << ",\"candidates\":[";
   bool first_candidate = true;
@@ -426,6 +433,12 @@ int gannyu_engine_process_key(GannyuPipelineHandle* handle, const char* event_js
       }
     } else if (*type == "backspace") {
       handled = Api()->process_key(handle->session, kBackspace, 0);
+    } else if (*type == "deleteForward") {
+      handled = Api()->process_key(handle->session, kDelete, 0);
+    } else if (*type == "moveLeft") {
+      handled = Api()->process_key(handle->session, kLeft, 0);
+    } else if (*type == "moveRight") {
+      handled = Api()->process_key(handle->session, kRight, 0);
     } else if (*type == "space") {
       handled = Api()->process_key(handle->session, ' ', 0);
     } else if (*type == "enter") {
