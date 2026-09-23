@@ -13,9 +13,16 @@
 
     <StandardDirectory Id="ProgramFiles64Folder">
       <Directory Id="INSTALLFOLDER" Name="GonnyuGeneralIME">
-        <Component Id="GannyuTextServiceComponent" Guid="258B127C-C3AA-4F53-9EC5-F61C79B81657">
-          <File Id="GannyuTextServiceDll" Source="$(var.DllPath)" KeyPath="yes" />
-        </Component>
+        <Directory Id="X64FOLDER" Name="x64">
+          <Component Id="GannyuTextServiceX64Component" Guid="258B127C-C3AA-4F53-9EC5-F61C79B81657" Bitness="always64">
+            <File Id="GannyuTextServiceDllX64" Source="$(var.DllPathX64)" KeyPath="yes" />
+          </Component>
+        </Directory>
+        <Directory Id="X86FOLDER" Name="x86">
+          <Component Id="GannyuTextServiceX86Component" Guid="A498D1A0-F737-4D46-A682-7B8AC145E708" Bitness="always32">
+            <File Id="GannyuTextServiceDllX86" Source="$(var.DllPathX86)" KeyPath="yes" />
+          </Component>
+        </Directory>
         <Component Id="TutorialComponent" Guid="BD7E4B76-51D6-40A6-87CA-EA6D85C1EA5A">
           <File Id="TutorialHtml" Source="$(var.TutorialPath)" KeyPath="yes" />
         </Component>
@@ -23,28 +30,47 @@
     </StandardDirectory>
 
     <CustomAction
-      Id="RegisterGannyuTextService"
+      Id="RegisterGannyuTextServiceX64"
       Directory="System64Folder"
       Execute="commit"
-      ExeCommand='regsvr32.exe /s "[#GannyuTextServiceDll]"'
+      ExeCommand='regsvr32.exe /s "[#GannyuTextServiceDllX64]"'
       Impersonate="no"
       Return="check" />
 
     <CustomAction
-      Id="UnregisterGannyuTextService"
+      Id="RegisterGannyuTextServiceX86"
+      Directory="SystemFolder"
+      Execute="commit"
+      ExeCommand='regsvr32.exe /s "[#GannyuTextServiceDllX86]"'
+      Impersonate="no"
+      Return="check" />
+
+    <CustomAction
+      Id="UnregisterGannyuTextServiceX86"
+      Directory="SystemFolder"
+      Execute="deferred"
+      ExeCommand='regsvr32.exe /u /s "[#GannyuTextServiceDllX86]"'
+      Impersonate="no"
+      Return="check" />
+
+    <CustomAction
+      Id="UnregisterGannyuTextServiceX64"
       Directory="System64Folder"
       Execute="deferred"
-      ExeCommand='regsvr32.exe /u /s "[#GannyuTextServiceDll]"'
+      ExeCommand='regsvr32.exe /u /s "[#GannyuTextServiceDllX64]"'
       Impersonate="no"
       Return="check" />
 
     <InstallExecuteSequence>
-      <Custom Action="RegisterGannyuTextService" After="InstallFiles" Condition='NOT (REMOVE="ALL")' />
-      <Custom Action="UnregisterGannyuTextService" Before="RemoveFiles" Condition='REMOVE="ALL"' />
+      <Custom Action="RegisterGannyuTextServiceX64" After="InstallFiles" Condition='NOT (REMOVE="ALL")' />
+      <Custom Action="RegisterGannyuTextServiceX86" After="RegisterGannyuTextServiceX64" Condition='NOT (REMOVE="ALL")' />
+      <Custom Action="UnregisterGannyuTextServiceX86" Before="UnregisterGannyuTextServiceX64" Condition='REMOVE="ALL"' />
+      <Custom Action="UnregisterGannyuTextServiceX64" Before="RemoveFiles" Condition='REMOVE="ALL"' />
     </InstallExecuteSequence>
 
     <Feature Id="MainFeature" Title="GonnyuGeneralIME" Level="1">
-      <ComponentRef Id="GannyuTextServiceComponent" />
+      <ComponentRef Id="GannyuTextServiceX64Component" />
+      <ComponentRef Id="GannyuTextServiceX86Component" />
       <ComponentRef Id="TutorialComponent" />
     </Feature>
   </Package>

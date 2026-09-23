@@ -27,6 +27,8 @@ jobs:
           version="$(awk -F '"' '/^version[[:space:]]*=/ { print $2; exit }' Cargo.toml)"
           printf 'version=%s\n' "$version" >> "$GITHUB_OUTPUT"
       - uses: dtolnay/rust-toolchain@stable
+      - shell: pwsh
+        run: rustup target add x86_64-pc-windows-msvc i686-pc-windows-msvc
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x

@@ -4,9 +4,13 @@ setlocal
 set "SCRIPT_DIR=%~dp0"
 set "REPO_ROOT=%SCRIPT_DIR%..\.."
 set "BUILD_ROOT=%REPO_ROOT%\build\windows"
-set "CMAKE_BUILD_DIR=%BUILD_ROOT%\cmake"
+set "CMAKE_BUILD_DIR_X64=%BUILD_ROOT%\cmake-x64"
+set "CMAKE_BUILD_DIR_X86=%BUILD_ROOT%\cmake-x86"
 set "INSTALLER_DIR=%BUILD_ROOT%\installer"
-set "DLL_PATH=%CMAKE_BUILD_DIR%\GannyuTextService.dll"
+set "DLL_PATH_X64=%CMAKE_BUILD_DIR_X64%\GannyuTextService.dll"
+set "DLL_PATH_X86=%CMAKE_BUILD_DIR_X86%\GannyuTextService.dll"
+set "FFI_LIB_X64=%REPO_ROOT%\target\x86_64-pc-windows-msvc\release\gannyu_input_ffi.lib"
+set "FFI_LIB_X86=%REPO_ROOT%\target\i686-pc-windows-msvc\release\gannyu_input_ffi.lib"
 set "CMAKE_BUILD_TYPE=Release"
 for /f "tokens=3" %%i in ('findstr /r /c:"^version[ ]*=" "%REPO_ROOT%\Cargo.toml"') do set "GONNYU_VERSION=%%~i"
 if not defined GONNYU_VERSION (
@@ -70,28 +74,42 @@ if "%WIX_VERSION:~0,2%"=="7." (
 
 wix extension add WixToolset.BootstrapperApplications.wixext/5.0.2 >nul 2>nul
 
-call :ensure_vs || exit /b 1
+call :load_vs x64 || exit /b 1
 
 pushd "%REPO_ROOT%"
 mkdir "%RESOURCE_BUILD_ROOT%" || goto :err
 cargo run -p gonnyu-resource-build --release -- "%REPO_ROOT%\resources" "%GONNYU_RESOURCE_DIR%" || goto :err
-cargo build --release -p gannyu-input-ffi || goto :err
+cargo build --release -p gannyu-input-ffi --target x86_64-pc-windows-msvc || goto :err
 popd
 
-if not exist "%CMAKE_BUILD_DIR%" mkdir "%CMAKE_BUILD_DIR%"
+if not exist "%CMAKE_BUILD_DIR_X64%" mkdir "%CMAKE_BUILD_DIR_X64%"
+if not exist "%CMAKE_BUILD_DIR_X86%" mkdir "%CMAKE_BUILD_DIR_X86%"
 if not exist "%INSTALLER_DIR%" mkdir "%INSTALLER_DIR%"
 
-cmake -S "%SCRIPT_DIR%GannyuTextService" -B "%CMAKE_BUILD_DIR%" -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=%CMAKE_BUILD_TYPE% || goto :err
-cmake --build "%CMAKE_BUILD_DIR%" --config Release || goto :err
+cmake -S "%SCRIPT_DIR%GannyuTextService" -B "%CMAKE_BUILD_DIR_X64%" -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=%CMAKE_BUILD_TYPE% -DGANNYU_FFI_LIBRARY="%FFI_LIB_X64%" || goto :err
+cmake --build "%CMAKE_BUILD_DIR_X64%" --config Release || goto :err
 
-if not exist "%DLL_PATH%" if exist "%CMAKE_BUILD_DIR%\Release\GannyuTextService.dll" set "DLL_PATH=%CMAKE_BUILD_DIR%\Release\GannyuTextService.dll"
+call :load_vs x86 || goto :err
+pushd "%REPO_ROOT%"
+cargo build --release -p gannyu-input-ffi --target i686-pc-windows-msvc || goto :err
+popd
+cmake -S "%SCRIPT_DIR%GannyuTextService" -B "%CMAKE_BUILD_DIR_X86%" -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=%CMAKE_BUILD_TYPE% -DGANNYU_FFI_LIBRARY="%FFI_LIB_X86%" || goto :err
+cmake --build "%CMAKE_BUILD_DIR_X86%" --config Release || goto :err
 
-if not exist "%DLL_PATH%" (
-  echo Missing %DLL_PATH%
+if not exist "%DLL_PATH_X64%" if exist "%CMAKE_BUILD_DIR_X64%\Release\GannyuTextService.dll" set "DLL_PATH_X64=%CMAKE_BUILD_DIR_X64%\Release\GannyuTextService.dll"
+if not exist "%DLL_PATH_X86%" if exist "%CMAKE_BUILD_DIR_X86%\Release\GannyuTextService.dll" set "DLL_PATH_X86=%CMAKE_BUILD_DIR_X86%\Release\GannyuTextService.dll"
+
+if not exist "%DLL_PATH_X64%" (
+  echo Missing %DLL_PATH_X64%
+  goto :err
+)
+if not exist "%DLL_PATH_X86%" (
+  echo Missing %DLL_PATH_X86%
   goto :err
 )
 
-call :assert_release_dll "%DLL_PATH%" || goto :err
+call :assert_release_dll "%DLL_PATH_X64%" || goto :err
+call :assert_release_dll "%DLL_PATH_X86%" || goto :err
 
 rem Sanitize the DLL: strip symbol/debug sections and scrub panic-location
 rem strings that leak source paths and the Rust module structure. The .def file
@@ -100,10 +118,13 @@ rem llvm-objcopy is available (e.g. from the Android NDK or LLVM), also strip
 rem the COFF symbol table; otherwise fall back to panic-string scrubbing only.
 set "LLVM_OBJCOPY="
 for /f "delims=" %%i in ('where llvm-objcopy 2^>nul') do if not defined LLVM_OBJCOPY set "LLVM_OBJCOPY=%%i"
+call :load_vs x64 || goto :err
 if defined LLVM_OBJCOPY (
-    cargo run -p gannyu-sanitize-binary --release -- "%DLL_PATH%" --strip-tool "%LLVM_OBJCOPY%"
+    cargo run -p gannyu-sanitize-binary --release -- "%DLL_PATH_X64%" --strip-tool "%LLVM_OBJCOPY%" || goto :err
+    cargo run -p gannyu-sanitize-binary --release -- "%DLL_PATH_X86%" --strip-tool "%LLVM_OBJCOPY%"
 ) else (
-    cargo run -p gannyu-sanitize-binary --release -- "%DLL_PATH%" --no-strip
+    cargo run -p gannyu-sanitize-binary --release -- "%DLL_PATH_X64%" --no-strip || goto :err
+    cargo run -p gannyu-sanitize-binary --release -- "%DLL_PATH_X86%" --no-strip
 )
 if errorlevel 1 goto :err
 
@@ -114,7 +135,7 @@ if not exist "%BA_WIXEXT%" (
   goto :err
 )
 
-wix build "%SCRIPT_DIR%Installer.wxs" -arch x64 -d "DllPath=%DLL_PATH%" -d "TutorialPath=%REPO_ROOT%\resources\tutorial\tutorial.html" -d "GonnyuProductVersion=%MSI_PRODUCT_VERSION%" -o "%MSI_PATH%" || goto :err
+wix build "%SCRIPT_DIR%Installer.wxs" -arch x64 -d "DllPathX64=%DLL_PATH_X64%" -d "DllPathX86=%DLL_PATH_X86%" -d "TutorialPath=%REPO_ROOT%\resources\tutorial\tutorial.html" -d "GonnyuProductVersion=%MSI_PRODUCT_VERSION%" -o "%MSI_PATH%" || goto :err
 wix build "%SCRIPT_DIR%InstallerBundle.wxs" -arch x64 -ext "%BA_WIXEXT%" -d "MsiPath=%MSI_PATH%" -d "GonnyuBundleVersion=%BUNDLE_PRODUCT_VERSION%" -o "%EXE_PATH%" || goto :err
 
 echo.
@@ -133,8 +154,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
 if errorlevel 1 exit /b 1
 exit /b 0
 
-:ensure_vs
-if defined VCINSTALLDIR exit /b 0
+:load_vs
 set "VSWHERE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
 if not exist "%VSWHERE%" (
   echo Missing Visual Studio 2022 Build Tools or the Desktop C++ workload.
@@ -146,9 +166,9 @@ if not defined VSROOT (
   echo Missing Visual Studio 2022 Build Tools or the Desktop C++ workload.
   exit /b 1
 )
-call "%VSROOT%\Common7\Tools\VsDevCmd.bat" -arch=x64 >nul
+call "%VSROOT%\Common7\Tools\VsDevCmd.bat" -arch=%~1 -host_arch=x64 >nul
 if errorlevel 1 (
-  echo Failed to load the Visual Studio build environment.
+  echo Failed to load the Visual Studio %~1 build environment.
   exit /b 1
 )
 exit /b 0

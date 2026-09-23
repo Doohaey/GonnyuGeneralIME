@@ -17,7 +17,6 @@
 #include <functional>
 #include <iterator>
 #include <memory>
-#include <mutex>
 #include <new>
 #include <string>
 #include <vector>
@@ -75,91 +74,6 @@ static const GUID kSupportedCategories[] = {
 static std::atomic<LONG> g_moduleRefs{0};
 static HMODULE g_module = nullptr;
 
-std::string DiagnosticJsonEscape(const std::string &value) {
-    std::string escaped;
-    for (unsigned char ch : value) {
-        switch (ch) {
-            case '\\': escaped += "\\\\"; break;
-            case '"': escaped += "\\\""; break;
-            case '\r': escaped += "\\r"; break;
-            case '\n': escaped += "\\n"; break;
-            case '\t': escaped += "\\t"; break;
-            default:
-                if (ch >= 0x20) escaped.push_back(static_cast<char>(ch));
-                break;
-        }
-    }
-    return escaped;
-}
-
-std::string DiagnosticWideToUtf8(const std::wstring &value) {
-    if (value.empty()) return {};
-    const int length = WideCharToMultiByte(CP_UTF8, 0, value.data(), static_cast<int>(value.size()),
-                                           nullptr, 0, nullptr, nullptr);
-    if (length <= 0) return {};
-    std::string output(static_cast<size_t>(length), '\0');
-    WideCharToMultiByte(CP_UTF8, 0, value.data(), static_cast<int>(value.size()),
-                        output.data(), length, nullptr, nullptr);
-    return output;
-}
-
-bool DiagnosticTargetProcess(std::wstring *processName) {
-    wchar_t modulePath[MAX_PATH] = {};
-    if (!GetModuleFileNameW(nullptr, modulePath, static_cast<DWORD>(_countof(modulePath)))) return false;
-    const wchar_t *name = PathFindFileNameW(modulePath);
-    if (processName) *processName = name ? name : L"unknown.exe";
-    return name && (_wcsicmp(name, L"SearchHost.exe") == 0 ||
-                    _wcsicmp(name, L"WeChat.exe") == 0 ||
-                    _wcsicmp(name, L"Weixin.exe") == 0);
-}
-
-bool DiagnosticsEnabled() {
-    DWORD enabled = 0;
-    DWORD size = sizeof(enabled);
-    return RegGetValueW(HKEY_CURRENT_USER, kRegionRegistryPath, L"DiagnosticsEnabled",
-                        RRF_RT_REG_DWORD, nullptr, &enabled, &size) == ERROR_SUCCESS && enabled != 0;
-}
-
-void DiagnosticLog(const char *event, const std::string &data = {}) {
-    static std::mutex mutex;
-    if (!event || !DiagnosticsEnabled()) return;
-    std::wstring processName;
-    if (!DiagnosticTargetProcess(&processName)) return;
-
-    wchar_t localAppData[MAX_PATH] = {};
-    if (!GetEnvironmentVariableW(L"LOCALAPPDATA", localAppData,
-                                 static_cast<DWORD>(_countof(localAppData)))) return;
-    std::wstring root = std::wstring(localAppData) + L"\\GannyuIME";
-    CreateDirectoryW(root.c_str(), nullptr);
-    std::wstring directory = root + L"\\Diagnostics";
-    CreateDirectoryW(directory.c_str(), nullptr);
-    wchar_t fileName[MAX_PATH] = {};
-    StringCchPrintfW(fileName, _countof(fileName), L"%s\\%s-%lu.jsonl", directory.c_str(),
-                     processName.c_str(), GetCurrentProcessId());
-
-    FILETIME fileTime = {};
-    GetSystemTimeAsFileTime(&fileTime);
-    ULARGE_INTEGER ticks = {};
-    ticks.LowPart = fileTime.dwLowDateTime;
-    ticks.HighPart = fileTime.dwHighDateTime;
-    const std::string process = DiagnosticJsonEscape(DiagnosticWideToUtf8(processName));
-    const std::string line = "{\"time100ns\":" + std::to_string(ticks.QuadPart) +
-        ",\"pid\":" + std::to_string(GetCurrentProcessId()) +
-        ",\"tid\":" + std::to_string(GetCurrentThreadId()) +
-        ",\"process\":\"" + process + "\",\"event\":\"" +
-        DiagnosticJsonEscape(event) + "\",\"data\":\"" +
-        DiagnosticJsonEscape(data) + "\"}\r\n";
-
-    std::lock_guard<std::mutex> lock(mutex);
-    HANDLE file = CreateFileW(fileName, FILE_APPEND_DATA, FILE_SHARE_READ | FILE_SHARE_WRITE,
-                              nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
-    if (file == INVALID_HANDLE_VALUE) return;
-    DWORD written = 0;
-    WriteFile(file, line.data(), static_cast<DWORD>(line.size()), &written, nullptr);
-    FlushFileBuffers(file);
-    CloseHandle(file);
-}
-
 static std::vector<std::string> parseStringField(const std::string &json, const std::string &field) {
     std::vector<std::string> out;
     const std::string marker = "\"" + field + "\":\"";
@@ -205,7 +119,12 @@ public:
     STDMETHODIMP_(ULONG) AddRef() override { return static_cast<ULONG>(InterlockedIncrement(&refs_)); }
     STDMETHODIMP_(ULONG) Release() override { LONG refs = InterlockedDecrement(&refs_); if (!refs) delete this; return static_cast<ULONG>(refs); }
     STDMETHODIMP Next(ULONG count, ITfCandidateString **items, ULONG *fetched) override { if (!items || !fetched) return E_INVALIDARG; *fetched = 0; while (*fetched < count && position_ < values_.size()) { items[*fetched] = new (std::nothrow) GannyuCandidateString(static_cast<ULONG>(position_), values_[position_++]); if (!items[*fetched]) return E_OUTOFMEMORY; ++*fetched; } return *fetched == count ? S_OK : S_FALSE; }
-    STDMETHODIMP Skip(ULONG count) override { position_ = std::min(values_.size(), position_ + count); return position_ < values_.size() ? S_OK : S_FALSE; }
+    STDMETHODIMP Skip(ULONG count) override {
+        const size_t remaining = values_.size() - std::min(position_, values_.size());
+        const size_t skipped = std::min(remaining, static_cast<size_t>(count));
+        position_ += skipped;
+        return skipped == static_cast<size_t>(count) ? S_OK : S_FALSE;
+    }
     STDMETHODIMP Reset() override { position_ = 0; return S_OK; }
     STDMETHODIMP Clone(IEnumTfCandidates **enumerator) override { if (!enumerator) return E_INVALIDARG; *enumerator = new (std::nothrow) GannyuCandidateEnumerator(values_, position_); return *enumerator ? S_OK : E_OUTOFMEMORY; }
 private:
@@ -307,22 +226,19 @@ public:
     STDMETHODIMP GetGUID(GUID *value) override { if (!value) return E_POINTER; *value = GannyuCandidateUiGuid; return S_OK; }
     STDMETHODIMP Show(BOOL show) override {
         shown_ = show;
-        DiagnosticLog("candidate-element-show", "show=" + std::to_string(show != FALSE));
         if (show_) show_(show);
         return S_OK;
     }
     STDMETHODIMP IsShown(BOOL *show) override { if (!show) return E_POINTER; *show = shown_; return S_OK; }
-    STDMETHODIMP GetUpdatedFlags(DWORD *flags) override { if (!flags) return E_POINTER; *flags = TF_CLUIE_DOCUMENTMGR | TF_CLUIE_STRING | TF_CLUIE_COUNT | TF_CLUIE_SELECTION | TF_CLUIE_PAGEINDEX | TF_CLUIE_CURRENTPAGE; DiagnosticLog("candidate-element-flags", "flags=" + std::to_string(*flags)); return S_OK; }
+    STDMETHODIMP GetUpdatedFlags(DWORD *flags) override { if (!flags) return E_POINTER; *flags = TF_CLUIE_DOCUMENTMGR | TF_CLUIE_STRING | TF_CLUIE_COUNT | TF_CLUIE_SELECTION | TF_CLUIE_PAGEINDEX | TF_CLUIE_CURRENTPAGE; return S_OK; }
     STDMETHODIMP GetDocumentMgr(ITfDocumentMgr **manager) override {
         if (!manager) return E_POINTER;
         *manager = nullptr;
-        const HRESULT hr = context_ ? context_->GetDocumentMgr(manager) : E_FAIL;
-        DiagnosticLog("candidate-element-document", "hr=" + std::to_string(hr) + " hasManager=" + std::to_string(*manager != nullptr));
-        return hr;
+        return context_ ? context_->GetDocumentMgr(manager) : E_FAIL;
     }
-    STDMETHODIMP GetCount(UINT *count) override { if (!count) return E_POINTER; *count = static_cast<UINT>(items_.size()); DiagnosticLog("candidate-element-count", "count=" + std::to_string(*count)); return S_OK; }
-    STDMETHODIMP GetSelection(UINT *index) override { if (!index) return E_POINTER; if (selection_ >= items_.size()) return S_FALSE; *index = static_cast<UINT>(selection_); DiagnosticLog("candidate-element-selection", "index=" + std::to_string(*index)); return S_OK; }
-    STDMETHODIMP GetString(UINT index, BSTR *value) override { if (!value) return E_POINTER; *value = nullptr; if (index >= items_.size()) return E_INVALIDARG; *value = SysAllocString(items_[index].text.c_str()); DiagnosticLog("candidate-element-string", "index=" + std::to_string(index) + " value=" + DiagnosticWideToUtf8(items_[index].text)); return *value ? S_OK : E_OUTOFMEMORY; }
+    STDMETHODIMP GetCount(UINT *count) override { if (!count) return E_POINTER; *count = static_cast<UINT>(items_.size()); return S_OK; }
+    STDMETHODIMP GetSelection(UINT *index) override { if (!index) return E_POINTER; if (selection_ >= items_.size()) return S_FALSE; *index = static_cast<UINT>(selection_); return S_OK; }
+    STDMETHODIMP GetString(UINT index, BSTR *value) override { if (!value) return E_POINTER; *value = nullptr; if (index >= items_.size()) return E_INVALIDARG; *value = SysAllocString(items_[index].text.c_str()); return *value ? S_OK : E_OUTOFMEMORY; }
     STDMETHODIMP GetPageIndex(UINT *index, UINT size, UINT *count) override {
         if (!count) return E_POINTER;
         *count = static_cast<UINT>(pageIndexes_.size());
@@ -350,7 +266,7 @@ public:
     STDMETHODIMP SetSelection(UINT index) override { if (index >= items_.size()) return E_INVALIDARG; selection_ = index; return S_OK; }
     STDMETHODIMP Finalize() override { if (selection_ >= items_.size()) return E_FAIL; finalize_(selection_); return S_OK; }
     STDMETHODIMP Abort() override { abort_(); return S_OK; }
-    STDMETHODIMP SetIntegrationStyle(GUID style) override { const HRESULT hr = IsEqualGUID(style, kSearchBoxIntegrationStyleGuid) ? S_OK : E_NOTIMPL; DiagnosticLog("candidate-element-integration-style", "searchBox=" + std::to_string(SUCCEEDED(hr)) + " hr=" + std::to_string(hr)); return hr; }
+    STDMETHODIMP SetIntegrationStyle(GUID style) override { return IsEqualGUID(style, kSearchBoxIntegrationStyleGuid) ? S_OK : E_NOTIMPL; }
     STDMETHODIMP GetSelectionStyle(TfIntegratableCandidateListSelectionStyle *style) override { if (!style) return E_POINTER; *style = STYLE_ACTIVE_SELECTION; return S_OK; }
     STDMETHODIMP OnKeyDown(WPARAM, LPARAM, BOOL *eaten) override { if (!eaten) return E_POINTER; *eaten = TRUE; return S_OK; }
     STDMETHODIMP ShowCandidateNumbers(BOOL *show) override { if (!show) return E_POINTER; *show = TRUE; return S_OK; }
@@ -820,10 +736,6 @@ public:
                 hr = CancelComposition(editCookie);
                 break;
         }
-        DiagnosticLog("composition-edit", "action=" + std::to_string(static_cast<int>(action_)) +
-                      " hr=" + std::to_string(hr) +
-                      " caret=" + std::to_string(caret_) +
-                      " text=" + DiagnosticWideToUtf8(text_));
         if (completion_) completion_(hr);
         return hr;
     }
@@ -1292,13 +1204,6 @@ public:
             englishMode_ = false;
             SetKeyboardConversionMode(false);
         }
-        DiagnosticLog("activate", "flags=" + std::to_string(flags) +
-                      " activeFlags=" + std::to_string(activeFlags) +
-                      " uiLess=" + std::to_string(uiLessMode_) +
-                      " immersive=" + std::to_string(immersiveMode_) +
-                      " keyboardOpen=" + std::to_string(keyboardOpen != FALSE) +
-                      " conversion=" + std::to_string(conversionMode) +
-                      " english=" + std::to_string(englishMode_));
         if (langBarButton_ && regionIds_.size() > 1) {
             ITfLangBarItemMgr *langBarMgr = nullptr;
             if (SUCCEEDED(threadMgr_->QueryInterface(IID_ITfLangBarItemMgr, reinterpret_cast<void **>(&langBarMgr))) && langBarMgr) {
@@ -1314,7 +1219,6 @@ public:
     }
 
     STDMETHODIMP Deactivate() override {
-        DiagnosticLog("deactivate");
         profileActive_ = false;
         foregroundFocused_ = false;
         ResetShiftState();
@@ -1372,9 +1276,6 @@ public:
             profileActive_ = false;
         }
         ResetShiftState();
-        DiagnosticLog("profile-activated", "own=" + std::to_string(ownProfile) +
-                      " activated=" + std::to_string(activated != FALSE) +
-                      " profileActive=" + std::to_string(profileActive_));
         if (profileActive_ && foregroundFocused_) {
             if (EnsureStatusBar()) UpdateStatusBar();
         } else if (!profileActive_) {
@@ -1391,8 +1292,6 @@ public:
         ResetShiftState();
         SetActiveContext(nullptr);
         foregroundFocused_ = documentMgr != nullptr && IsCurrentThreadForeground();
-        DiagnosticLog("thread-focus", "hasDocument=" + std::to_string(documentMgr != nullptr) +
-                      " foreground=" + std::to_string(foregroundFocused_));
         if (profileActive_ && foregroundFocused_) {
             if (EnsureStatusBar()) UpdateStatusBar();
         } else {
@@ -1406,7 +1305,6 @@ public:
 
     STDMETHODIMP OnSetFocus(BOOL foreground) override {
         foregroundFocused_ = foreground != FALSE;
-        DiagnosticLog("key-focus", "foreground=" + std::to_string(foregroundFocused_));
         ResetShiftState();
         if (!foregroundFocused_) {
             SetActiveContext(nullptr);
@@ -1435,18 +1333,12 @@ public:
             shiftPressed_ = true;
             shiftUsedWithOtherKey_ = false;
             *eaten = TRUE;
-            DiagnosticLog("key-down", "vk=" + std::to_string(key) + " eaten=1 shift=1");
             return S_OK;
         }
         if (shiftPressed_) {
             shiftUsedWithOtherKey_ = true;
         }
         *eaten = HandleKey(context, key) ? TRUE : FALSE;
-        DiagnosticLog("key-down", "vk=" + std::to_string(key) +
-                      " eaten=" + std::to_string(*eaten != FALSE) +
-                      " buffer=" + DiagnosticWideToUtf8(Utf8ToWide(buffer_)) +
-                      " candidates=" + std::to_string(candidates_.size()) +
-                      " selection=" + std::to_string(selectedIndex_));
         return S_OK;
     }
 
@@ -1488,7 +1380,6 @@ public:
         if (IsEqualGUID(compartment, GUID_COMPARTMENT_KEYBOARD_OPENCLOSE)) {
             BOOL open = TRUE;
             if (ReadKeyboardOpen(&open)) {
-                DiagnosticLog("compartment-openclose", "open=" + std::to_string(open != FALSE));
                 Reset();
                 if (statusWindow_) {
                     InvalidateRect(statusWindow_, nullptr, TRUE);
@@ -1499,8 +1390,6 @@ public:
             DWORD conversionMode = 0;
             if (ReadKeyboardConversionMode(&conversionMode)) {
                 englishMode_ = (conversionMode & TF_CONVERSIONMODE_NATIVE) == 0;
-                DiagnosticLog("compartment-conversion", "mode=" + std::to_string(conversionMode) +
-                              " english=" + std::to_string(englishMode_));
                 Reset();
                 if (statusWindow_) {
                     InvalidateRect(statusWindow_, nullptr, TRUE);
@@ -1765,10 +1654,6 @@ private:
         const HRESULT get = compartment->GetValue(&value);
         const bool valid = SUCCEEDED(get) && value.vt == VT_I4;
         if (valid) *open = value.lVal != 0;
-        DiagnosticLog("read-openclose", "hr=" + std::to_string(get) +
-                      " vt=" + std::to_string(value.vt) +
-                      " valid=" + std::to_string(valid) +
-                      " value=" + std::to_string(valid ? value.lVal : 0));
         VariantClear(&value);
         compartment->Release();
         compartmentMgr->Release();
@@ -1793,10 +1678,6 @@ private:
         const HRESULT get = compartment->GetValue(&value);
         const bool valid = SUCCEEDED(get) && value.vt == VT_I4;
         if (valid) *mode = static_cast<DWORD>(value.lVal);
-        DiagnosticLog("read-conversion", "hr=" + std::to_string(get) +
-                      " vt=" + std::to_string(value.vt) +
-                      " valid=" + std::to_string(valid) +
-                      " value=" + std::to_string(valid ? value.lVal : 0));
         VariantClear(&value);
         compartment->Release();
         compartmentMgr->Release();
@@ -1815,9 +1696,7 @@ private:
             VariantInit(&value);
             value.vt = VT_I4;
             value.lVal = open;
-            const HRESULT set = compartment->SetValue(clientId_, &value);
-            DiagnosticLog("set-openclose", "value=" + std::to_string(open != FALSE) +
-                          " hr=" + std::to_string(set));
+            compartment->SetValue(clientId_, &value);
             VariantClear(&value);
             compartment->Release();
         }
@@ -1841,10 +1720,7 @@ private:
             value.vt = VT_I4;
             value.lVal = english ? mode & ~TF_CONVERSIONMODE_NATIVE
                                  : mode | TF_CONVERSIONMODE_NATIVE;
-            const HRESULT set = compartment->SetValue(clientId_, &value);
-            DiagnosticLog("set-conversion", "english=" + std::to_string(english) +
-                          " value=" + std::to_string(value.lVal) +
-                          " hr=" + std::to_string(set));
+            compartment->SetValue(clientId_, &value);
             VariantClear(&value);
             compartment->Release();
         }
@@ -2148,10 +2024,6 @@ private:
         HRESULT request = context->RequestEditSession(
             clientId_, session, TF_ES_ASYNCDONTCARE | TF_ES_READWRITE, &editResult);
         session->Release();
-        DiagnosticLog("composition-request", "action=" + std::to_string(static_cast<int>(action)) +
-                      " request=" + std::to_string(request) +
-                      " edit=" + std::to_string(editResult) +
-                      " text=" + DiagnosticWideToUtf8(text));
         return SUCCEEDED(request) && SUCCEEDED(editResult);
     }
 
@@ -2244,11 +2116,6 @@ private:
     }
 
     void UpdateCandidateUiElement() {
-        DiagnosticLog("candidate-ui-update", "hasManager=" + std::to_string(uiElementMgr_ != nullptr) +
-                      " uiLess=" + std::to_string(uiLessMode_) +
-                      " immersive=" + std::to_string(immersiveMode_) +
-                      " count=" + std::to_string(candidates_.size()) +
-                      " selection=" + std::to_string(selectedIndex_));
         if (!uiElementMgr_) return;
         if (!uiLessMode_) { EndCandidateUiElement(); return; }
         if (candidates_.empty()) { EndCandidateUiElement(); return; }
@@ -2277,9 +2144,6 @@ private:
             if (!candidateUi_) return;
             BOOL show = TRUE;
             const HRESULT begin = uiElementMgr_->BeginUIElement(candidateUi_, &show, &candidateUiId_);
-            DiagnosticLog("candidate-ui-begin", "hr=" + std::to_string(begin) +
-                          " show=" + std::to_string(show != FALSE) +
-                          " id=" + std::to_string(candidateUiId_));
             if (FAILED(begin)) {
                 candidateUi_->Release(); candidateUi_ = nullptr; return;
             }
@@ -2289,18 +2153,13 @@ private:
             candidateUi_->UpdateSnapshot(candidates_, selectedIndex_);
         }
         if (!candidateUiShown_) {
-            const HRESULT update = uiElementMgr_->UpdateUIElement(candidateUiId_);
-            DiagnosticLog("candidate-ui-notify", "hr=" + std::to_string(update) +
-                          " id=" + std::to_string(candidateUiId_));
+            uiElementMgr_->UpdateUIElement(candidateUiId_);
         }
     }
 
     void EndCandidateUiElement() {
         if (!candidateUi_) return;
-        HRESULT end = E_NOINTERFACE;
-        if (uiElementMgr_) end = uiElementMgr_->EndUIElement(candidateUiId_);
-        DiagnosticLog("candidate-ui-end", "hr=" + std::to_string(end) +
-                      " id=" + std::to_string(candidateUiId_));
+        if (uiElementMgr_) uiElementMgr_->EndUIElement(candidateUiId_);
         candidateUi_->Release();
         candidateUi_ = nullptr;
         candidateUiId_ = TF_INVALID_UIELEMENTID;
@@ -2470,8 +2329,6 @@ private:
                 SetWindowLongPtrW(candidateWindow_, GWLP_HWNDPARENT,
                                   reinterpret_cast<LONG_PTR>(ownerWindow));
                 candidateOwnerWindow_ = ownerWindow;
-                DiagnosticLog("candidate-owner", "updated=1 owner=" +
-                              std::to_string(reinterpret_cast<uintptr_t>(ownerWindow)));
             }
             return true;
         }
@@ -2497,11 +2354,6 @@ private:
             this
         );
         candidateOwnerWindow_ = candidateWindow_ ? ownerWindow : nullptr;
-        const DWORD createError = candidateWindow_ ? ERROR_SUCCESS : GetLastError();
-        DiagnosticLog("candidate-window-create", "success=" + std::to_string(candidateWindow_ != nullptr) +
-                      " immersive=" + std::to_string(immersiveMode_) +
-                      " owner=" + std::to_string(reinterpret_cast<uintptr_t>(ownerWindow)) +
-                      " error=" + std::to_string(createError));
         return candidateWindow_ != nullptr;
     }
 
@@ -2599,10 +2451,6 @@ private:
         EnsureFonts(dpi);
 
         RECT anchor = AnchorRect();
-        DiagnosticLog("candidate-anchor", "left=" + std::to_string(anchor.left) +
-                      " top=" + std::to_string(anchor.top) +
-                      " right=" + std::to_string(anchor.right) +
-                      " bottom=" + std::to_string(anchor.bottom));
         RECT workArea{};
         MONITORINFO monitorInfo{sizeof(monitorInfo)};
         HMONITOR monitor = MonitorFromRect(&anchor, MONITOR_DEFAULTTONEAREST);
@@ -2679,11 +2527,6 @@ private:
         }
 
         SetWindowPos(candidateWindow_, HWND_TOPMOST, x, y, popupSize_.cx, popupSize_.cy, SWP_NOACTIVATE | SWP_SHOWWINDOW);
-        DiagnosticLog("candidate-window-show", "x=" + std::to_string(x) +
-                      " y=" + std::to_string(y) +
-                      " width=" + std::to_string(popupSize_.cx) +
-                      " height=" + std::to_string(popupSize_.cy) +
-                      " owner=" + std::to_string(reinterpret_cast<uintptr_t>(candidateOwnerWindow_)));
         InvalidateRect(candidateWindow_, nullptr, TRUE);
         UpdateWindow(candidateWindow_);
         if (EnsureStatusBar()) UpdateStatusBar();

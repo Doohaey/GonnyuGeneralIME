@@ -4,6 +4,14 @@ project(GannyuTextService LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(GANNYU_FFI_LIBRARY
+    "${CMAKE_SOURCE_DIR}/../../../target/release/gannyu_input_ffi.lib"
+    CACHE FILEPATH "Path to the architecture-matched gannyu_input_ffi static library"
+)
+if (NOT EXISTS "${GANNYU_FFI_LIBRARY}")
+    message(FATAL_ERROR "Missing architecture-matched FFI library: ${GANNYU_FFI_LIBRARY}")
+endif()
+
 add_library(GannyuTextService SHARED
     GannyuTextService.cpp
     GannyuTextService.def
@@ -28,11 +36,12 @@ if (MSVC)
 endif()
 
 target_link_libraries(GannyuTextService PRIVATE
-    ${CMAKE_SOURCE_DIR}/../../../target/release/gannyu_input_ffi.lib
+    "${GANNYU_FFI_LIBRARY}"
     advapi32
     gdi32
     ntdll
     ole32
+    oleaut32
     shlwapi
     user32
     # Rust std on Windows links against these system libraries.

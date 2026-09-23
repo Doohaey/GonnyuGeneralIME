@@ -36,6 +36,9 @@ def _as_ints(version: str) -> tuple[int, ...]:
 def test_pre_release_versions_keep_msi_order_in_three_fields() -> None:
     assert _installer_versions("0.2.4-pre.8") == ("0.2.4012", "0.2.4.8")
     assert _installer_versions("0.2.4-pre.10") == ("0.2.4014", "0.2.4.10")
+    assert _as_ints(_installer_versions("1.0.2-pre.1")[0]) < _as_ints(
+        _installer_versions("1.0.2-pre.2")[0]
+    )
 
 
 def test_stable_version_sorts_after_its_pre_releases() -> None:

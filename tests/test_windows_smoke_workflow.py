@@ -9,9 +9,45 @@ def test_windows_workflow_runs_installer_smoke_test() -> None:
     script = (ROOT / "platforms/windows/smoke_installer.ps1").read_text(encoding="utf-8")
     assert "smoke_installer.ps1" in workflow
     assert "/uninstall" in script
-    assert "GonnyuGeneralIME\\GannyuTextService.dll" in script
+    assert "GonnyuGeneralIME\\x64\\GannyuTextService.dll" in script
+    assert "GonnyuGeneralIME\\x86\\GannyuTextService.dll" in script
     assert "GonnyuGeneralIME\\tutorial.html" in script
     assert "-notin 0, 3010" in script
+    assert "Get-PeMachine" in script
+    assert "0x8664" in script
+    assert "0x014c" in script
+    assert 'Assert-ComRegistration "64"' in script
+    assert 'Assert-ComRegistration "32"' in script
+    assert 'Assert-ComRegistrationAbsent "64"' in script
+    assert 'Assert-ComRegistrationAbsent "32"' in script
+
+
+def test_windows_installer_builds_and_registers_both_process_architectures() -> None:
+    workflow = (ROOT / ".github/workflows/windows.yml").read_text(encoding="utf-8")
+    build = (ROOT / "platforms/windows/build_installer.bat").read_text(encoding="utf-8")
+    cmake = (ROOT / "platforms/windows/GannyuTextService/CMakeLists.txt").read_text(encoding="utf-8")
+    installer = (ROOT / "platforms/windows/Installer.wxs").read_text(encoding="utf-8")
+
+    assert "rustup target add x86_64-pc-windows-msvc i686-pc-windows-msvc" in workflow
+    assert "--target x86_64-pc-windows-msvc" in build
+    assert "--target i686-pc-windows-msvc" in build
+    assert "cmake-x64" in build
+    assert "cmake-x86" in build
+    assert ":load_vs" in build
+    assert "-arch=x64" not in build
+    assert "-arch=%~1" in build
+    assert "DllPathX64" in build
+    assert "DllPathX86" in build
+    assert "GANNYU_FFI_LIBRARY" in cmake
+    assert "oleaut32" in cmake
+    assert installer.count('Bitness="always64"') == 1
+    assert installer.count('Bitness="always32"') == 1
+    assert 'Directory="System64Folder"' in installer
+    assert 'Directory="SystemFolder"' in installer
+    assert "GannyuTextServiceDllX64" in installer
+    assert "GannyuTextServiceDllX86" in installer
+    assert "RegisterGannyuTextServiceX64" in installer
+    assert "RegisterGannyuTextServiceX86" in installer
 
 
 def test_windows_toolbar_stays_visible_without_candidates() -> None:
@@ -201,6 +237,14 @@ def test_windows_rime_page_keys_include_minus_and_equal() -> None:
     assert "key == VK_OEM_PERIOD || key == VK_OEM_PLUS" in source
 
 
+def test_windows_candidate_enumerator_is_safe_for_x86_size_types() -> None:
+    source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
+    enumerator = source.split("class GannyuCandidateEnum", 1)[1].split("class GannyuCandidateList", 1)[0]
+
+    assert "const size_t skipped = std::min(remaining, static_cast<size_t>(count));" in enumerator
+    assert "return skipped == static_cast<size_t>(count) ? S_OK : S_FALSE;" in enumerator
+
+
 def test_windows_focus_changes_isolate_composition_state_and_hide_stale_ui() -> None:
     source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
     context = source.split("void SetActiveContext(ITfContext *context)", 1)[1].split("LONG refs_", 1)[0]
@@ -253,20 +297,6 @@ def test_windows_immersive_popup_is_owned_by_the_active_view() -> None:
     assert "GetAncestor(ownerWindow, GA_ROOT)" in ensure
     assert "ownerProcessId != GetCurrentProcessId()" in ensure
     assert "GWLP_HWNDPARENT" in ensure
-
-
-def test_windows_host_diagnostics_are_opt_in_and_scoped() -> None:
-    source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(encoding="utf-8")
-
-    assert 'L"DiagnosticsEnabled"' in source
-    assert 'L"SearchHost.exe"' in source
-    assert 'L"WeChat.exe"' in source
-    assert 'L"Weixin.exe"' in source
-    assert 'L"\\\\Diagnostics"' in source
-    assert 'DiagnosticLog("candidate-ui-begin"' in source
-    assert 'DiagnosticLog("candidate-window-show"' in source
-    assert 'DiagnosticLog("read-conversion"' in source
-    assert 'L"QQ.exe"' not in source
 
 
 def test_windows_toolbar_clicks_use_drawn_button_rectangles() -> None:
