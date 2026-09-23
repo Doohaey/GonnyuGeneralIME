@@ -83,7 +83,7 @@ Write-Host "After uninstall x86 DLL exists=$(Test-Path -LiteralPath $installedDl
 Write-Host "After uninstall tutorial exists=$(Test-Path -LiteralPath $installedTutorial -PathType Leaf)"
 foreach ($view in @("64", "32")) {
   $remaining = & reg.exe query $clsidKey "/reg:$view" 2>&1
-  Write-Host "After uninstall $view-bit COM query exit=$LASTEXITCODE:`n$($remaining -join "`n")"
+  Write-Host "After uninstall $view-bit COM query exit=${LASTEXITCODE}:`n$($remaining -join "`n")"
 }
 if (Test-Path -LiteralPath $installedDllX64 -PathType Leaf) {
   throw "x64 text service remains after uninstall: $installedDllX64"
