@@ -44,13 +44,14 @@ jobs:
           merge-multiple: true
       - name: Remove non-release artifacts
         shell: bash
-        run: find release-assets -maxdepth 1 -type f ! \( \
-          -name 'GonnyuGeneralIME-${{ steps.product.outputs.version }}-rime-*.zip' -o \
-          -name 'GonnyuGeneralIME-${{ steps.product.outputs.version }}-android.apk' -o \
-          -name 'GonnyuGeneralIME-${{ steps.product.outputs.version }}-fcitx5.tar.gz' -o \
-          -name 'GonnyuGeneralIME-${{ steps.product.outputs.version }}-windows-installer.exe' -o \
-          -name 'GonnyuGeneralIME-${{ steps.product.outputs.version }}-macos.pkg' \
-        \) -delete
+        run: |
+          find release-assets -maxdepth 1 -type f ! \( \
+            -name 'GonnyuGeneralIME-${{ steps.product.outputs.version }}-rime-*.zip' -o \
+            -name 'GonnyuGeneralIME-${{ steps.product.outputs.version }}-android.apk' -o \
+            -name 'GonnyuGeneralIME-${{ steps.product.outputs.version }}-fcitx5.tar.gz' -o \
+            -name 'GonnyuGeneralIME-${{ steps.product.outputs.version }}-windows-installer.exe' -o \
+            -name 'GonnyuGeneralIME-${{ steps.product.outputs.version }}-macos.pkg' \
+          \) -delete
       - env:
           PRODUCT_VERSION: ${{ steps.product.outputs.version }}
           GH_TOKEN: ${{ github.token }}
