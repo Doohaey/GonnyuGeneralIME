@@ -76,7 +76,7 @@ def test_macos_installer_handles_relocated_user_input_method() -> None:
     postinstall = (ROOT / "platforms/macos/Scripts/postinstall").read_text(encoding="utf-8")
 
     assert 'cp "$script_dir/Scripts/common.sh" "$stage_dir/scripts/common.sh"' in package
-    assert "gonny_user_target" in common
+    assert "gonnyu_user_target" in common
     assert "Users/$console_user" in common
     assert "Detailed log:" in common
     assert "source \"$scripts_dir/common.sh\"" in preinstall
