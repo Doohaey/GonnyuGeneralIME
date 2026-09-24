@@ -128,7 +128,7 @@
 
 ## 安装方法
 
-输入法主体覆盖 Linux、Android、Windows 和 macOS。iOS 使用通用 Rime 资源包，安装方法见 Rime 章节。
+输入法主体覆盖 Linux、Android、Windows 和 macOS。如使用通用 Rime 资源包，安装方法见 Rime 章节。
 
 从 [Releases](https://github.com/Doohaey/GonnyuGeneralIME/releases) 下载与系统相符或者对应区域的文件。
 
@@ -142,7 +142,7 @@
 
 ### iOS
 
-iOS 上使用输入法时，见 Rime 章节。
+iOS 上使用输入法时，除法国用户外，请直接到app store下载＂赣语输入法＂。
 
 ### Android
 
