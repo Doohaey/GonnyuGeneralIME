@@ -40,6 +40,7 @@ mkdir -p "$stage_dir/root/Library/Input Methods" "$stage_dir/scripts" "$output_d
 ditto "$bundle" "$stage_dir/root/Library/Input Methods/GonnyuInputMethod.app"
 find "$stage_dir/root" -name '._*' -type f -delete
 cp "$script_dir/check_installer_version.sh" "$stage_dir/scripts/check_installer_version.sh"
+cp "$script_dir/Scripts/common.sh" "$stage_dir/scripts/common.sh"
 cp "$script_dir/Scripts/postinstall" "$stage_dir/scripts/postinstall"
 sed "s/@VERSION@/$version/g" "$script_dir/Scripts/preinstall.template" > "$stage_dir/scripts/preinstall"
 chmod 0755 "$stage_dir/scripts/"*

@@ -1,19 +1,34 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-target="/Library/Input Methods/GonnyuInputMethod.app"
-backup="/Library/Input Methods/.GonnyuInputMethod.previous.app"
+scripts_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$scripts_dir/common.sh"
+gonnyu_init_logging
+gonnyu_resolve_target
+gonnyu_log "target=$gonnyu_target"
 lsregister="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
 
 restore_previous() {
-  if [[ -d "$target" ]]; then mv "$target" "$target.failed"; fi
-  if [[ -d "$backup" ]]; then
-    mv "$backup" "$target"
-    if [[ -x "$lsregister" ]]; then "$lsregister" -f "$target" >/dev/null 2>&1 || true; fi
-  fi
+  status="$?"
+  gonny_log "postinstall failed with exit status $status"
+  if [[ -d "$gonny_target" ]]; then mv "$gonny_target" "$gonny_failed"; fi
+  while IFS= read -r recovery_path; do
+    if [[ -d "$recovery_path" ]]; then
+      recovery_target="${recovery_path%/.GonnyuInputMethod.previous.app}/GonnyuInputMethod.app"
+      mv "$recovery_path" "$recovery_target"
+      if [[ -x "$lsregister" ]]; then "$lsregister" -f "$recovery_target" >/dev/null 2>&1 || true; fi
+      break
+    fi
+  done < <(gonnyu_recovery_paths)
+  printf 'Gonnyu installer failed. Detailed log: %s\n' "$gonnyu_log_file" >&2
+  exit "$status"
 }
 trap restore_previous ERR
-codesign --verify --deep --strict "$target"
-if [[ -x "$lsregister" ]]; then "$lsregister" -f "$target" >/dev/null; fi
+[[ -d "$gonnyu_target" ]] || { echo "installed Gonnyu bundle not found: $gonnyu_target" >&2; exit 1; }
+codesign --verify --deep --strict "$gonnyu_target"
+if [[ -x "$lsregister" ]]; then "$lsregister" -f "$gonnyu_target" >/dev/null; fi
 trap - ERR
-if [[ -d "$backup" ]]; then rm -rf "$backup"; fi
+while IFS= read -r recovery_path; do
+  [[ ! -e "$recovery_path" ]] || rm -rf "$recovery_path"
+done < <(gonnyu_recovery_paths)
+gonnyu_log "installation completed at $gonnyu_target"

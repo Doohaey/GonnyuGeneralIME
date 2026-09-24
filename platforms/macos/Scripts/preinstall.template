@@ -2,11 +2,18 @@
 set -euo pipefail
 
 scripts_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-target="/Library/Input Methods/GonnyuInputMethod.app"
-backup="/Library/Input Methods/.GonnyuInputMethod.previous.app"
-failed="/Library/Input Methods/GonnyuInputMethod.app.failed"
+source "$scripts_dir/common.sh"
+trap gonnyu_fail ERR
+gonnyu_init_logging
+gonnyu_resolve_target
+gonnyu_log "target=$gonnyu_target"
 
-[[ ! -e "$backup" ]] || { echo "previous Gonnyu backup requires manual recovery: $backup" >&2; exit 1; }
-[[ ! -e "$failed" ]] || { echo "previous failed Gonnyu upgrade requires manual recovery: $failed" >&2; exit 1; }
-bash "$scripts_dir/check_installer_version.sh" "@VERSION@" "$target/Contents/Info.plist"
-if [[ -d "$target" ]]; then mv "$target" "$backup"; fi
+while IFS= read -r recovery_path; do
+  [[ ! -e "$recovery_path" ]] || { echo "previous Gonnyu backup requires manual recovery: $recovery_path" >&2; exit 1; }
+done < <(gonnyu_recovery_paths)
+while IFS= read -r failed_path; do
+  [[ ! -e "$failed_path" ]] || { echo "previous failed Gonnyu upgrade requires manual recovery: $failed_path" >&2; exit 1; }
+done < <(gonnyu_failed_paths)
+bash "$scripts_dir/check_installer_version.sh" "@VERSION@" "$gonnyu_target/Contents/Info.plist"
+if [[ -d "$gonnyu_target" ]]; then mv "$gonnyu_target" "$gonnyu_backup"; fi
+gonnyu_log "moved previous installation to $gonnyu_backup"

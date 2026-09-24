@@ -69,6 +69,22 @@ def test_macos_package_declares_host_and_smoke_targets() -> None:
     assert (ROOT / "platforms/macos/Resources/zh-Hans.lproj/InfoPlist.strings").is_file()
 
 
+def test_macos_installer_handles_relocated_user_input_method() -> None:
+    package = (ROOT / "platforms/macos/package.sh").read_text(encoding="utf-8")
+    common = (ROOT / "platforms/macos/Scripts/common.sh").read_text(encoding="utf-8")
+    preinstall = (ROOT / "platforms/macos/Scripts/preinstall.template").read_text(encoding="utf-8")
+    postinstall = (ROOT / "platforms/macos/Scripts/postinstall").read_text(encoding="utf-8")
+
+    assert 'cp "$script_dir/Scripts/common.sh" "$stage_dir/scripts/common.sh"' in package
+    assert "gonny_user_target" in common
+    assert "Users/$console_user" in common
+    assert "Detailed log:" in common
+    assert "source \"$scripts_dir/common.sh\"" in preinstall
+    assert "source \"$scripts_dir/common.sh\"" in postinstall
+    assert "gonnyu_resolve_target" in preinstall
+    assert "gonnyu_resolve_target" in postinstall
+
+
 def test_macos_uses_custom_candidates_with_native_positioning_fallback() -> None:
     panel = (
         ROOT / "platforms/macos/Sources/GannyuInputMethodHost/GannyuCandidatePanel.swift"
