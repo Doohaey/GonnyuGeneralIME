@@ -570,3 +570,4 @@ Windows 小狼毫将压缩包内容复制到 `%APPDATA%\Rime`，在输入法菜�
 4. AstroChung. 弋阳拼音.
 5. 江南西道客. 丰城词典资源. yunmoqingchen@qq.com.
 6. 剑邑 Jason. 丰城. 程序测试与反馈.
+7. Brian Z. 新喻（新余）话字音与词汇. https://github.com/BrianIZKom1911
