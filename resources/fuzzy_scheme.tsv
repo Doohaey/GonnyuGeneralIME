@@ -68,7 +68,7 @@ tiqien	coda		p			syllable-final	false	false	fallback		自动生成：完整音�
 tiqien	coda	k	p			syllable-final	true	false	secondary		自动生成：完整音系检测到两种入声韵尾，允许互相模糊
 sinyi	coda		t			syllable-final	false	false	fallback		
 sinyi	coda		k			syllable-final	false	false	fallback		
-sinyi	coda	t	k			syllable-final	true	false	secondary		
+sinyi	coda	k	t			syllable-final	true	false	secondary		
 songau	coda		k			syllable-final	false	false	fallback		自动生成：完整音系检测到该入声韵尾，输入省略韵尾时匹配带尾形式
 songau	coda		t			syllable-final	false	false	fallback		自动生成：完整音系检测到该入声韵尾，输入省略韵尾时匹配带尾形式
 songau	coda	k	t			syllable-final	true	false	secondary		自动生成：完整音系检测到两种入声韵尾，允许互相模糊

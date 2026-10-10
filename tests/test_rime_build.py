@@ -412,7 +412,7 @@ def test_builds_sinyi_dictionary_with_starred_tone_markers(tmp_path: Path) -> No
 
     dictionary = (tmp_path / "gannyu_sinyi.dict.yaml").read_text(encoding="utf-8")
     assert counts["entries"] > 0
-    assert "七\tGqiêt\t" in dictionary
+    assert "切\tGqiêt\t" in dictionary
     assert "Gqiêt5" not in dictionary
     assert "Gqiêt5*" not in dictionary
     schema = (tmp_path / "gannyu_sinyi.schema.yaml").read_text(encoding="utf-8")
