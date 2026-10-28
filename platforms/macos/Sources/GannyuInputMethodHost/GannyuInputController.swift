@@ -242,10 +242,13 @@ final class GannyuInputController: IMKInputController {
             client.insertText(text, replacementRange: NSRange(location: NSNotFound, length: 0))
             return true
         }
-        if !active, fullwidthPunctuation, let symbol = fullwidthSymbol(for: text) {
-            guard let client = GannyuTextClient(sender) else { return false }
-            client.insertText(symbol, replacementRange: NSRange(location: NSNotFound, length: 0))
-            return true
+        if !active, fullwidthPunctuation {
+            let symbol = text == "\"" ? smartDoubleQuote(client: sender) : fullwidthSymbol(for: text)
+            if let symbol {
+                guard let client = GannyuTextClient(sender) else { return false }
+                client.insertText(symbol, replacementRange: NSRange(location: NSNotFound, length: 0))
+                return true
+            }
         }
         if active && (text == "," || text == "<") { return page(-1, client: sender) }
         if active && (text == "." || text == ">") { return page(1, client: sender) }
@@ -285,11 +288,31 @@ final class GannyuInputController: IMKInputController {
         case "]": return "】"
         case "<": return "《"
         case ">": return "》"
-        case "\"": return "＂"
         case "~": return "～"
         case "-": return "－"
         default: return nil
         }
+    }
+
+    private func smartDoubleQuote(client sender: Any!) -> String {
+        guard let client = GannyuTextClient(sender) else { return "“" }
+        let selected = client.selectedRange()
+        guard selected.location != NSNotFound else { return "“" }
+        let length = min(200, max(0, selected.location))
+        guard length > 0 else { return "“" }
+        let range = NSRange(location: selected.location - length, length: length)
+        guard let before = client.attributedSubstring(from: range)?.string else {
+            return "“"
+        }
+        return Self.smartDoubleQuote(for: before)
+    }
+
+    private static func smartDoubleQuote(for text: String) -> String {
+        let line = text.split(separator: "\n", omittingEmptySubsequences: false).last.map(String.init) ?? text
+        let window = String(line.suffix(200))
+        let open = window.filter { $0 == "“" }.count
+        let close = window.filter { $0 == "”" }.count
+        return open > close ? "”" : "“"
     }
 
     private func process(_ event: GannyuKeyEvent, client sender: Any!, consume: Bool = false) -> Bool {
@@ -704,6 +727,10 @@ private struct GannyuTextClient {
         }
         native = nil
         self.object = object
+    }
+
+    func attributedSubstring(from range: NSRange) -> NSAttributedString? {
+        native?.attributedSubstring(from: range)
     }
 
     func insertText(_ text: String, replacementRange: NSRange) {
