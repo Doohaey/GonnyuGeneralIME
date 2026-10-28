@@ -76,39 +76,6 @@ std::string buildCandidateDisplay(const RankedItem &item) {
     return item.text;
 }
 
-std::string smartDoubleQuoteForText(const std::string &text) {
-    size_t lineStart = text.find_last_of('\n');
-    std::string line = lineStart == std::string::npos ? text : text.substr(lineStart + 1);
-    if (line.size() > 600) {
-        line = line.substr(line.size() - 600);
-    }
-    const std::string left = "\xE2\x80\x9C";
-    const std::string right = "\xE2\x80\x9D";
-    int open = 0;
-    int close = 0;
-    for (size_t pos = 0; (pos = line.find(left, pos)) != std::string::npos; pos += left.size()) {
-        ++open;
-    }
-    for (size_t pos = 0; (pos = line.find(right, pos)) != std::string::npos; pos += right.size()) {
-        ++close;
-    }
-    return open > close ? right : left;
-}
-
-std::string smartDoubleQuote(fcitx::InputContext *ic) {
-    if (!ic) {
-        return "\xE2\x80\x9C";
-    }
-    const auto &surrounding = ic->surroundingText();
-    const std::string &text = surrounding.text();
-    size_t cursor = surrounding.cursor();
-    if (cursor > text.size()) {
-        cursor = text.size();
-    }
-    size_t start = cursor > 600 ? cursor - 600 : 0;
-    return smartDoubleQuoteForText(text.substr(start, cursor - start));
-}
-
 /* Map common ASCII punctuation to Chinese full-width equivalents.
  * Returns a UTF-8 string, or empty if no mapping exists. */
 std::string chineseFullwidthSymbol(int sym) {
@@ -211,6 +178,13 @@ public:
     std::string accumulatedReading;
     std::string accumulatedMandarinReading;
     std::string originalInput;
+    bool doubleQuoteOpen = false;
+
+    std::string nextDoubleQuote() {
+        bool opening = doubleQuoteOpen;
+        doubleQuoteOpen = !doubleQuoteOpen;
+        return opening ? "\xE2\x80\x9D" : "\xE2\x80\x9C";
+    }
 };
 
 class GannyuEngine;
@@ -567,7 +541,7 @@ public:
                 ic->commitString(letters);
                 resetState(ic, state);
             }
-            std::string fw = sym == '"' ? smartDoubleQuote(ic) : chineseFullwidthSymbol(static_cast<int>(sym));
+            std::string fw = sym == '"' ? state->nextDoubleQuote() : chineseFullwidthSymbol(static_cast<int>(sym));
             ic->commitString(fw.empty() ? std::string(1, static_cast<char>(sym)) : fw);
             event.filterAndAccept();
             return;
@@ -575,7 +549,7 @@ public:
         /* Convert common ASCII punctuation to Chinese full-width when buffer is empty */
         if (state->buffer.empty() && sym >= 0x20 && sym <= 0x7E) {
             if (sym == '"') {
-                ic->commitString(smartDoubleQuote(ic));
+                ic->commitString(state->nextDoubleQuote());
                 event.filterAndAccept();
                 return;
             }

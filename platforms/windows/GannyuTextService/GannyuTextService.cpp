@@ -554,24 +554,6 @@ const wchar_t *FullwidthSymbolFor(wchar_t ch) {
     }
 }
 
-std::wstring SmartDoubleQuoteForText(const std::wstring &text) {
-    size_t lineStart = text.find_last_of(L'\n');
-    std::wstring line = lineStart == std::wstring::npos ? text : text.substr(lineStart + 1);
-    if (line.size() > 200) {
-        line = line.substr(line.size() - 200);
-    }
-    int open = 0;
-    int close = 0;
-    for (wchar_t ch : line) {
-        if (ch == L'\u201C') {
-            ++open;
-        } else if (ch == L'\u201D') {
-            ++close;
-        }
-    }
-    return open > close ? L"\u201D" : L"\u201C";
-}
-
 void ReleaseUnknown(IUnknown *value) {
     if (value) {
         value->Release();
@@ -875,84 +857,6 @@ private:
     std::wstring text_;
     LONG caret_;
     std::function<void(HRESULT)> completion_;
-};
-
-class TextBeforeCursorEditSession final : public ITfEditSession {
-public:
-    TextBeforeCursorEditSession(ITfContext *context, std::wstring *text, bool *hasText)
-        : refs_(1), context_(context), text_(text), hasText_(hasText) {
-        if (context_) {
-            context_->AddRef();
-        }
-    }
-
-    ~TextBeforeCursorEditSession() {
-        ReleaseUnknown(context_);
-    }
-
-    STDMETHODIMP QueryInterface(REFIID riid, void **ppv) override {
-        if (!ppv) {
-            return E_POINTER;
-        }
-        *ppv = nullptr;
-        if (IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_ITfEditSession)) {
-            *ppv = static_cast<ITfEditSession *>(this);
-            AddRef();
-            return S_OK;
-        }
-        return E_NOINTERFACE;
-    }
-
-    STDMETHODIMP_(ULONG) AddRef() override { return static_cast<ULONG>(InterlockedIncrement(&refs_)); }
-
-    STDMETHODIMP_(ULONG) Release() override {
-        LONG refs = InterlockedDecrement(&refs_);
-        if (refs == 0) {
-            delete this;
-        }
-        return static_cast<ULONG>(refs);
-    }
-
-    STDMETHODIMP DoEditSession(TfEditCookie editCookie) override {
-        if (!context_) {
-            return E_FAIL;
-        }
-        TF_SELECTION selection{};
-        ULONG fetched = 0;
-        HRESULT hr = context_->GetSelection(editCookie, TF_DEFAULT_SELECTION, 1, &selection, &fetched);
-        if (FAILED(hr) || fetched != 1 || !selection.range) {
-            ReleaseUnknown(selection.range);
-            return FAILED(hr) ? hr : E_FAIL;
-        }
-        ITfRange *range = nullptr;
-        hr = selection.range->Clone(&range);
-        ReleaseUnknown(selection.range);
-        if (FAILED(hr) || !range) {
-            return FAILED(hr) ? hr : E_FAIL;
-        }
-        hr = range->Collapse(editCookie, TF_ANCHOR_START);
-        LONG shifted = 0;
-        if (SUCCEEDED(hr)) {
-            hr = range->ShiftStart(editCookie, -120, &shifted, nullptr);
-        }
-        if (SUCCEEDED(hr)) {
-            wchar_t buffer[256] = {};
-            ULONG cch = 0;
-            hr = range->GetText(editCookie, 0, buffer, 120, &cch);
-            if (SUCCEEDED(hr)) {
-                text_->assign(buffer, cch);
-                *hasText_ = true;
-            }
-        }
-        ReleaseUnknown(range);
-        return hr;
-    }
-
-private:
-    LONG refs_;
-    ITfContext *context_;
-    std::wstring *text_;
-    bool *hasText_;
 };
 
 class SelectionRectEditSession final : public ITfEditSession {
@@ -2139,7 +2043,7 @@ private:
         }
         if (buffer_.empty() && fullwidthPunctuation_) {
             if (translated == L'"') {
-                return CommitText(context, SmartDoubleQuote(context));
+                return CommitText(context, NextDoubleQuote());
             }
             if (const wchar_t *fullwidth = FullwidthSymbolFor(translated)) {
                 return CommitText(context, fullwidth);
@@ -2164,25 +2068,10 @@ private:
         return false;
     }
 
-    std::wstring SmartDoubleQuote(ITfContext *context) {
-        if (!context) {
-            return L"\u201C";
-        }
-        std::wstring before;
-        bool hasText = false;
-        TextBeforeCursorEditSession *session =
-            new (std::nothrow) TextBeforeCursorEditSession(context, &before, &hasText);
-        if (!session) {
-            return L"\u201C";
-        }
-        HRESULT sessionResult = E_FAIL;
-        HRESULT request =
-            context->RequestEditSession(clientId_, session, TF_ES_SYNC | TF_ES_READ, &sessionResult);
-        session->Release();
-        if (SUCCEEDED(request) && SUCCEEDED(sessionResult) && hasText) {
-            return SmartDoubleQuoteForText(before);
-        }
-        return L"\u201C";
+    std::wstring NextDoubleQuote() {
+        bool opening = doubleQuoteOpen_;
+        doubleQuoteOpen_ = !doubleQuoteOpen_;
+        return opening ? L"\u201D" : L"\u201C";
     }
 
     bool CommitText(ITfContext *context, const std::wstring &text) {
@@ -3013,6 +2902,7 @@ private:
     bool uiLessMode_ = false;
     bool immersiveMode_ = false;
     bool fullwidthPunctuation_ = true;
+    bool doubleQuoteOpen_ = false;
     bool shiftPressed_ = false;
     bool shiftUsedWithOtherKey_ = false;
     bool draggingToolbar_ = false;

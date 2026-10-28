@@ -17,6 +17,7 @@ final class GannyuInputController: IMKInputController {
     private let modeHint = GannyuModeHint()
     private var lastCandidateAnchor: NSRect?
     private let fullwidthPunctuationKey = "org.doohaey.gonnyu.fullwidthPunctuation"
+    private var doubleQuoteOpen = false
     private let log = Logger(subsystem: "org.doohaey.inputmethod.gonnyu.native", category: "input")
 
     override init!(server: IMKServer!, delegate: Any!, client inputClient: Any!) {
@@ -243,7 +244,7 @@ final class GannyuInputController: IMKInputController {
             return true
         }
         if !active, fullwidthPunctuation {
-            let symbol = text == "\"" ? smartDoubleQuote(client: sender) : fullwidthSymbol(for: text)
+            let symbol = text == "\"" ? nextDoubleQuote() : fullwidthSymbol(for: text)
             if let symbol {
                 guard let client = GannyuTextClient(sender) else { return false }
                 client.insertText(symbol, replacementRange: NSRange(location: NSNotFound, length: 0))
@@ -294,25 +295,13 @@ final class GannyuInputController: IMKInputController {
         }
     }
 
-    private func smartDoubleQuote(client sender: Any!) -> String {
-        guard let client = GannyuTextClient(sender) else { return "“" }
-        let selected = client.selectedRange()
-        guard selected.location != NSNotFound else { return "“" }
-        let length = min(200, max(0, selected.location))
-        guard length > 0 else { return "“" }
-        let range = NSRange(location: selected.location - length, length: length)
-        guard let before = client.attributedSubstring(from: range)?.string else {
-            return "“"
-        }
-        return Self.smartDoubleQuote(for: before)
+    private func nextDoubleQuote() -> String {
+        Self.nextDoubleQuote(opening: &doubleQuoteOpen)
     }
 
-    private static func smartDoubleQuote(for text: String) -> String {
-        let line = text.split(separator: "\n", omittingEmptySubsequences: false).last.map(String.init) ?? text
-        let window = String(line.suffix(200))
-        let open = window.filter { $0 == "“" }.count
-        let close = window.filter { $0 == "”" }.count
-        return open > close ? "”" : "“"
+    private static func nextDoubleQuote(opening: inout Bool) -> String {
+        defer { opening.toggle() }
+        return opening ? "”" : "“"
     }
 
     private func process(_ event: GannyuKeyEvent, client sender: Any!, consume: Bool = false) -> Bool {
@@ -727,10 +716,6 @@ private struct GannyuTextClient {
         }
         native = nil
         self.object = object
-    }
-
-    func attributedSubstring(from range: NSRange) -> NSAttributedString? {
-        native?.attributedSubstring(from: range)
     }
 
     func insertText(_ text: String, replacementRange: NSRange) {

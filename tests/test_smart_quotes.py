@@ -38,53 +38,58 @@ class SmartQuoteSourceTests(unittest.TestCase):
         assert "＂" not in source
         assert "＆" not in source
 
-    def test_macos_uses_smart_quote(self):
+    def test_macos_uses_alternating_quote(self):
         source = (ROOT / "platforms/macos/Sources/GannyuInputMethodHost/GannyuInputController.swift").read_text()
-        assert "private func smartDoubleQuote(client sender: Any!) -> String" in source
-        assert "private static func smartDoubleQuote(for text: String) -> String" in source
-        assert "attributedSubstring(from:" in source
-        assert "text == \"\\\"\"" in source
+        assert "private var doubleQuoteOpen = false" in source
+        assert "private func nextDoubleQuote() -> String" in source
+        assert "private static func nextDoubleQuote(opening: inout Bool) -> String" in source
+        assert 'return opening ? "”" : "“"' in source
+        assert "attributedSubstring(from:" not in source
         assert "＂" not in source
 
-    def test_windows_uses_smart_quote(self):
+    def test_windows_uses_alternating_quote(self):
         source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text()
-        assert "SmartDoubleQuoteForText" in source
-        assert "class TextBeforeCursorEditSession" in source
-        assert "if (translated == L'\"')" in source
-        assert "return buffer_.empty() && fullwidthPunctuation_;" in source
-        assert "return CommitText(context, SmartDoubleQuote(context));" in source
+        assert "std::wstring NextDoubleQuote()" in source
+        assert "bool doubleQuoteOpen_ = false;" in source
+        assert r'return opening ? L"\u201D" : L"\u201C";' in source
+        assert "class TextBeforeCursorEditSession" not in source
+        assert "SmartDoubleQuoteForText" not in source
+        assert "return CommitText(context, NextDoubleQuote());" in source
         fullwidth = declaration(source, "const wchar_t *FullwidthSymbolFor(wchar_t ch)")
         assert "case L'\"'" not in fullwidth
 
-    def test_linux_uses_smart_quote(self):
+    def test_linux_uses_alternating_quote(self):
         source = (ROOT / "platforms/linux/fcitx5/gannyu_fcitx5.cpp").read_text()
-        assert "smartDoubleQuoteForText" in source
-        assert "smartDoubleQuote(fcitx::InputContext *ic)" in source
-        assert "ic->commitString(smartDoubleQuote(ic));" in source
+        assert "std::string nextDoubleQuote()" in source
+        assert "bool doubleQuoteOpen = false;" in source
+        assert r'return opening ? "\xE2\x80\x9D" : "\xE2\x80\x9C";' in source
+        assert "smartDoubleQuoteForText" not in source
+        assert "state->nextDoubleQuote()" in source
+        assert "ic->commitString(state->nextDoubleQuote());" in source
         fullwidth = declaration(source, "std::string chineseFullwidthSymbol(int sym)")
         assert "case '\"':" not in fullwidth
 
 
 @unittest.skipUnless(sys.platform == "darwin" and shutil.which("xcrun"), "requires macOS Swift")
-class MacSmartQuoteLogicTests(unittest.TestCase):
-    def test_smart_double_quote_toggle(self):
+class MacQuoteToggleLogicTests(unittest.TestCase):
+    def test_alternating_double_quote(self):
         source = (ROOT / "platforms/macos/Sources/GannyuInputMethodHost/GannyuInputController.swift").read_text()
-        function = declaration(source, "private static func smartDoubleQuote(for text: String) -> String")
+        function = declaration(source, "private static func nextDoubleQuote(opening: inout Bool) -> String")
         function = function.replace("private static func", "func", 1)
         harness = f'''
 import Foundation
 {function}
-precondition(smartDoubleQuote(for: "") == "“")
-precondition(smartDoubleQuote(for: "你说") == "“")
-precondition(smartDoubleQuote(for: "他说：“你好") == "”")
-precondition(smartDoubleQuote(for: "他说：“你好”") == "“")
-precondition(smartDoubleQuote(for: "第一行\\n他说：“你好") == "”")
-precondition(smartDoubleQuote(for: "第一行：”\\n第二行") == "“")
+var open = false
+precondition(nextDoubleQuote(opening: &open) == "“")
+precondition(open == true)
+precondition(nextDoubleQuote(opening: &open) == "”")
+precondition(open == false)
+precondition(nextDoubleQuote(opening: &open) == "“")
 '''
         with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / "SmartQuotes.swift"
+            path = Path(directory) / "DoubleQuote.swift"
             path.write_text(harness)
-            binary = Path(directory) / "smart-quotes"
+            binary = Path(directory) / "double-quote"
             compiled = subprocess.run(["xcrun", "swiftc", str(path), "-o", str(binary)], capture_output=True, text=True)
             self.assertEqual(compiled.returncode, 0, compiled.stderr)
             executed = subprocess.run([str(binary)], capture_output=True, text=True)
