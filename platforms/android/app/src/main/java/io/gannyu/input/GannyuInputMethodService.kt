@@ -414,7 +414,7 @@ class GannyuInputMethodService : InputMethodService() {
 
         private val NUM_ROW_1 = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
         private val NUM_ROW_2 = listOf("－", "／", "：", "；", "（", "）", "￥", "@", "“", "”")
-        private val NUM_ROW_3 = listOf(".", ",", "？", "！", "＇", "％", "＋", "⌫")
+        private val NUM_ROW_3 = listOf(".", ",", "？", "！", "‘", "’", "％", "＋", "⌫")
         private val SYM_ROW_1 = listOf("【", "】", "“", "”", "〈", "〉", "《", "》", "：", "；")
         private val SYM_ROW_2 = listOf("，", "、", "。", "？", "！", "…", "—", "～", "·", "／")
         private val SYM_ROW_3 = listOf("更多", "（", "）", "[", "]", "{", "}", "#", "⌫")
@@ -996,6 +996,15 @@ class GannyuInputMethodService : InputMethodService() {
             key.label == "“" || key.label == "”"       -> {
                 if (englishMode) {
                     currentInputConnection?.commitText("\"", 1)
+                } else if (hasPendingComposition) {
+                    applyEngineSnapshot(processEngineText(key.label))
+                } else {
+                    currentInputConnection?.commitText(key.label, 1)
+                }
+            }
+            key.label == "‘" || key.label == "’"       -> {
+                if (englishMode) {
+                    currentInputConnection?.commitText("'", 1)
                 } else if (hasPendingComposition) {
                     applyEngineSnapshot(processEngineText(key.label))
                 } else {
