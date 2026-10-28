@@ -49,14 +49,28 @@ class SmartQuoteSourceTests(unittest.TestCase):
 
     def test_windows_uses_alternating_quote(self):
         source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text()
-        assert "std::wstring NextDoubleQuote()" in source
+        assert "std::wstring CurrentDoubleQuote() const" in source
+        assert "bool CommitDoubleQuote(ITfContext *context)" in source
         assert "bool doubleQuoteOpen_ = false;" in source
-        assert r'return opening ? L"\u201D" : L"\u201C";' in source
+        assert r'return doubleQuoteOpen_ ? L"\u201D" : L"\u201C";' in source
         assert "class TextBeforeCursorEditSession" not in source
         assert "SmartDoubleQuoteForText" not in source
-        assert "return CommitText(context, NextDoubleQuote());" in source
+        assert "NextDoubleQuote" not in source
+        assert "return CommitDoubleQuote(context);" in source
         fullwidth = declaration(source, "const wchar_t *FullwidthSymbolFor(wchar_t ch)")
         assert "case L'\"'" not in fullwidth
+
+    def test_windows_resets_quote_state_only_on_context_change(self):
+        source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text()
+        set_context = declaration(source, "void SetActiveContext(ITfContext *context)")
+        assert "doubleQuoteOpen_ = false;" in set_context
+        assert "doubleQuoteOpen_" not in declaration(source, "void ClearInputModel()")
+        assert "doubleQuoteOpen_" not in declaration(source, "void Reset(bool cancelComposition = true)")
+
+    def test_windows_toggles_after_successful_commit(self):
+        source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text()
+        commit = declaration(source, "bool CommitDoubleQuote(ITfContext *context)")
+        assert commit.index("CommitText") < commit.index("doubleQuoteOpen_ = !doubleQuoteOpen_")
 
     def test_linux_uses_alternating_quote(self):
         source = (ROOT / "platforms/linux/fcitx5/gannyu_fcitx5.cpp").read_text()

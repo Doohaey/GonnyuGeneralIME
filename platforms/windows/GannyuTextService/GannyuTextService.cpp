@@ -2043,7 +2043,7 @@ private:
         }
         if (buffer_.empty() && fullwidthPunctuation_) {
             if (translated == L'"') {
-                return CommitText(context, NextDoubleQuote());
+                return CommitDoubleQuote(context);
             }
             if (const wchar_t *fullwidth = FullwidthSymbolFor(translated)) {
                 return CommitText(context, fullwidth);
@@ -2068,10 +2068,16 @@ private:
         return false;
     }
 
-    std::wstring NextDoubleQuote() {
-        bool opening = doubleQuoteOpen_;
+    std::wstring CurrentDoubleQuote() const {
+        return doubleQuoteOpen_ ? L"\u201D" : L"\u201C";
+    }
+
+    bool CommitDoubleQuote(ITfContext *context) {
+        if (!CommitText(context, CurrentDoubleQuote())) {
+            return false;
+        }
         doubleQuoteOpen_ = !doubleQuoteOpen_;
-        return opening ? L"\u201D" : L"\u201C";
+        return true;
     }
 
     bool CommitText(ITfContext *context, const std::wstring &text) {
@@ -2850,6 +2856,7 @@ private:
             RequestCompositionEdit(activeContext_, CompositionEditAction::Cancel);
         }
         ClearInputModel();
+        doubleQuoteOpen_ = false;
         ++contextGeneration_;
         compositionState_ = std::make_shared<CompositionState>();
         ReleaseUnknown(activeContext_);
