@@ -29,13 +29,14 @@ def declaration(source: str, signature: str) -> str:
 
 
 class SmartQuoteSourceTests(unittest.TestCase):
-    def test_android_uses_smart_quote_key(self):
+    def test_android_uses_explicit_quote_keys(self):
         source = (ROOT / "platforms/android/app/src/main/java/io/gannyu/input/GannyuInputMethodService.kt").read_text()
-        assert 'private val NUM_ROW_2 = listOf("－", "／", "：", "；", "（", "）", "￥", "＆", "@", "“”")' in source
-        assert "fun smartDoubleQuoteForText(" in source
-        assert "key.label == \"“”\"" in source
-        assert "fun handleSmartDoubleQuote()" in source
+        assert 'private val NUM_ROW_2 = listOf("－", "／", "：", "；", "（", "）", "￥", "@", "“", "”")' in source
+        assert "fun smartDoubleQuoteForText(" not in source
+        assert "key.label == \"“\" || key.label == \"”\"" in source
+        assert "fun handleSmartDoubleQuote()" not in source
         assert "＂" not in source
+        assert "＆" not in source
 
     def test_macos_uses_smart_quote(self):
         source = (ROOT / "platforms/macos/Sources/GannyuInputMethodHost/GannyuInputController.swift").read_text()

@@ -28,19 +28,6 @@ import java.util.ArrayDeque
 import java.util.concurrent.Executors
 import java.util.Locale
 
-internal fun smartDoubleQuoteForText(textBeforeCursor: String): String {
-    val line = textBeforeCursor.substringAfterLast('\n').takeLast(200)
-    var open = 0
-    var close = 0
-    for (char in line) {
-        when (char) {
-            '“' -> open++
-            '”' -> close++
-        }
-    }
-    return if (open > close) "”" else "“"
-}
-
 private class NativePipelineBridge {
     init { System.loadLibrary("gannyu_input_jni") }
 
@@ -380,7 +367,7 @@ class GannyuInputMethodService : InputMethodService() {
             KeySpec("m", isLetter=true))
 
         private val NUM_ROW_1 = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
-        private val NUM_ROW_2 = listOf("－", "／", "：", "；", "（", "）", "￥", "＆", "@", "“”")
+        private val NUM_ROW_2 = listOf("－", "／", "：", "；", "（", "）", "￥", "@", "“", "”")
         private val NUM_ROW_3 = listOf(".", ",", "？", "！", "＇", "％", "＋", "⌫")
         private val SYM_ROW_1 = listOf("【", "】", "“", "”", "〈", "〉", "《", "》", "：", "；")
         private val SYM_ROW_2 = listOf("，", "、", "。", "？", "！", "…", "—", "～", "·", "／")
@@ -948,7 +935,15 @@ class GannyuInputMethodService : InputMethodService() {
                 emojiPageIndex = (emojiPageIndex + direction + EMOJI_PAGES.size) % EMOJI_PAGES.size
                 renderKeyboard()
             }
-            key.label == "“”"                         -> handleSmartDoubleQuote()
+            key.label == "“" || key.label == "”"       -> {
+                if (englishMode) {
+                    currentInputConnection?.commitText("\"", 1)
+                } else if (hasPendingComposition) {
+                    applyEngineSnapshot(processEngineText(key.label))
+                } else {
+                    currentInputConnection?.commitText(key.label, 1)
+                }
+            }
             key.isLetter                                 -> if (englishMode) {
                 currentInputConnection?.commitText(if (englishShift) key.label.uppercase() else key.label, 1)
                 if (englishShift) { englishShift = false; renderKeyboard() }
@@ -1021,17 +1016,6 @@ class GannyuInputMethodService : InputMethodService() {
 
     private fun stopBackspaceRepeat() {
         backspaceRepeatHandler.removeCallbacks(backspaceRepeat)
-    }
-
-    private fun handleSmartDoubleQuote() {
-        if (englishMode) {
-            currentInputConnection?.commitText("\"", 1)
-            return
-        }
-        val before = currentInputConnection?.getTextBeforeCursor(200, 0)?.toString().orEmpty()
-        val quote = smartDoubleQuoteForText(before)
-        if (hasPendingComposition) applyEngineSnapshot(processEngineText(quote))
-        else currentInputConnection?.commitText(quote, 1)
     }
 
     private fun handleSpace() {
