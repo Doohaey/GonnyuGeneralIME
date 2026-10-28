@@ -148,7 +148,11 @@ class GannyuInputMethodService : InputMethodService() {
         @Volatile private var staticHandle: Long = 0
         @Volatile private var staticRegionId: String? = null
         @Volatile private var preloadedRegionId: String? = null
+        @Volatile private var activeHandle: Long = 0
+        @Volatile private var activeRegionId: String? = null
         private var preloadGeneration = 0L
+        private val preloadCallbacks = mutableMapOf<String, MutableList<(Boolean, String?) -> Unit>>()
+        private val preloadInFlight = mutableSetOf<String>()
         private val nativeBridge = NativePipelineBridge()
 
         @JvmStatic
@@ -214,11 +218,14 @@ class GannyuInputMethodService : InputMethodService() {
         fun nativeLastErrorStatic(): String? = nativeBridge.nativeLastError()
 
         @JvmStatic
-        fun selectedRegionId(context: Context): String? =
-            normalizeRegionId(
+        fun selectedRegionId(context: Context): String? {
+            val saved = normalizeRegionId(
                 context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
                     .getString(KEY_SELECTED_REGION, null)
             )
+            if (saved != null) return saved
+            return runCatching { availableRegions(context).firstOrNull()?.id }.getOrNull()
+        }
 
         @JvmStatic
         fun setSelectedRegionId(context: Context, regionId: String?) {
@@ -252,6 +259,11 @@ class GannyuInputMethodService : InputMethodService() {
                             liveHandles.getOrPut(region, ::linkedSetOf) += preloadedHandle
                         }
                     }
+                    normalizeRegionId(activeRegionId)?.let { region ->
+                        if (activeHandle != 0L) {
+                            liveHandles.getOrPut(region, ::linkedSetOf) += activeHandle
+                        }
+                    }
                     targets.all { region ->
                         val regionHandles = liveHandles[region].orEmpty()
                         if (regionHandles.isNotEmpty()) {
@@ -281,40 +293,73 @@ class GannyuInputMethodService : InputMethodService() {
             onComplete: ((Boolean, String?) -> Unit)? = null,
         ) {
             val desiredRegion = normalizeRegionId(regionId)
-            val generation = synchronized(preloadLock) { ++preloadGeneration }
-            Thread {
-                try {
-                    val handle = nativeCreateStatic(context, desiredRegion)
-                    val errorDetail = if (handle == 0L) nativeLastErrorStatic() else null
-                    Log.i(TAG, "preload handle=" + handle)
-                    if (handle != 0L) {
-                        val accepted = synchronized(preloadLock) {
-                            if (generation != preloadGeneration) {
-                                preloadLock.notifyAll()
-                                false
-                            } else {
-                                val previous = preloadedHandle
-                                preloadedHandle = handle
-                                preloadedRegionId = desiredRegion
-                                if (previous != 0L) destroyHandle(previous)
-                                preloadLock.notifyAll()
-                                true
-                            }
-                        }
-                        if (!accepted) {
-                            destroyHandle(handle)
-                            return@Thread
-                        }
-                        onComplete?.invoke(true, null)
-                        return@Thread
+            val key = desiredRegion ?: ""
+            var launch = false
+            var generation = 0L
+            val immediate = synchronized(preloadLock) {
+                val prepared = (staticHandle != 0L && desiredRegion == normalizeRegionId(staticRegionId)) ||
+                    (preloadedHandle != 0L && desiredRegion == normalizeRegionId(preloadedRegionId)) ||
+                    (activeHandle != 0L && desiredRegion == normalizeRegionId(activeRegionId))
+                if (!prepared) {
+                    if (onComplete != null) {
+                        preloadCallbacks.getOrPut(key) { mutableListOf() } += onComplete
                     }
-                    synchronized(preloadLock) { preloadLock.notifyAll() }
-                    onComplete?.invoke(false, errorDetail.orEmpty().ifBlank { "native pipeline creation returned no detail" })
-                } catch (e: Exception) {
-                    Log.e(TAG, "preload failed", e)
-                    synchronized(preloadLock) { preloadLock.notifyAll() }
-                    onComplete?.invoke(false, e.stackTraceToString())
+                    if (key !in preloadInFlight) {
+                        preloadInFlight += key
+                        generation = ++preloadGeneration
+                        launch = true
+                    }
                 }
+                prepared
+            }
+            if (immediate) {
+                onComplete?.invoke(true, null)
+                return
+            }
+            if (!launch) return
+
+            Thread {
+                var handle = 0L
+                var success = false
+                var detail: String? = null
+                try {
+                    handle = nativeCreateStatic(context, desiredRegion)
+                    if (handle != 0L) {
+                        success = true
+                    } else {
+                        detail = nativeLastErrorStatic()
+                    }
+                    Log.i(TAG, "preload region=${desiredRegion ?: "(default)"} handle=$handle")
+                } catch (e: Exception) {
+                    Log.e(TAG, "preload failed for region=${desiredRegion ?: "(default)"}", e)
+                    detail = e.stackTraceToString()
+                }
+
+                lateinit var callbacks: List<(Boolean, String?) -> Unit>
+                synchronized(preloadLock) {
+                    preloadInFlight.remove(key)
+                    callbacks = preloadCallbacks.remove(key).orEmpty()
+                    if (success && handle != 0L) {
+                        if (generation == preloadGeneration) {
+                            val previous = preloadedHandle
+                            preloadedHandle = handle
+                            preloadedRegionId = desiredRegion
+                            handle = 0L
+                            if (previous != 0L) destroyHandle(previous)
+                        } else {
+                            success = false
+                            detail = detail ?: "preload superseded"
+                        }
+                    }
+                    preloadLock.notifyAll()
+                }
+                if (handle != 0L) destroyHandle(handle)
+                val message = when {
+                    success -> ""
+                    !detail.isNullOrBlank() -> detail.orEmpty()
+                    else -> "native pipeline creation returned no detail"
+                }
+                callbacks.forEach { callback -> runCatching { callback(success, message) } }
             }.start()
         }
 
@@ -325,7 +370,8 @@ class GannyuInputMethodService : InputMethodService() {
         fun isRegionPrepared(regionId: String?): Boolean {
             val desired = normalizeRegionId(regionId)
             return (staticHandle != 0L && desired == normalizeRegionId(staticRegionId)) ||
-                (preloadedHandle != 0L && desired == normalizeRegionId(preloadedRegionId))
+                (preloadedHandle != 0L && desired == normalizeRegionId(preloadedRegionId)) ||
+                (activeHandle != 0L && desired == normalizeRegionId(activeRegionId))
         }
 
         private fun normalizeRegionId(regionId: String?): String? =
@@ -428,6 +474,8 @@ class GannyuInputMethodService : InputMethodService() {
         engineExecutor.shutdownNow()
         pipelineHandle = 0
         pipelineReady = false
+        activeHandle = 0L
+        activeRegionId = null
         super.onDestroy()
     }
 
@@ -612,6 +660,8 @@ class GannyuInputMethodService : InputMethodService() {
         }
         pipelineHandle = 0
         pipelineReady = false
+        activeHandle = 0L
+        activeRegionId = null
         synchronized(preloadLock) { preloadLock.notifyAll() }
         Thread {
             try {
@@ -621,6 +671,8 @@ class GannyuInputMethodService : InputMethodService() {
                     if (staticHandle != 0L && staticRegionId == desired) {
                         pipelineHandle = staticHandle
                         pipelineReady = true
+                        activeHandle = pipelineHandle
+                        activeRegionId = desired
                         Log.i(TAG, "Pipeline reused for region=${desired ?: "(default)"}")
                         postUpdateCandidates()
                         return@Thread
@@ -638,6 +690,8 @@ class GannyuInputMethodService : InputMethodService() {
                         staticRegionId = desired
                         preloadedRegionId = null
                         pipelineReady = true
+                        activeHandle = pipelineHandle
+                        activeRegionId = desired
                         Log.i(TAG, "Pipeline reused from preload for region=${desired ?: "(default)"}")
                         postUpdateCandidates()
                         return@Thread
@@ -668,6 +722,8 @@ class GannyuInputMethodService : InputMethodService() {
                         staticHandle = pipelineHandle
                         staticRegionId = desired
                         pipelineReady = true
+                        activeHandle = pipelineHandle
+                        activeRegionId = desired
                         Log.i(TAG, "Pipeline loaded via preload for region=${desired ?: "(default)"}")
                         postUpdateCandidates()
                         return@Thread
@@ -680,6 +736,8 @@ class GannyuInputMethodService : InputMethodService() {
                 if (generation == pipelineLoadGeneration) {
                     pipelineHandle = 0
                     pipelineReady = false
+                    activeHandle = 0L
+                    activeRegionId = null
                 }
             }
         }.start()

@@ -141,6 +141,8 @@ class SetupActivity : Activity() {
         setLoading(true, getString(R.string.region_loading, region.nameZh))
         GannyuInputMethodService.preloadSelectedRegionAsync(this, region.id) { success, detail ->
             runOnUiThread {
+                if (isFinishing || isDestroyed) return@runOnUiThread
+                if (GannyuInputMethodService.selectedRegionId(this) != region.id) return@runOnUiThread
                 setLoading(false, "")
                 if (success) {
                     updateReadyState()
