@@ -23,7 +23,7 @@ Rime schema repositories are available for Lancong (Nanchang), Fenni (Fenyi), Fu
 
 ## Release 1.2.5
 
-- data(dictionary): Restore Lancong names and add entries; clean up redundant Fenni entries.
+- data(dictionary): Update the Lancong dictionary and clean up the Fenni dictionary.
 - feat(input): Add alternating Chinese double quotes on desktop.
 - fix(input): Use separate left and right Chinese quote keys on the mobile 123 page.
 
