@@ -6,6 +6,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.ComponentName
 import android.content.Intent
+import android.graphics.Rect
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
@@ -14,6 +15,7 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
+import android.widget.ScrollView
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
@@ -51,6 +53,9 @@ class SetupActivity : Activity() {
         openImePickerButton.setOnClickListener {
             getSystemService(InputMethodManager::class.java)?.showInputMethodPicker()
         }
+        findViewById<Button>(R.id.openRegionPicker).setOnClickListener {
+            scrollToRegionPicker()
+        }
         findViewById<Button>(R.id.openTutorial).setOnClickListener {
             startActivity(Intent(this, TutorialActivity::class.java))
         }
@@ -59,6 +64,18 @@ class SetupActivity : Activity() {
     override fun onResume() {
         super.onResume()
         updateImeSetupState()
+    }
+
+    private fun scrollToRegionPicker() {
+        val scrollView = findViewById<ScrollView>(R.id.setupScroll)
+        val regionCard = findViewById<View>(R.id.regionCard)
+        scrollView.post {
+            val rect = Rect()
+            regionCard.getDrawingRect(rect)
+            scrollView.offsetDescendantRectToMyCoords(regionCard, rect)
+            scrollView.smoothScrollTo(0, rect.top)
+            regionSpinner.requestFocus()
+        }
     }
 
     private fun showEnableImeInstructions() {
