@@ -1024,6 +1024,10 @@ class GannyuInputMethodService : InputMethodService() {
     }
 
     private fun handleSmartDoubleQuote() {
+        if (englishMode) {
+            currentInputConnection?.commitText("\"", 1)
+            return
+        }
         val before = currentInputConnection?.getTextBeforeCursor(200, 0)?.toString().orEmpty()
         val quote = smartDoubleQuoteForText(before)
         if (hasPendingComposition) applyEngineSnapshot(processEngineText(quote))
