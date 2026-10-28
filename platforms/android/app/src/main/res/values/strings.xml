@@ -32,7 +32,7 @@
     <string name="user_data_clear_failed">清空失败，请重试。</string>
     <string name="system_operations_label">完成以下设置</string>
     <string name="open_ime_settings">1. 启用赣语输入法</string>
-    <string name="open_ime_picker">2. 切换至赣语</string>
+    <string name="open_ime_picker">2. 输入法切换</string>
     <string name="enable_ime_title">启用赣语输入法</string>
     <string name="enable_ime_message">接下来会打开系统输入法设置。请找到赣语输入法并启用，然后返回此 App 完成下一步。</string>
     <string name="go_to_settings">前往设置</string>
