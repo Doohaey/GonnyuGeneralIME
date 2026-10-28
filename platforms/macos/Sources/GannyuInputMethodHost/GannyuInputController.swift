@@ -18,6 +18,7 @@ final class GannyuInputController: IMKInputController {
     private var lastCandidateAnchor: NSRect?
     private let fullwidthPunctuationKey = "org.doohaey.gonnyu.fullwidthPunctuation"
     private var doubleQuoteOpen = false
+    private var singleQuoteOpen = false
     private let log = Logger(subsystem: "org.doohaey.inputmethod.gonnyu.native", category: "input")
 
     override init!(server: IMKServer!, delegate: Any!, client inputClient: Any!) {
@@ -244,7 +245,14 @@ final class GannyuInputController: IMKInputController {
             return true
         }
         if !active, fullwidthPunctuation {
-            let symbol = text == "\"" ? nextDoubleQuote() : fullwidthSymbol(for: text)
+            let symbol: String?
+            if text == "\"" {
+                symbol = nextDoubleQuote()
+            } else if text == "'" {
+                symbol = nextSingleQuote()
+            } else {
+                symbol = fullwidthSymbol(for: text)
+            }
             if let symbol {
                 guard let client = GannyuTextClient(sender) else { return false }
                 client.insertText(symbol, replacementRange: NSRange(location: NSNotFound, length: 0))
@@ -302,6 +310,15 @@ final class GannyuInputController: IMKInputController {
     private static func nextDoubleQuote(opening: inout Bool) -> String {
         defer { opening.toggle() }
         return opening ? "”" : "“"
+    }
+
+    private func nextSingleQuote() -> String {
+        Self.nextSingleQuote(opening: &singleQuoteOpen)
+    }
+
+    private static func nextSingleQuote(opening: inout Bool) -> String {
+        defer { opening.toggle() }
+        return opening ? "’" : "‘"
     }
 
     private func process(_ event: GannyuKeyEvent, client sender: Any!, consume: Bool = false) -> Bool {

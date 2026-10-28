@@ -41,9 +41,14 @@ class SmartQuoteSourceTests(unittest.TestCase):
     def test_macos_uses_alternating_quote(self):
         source = (ROOT / "platforms/macos/Sources/GannyuInputMethodHost/GannyuInputController.swift").read_text()
         assert "private var doubleQuoteOpen = false" in source
+        assert "private var singleQuoteOpen = false" in source
         assert "private func nextDoubleQuote() -> String" in source
         assert "private static func nextDoubleQuote(opening: inout Bool) -> String" in source
+        assert "private func nextSingleQuote() -> String" in source
+        assert "private static func nextSingleQuote(opening: inout Bool) -> String" in source
         assert 'return opening ? "”" : "“"' in source
+        assert 'return opening ? "’" : "‘"' in source
+        assert "text == \"'\"" in source
         assert "attributedSubstring(from:" not in source
         assert "＂" not in source
 
@@ -51,37 +56,55 @@ class SmartQuoteSourceTests(unittest.TestCase):
         source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text()
         assert "std::wstring CurrentDoubleQuote() const" in source
         assert "bool CommitDoubleQuote(ITfContext *context)" in source
+        assert "std::wstring CurrentSingleQuote() const" in source
+        assert "bool CommitSingleQuote(ITfContext *context)" in source
         assert "bool doubleQuoteOpen_ = false;" in source
+        assert "bool singleQuoteOpen_ = false;" in source
         assert r'return doubleQuoteOpen_ ? L"\u201D" : L"\u201C";' in source
+        assert r'return singleQuoteOpen_ ? L"\u2019" : L"\u2018";' in source
         assert "class TextBeforeCursorEditSession" not in source
         assert "SmartDoubleQuoteForText" not in source
         assert "NextDoubleQuote" not in source
         assert "return CommitDoubleQuote(context);" in source
+        assert "return CommitSingleQuote(context);" in source
+        assert r"if (translated == L'\'' && buffer_.empty())" in source
         fullwidth = declaration(source, "const wchar_t *FullwidthSymbolFor(wchar_t ch)")
         assert "case L'\"'" not in fullwidth
+        assert "case L'\\''" not in fullwidth
 
     def test_windows_resets_quote_state_only_on_context_change(self):
         source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text()
         set_context = declaration(source, "void SetActiveContext(ITfContext *context)")
         assert "doubleQuoteOpen_ = false;" in set_context
+        assert "singleQuoteOpen_ = false;" in set_context
         assert "doubleQuoteOpen_" not in declaration(source, "void ClearInputModel()")
+        assert "singleQuoteOpen_" not in declaration(source, "void ClearInputModel()")
         assert "doubleQuoteOpen_" not in declaration(source, "void Reset(bool cancelComposition = true)")
+        assert "singleQuoteOpen_" not in declaration(source, "void Reset(bool cancelComposition = true)")
 
     def test_windows_toggles_after_successful_commit(self):
         source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text()
         commit = declaration(source, "bool CommitDoubleQuote(ITfContext *context)")
         assert commit.index("CommitText") < commit.index("doubleQuoteOpen_ = !doubleQuoteOpen_")
+        single = declaration(source, "bool CommitSingleQuote(ITfContext *context)")
+        assert single.index("CommitText") < single.index("singleQuoteOpen_ = !singleQuoteOpen_")
 
     def test_linux_uses_alternating_quote(self):
         source = (ROOT / "platforms/linux/fcitx5/gannyu_fcitx5.cpp").read_text()
         assert "std::string nextDoubleQuote()" in source
+        assert "std::string nextSingleQuote()" in source
         assert "bool doubleQuoteOpen = false;" in source
+        assert "bool singleQuoteOpen = false;" in source
         assert r'return opening ? "\xE2\x80\x9D" : "\xE2\x80\x9C";' in source
+        assert r'return opening ? "\xE2\x80\x99" : "\xE2\x80\x98";' in source
         assert "smartDoubleQuoteForText" not in source
         assert "state->nextDoubleQuote()" in source
+        assert "state->nextSingleQuote()" in source
         assert "ic->commitString(state->nextDoubleQuote());" in source
+        assert "ic->commitString(state->nextSingleQuote());" in source
         fullwidth = declaration(source, "std::string chineseFullwidthSymbol(int sym)")
         assert "case '\"':" not in fullwidth
+        assert "case '\\'':" not in fullwidth
 
 
 @unittest.skipUnless(sys.platform == "darwin" and shutil.which("xcrun"), "requires macOS Swift")
@@ -104,6 +127,29 @@ precondition(nextDoubleQuote(opening: &open) == "“")
             path = Path(directory) / "DoubleQuote.swift"
             path.write_text(harness)
             binary = Path(directory) / "double-quote"
+            compiled = subprocess.run(["xcrun", "swiftc", str(path), "-o", str(binary)], capture_output=True, text=True)
+            self.assertEqual(compiled.returncode, 0, compiled.stderr)
+            executed = subprocess.run([str(binary)], capture_output=True, text=True)
+            self.assertEqual(executed.returncode, 0, executed.stderr)
+
+    def test_alternating_single_quote(self):
+        source = (ROOT / "platforms/macos/Sources/GannyuInputMethodHost/GannyuInputController.swift").read_text()
+        function = declaration(source, "private static func nextSingleQuote(opening: inout Bool) -> String")
+        function = function.replace("private static func", "func", 1)
+        harness = f'''
+import Foundation
+{function}
+var open = false
+precondition(nextSingleQuote(opening: &open) == "‘")
+precondition(open == true)
+precondition(nextSingleQuote(opening: &open) == "’")
+precondition(open == false)
+precondition(nextSingleQuote(opening: &open) == "‘")
+'''
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "SingleQuote.swift"
+            path.write_text(harness)
+            binary = Path(directory) / "single-quote"
             compiled = subprocess.run(["xcrun", "swiftc", str(path), "-o", str(binary)], capture_output=True, text=True)
             self.assertEqual(compiled.returncode, 0, compiled.stderr)
             executed = subprocess.run([str(binary)], capture_output=True, text=True)

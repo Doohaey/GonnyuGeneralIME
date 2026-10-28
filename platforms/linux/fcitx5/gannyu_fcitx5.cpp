@@ -179,11 +179,18 @@ public:
     std::string accumulatedMandarinReading;
     std::string originalInput;
     bool doubleQuoteOpen = false;
+    bool singleQuoteOpen = false;
 
     std::string nextDoubleQuote() {
         bool opening = doubleQuoteOpen;
         doubleQuoteOpen = !doubleQuoteOpen;
         return opening ? "\xE2\x80\x9D" : "\xE2\x80\x9C";
+    }
+
+    std::string nextSingleQuote() {
+        bool opening = singleQuoteOpen;
+        singleQuoteOpen = !singleQuoteOpen;
+        return opening ? "\xE2\x80\x99" : "\xE2\x80\x98";
     }
 };
 
@@ -550,6 +557,11 @@ public:
         if (state->buffer.empty() && sym >= 0x20 && sym <= 0x7E) {
             if (sym == '"') {
                 ic->commitString(state->nextDoubleQuote());
+                event.filterAndAccept();
+                return;
+            }
+            if (sym == '\'') {
+                ic->commitString(state->nextSingleQuote());
                 event.filterAndAccept();
                 return;
             }
