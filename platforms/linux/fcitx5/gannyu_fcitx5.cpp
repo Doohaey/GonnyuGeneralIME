@@ -105,7 +105,8 @@ std::string smartDoubleQuote(fcitx::InputContext *ic) {
     if (cursor > text.size()) {
         cursor = text.size();
     }
-    return smartDoubleQuoteForText(text.substr(0, cursor));
+    size_t start = cursor > 600 ? cursor - 600 : 0;
+    return smartDoubleQuoteForText(text.substr(start, cursor - start));
 }
 
 /* Map common ASCII punctuation to Chinese full-width equivalents.
