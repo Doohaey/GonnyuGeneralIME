@@ -147,7 +147,7 @@
 细时间	si2 ɕi2 ka1	si2 xi2 ga1	xi4 shi2 jian1	赣	小时候	xiao3 shi2 hou4	128000		
 天光	tʰiɛn1* kuoŋ0	tiên1* guong0	dian4 guang1	赣	天亮	tian1 liang4	123426		
 清晨麻早	tɕʰin1* sit0 ma1 tsau3	qin1* sit0 ma1 zau3	qing1 chen2 ma2 zao3	白	清晨	qing1 chen2	123426	清早	
-上昼	soŋ4 tɪu2	song2 deu2	shang4 zhou4	赣	上午	shang4 wu3	125000		
+上昼	soŋ4 tɪu2	song4 deu2	shang4 zhou4	赣	上午	shang4 wu3	125000		
 下昼	ha2 tɪu2	ha2 deu2	xia4 zhou4	赣	下午	xia4 wu3	125000		
 昼间	tɪu2 ka1	deu2 ga1	zhou4 jian1	赣	中午	zhong1 wu3	125000		
 日间	ȵit5 ka1	nit5 ga1	ri4 jian1	赣	白天	bai2 tian1	125000		
@@ -224,8 +224,8 @@
 佬子仔	lau1* tsɿ0 tɛ0	lau1* zï0 dê0	lao3 zuo4 zai3	赣	老头子	lao3 tou2 zi5	120000		
 婆子	pʰo1* tsɿ0	po1* zï0	po2 zi5	赣	老太	lao3 tai4	121000		
 婆子仔	pʰo1* tsɿ0 tɛ0	po1* zï0 dê0	po2 zi5	赣	老婆子	lao3 po2 zi5	121000		
-自家	sʰɿ1 ka1	sï1 ga1	zi4 jia1	赣	自己	zi4 ji3	350000		
-自己	sʰɿ1 tɕi1	sï1 ji1	zi4 jia1	官			350000	自家	
+自家	sɿ1 ka1	sï1 ga1	zi4 jia1	赣	自己	zi4 ji3	350000		
+自己	sɿ1 tɕi1	sï1 ji1	zi4 jia1	官			350000	自家	
 别家	pʰiɛn1* ka1	piên1* ga1	bie2 jia1	赣	别人	bie2 ren2	125200		
 人家	ȵin2 ka1	nin2 ga1	ren2 jia1	赣	别人	bie2 ren2	125200		
 人家	ŋ̍1 ka1	ng1 ga1	ren2 jia1	白	别人	bie2 ren2	125200		
@@ -265,7 +265,7 @@
 茂年	mɛu4 ȵiɛn2	mêu4 niên2	mao4 nian2	赣	正当壮年	zheng4 dang1 zhuang4 nian2	122227		
 罽密	kɛ2 miəʔ5	gê2 miek5	ji4 mi4	赣	很密	hen3 mi4	122955		
 梆硬	paŋ1 ŋaŋ4	bang1 ngang4	bang1 ying4	官			125000		
-枼薄	sɛt5 pʰoʔ8	sêt5 pok5*	ye4 bao2	赣	轻薄	qing1 bao2	120000		
+枼薄	sɛt5 pʰoʔ5*	sêt5 pok5*	ye4 bao2	赣	轻薄	qing1 bao2	120000		
 褶厚	tɛt5 hɛu4	dêt5 hêu4	zhe2 hou4	赣	很厚	hen3 hou4	120000		
 乜烂	mɛʔ5 lan4	mêk5 lan4	mie1 lan4	白	烂熟	lan4 shu2	120000	烂淤哩	
 乜烂	møt5 lan4	moet5 lan4	mie1 lan4	白	烂熟	lan4 shu2	120000		又1
@@ -276,7 +276,7 @@
 足酸	tɕiuʔ5 suɔn1	jiuk5 suon1	zu2 suan1	赣	酸	suan1	120000		
 津甜	tɕin1 tʰiɛn2	jin1 tiên2	jin1 tian2	官			120000		
 喷香	pʰuŋ1* soŋ1	pung1* song1	pen1 xiang1	官			100000		
-膨滚	pʰang1 kun3	pang1 gun3	peng2 gun3	赣	滚烫	gun3 tang4	100000		
+膨滚	pʰaŋ1 kun3	pang1 gun3	peng2 gun3	赣	滚烫	gun3 tang4	100000		
 墨黑	mɛʔ5 hɛʔ6	mêk5 hêk6	mo4 hei1	赣	漆黑	qi1 hei1	122000		
 墨乌	mɛʔ5 u1	mêk5 wu1	mo4 wu1	赣	漆黑	qi1 hei1	122000		
 黆黄	sɛn4 uoŋ2	sên4 wong2	guang1 huang2	赣	鲜黄	xian1 huang2	121000		
@@ -325,7 +325,7 @@
 冇有整	mau2 iu3 taŋ3	mau2 yiu3 dang3	mao3 you3 zheng3	赣	没得治	mei2 de5 zhi4	120000		
 冇眉眼	mau2 mi2 ŋan3	mau2 mi2 ngan3	mao3 mei2 yan3	赣	没头绪	mei2 tou2 xu4	120000		
 冇头脑	mau2 hɛu2 lau0	mau2 hêu2 lau0	mao3 tou2 nao3	赣	没头脑/不加思考	mei2 tou2 nao4/bu4 jia1 si1 kao3	120000		
-冇名堂	mau2 min2 tʰoŋ2	mau2 mi2 tong2	mao3 ming2 tang2	赣	没道理/没结果	mei2 dao4 li3/mei2 jie2 guo3	120000		
+冇名堂	mau2 min2 tʰoŋ2	mau2 min2 tong2	mao3 ming2 tang2	赣	没道理/没结果	mei2 dao4 li3/mei2 jie2 guo3	120000		
 变鞑子	piɛn2 tat5 tsɿ3	biên2 dat5 zï3	bian4 da2 zi5	赣	骗傻子	pian4 sha3 zi5	120000		
 攠攠摸摸	mi1 mi1 mo1 mo1	mi1 mi1 mo1 mo1	mi2 mi2 mo1 mo1	赣	磨磨蹭蹭	mo2 mo5 ceng4 ceng5	100000	磨蹭	
 零零星星	liaŋ2 liaŋ2 saŋ1 saŋ1	liang2 liang2 sang1 sang1	ling2 ling2 xing1 xing1	赣			120000		
@@ -341,7 +341,7 @@
 舞下仔饭	u3 a0 tɛ0 fan4	wu3 a0 dê0 fan4	wu3 xia4 zai3 fan4	赣	弄下饭	nong4 xia4 fan4	122000		
 话只事	ua2 taʔ5 ɕi1	wa2 dak5 xi1	hua4 zhi1 shi4	赣	说说看	shuo1 shuo1 kan4	122000		
 𥈆下	mau4 a0	mau4 a0	mao4 xia4	赣	看下/细视	kan4 xia4/xi4 shi4	125000		
-𥈆到	mau4 dau4*	mau4 dau4*	mao4 dao4	赣	看住/注视着	kan1 zhu4/zhu4 shi4 zhe5	125000		
+𥈆到	mau4 tau4*	mau4 dau4*	mao4 dao4	赣	看住/注视着	kan1 zhu4/zhu4 shi4 zhe5	125000		
 眏下	iaŋ3 a0	yang3 a0	ying4 xia4	赣	看一眼	kan4 yi1 yan3	120000		
 看吔	kʰɔn4* ia0	kon4* ya0	kan4 ye1	赣	看一会儿/持续看	kan4 yi1 hui'er4/chi2 xu4 kan4	120000		
 记到	tɕi4* tau4*	ji4* dau4*	ji4 dao4	赣	记住	ji4 zhu4	125000		
@@ -385,11 +385,11 @@
 带得	tai2 tɛʔ0	dai2 dêk0	dai4 de2	赣	带给	dai4 gei3	100449	带咕	
 交得	kau1 tɛʔ0	gau1 dêk0	jiao1 de2	赣	交给	jiao1 gei3	103204	交咕	
 发得	fat5 tɛʔ0	fat5 dêk0	fa1 de2	赣	发给	fa1 gei3	100483	发咕	
-留得	liu5 tɛʔ0	liu4 dêk0	liu2 de2	赣	留给	liu2 gei3	105778	留咕	
+留得	liu4 tɛʔ0	liu4 dêk0	liu2 de2	赣	留给	liu2 gei3	105778	留咕	
 还得	uan2 tɛʔ0	wan2 dêk0	huan2 de2	赣	还给	huan2 gei3	100269	还咕	
-让得	ȵioŋ6 tɛʔ0	niong5 dêk0	rang4 de2	赣	让给	rang4 gei3	100258	让咕	
+让得	ȵioŋ4 tɛʔ0	niong4 dêk0	rang4 de2	赣	让给	rang4 gei3	100258	让咕	
 写得	sia3 tɛʔ0	sia3 dêk0	xie3 de2	赣	写给	xie3 gei3	100227	写咕	
-借得	tɕia5 tɛʔ0	jia4 dêk0	jie4 de2	赣	借给	jie4 gei3	100213	借咕	
+借得	tɕia4 tɛʔ0	jia4 dêk0	jie4 de2	赣	借给	jie4 gei3	100213	借咕	
 拿得	laʔ5 tɛʔ0	lak5 dêk0	na2 de2	赣	拿给	na2 gei3	100083	拿咕	
 畀咕	pa3 ku1	ba3 gu1	bi4 gu1	赣	给/给到	gei3/gei3 dao4	101679		
 送咕	suŋ2 ku1	sung2 gu1	song4 gu1	赣	送给	song4 gei3	101679		
@@ -423,8 +423,8 @@
 作瞌	tsoʔ5 kʰɔt5*	zok5 kot5*	zuo1 ke1	赣	睡意上来	shui4 yi4 shang4 lai2	125000	打瞌睏	
 失瞌	sɛʔ5 kʰɔt5*	sêk5 kot5*	shi1 ke1	赣	缺觉	que1 jiao4	125000		
 打瞌睏	ta3 kʰɔt5 kun4*	da3 kot5 gun4*	da3 ke1 kun4	赣	打瞌睡	da3 ke1 shui4	120000	作瞌	
-打赤膊	ta3 tɕʰiaʔ5 poʔ0	da3 qiak5* bok0	da3 chi4 bo2	赣	裸身	luo3 shen1	100000		
-打赤脚	ta3 tʰaʔ5 tɕioʔ0	da3 tak5* jiok0	da3 chi4 jiao3	赣	赤脚	chi4 jiao3	100000		
+打赤膊	ta3 tɕʰiaʔ5* poʔ0	da3 qiak5* bok0	da3 chi4 bo2	赣	裸身	luo3 shen1	100000		
+打赤脚	ta3 tʰaʔ5* tɕioʔ0	da3 tak5* jiok0	da3 chi4 jiao3	赣	赤脚	chi4 jiao3	100000		
 打脷肚	ta3 li4 tu4	da3 li4 du4	da3 li4 du4	白	不穿裤子	bu4 chuan1 ku4 zi5	100000		
 发性	uat5 saŋ2	wat5 sang2	fa1 xing4	赣	发脾气/生气	fa1 pi2 qi4/sheng1 qi4	127954		
 发蒙	uaʔ5 maŋ1	wak5 mang1	fa1 meng1	赣	启蒙读书	qi3 meng2 du2 shu1	127110		
@@ -454,7 +454,7 @@
 喫醉	tɕʰiaʔ5* tɕi4*	qiak5* ji4*	chi1 zui4	赣	喝醉	he1 zui4	100236		
 喫不消	tɕʰiaʔ5* put5 sɛu1	qiak5* but5 sêu1	chi1 bu4 xiao1	赣	吃不消	chi1 bu4 xiao1	100088		
 賸饭	iaŋ4 uan4	yang4 wan4	sheng4 fan4	白	剩饭	sheng4 fan4	120000		
-賸菜	iaŋ4 tsɔi4*	yang4 coi4*	sheng4 cai4	白	剩菜	sheng4 fan4	120000		
+賸菜	iaŋ4 tsʰɔi4*	yang4 coi4*	sheng4 cai4	白	剩菜	sheng4 fan4	120000		
 㨂锤	tuŋ3 tɕʰy2	dung3 qyu2	dong3 chui2	赣	猜拳	cai1 quan2	100000	剪刀锤头布	
 㧼烟	piɛu2 iɛn1	biêu2 yên1	biao4 yan1	赣	派烟	pai4 yan1	100000	俵烟	
 斗钱	tɛu2 tɕʰiɛn2	dêu2 qiên2	dou4 qian2	赣	凑钱	cou4 qian2	100000		
@@ -579,8 +579,8 @@
 来得赢	lai2 tɛʔ0 iaŋ2	lai2 dêk0 yang2	lai2 de5 ying2	赣	来得及	lai2 de5 ji2	100000		
 来不赢	lai2 put0 iaŋ2	lai2 but0 yang2	lai2 bu4 ying2	赣	来不及	lai2 bu4 ji2	100000		
 一径哩	it5 tɕiaŋ2 li0	yit5 jiang2 li0	yi1 jing4 li5	赣	一直	yi1 zhi2	125000		
-悄悄哩	tɕʰiɛu1* tɕʰiɛu1* li0	qiêu1 qiêu1 li0	qiao1 qiao1 li5	赣	悄悄地	qiao1 qiao1 di5	100226		
-轻轻哩	tɕʰiaŋ1* tɕʰiaŋ1* li0	cung2 cung2 li0	qing1 qing1 li5	赣	轻轻地	qing1 qing1 di5	100132		
+悄悄哩	tɕʰiɛu1* tɕʰiɛu1* li0	qiêu1* qiêu1* li0	qiao1 qiao1 li5	赣	悄悄地	qiao1 qiao1 di5	100226		
+轻轻哩	tɕʰiaŋ1* tɕʰiaŋ1* li0	qiang1* qiang1* li0	qing1 qing1 li5	赣	轻轻地	qing1 qing1 di5	100132		
 重重哩	tʰuŋ4 tʰuŋ4 li0	tung4 tung4 li0	zhong4 zhong4 li5	赣	重重地	zhong4 zhong4 di5	100132		
 慢慢哩	man4 man1 li0	man4 man1 li0	man4 man4 li5	赣	慢慢地	man4 man4 di5	100226		
 快快哩	kʰuai2 kʰuai2 li0	kuai2 kuai2 li0	kuai4 kuai4 li5	赣	快快地	kuai4 kuai4 di5	100132		
@@ -595,7 +595,7 @@
 绝哩毛	tɕʰyɔt6 li2 mau2	qyuot6 li2 mau2	jue2 li5 mao2	赣	太绝了	tai4 jue3 le5	100000		
 绝你哩灭	tɕʰyɔt6 ȵi3 li0 miɛt5	qyuot6 ni3 li0 miêt5	jue2 ni3 li5 mie4	赣	太致命了	tai4 zhi4 ming4 le5	100000	绝你哩毛	
 绝你哩毛	tɕʰyɔt6 ȵi3 li0 mau2	qyuot6 ni3 li0 mau2	jue2 ni3 li5 mao2	赣	太致命了	tai4 zhi4 ming4 le5	100000		
-收命	sɪu1 mian4	seu1 miang4	shou1 ming4	赣	要命	yao4  ming4	125000		
+收命	sɪu1 miaŋ4	seu1 miang4	shou1 ming4	赣	要命	yao4  ming4	125000		
 死西	sɿ3 ɕi1	sï3 xi1	si3 xi1	赣	完蛋	wan2 dan4	100000	埋人	
 你死西	ȵi1 sɿ3 ɕi1	ni1 sï3 xi1	ni3 si3 xi3	赣	你妈的	ni3 ma1 de5	125000		
 下仔	a0 tɛ0	a0 dê0	xia4 zai3	赣	下/下子	xia4/xia4 zi5	122000		
@@ -625,7 +625,7 @@
 劈柴	pʰaʔ5* tɕʰiai2	pak5* qiai2	pi3 chai2	赣	干柴	gan1 chai2	120907		
 衫袖	san1 tɕʰiu2	san1 qiu2	shan1 xiu4	赣	衣袖	yi1 xiu4	124979		
 衫袖	sa1 tɕʰiu2	sa1 qiu2	shan1 xiu4	赣	衣袖	yi1 xiu4	124979		
-衣裳	i1 soŋ1	yi1 song1	yi1 shang1	赣	衣服	yi1 fu5	124500		
+衣裳	i1 soŋ0	yi1 song0	yi1 shang5	赣	衣服	yi1 fu5	124500		
 褂仔	kua2 tɛ0	gua2 dê0	gua4 zi5	赣	外套	wai4 tao4	125000		
 褡仔	tat5 tɛ0	dat5 dê0	da2 zi5	赣	背心	bei4 xin1	125000		
 布褴仔	pu4* lan1 tɛ0	bu4* lan1 dê0	bu4 lan2 zai3	赣	衣物	yi1 wu4	124500		
@@ -645,7 +645,7 @@
 凳凳	tɛn2 tɛn0	dên2 dên0	deng4 deng4	赣	凳子	deng4 zi5	122000	板凳	
 交椅	kau1 i1	gau1 yi1	jiao1 yi3	赣	有靠背的椅子	you3 kao4 bei4 de5 yi3 zi5	120000		
 凳椅	tɛn2 i1	dên2 yi1	deng4 yi3	赣	矮椅子	ai3 yi3 zi5	120000		
-琴凳	tɕin2 tɛn2	qin2 dên2	qin2 deng4	赣	长条凳	chang2 tiao2 deng4	120000		
+琴凳	tɕʰin2 tɛn2	qin2 dên2	qin2 deng4	赣	长条凳	chang2 tiao2 deng4	120000		
 杌子	ut5 tsɿ3	wut5 zï3	wu4 zi3	赣	无靠背高脚凳	wu2 kao4 bei4 gao1 jiao3 deng4	100000		
 鸭婆凳	ŋat5 pʰo0 tɛn2	ngat5 po0 dên2	ya1 po2 deng4	赣			100000		
 袋仔	hɔi1* tɛ0	hoi1* dê0	dai4 zai3	赣	袋子	dai4 zi5	122051		
@@ -689,7 +689,7 @@
 细名	si2 miaŋ2	si2 miang2	xi4 ming2	赣	小名	xiao3 ming2	100000		
 眉眼	mi2 ŋan3	mi2 ngan3	mei2 yan3	赣	头绪	tou2 xu4	120000		
 头脑	hɛu2 lau0	hêu2 lau0	tou2 nao3	赣			120000		
-名堂	min2 tʰoŋ2	mi2 tong2	ming2 tang2	赣	道理/结果	dao4 li3/jie2 guo3	120000		
+名堂	min2 tʰoŋ2	min2 tong2	ming2 tang2	赣	道理/结果	dao4 li3/jie2 guo3	120000		
 交务	kau1 u4	gau1 wu4	jiao1 wu4	赣	什么的/之类的	shen2 me5 de5/zhi1 lei4 de5	120000		
 呜呼	o2 ho1*	o2 ho1*	wu1 hu1	赣	哎呀	ai1 ya1	120000	哦嚯	
 一涿	it5 toʔ5	yit5 dok5	yi1 zhuo1	白	一坨	yi1 tuo2	100000		
@@ -738,7 +738,7 @@
 猪公	tɕy1* kuŋ2	jyu1* gung2	zhu1 gong1	赣	公猪	gong1 zhu1	100000		
 猪猡猡	tɕy1 lo2 lo0	jyu1 lo2 lo0	zhu1 luo2 luo5	赣	小猪	xiao3 zhu1	100000		
 鸡婆	tɕi1 pʰo2	ji1 po2	ji1 po2	赣	母鸡	mu3 ji1	100000		
-鸡公	tɕy1* kuŋ2	ji1* gung2	ji1 gong1	赣	公鸡	gong1 ji1	100000		
+鸡公	tɕi1* kuŋ2	ji1* gung2	ji1 gong1	赣	公鸡	gong1 ji1	100000		
 鸭仔	ŋat5 tɛ0	ngat5 dê0	ya1 zai3	赣	鸭	ya1	120000		
 鸭婆	ŋat5 pʰo2	ngat5 po2	ya1 po2	赣	母鸭	mu3 ya1	100000		
 鸭公	ŋat5 kuŋ2	ngat5 gung2	ya1 gong1	赣	公鸭	gong1 ya1	100000		
@@ -752,17 +752,17 @@
 嘎嘎	ka3 ka0	ga3 ga0	ga2 ga2	赣	鸡蛋/蛋	ji1 dan4/dan4	127500		
 青菜	tɕʰiaŋ1* tsʰɔi0	qiang1* coi0	qing1 cai4	赣			125164		
 红菜	uŋ2 tsʰɔi0	wung2 coi0	hong2 cai4	赣	红凤菜	hong2 feng4 cai4	125164		
-叶儿	iɛt5 li0	yêt3 li0	ye4 er5	赣	叶子	ye4 zi5	100000		
-叶儿菜	iɛt5 li0 tsʰɔi4*	yêt3 li0 coi4*	ye4 er5 cai4	赣	绿叶蔬菜	lv4 ye4 shu1 cai4	100000	叶子菜	
+叶儿	iɛt5 li0	yêt5 li0	ye4 er5	赣	叶子	ye4 zi5	100000		
+叶儿菜	iɛt5 li0 tsʰɔi4*	yêt5 li0 coi4*	ye4 er5 cai4	赣	绿叶蔬菜	lv4 ye4 shu1 cai4	100000	叶子菜	
 梗儿	kuaŋ1* li0	guang1* li0	geng3 er5	赣	梗子	geng3 zi5	100000	梗梗	
 梗梗	kuaŋ1* kuaŋ0	guang1* guang0	geng3 geng3	赣	植物的茎	zhi2 wu4 de5 jing1	129426		
 白菜梗梗	pʰaʔ5* tsʰɔi0 kuaŋ1* kuaŋ0	pak5* coi0 guang1* guang0	bai2 cai4 geng3 geng3	赣	白菜梗子	bai2 cai4 geng3 zi5	100000		
-白菜叶儿	pʰaʔ5* tsʰɔi0 iɛt5 li0	pak5* coi0 yêt3 li0	bai2 cai4 ye4 er5	赣	白菜叶儿	bai2 cai4 ye'er4	100000		
-红菜叶儿	uŋ2 tsʰɔi0 iɛt5 li0	wung2 coi0 yêt3 li0	hong2 cai4 ye4 er5	赣	红凤菜叶	hong2 feng4 cai4 ye4	100000		
+白菜叶儿	pʰaʔ5* tsʰɔi0 iɛt5 li0	pak5* coi0 yêt5 li0	bai2 cai4 ye4 er5	赣	白菜叶儿	bai2 cai4 ye'er4	100000		
+红菜叶儿	uŋ2 tsʰɔi0 iɛt5 li0	wung2 coi0 yêt5 li0	hong2 cai4 ye4 er5	赣	红凤菜叶	hong2 feng4 cai4 ye4	100000		
 红菜梗	uŋ2 tsʰɔi0 kuaŋ1*	wung2 coi0 guang1*	hong2 cai4 geng3	赣	红凤菜茎	hong2 feng4 cai4 jing1	100000		
 莴麦梗儿	uo1 maʔ0 kuaŋ1* li0	wo1 mak0 guang1* li0	wo1 mai4 geng3 er5	赣	莴苣茎	wo1 ju4 jing1	100000		
 莴麦叶儿	uo1 maʔ0 iɛt5 li0	wo1 mak0 yêt5 li0	wo1 mai4 ye4 er5	赣	莴笋叶儿	wo1 sun3 ye'er4	100000		
-苋菜叶	han4 tsɔi0 iɛt5	han4 coi0 yêt5	xian4 cai4 ye4	赣			100000		
+苋菜叶	han4 tsʰɔi0 iɛt5	han4 coi0 yêt5	xian4 cai4 ye4	赣			100000		
 鏾鸡	sɛn2 tɕi0	sên2 ji0	xian4 ji1	赣	阉鸡	yan1 ji1	100000		
 清汤	tɕʰin1 hoŋ1	qin1 hong1	qing1 tang1	赣	馄饨	hun2 tun2	100018		
 腌粉	iɛt5 fun3	yêt5 fun3	yan1 fen3	白			90000		
