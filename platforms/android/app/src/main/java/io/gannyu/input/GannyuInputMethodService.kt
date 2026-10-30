@@ -1247,8 +1247,9 @@ class GannyuInputMethodService : InputMethodService() {
         candidateExpandButton.visibility = if (lastSnapshot.candidates.isEmpty()) View.GONE else View.VISIBLE
         candidateExpandButton.text = if (candidateExpanded) "⌃" else "⌄"
         if (lastSnapshot.candidates.isEmpty()) return
+        val titleSize = candidateTitleSize()
         lastSnapshot.candidates.forEachIndexed { index, c ->
-            val cv = CandidateView(this, c, index, expanded = false)
+            val cv = CandidateView(this, c, index, expanded = false, titleSize = titleSize)
             candidateBar.addView(cv)
         }
         candidateScroll.post {
@@ -1256,11 +1257,16 @@ class GannyuInputMethodService : InputMethodService() {
         }
     }
 
+    private fun subtitleEnabled(): Boolean = inputOptions(this)[0] != 0
+
+    private fun candidateTitleSize(): Float = if (subtitleEnabled()) 16f else 20f
+
     private inner class CandidateView(
         context: android.content.Context,
         private val candidate: RankedCandidate,
         index: Int,
         expanded: Boolean,
+        private val titleSize: Float,
     ) : LinearLayout(context) {
         private var downX = 0f
         private var downY = 0f
@@ -1280,7 +1286,7 @@ class GannyuInputMethodService : InputMethodService() {
 
             addView(TextView(context).apply {
                 text = candidate.text
-                setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16f); setTextColor(keyTextColor)
+                setTextSize(TypedValue.COMPLEX_UNIT_DIP, titleSize); setTextColor(keyTextColor)
                 setTypeface(null, Typeface.NORMAL)
                 gravity = android.view.Gravity.START
                 maxLines = 1
@@ -1370,7 +1376,7 @@ class GannyuInputMethodService : InputMethodService() {
                 row = expandedCandidateRow()
                 usedWidth = 0
             }
-            row.addView(CandidateView(this, candidate, index, expanded = true), LinearLayout.LayoutParams(width, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+            row.addView(CandidateView(this, candidate, index, expanded = true, titleSize = candidateTitleSize()), LinearLayout.LayoutParams(width, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
                 if (usedWidth > 0) marginStart = dp(3)
             })
             usedWidth += (if (usedWidth == 0) 0 else dp(3)) + width
@@ -1402,7 +1408,7 @@ class GannyuInputMethodService : InputMethodService() {
 
     private fun candidateWidth(candidate: RankedCandidate): Int {
         val density = resources.displayMetrics.density
-        val wordWidth = android.graphics.Paint().apply { textSize = 16f * density }.measureText(candidate.text)
+        val wordWidth = android.graphics.Paint().apply { textSize = candidateTitleSize() * density }.measureText(candidate.text)
         return maxOf(dp(44), kotlin.math.ceil(wordWidth.toDouble()).toInt() + dp(10))
     }
 
