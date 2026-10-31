@@ -122,8 +122,6 @@ impl AssociationCache {
     pub fn build(dictionary: &Dictionary, _slang: Option<&SlangBook>) -> Self {
         let mut cache = Self::empty();
 
-        // 1. Build bidirectional synonym groups from dictionary entries.
-        //    First collect all headword→synonym pairs, then insert bidirectionally.
         let mut raw_edges: HashMap<WordId, HashSet<WordId>> = HashMap::new();
         for entry in dictionary.entries() {
             let headword = entry.headword.trim();
@@ -142,14 +140,12 @@ impl AssociationCache {
             }
         }
 
-        // Collapse edges into sorted Vecs (deduplicate + stable order for determinism)
         for (word, set) in raw_edges {
             let mut associates: Vec<WordId> = set.into_iter().collect();
             associates.sort_unstable_by(|left, right| cache.word(*left).cmp(cache.word(*right)));
             cache.word_to_associates.insert(word, associates);
         }
 
-        // 2. Build Gan-Mandarin pair maps.
         for entry in dictionary.entries() {
             let headword = entry.headword.trim();
             let mandarin_words = distinct_mandarin_words(headword, &entry.mandarin_word);
@@ -175,7 +171,6 @@ impl AssociationCache {
             }
         }
 
-        // Sort/unique vectors for determinism.
         let words = &cache.words;
         for mandarins in cache.gan_to_mandarin.values_mut() {
             mandarins.sort_unstable_by(|left, right| {

@@ -84,8 +84,7 @@ fn main() {
         add(&root.join(relative), root, &mut digest);
     }
 
-    // build.rs only defines this fingerprint; preserve the previous fingerprint
-    // input so this cache-key correction does not invalidate compiled regions.
+    // Keep the fingerprint input stable so existing compiled regions stay valid.
     let build_script = root.join("crates/resource-build/build.rs");
     add_bytes(
         &build_script,

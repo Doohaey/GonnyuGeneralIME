@@ -46,7 +46,6 @@ fn generate_sbox() -> [u8; 256] {
     for (i, v) in sbox.iter_mut().enumerate() {
         *v = i as u8;
     }
-    // Fisher-Yates shuffle.
     for i in (1..256).rev() {
         let j = (OsRng.next_u32() as usize) % (i + 1);
         sbox.swap(i, j);
@@ -233,7 +232,6 @@ fn main() {
     let out_dir = Path::new(&out_dir_val);
 
     if !resources.is_dir() {
-        // resources/ not found — generate empty module
         let code =
             "pub fn embedded_resources() -> Vec<(&'static str, &'static [u8])> { Vec::new() }\n";
         fs::write(out_dir.join("embedded_resources.rs"), code).unwrap();
@@ -255,7 +253,6 @@ fn main() {
         0xa0, 0x7e,
     ];
 
-    // embedded = feistel(key)
     let mut embedded = 密钥;
     feistel_forward(&mut embedded, &sbox, &perm);
     let mut masked_seed = [0u8; 32];
@@ -363,7 +360,6 @@ fn main() {
     code.push_str("    out\n");
     code.push_str("}\n");
 
-    // Encoded path constants.
     code.push_str("#[allow(clippy::all)]\n");
     code.push_str("static ENCODED_PATHS: &[&[u8]] = &[\n");
     for (path, _) in &entries {
@@ -376,7 +372,6 @@ fn main() {
     }
     code.push_str("];\n");
 
-    // embedded_resource_paths(): decode all paths once, cache in a OnceLock.
     code.push_str("#[allow(clippy::all)]\n");
     code.push_str("pub fn embedded_resource_paths() -> &'static [&'static str] {\n");
     code.push_str("    use std::sync::OnceLock;\n");
@@ -393,7 +388,6 @@ fn main() {
     code.push_str("    }).as_slice()\n");
     code.push_str("}\n");
 
-    // embedded_resource(): match a decoded path against the encoded constants.
     code.push_str("#[allow(clippy::all)]\n");
     code.push_str("pub fn embedded_resource(path: &str) -> Option<&'static [u8]> {\n");
     code.push_str("    let enc: Vec<u8> = path.bytes().enumerate()\n");
@@ -401,8 +395,6 @@ fn main() {
     code.push_str("        .collect();\n");
     code.push_str("    match enc.as_slice() {\n");
 
-    // Write each encrypted blob to OUT_DIR and emit a match arm keyed on the
-    // encoded path bytes.
     for (i, (path, data)) in entries.iter().enumerate() {
         let blob_name = format!("res_{}.bin", i);
         let blob_path = out_dir.join(&blob_name);

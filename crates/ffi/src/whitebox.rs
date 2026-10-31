@@ -84,12 +84,10 @@ fn unpermute(block: &mut [u8; 32]) {
 #[cfg(test)]
 fn feistel_forward(block: &mut [u8; 32]) {
     for round in 0..ROUNDS {
-        // Split into left/right halves.
         let mut left = [0u8; 16];
         let mut right = [0u8; 16];
         left.copy_from_slice(&block[0..16]);
         right.copy_from_slice(&block[16..32]);
-        // Feistel round: L, R = R, L XOR F(R).
         let f = round_function(&right, round);
         let new_left = right;
         let mut new_right = [0u8; 16];
@@ -98,7 +96,6 @@ fn feistel_forward(block: &mut [u8; 32]) {
         }
         block[0..16].copy_from_slice(&new_left);
         block[16..32].copy_from_slice(&new_right);
-        // Diffuse across the whole block between rounds.
         permute(block);
     }
 }

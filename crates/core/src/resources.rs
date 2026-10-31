@@ -254,8 +254,6 @@ pub fn load_region_from_manifest(
         .map(Path::to_path_buf)
         .unwrap_or(resource_root);
 
-    // Validasi berkas sumber daya — lewati TSV sumber jika cache runtime tersedia
-    // (TSV sumber hanya diperlukan saat build, runtime menggunakan cache + indeks FST).
     let cache_candidate = region_root.join("dictionaries/dictionary_runtime_cache.zst");
     let has_runtime_cache = cache_candidate.is_file();
     let skip_when_cached: &[&str] = &["chars.tsv", "words.tsv", "gan_chars.tsv", "gan_words.tsv"];

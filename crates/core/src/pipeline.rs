@@ -232,7 +232,6 @@ impl InputPipeline {
     ) -> Result<InputPipeline, PipelineError> {
         let mut pipeline = InputPipeline::empty_with_user_data_dir(user_data_dir);
 
-        // Load dictionary from the configured split files.
         let dict_files: Vec<&str> = [
             resource.config.language.chars.as_deref(),
             resource.config.language.words.as_deref(),
@@ -251,7 +250,6 @@ impl InputPipeline {
             pipeline.dictionary = Dictionary::load_split_tsvs(&paths, index_dir.as_deref())?;
             pipeline.default_words = load_default_words(resource, &pipeline.dictionary)?;
         }
-        // Build auxiliary indices from dictionary in parallel.
         if !pipeline.dictionary.is_empty() {
             let dict = &pipeline.dictionary;
             std::thread::scope(|s| {
@@ -312,10 +310,9 @@ impl InputPipeline {
         pipeline
             .user_dict
             .prune_existing(|hw| !pipeline.dictionary.by_headword(hw).is_empty());
-        // 合并历史 frequency_boosts 到用户词典：自造词的 boost 并入「词频」列
-        // （封顶 200000），并从 frequency_boosts 移除（正式词仍保留）。
+        // Merge self-made word boosts into the user dictionary frequency column (cap 200000).
         pipeline.merge_boosts_into_user_dict();
-        // 给尚无词频的自造词赋予 15000–10000 的随机初始词频。
+        // Seed self-made words without a frequency with a random initial value.
         pipeline.seed_user_dict_frequencies();
         let user_entries: Vec<_> = pipeline.user_dict.entries().cloned().collect();
         pipeline.dictionary.extend_from_entries(user_entries);
@@ -423,7 +420,6 @@ impl InputPipeline {
                 if let (Some(word), Some(boost)) =
                     (parsed["word"].as_str(), parsed["boost"].as_u64())
                 {
-                    // 历史数据可能超过封顶，加载时统一截断到 200000。
                     self.frequency_boosts
                         .insert(word.to_string(), boost.min(MAX_BOOST));
                 }
@@ -431,14 +427,13 @@ impl InputPipeline {
         }
     }
 
-    /// 把历史 frequency_boosts 中属于自造词的 boost 并入用户词典「词频」列
-    /// （封顶 200000），并从 frequency_boosts 移除；正式词仍保留在 boosts。
+    /// Merge self-made word boosts into the user dictionary frequency column
+    /// (cap 200000) and remove them from the boost list.
     fn merge_boosts_into_user_dict(&mut self) {
         let mut updates: Vec<(String, u64)> = Vec::new();
         let mut removed: Vec<String> = Vec::new();
         for (word, boost) in self.frequency_boosts.iter() {
             if self.user_dict.contains(word) {
-                // 自造词：并入用户词典词频
                 updates.push((word.clone(), *boost));
                 removed.push(word.clone());
             }
@@ -607,8 +602,6 @@ impl InputPipeline {
     }
 
     pub fn pair_cache(&self) -> &AssociationCache {
-        // 关联缓存随词典单例共享; AssociationCache::build 的 slang 参数
-        // 本就未被使用, 与原 get_or_init(build(dictionary, slang)) 内容一致。
         self.dictionary.associations()
     }
 
@@ -718,9 +711,7 @@ impl InputPipeline {
                     }
                 }
             }
-            // 词频加成参与排序，但保持「多音节完整匹配优先」的边界结构：
-            // 候选按 consumed_bytes（音节边界）分成连续组，组内按 boost 稳定排序
-            // （同 boost 保持原词频顺序），组间顺序不变（多音节组在前）。
+            // Boosts reorder candidates within syllable-boundary groups; group order stays intact.
             let mut i = 0usize;
             while i < candidates.len() {
                 let consumed = candidates[i].consumed_bytes;
@@ -736,7 +727,6 @@ impl InputPipeline {
                 i = j;
             }
         }
-        // Post-process: inject Gan-Mandarin pairs and associations.
         if !cache.is_empty() {
             {
                 let mut seen = owned_text_set(&candidates);
@@ -744,7 +734,7 @@ impl InputPipeline {
                 while i < candidates.len() {
                     let headword = candidates[i].text.clone();
 
-                    // Gan-Mandarin pair: Gan word hit → ensure Mandarin right after
+                    // Gan-Mandarin pair: keep the Mandarin equivalent right after a Gan hit.
                     let mandarins = cache.mandarins_of_gan(&headword);
                     if !mandarins.is_empty() {
                         let mut insert_at = i + 1;
@@ -776,7 +766,7 @@ impl InputPipeline {
                         }
                     }
 
-                    // Gan-Mandarin pair: Mandarin hit → insert Gan before it
+                    // Gan-Mandarin pair: insert the Gan equivalent before a Mandarin hit.
                     if !cache.gan_of_mandarin(&headword).is_empty() {
                         let gan_words = cache.gan_of_mandarin(&headword).to_vec();
                         if let Some(first_gan) = gan_words.first() {

@@ -144,7 +144,6 @@ fn mandarin_word_suffix(headword: &str, related_entries: &[&DictionaryEntry]) ->
 }
 
 fn associated_word_suffix(dictionary: &Dictionary, headword: &str) -> Option<String> {
-    // 关联缓存随词典单例共享(Dictionary::associations), 不再按线程重建。
     let words = dictionary.associations().associates_of(headword);
     if words.is_empty() {
         None
@@ -506,7 +505,6 @@ fn tone_syllable(
         return syllable.to_string();
     }
     let ipa_syllables: Vec<&str> = entry.ipa.split_whitespace().collect();
-    // Find matching position by matching untuned bases
     let dialect_syllables: Vec<&str> = entry.dialect_pinyin.split_whitespace().collect();
     for (i, ds) in dialect_syllables.iter().enumerate() {
         if *ds == syllable {
@@ -520,7 +518,7 @@ fn tone_syllable(
             break;
         }
     }
-    // Fallback: look up any IPA syllable at same position
+    // Fall back to a tone-stripped position match.
     if let Some(pos) = dialect_syllables
         .iter()
         .position(|s| strip_tone(s) == strip_tone(syllable))
@@ -772,7 +770,7 @@ fn inject_pairs_and_associations(
     while i < candidates.len() && scanned < base_limit {
         let headword = candidates[i].text.clone();
 
-        // ── Gan-Mandarin pair: Gan word hit ──
+        // Gan-Mandarin pair: Gan word hit
         let mandarins = cache.mandarins_of_gan(&headword);
         if !mandarins.is_empty() {
             let mut insert_at = i + 1;
@@ -795,7 +793,7 @@ fn inject_pairs_and_associations(
             }
         }
 
-        // ── Gan-Mandarin pair: Mandarin word hit → Gan first, then Mandarin ──
+        // Gan-Mandarin pair: Mandarin word hit, Gan first
         if !cache.gan_of_mandarin(&headword).is_empty() {
             let gan_words = cache.gan_of_mandarin(&headword).to_vec();
             if let Some(first_gan) = gan_words.first() {
@@ -844,7 +842,7 @@ fn inject_pairs_and_associations(
             }
         }
 
-        // ── Association groups ──
+        // Association groups
         for assoc in cache.associates_of(&headword) {
             if seen.contains(assoc) {
                 continue;
@@ -966,7 +964,6 @@ fn collect_per_syllable_hits(
             for &idx in dictionary.initial_match_ids(pos, first_ch) {
                 ids.insert(idx as usize);
             }
-            // also consider fuzzy variants? keep simple: initials match is enough
         } else {
             for entry in dictionary.by_syllable_at_position(pos, syl) {
                 if let Some(id) = dictionary.entry_id(entry) {
@@ -994,8 +991,7 @@ fn collect_per_syllable_hits(
         per_position.push(ids);
     }
 
-    // Cap per-position sets to top-200 by frequency to avoid
-    // quadratic blowup in intersection for common syllables.
+    // Cap per-position sets to bound intersection cost for common syllables.
     const PER_POSITION_CAP: usize = 200;
     for pos_ids in &mut per_position {
         if pos_ids.len() > PER_POSITION_CAP {
@@ -1020,8 +1016,6 @@ fn collect_per_syllable_hits(
         for &id in &intersection {
             if !direct_entry_ids.contains(&id) {
                 direct_entry_ids.insert(id);
-                // Classify at collection time: check if this entry was found
-                // via dialect_index or mandarin_index during full-pinyin lookup.
                 match_kind.entry(id).or_insert_with(|| {
                     if exact_dialect_ids.contains(&id) {
                         2u8 // Gan

@@ -50,9 +50,7 @@ HEADERS = (
 )
 MAX_FORMS = 64
 VERSION_LINE = re.compile(r'(?m)^version: "([^"]+)"$')
-# These are the builder hashes used by the last successful macOS cache and by
-# the immediately preceding cache-fix build. They allow a one-time, verified
-# migration of their stamps without rebuilding unchanged regional resources.
+# Builder hashes accepted for stamp migration of existing regional resources.
 LEGACY_BUILD_HASHES = (
     ("e7df51dc8ac45da642969c98bec9df8a44d9e378c73d402f06d60f009b76a055", True),
     ("573c26d5ac3d1446e28a4a6481e40569be28b2e57285d55aa2ffb5191b3f4455", False),

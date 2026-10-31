@@ -611,9 +611,8 @@ pub unsafe extern "C" fn gannyu_engine_create(
     if (*config).struct_size < std::mem::size_of::<GannyuEngineConfig>() {
         return invalid_argument("engine config is older than the required ABI");
     }
-    // The Rust backend embeds its immutable shared resources. The directory
-    // fields are intentionally accepted but unused so callers can keep one
-    // engine-neutral creation path while mobile builds select librime.
+    // The Rust backend embeds its immutable shared resources. Directory fields keep
+    // the creation path engine-neutral; mobile builds select librime for resources.
     pipeline_create(
         ptr::null(),
         (*config).region_id,
@@ -710,7 +709,6 @@ unsafe fn pipeline_create(
         Ok(value) => value,
         Err(error) => return load_failure("dictionary pipeline load failed", error),
     };
-    // The pipeline has now loaded all dictionary/slang/hints data into memory.
     if let Some(d) = &deployed {
         let _ = fs::remove_dir_all(d.temp.path());
     }

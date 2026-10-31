@@ -285,7 +285,7 @@ fn retrieve_inner_limited_with_boosts(
     }
     let normalized = normalize_pinyin(query);
 
-    // Check per-thread cache keyed by (dictionary_ptr, normalized, skip_step7, max_candidates).
+    // Per-thread cache key includes the dictionary id, query, and cap.
     if boosts.is_none() && max_candidates != usize::MAX {
         let dictionary_id = dictionary.cache_id();
         let cache_key = (
@@ -439,7 +439,6 @@ fn retrieve_inner_limited_with_boosts(
                     .map(|entry| (entry, *kind))
             })
             .unzip();
-        // Uncapped path (public retrieve API): build everything, rayon-parallel, then merge.
         let built: Vec<Vec<RankedCandidate>> = if entry_list_entries.len() >= 3 {
             use rayon::prelude::*;
             entry_list_entries
@@ -452,7 +451,6 @@ fn retrieve_inner_limited_with_boosts(
                         _ => RetrievalLayer::Fuzzy,
                     };
                     let local: Vec<RankedCandidate> = vec![gan_candidate(dictionary, entry, layer, tone_values)];
-                    // synonyms and mandarin word candidate handled serially later to preserve order
                     local
                 })
                 .collect()
@@ -471,7 +469,6 @@ fn retrieve_inner_limited_with_boosts(
                 .collect()
         };
 
-        // Merge built candidates preserving frequency sort (direct_entries were sorted earlier)
         for built_group in built.into_iter() {
             for candidate in built_group {
                 if seen.contains(&candidate.text) {
@@ -482,15 +479,8 @@ fn retrieve_inner_limited_with_boosts(
             }
         }
     } else {
-        // Capped path (per-keystroke retrieval): build candidates lazily
-        // inside the merge loop and stop at max_candidates.  The old code
-        // built full annotated candidates for every hit (thousands for a
-        // popular initial letter) and discarded all but the first ~100.
-        // Output is identical: merge order and `seen` evolution match the
-        // old loop, and skipped builds are pure (memo-cache side effects
-        // only).  Once the cap is reached no further insertions can happen,
-        // so checking the cap at the top of the loop is equivalent to the
-        // old per-candidate check.
+        // Capped path builds candidates lazily and stops at max_candidates.
+        // Merge order and seen-set evolution match the uncapped path.
         let mut main_count = 0usize;
         for (entry_index, kind) in &direct_entries {
             if main_count >= max_candidates {
@@ -515,7 +505,7 @@ fn retrieve_inner_limited_with_boosts(
         }
     }
 
-    // Now handle synonyms and mandarin-word candidates serially to avoid race on seen set
+    // Synonyms and Mandarin-word candidates run serially to keep the seen set race-free.
     for (entry_index, kind) in &expanded_direct_entries {
         let Some(entry) = dictionary.entries().get(*entry_index) else {
             continue;
@@ -592,8 +582,7 @@ fn retrieve_inner_limited_with_boosts(
         }
     }
 
-    // Store in per-thread cache for future calls with different max_candidates.
-    // Only cache when called with a finite max_candidates (skip the uncapped path).
+    // Cache finite-cap results per thread; the uncapped path is not cached.
     if boosts.is_none() && max_candidates != usize::MAX {
         let dictionary_id = dictionary.cache_id();
         INNER_RETRIEVE_CACHE.with(|cache| {
@@ -942,12 +931,8 @@ fn collect_boundary_aligned_candidates(
             if seen.contains(&candidate.text) {
                 continue;
             }
-            // 过滤「前缀匹配但音节不匹配」的候选：候选词的每个音节必须
-            // 在 segments 对应位置命中，否则（如"中华民族"第 4 音节 cuk6
-            // 不匹配输入的 wai）不收集。
-            // 输入缓存只有单独音节（boundaries.len()==1）时不过滤：
-            // 单音节可能是更长词的前缀（如 "zung" 是 "zungguet" 中国的前缀），
-            // 应保留。
+            // Reject prefix hits whose syllables do not align with the sentence segments.
+            // Single-syllable inputs are kept because they may prefix a longer word.
             if boundaries.len() > 1
                 && !candidate_starts_with_sentence_segments(dictionary, &candidate.text, segments)
             {
@@ -967,7 +952,7 @@ pub(crate) fn retrieve_sentence_input_cached(
     fuzzy: &FuzzyMap,
     tone_values: &HashMap<String, u8>,
     input: &str,
-    cache: Option<&AssociationCache>,
+    _cache: Option<&AssociationCache>,
     retrieval_cache: &mut SentenceRetrievalCache,
 ) -> Vec<RankedCandidate> {
     let normalized = normalize_pinyin(input);
@@ -1099,11 +1084,6 @@ pub(crate) fn retrieve_sentence_input_cached(
             seen.insert(candidate.text.clone());
             candidates.push(candidate);
         }
-        if let Some(_cache) = cache {
-            // Sentence-path retrieval currently doesn't use pair injection in the
-            // runtime pipeline; this branch stays intentionally inert until a
-            // filtered-group version of association injection is needed.
-        }
     }
 
     let mut exact_mandarin = dictionary.by_mandarin_pinyin_normalized(&normalized);
@@ -1156,9 +1136,6 @@ pub(crate) fn retrieve_sentence_input_cached(
                     map_doubled_offset_to_original(&normalized, doubled, candidate.consumed_bytes);
                 seen.insert(mapped.text.clone());
                 candidates.push(mapped);
-            }
-            if let Some(_cache) = cache {
-                // See note above for the non-doubled sentence path.
             }
         }
     }

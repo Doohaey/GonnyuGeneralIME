@@ -743,8 +743,6 @@ class GannyuInputMethodService : InputMethodService() {
         }.start()
     }
 
-    // ===== Keyboard rendering =====
-
     private fun renderKeyboard() {
         hideKeyPreview()
         keyboardRows.removeAllViews()
@@ -956,8 +954,6 @@ class GannyuInputMethodService : InputMethodService() {
         if (::keyPreview.isInitialized) keyPreview.visibility = View.GONE
     }
 
-    // ===== Key handling =====
-
     private fun onKey(key: KeySpec) {
         when {
             key.label == "\u232B"                        -> handleBackspace()
@@ -1045,8 +1041,6 @@ class GannyuInputMethodService : InputMethodService() {
         val manager = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
         manager?.showInputMethodPicker()
     }
-
-    // ===== Input handling =====
 
     private fun appendInput(character: Char) {
         applyEngineSnapshot(processEngineText(character.toString()))
@@ -1155,8 +1149,6 @@ class GannyuInputMethodService : InputMethodService() {
         expandedCandidates.clear()
         if (::candidateBar.isInitialized) renderState()
     }
-
-    // ===== UI rendering =====
 
     private fun renderState() {
         if (!::candidateBar.isInitialized) return
