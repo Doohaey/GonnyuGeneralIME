@@ -44,6 +44,30 @@
           }
         },
         {
+          "id": "F202",
+          "match": [
+            "common",
+            "ï",
+            "yï"
+          ],
+          "intent": "单写 ï→yï",
+          "origin": {
+            "kind": "explicit"
+          }
+        },
+        {
+          "id": "F203",
+          "match": [
+            "common",
+            "ïk",
+            "yïk"
+          ],
+          "intent": "零声母 ïk 匹配 yïk",
+          "origin": {
+            "kind": "explicit"
+          }
+        },
+        {
           "id": "F004",
           "match": [
             "common",

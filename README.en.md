@@ -316,8 +316,8 @@ Checked-tone codas follow these spelling and input rules.
 
 With no initial consonant:
 
-- Before `-a`, `-o`, or `-e`, initial `i` is written `y`.
-- In other positions, it is written `yi`.
+- Before `-a`, `-o`, or `-e`, initial `i` (including `ï`) is written `y`.
+- In other positions, `i` (including `ï`) is written `yi`(`yï`).
 
 | gon-pin | Default IPA | Fungcen IPA | Tiqien IPA | Sinyi IPA | Songau IPA | Seusong IPA | Jingon IPA | Yikyan-Henfeng IPA | Jisuibaedu IPA | Xyucuênn IPA | Singzï IPA | Goungon IPA | Accepted alternative input | Notes |
 | --- | --- | --- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | --- | --- |
