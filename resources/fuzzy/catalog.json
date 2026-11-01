@@ -68,6 +68,30 @@
           }
         },
         {
+          "id": "F204",
+          "match": [
+            "common",
+            "ii",
+            "ï"
+          ],
+          "intent": "ii 精确输入 ï",
+          "origin": {
+            "kind": "explicit"
+          }
+        },
+        {
+          "id": "F205",
+          "match": [
+            "common",
+            "i",
+            "yï"
+          ],
+          "intent": "零声母 i 匹配 yï",
+          "origin": {
+            "kind": "explicit"
+          }
+        },
+        {
           "id": "F004",
           "match": [
             "common",

@@ -321,7 +321,7 @@ With no initial consonant:
 
 | gon-pin | Default IPA | Fungcen IPA | Tiqien IPA | Sinyi IPA | Songau IPA | Seusong IPA | Jingon IPA | Yikyan-Henfeng IPA | Jisuibaedu IPA | Xyucuênn IPA | Singzï IPA | Goungon IPA | Accepted alternative input | Notes |
 | --- | --- | --- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | --- | --- |
-| i* | [i]  or  [ɿ] | - | - | - | - | [ʅ] | - | - | - | - | [ʅ] | - | — |  |
+| i* | [i]  or  [ɿ] | - | - | - | - | [ʅ] | - | - | - | - | [ʅ] | - | ii (→ ï) |  |
 | iae | - | - | - | - | [iæ] | - | - | - | - | [iæ] | - | - |  |  |
 | ia | [ia] | - | - | - | - | - | - | - | - | - | - | - | — |  |
 | io | - | [iɔ] | [iɔ] | [io] | - | [io] | [io] or [iɔ] | [io] | [io] | [io] or [iɔ] | [io] or [iɔ] | [iɔ] | - |  |
@@ -366,7 +366,7 @@ With no initial consonant:
 | iuok | - | - | - | [iuɔʔ] | - | - | - | - | - | - | - | - | - |  |
 | iuek | - | - | - | [iuəʔ] | - | - | - | - | - | - | - | - | - |  |
 
-\* `i`: Some regions use `ï` for IPA [ɿ], including [ɿ] in other finals. Input uses `i`, which can match `ï` through one-way fuzzy matching.
+\* `i`: Some regions use `ï` for IPA [ɿ], including [ɿ] in other finals. Input uses `i`, which can match `ï` through one-way fuzzy matching; `ii` precisely inputs `ï`.
 
 \* `iu`: Bare iu without an initial consonant is written yiu, distinct from yu for [y]. The same spelling applies when an entering-tone coda is attached directly to iu. Forms with other endings are an exception.
 
