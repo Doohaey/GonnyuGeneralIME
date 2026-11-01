@@ -227,5 +227,5 @@ def compile_algebra(canonical: set[str], rules: list[FuzzyRule]) -> list[str]:
 
 def essential_rules(rules: list[FuzzyRule]) -> list[FuzzyRule]:
     return [rule for rule in rules if (rule.source, rule.target) in {
-        ("i", "ï"), ("e", "ê"), ("ee", "ê"), ("ir", "e"),
+        ("i", "ï"), ("ii", "ï"), ("e", "ê"), ("ee", "ê"), ("ir", "e"),
     }]

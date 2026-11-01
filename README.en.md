@@ -21,14 +21,15 @@ Currently supports: **Lancong (Nanchang), Fenni (Fenyi), Fungcen (Fengcheng), Ti
 
 Rime schema repositories are available for Lancong (Nanchang), Fenni (Fenyi), Fungcen, Yikyan-Henfeng, Sinyi (Xinyu), and Goungon (Gao'an). Other installation options are available in the [Installation](#installation) section below.
 
-## Release 1.2.6
+## Release 1.2.7
 
-- data(dictionary): Update the Lancong and Sinyi dictionaries with new entries and corrected readings.
+- fix(dictionary): Spell [ɿ] syllables in the Lancong dictionary with `ï`.
+- feat(fuzzy): Add `ii` as a precise input for `ï`.
 
 ## Contents
 
 - [GonnyuGeneralIME — A General Gon(Gan) Chinese Input Method](#gonnyugeneralime--a-general-gongan-chinese-input-method)
-  - [Release 1.2.6](#release-126)
+  - [Release 1.2.7](#release-127)
   - [Contents](#contents)
   - [Overview](#overview)
     - [What it provides](#what-it-provides)
