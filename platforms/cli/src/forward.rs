@@ -1,6 +1,4 @@
-// 桌面键盘转发模块
-// 检测安卓设备，自动安装 APK，将电脑键盘输入通过 Gannyu 引擎在桌面端解析候选，
-// 用户选择后通过 adb 将最终中文文本发送到安卓设备。
+// Desktop keyboard forwarding: resolve candidates locally, then send committed text over adb.
 use std::env;
 use std::io::{self, IsTerminal, Write};
 use std::process::{Child, Command, Stdio};
@@ -64,7 +62,6 @@ pub fn run(auto_install: bool) -> std::process::ExitCode {
     println!("Press Ctrl+C to exit.");
     println!();
 
-    // Start adb shell session for sending text
     let mut shell = match start_adb_shell(&adb) {
         Ok(s) => s,
         Err(e) => {
@@ -291,7 +288,6 @@ pub fn run(auto_install: bool) -> std::process::ExitCode {
 
 fn finish_compose(composing: &mut String, candidates: &[String], stdin_pipe: &mut dyn Write) {
     if !composing.is_empty() && !candidates.is_empty() {
-        // Commit first candidate before punctuation
         let text = &candidates[0];
         let escaped = text.replace('\'', "'\\''");
         writeln!(stdin_pipe, "input text '{}'", escaped).ok();
@@ -302,7 +298,6 @@ fn finish_compose(composing: &mut String, candidates: &[String], stdin_pipe: &mu
 }
 
 fn retrieve_candidates(input: &str) -> Vec<String> {
-    // Call Gannyu CLI to get candidates
     let output = Command::new("cargo")
         .args([
             "run",
@@ -321,10 +316,7 @@ fn retrieve_candidates(input: &str) -> Vec<String> {
             let text = String::from_utf8_lossy(&o.stdout);
             text.lines()
                 .take(9)
-                .map(|line| {
-                    // Extract just the text part (before tab)
-                    line.split('\t').next().unwrap_or(line).to_string()
-                })
+                .map(|line| line.split('\t').next().unwrap_or(line).to_string())
                 .collect()
         }
         _ => Vec::new(),
@@ -357,8 +349,6 @@ fn find_repo_root_ok() -> Option<String> {
     }
     None
 }
-
-// ── Helper functions below ──
 
 fn find_adb() -> Option<String> {
     if let Ok(output) = Command::new("which").arg("adb").output() {

@@ -91,7 +91,11 @@ common	rime	ou	eu	ɛu	后	syllable-final	false	false	primary	cou,dou,fou,gou,hou
 tiqien	coda		p			syllable-final	false	true	fallback		自动生成：完整音系检测到该入声韵尾，输入省略韵尾时匹配带尾形式	none
 common	rime	ieu	yêu	iɛu	夭	syllable-final	false	true	primary	ieu	输入 ieu 匹配 yêu	none
 xyucuenn	rime	yuin	yuinn			syllable-final	false	false	primary		遂川鼻化韵可由单 n 韵尾输入匹配 nn 规范写法	none
-common	rime	i	yi	i	一	syllable-final	false	true	primary	i	单写 i→yi	none
+common	rime	i	yi	i	一	syllable-final	false	false	primary	i	单写 i→yi	none
+common	rime	ii	ï	ɿ	丝	anywhere	false	true	primary		ii 精确输入 ï	none
+common	rime	i	yï	ɿ	世	syllable-final	false	false	primary	i	零声母 i 匹配 yï	none
+common	rime	ï	yï	ɿ	世	syllable-final	false	true	primary	ï	单写 ï→yï	none
+common	rime	ïk	yïk	ɿʔ		syllable-final	false	true	primary	ïk	零声母 ïk 匹配 yïk	none
 xyucuenn	rime	uan	uann			syllable-final	false	false	primary		遂川鼻化韵可由单 n 韵尾输入匹配 nn 规范写法	none
 xyucuenn	rime	en	ênn			syllable-final	false	false	primary		鼻化韵帽子 e 使用 ee 输入兼容	none
 common	onset	u	w	u	乌	syllable-initial	false	true	primary	ua,ue,uo,uê,uiê	零声母 u 系旧写兼容；ua→wa、uen→wen、uon→won，可接续匹配ê形式	none

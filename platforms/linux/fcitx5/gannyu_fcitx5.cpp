@@ -93,7 +93,6 @@ std::string chineseFullwidthSymbol(int sym) {
         case ']':  return "\xE3\x80\x91"; /* 】U+3011 */
         case '<':  return "\xE3\x80\x8A"; /* 《U+300A */
         case '>':  return "\xE3\x80\x8B"; /* 》U+300B */
-        case '"':  return "\xE2\x80\x9C"; /* "U+201C left double quote */
         case '~':  return "\xEF\xBD\x9E"; /* ～U+FF5E */
         case '-':  return "\xEF\xBC\x8D"; /* －U+FF0D */
         default:   return {};
@@ -179,6 +178,20 @@ public:
     std::string accumulatedReading;
     std::string accumulatedMandarinReading;
     std::string originalInput;
+    bool doubleQuoteOpen = false;
+    bool singleQuoteOpen = false;
+
+    std::string nextDoubleQuote() {
+        bool opening = doubleQuoteOpen;
+        doubleQuoteOpen = !doubleQuoteOpen;
+        return opening ? "\xE2\x80\x9D" : "\xE2\x80\x9C";
+    }
+
+    std::string nextSingleQuote() {
+        bool opening = singleQuoteOpen;
+        singleQuoteOpen = !singleQuoteOpen;
+        return opening ? "\xE2\x80\x99" : "\xE2\x80\x98";
+    }
 };
 
 class GannyuEngine;
@@ -535,13 +548,23 @@ public:
                 ic->commitString(letters);
                 resetState(ic, state);
             }
-            std::string fw = chineseFullwidthSymbol(static_cast<int>(sym));
+            std::string fw = sym == '"' ? state->nextDoubleQuote() : chineseFullwidthSymbol(static_cast<int>(sym));
             ic->commitString(fw.empty() ? std::string(1, static_cast<char>(sym)) : fw);
             event.filterAndAccept();
             return;
         }
         /* Convert common ASCII punctuation to Chinese full-width when buffer is empty */
         if (state->buffer.empty() && sym >= 0x20 && sym <= 0x7E) {
+            if (sym == '"') {
+                ic->commitString(state->nextDoubleQuote());
+                event.filterAndAccept();
+                return;
+            }
+            if (sym == '\'') {
+                ic->commitString(state->nextSingleQuote());
+                event.filterAndAccept();
+                return;
+            }
             std::string fw = chineseFullwidthSymbol(static_cast<int>(sym));
             if (!fw.empty()) {
                 ic->commitString(fw);

@@ -17,6 +17,8 @@ final class GannyuInputController: IMKInputController {
     private let modeHint = GannyuModeHint()
     private var lastCandidateAnchor: NSRect?
     private let fullwidthPunctuationKey = "org.doohaey.gonnyu.fullwidthPunctuation"
+    private var doubleQuoteOpen = false
+    private var singleQuoteOpen = false
     private let log = Logger(subsystem: "org.doohaey.inputmethod.gonnyu.native", category: "input")
 
     override init!(server: IMKServer!, delegate: Any!, client inputClient: Any!) {
@@ -242,10 +244,20 @@ final class GannyuInputController: IMKInputController {
             client.insertText(text, replacementRange: NSRange(location: NSNotFound, length: 0))
             return true
         }
-        if !active, fullwidthPunctuation, let symbol = fullwidthSymbol(for: text) {
-            guard let client = GannyuTextClient(sender) else { return false }
-            client.insertText(symbol, replacementRange: NSRange(location: NSNotFound, length: 0))
-            return true
+        if !active, fullwidthPunctuation {
+            let symbol: String?
+            if text == "\"" {
+                symbol = nextDoubleQuote()
+            } else if text == "'" {
+                symbol = nextSingleQuote()
+            } else {
+                symbol = fullwidthSymbol(for: text)
+            }
+            if let symbol {
+                guard let client = GannyuTextClient(sender) else { return false }
+                client.insertText(symbol, replacementRange: NSRange(location: NSNotFound, length: 0))
+                return true
+            }
         }
         if active && (text == "," || text == "<") { return page(-1, client: sender) }
         if active && (text == "." || text == ">") { return page(1, client: sender) }
@@ -285,11 +297,28 @@ final class GannyuInputController: IMKInputController {
         case "]": return "】"
         case "<": return "《"
         case ">": return "》"
-        case "\"": return "＂"
         case "~": return "～"
         case "-": return "－"
         default: return nil
         }
+    }
+
+    private func nextDoubleQuote() -> String {
+        Self.nextDoubleQuote(opening: &doubleQuoteOpen)
+    }
+
+    private static func nextDoubleQuote(opening: inout Bool) -> String {
+        defer { opening.toggle() }
+        return opening ? "”" : "“"
+    }
+
+    private func nextSingleQuote() -> String {
+        Self.nextSingleQuote(opening: &singleQuoteOpen)
+    }
+
+    private static func nextSingleQuote(opening: inout Bool) -> String {
+        defer { opening.toggle() }
+        return opening ? "’" : "‘"
     }
 
     private func process(_ event: GannyuKeyEvent, client sender: Any!, consume: Bool = false) -> Bool {

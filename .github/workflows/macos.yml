@@ -263,11 +263,16 @@ jobs:
           done
           echo "Apple notarization did not complete within 30 minutes" >&2
           exit 1
+      - name: Use TCP for Apple ticket delivery on Intel runners
+        if: startsWith(github.ref, 'refs/tags/v') || inputs.release_signing
+        run: |
+          printf '%s\n' 'block return out quick proto udp from any to any port 443' | sudo pfctl -f -
+          sudo pfctl -E
       - name: Staple and verify notarized PKG
         if: startsWith(github.ref, 'refs/tags/v') || inputs.release_signing
         run: |
           set -euo pipefail
-          xcrun stapler staple build/macos/GonnyuInputMethod.pkg
+          bash platforms/macos/staple_package.sh build/macos/GonnyuInputMethod.pkg
           spctl --assess --type install --verbose=4 build/macos/GonnyuInputMethod.pkg
           pkgutil --check-signature build/macos/GonnyuInputMethod.pkg
       - shell: bash

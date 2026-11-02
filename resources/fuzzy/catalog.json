@@ -44,6 +44,54 @@
           }
         },
         {
+          "id": "F202",
+          "match": [
+            "common",
+            "ï",
+            "yï"
+          ],
+          "intent": "单写 ï→yï",
+          "origin": {
+            "kind": "explicit"
+          }
+        },
+        {
+          "id": "F203",
+          "match": [
+            "common",
+            "ïk",
+            "yïk"
+          ],
+          "intent": "零声母 ïk 匹配 yïk",
+          "origin": {
+            "kind": "explicit"
+          }
+        },
+        {
+          "id": "F204",
+          "match": [
+            "common",
+            "ii",
+            "ï"
+          ],
+          "intent": "ii 精确输入 ï",
+          "origin": {
+            "kind": "explicit"
+          }
+        },
+        {
+          "id": "F205",
+          "match": [
+            "common",
+            "i",
+            "yï"
+          ],
+          "intent": "零声母 i 匹配 yï",
+          "origin": {
+            "kind": "explicit"
+          }
+        },
+        {
           "id": "F004",
           "match": [
             "common",

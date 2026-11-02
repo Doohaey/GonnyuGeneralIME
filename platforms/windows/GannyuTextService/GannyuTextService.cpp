@@ -545,8 +545,6 @@ const wchar_t *FullwidthSymbolFor(wchar_t ch) {
             return L"\x300A";
         case L'>':
             return L"\x300B";
-        case L'"':
-            return L"\x201C";
         case L'~':
             return L"\xFF5E";
         case L'-':
@@ -1908,6 +1906,12 @@ private:
         if (!TryTranslatePrintableKey(key, &translated)) {
             return false;
         }
+        if (translated == L'"') {
+            return buffer_.empty() && fullwidthPunctuation_;
+        }
+        if (translated == L'\'' && buffer_.empty()) {
+            return fullwidthPunctuation_;
+        }
         if (FullwidthSymbolFor(translated)) {
             return buffer_.empty();
         }
@@ -2041,6 +2045,12 @@ private:
             return false;
         }
         if (buffer_.empty() && fullwidthPunctuation_) {
+            if (translated == L'"') {
+                return CommitDoubleQuote(context);
+            }
+            if (translated == L'\'') {
+                return CommitSingleQuote(context);
+            }
             if (const wchar_t *fullwidth = FullwidthSymbolFor(translated)) {
                 return CommitText(context, fullwidth);
             }
@@ -2062,6 +2072,30 @@ private:
             return true;
         }
         return false;
+    }
+
+    std::wstring CurrentDoubleQuote() const {
+        return doubleQuoteOpen_ ? L"\u201D" : L"\u201C";
+    }
+
+    bool CommitDoubleQuote(ITfContext *context) {
+        if (!CommitText(context, CurrentDoubleQuote())) {
+            return false;
+        }
+        doubleQuoteOpen_ = !doubleQuoteOpen_;
+        return true;
+    }
+
+    std::wstring CurrentSingleQuote() const {
+        return singleQuoteOpen_ ? L"\u2019" : L"\u2018";
+    }
+
+    bool CommitSingleQuote(ITfContext *context) {
+        if (!CommitText(context, CurrentSingleQuote())) {
+            return false;
+        }
+        singleQuoteOpen_ = !singleQuoteOpen_;
+        return true;
     }
 
     bool CommitText(ITfContext *context, const std::wstring &text) {
@@ -2840,6 +2874,8 @@ private:
             RequestCompositionEdit(activeContext_, CompositionEditAction::Cancel);
         }
         ClearInputModel();
+        doubleQuoteOpen_ = false;
+        singleQuoteOpen_ = false;
         ++contextGeneration_;
         compositionState_ = std::make_shared<CompositionState>();
         ReleaseUnknown(activeContext_);
@@ -2892,6 +2928,8 @@ private:
     bool uiLessMode_ = false;
     bool immersiveMode_ = false;
     bool fullwidthPunctuation_ = true;
+    bool doubleQuoteOpen_ = false;
+    bool singleQuoteOpen_ = false;
     bool shiftPressed_ = false;
     bool shiftUsedWithOtherKey_ = false;
     bool draggingToolbar_ = false;

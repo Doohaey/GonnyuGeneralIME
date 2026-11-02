@@ -300,9 +300,7 @@ impl SlangBook {
                 });
             }
             if !reading.is_empty() {
-                // GanFragment trigger 的 reading/scheme 没有任何消费方
-                // (正向/反查/CLI 只用 text 与 kind; 反查还会过滤掉
-                // GanFragment), 词典来源条目不再为每个 trigger 复制整串读音。
+                // GanFragment triggers expose only text and kind; keep reading/scheme empty.
                 for text in reading_full_forms(reading) {
                     triggers.push(SlangTrigger {
                         text,
@@ -334,7 +332,7 @@ impl SlangBook {
 
             let text = entry.headword.as_ref();
             self.push_slang(SlangEntry {
-                // id/slang_scheme/source 均无消费方, 词典来源条目留空以省内存。
+                // Dictionary-sourced entries leave id, scheme, and source empty.
                 id: String::new(),
                 slang: text.to_string(),
                 slang_reading: (!reading.is_empty()).then(|| reading.to_string()),

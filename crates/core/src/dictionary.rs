@@ -679,7 +679,6 @@ impl Dictionary {
         let mut mandarin_word_text_index: HashMap<String, Vec<u32>> = HashMap::new();
         let mut headword_index = HashMap::new();
         let mut syllable_index: HashMap<usize, HashMap<String, Vec<u32>>> = HashMap::new();
-        // Collect single-character alternative readings for multi-reading support.
         let mut char_readings: HashMap<String, Vec<String>> = HashMap::new();
         let mut char_readings_seen: HashMap<String, HashSet<String>> = HashMap::new();
         for (_, raw) in lines {
@@ -698,8 +697,6 @@ impl Dictionary {
             if headword.is_empty() {
                 continue;
             }
-            // Collect per-character readings from ALL entries (single and multi-char)
-            // for multi-reading augmentation of syllable_index.
             let pinyin = normalize_pinyin(get(2));
             let syllables: Vec<String> = pinyin_segments(&pinyin)
                 .iter()
@@ -771,7 +768,6 @@ impl Dictionary {
                     entry_index,
                 );
             }
-            // ── Per-position syllable index for mixed Gan/Mandarin pinyin ──
             {
                 let dialect_syllables: Vec<String> = pinyin_segments(&entry.dialect_pinyin)
                     .iter()
@@ -803,10 +799,7 @@ impl Dictionary {
             entries.push(entry);
         }
 
-        // At this point, entries contains all entries and syllable_index is built.
-        // Augment syllable_index and build syllable_trie from collected readings
-        // and the previously generated forms.
-        // Use a per-entry set to avoid O(n) Vec::contains checks.
+        // Add alternative readings to syllable_index; per-entry sets avoid repeated scans.
         for (entry_index, entry) in entries.iter().enumerate() {
             let chars: Vec<char> = entry.headword.chars().collect();
             if chars.len() > 1 {
@@ -839,8 +832,7 @@ impl Dictionary {
             *score = (*score).min(50_000);
         }
 
-        // Build initial-letter index for O(1) first-keystroke lookups.
-        // Use temporary HashSet per (position, char) to avoid O(n²) Vec::contains.
+        // Initial-letter index; per-position sets avoid quadratic scans.
         let mut initial_index: HashMap<usize, HashMap<char, Vec<u32>>> = HashMap::new();
         for (pos, pos_map) in &syllable_index {
             let mut char_sets: HashMap<char, HashSet<u32>> = HashMap::new();
@@ -856,7 +848,6 @@ impl Dictionary {
             }
         }
 
-        // Build trie from entries' concatenated syllable forms.
         let mut trie = crate::trie::Trie::new();
         for (entry_index, entry) in entries.iter().enumerate() {
             let dialect_forms = pinyin_segments(&entry.dialect_pinyin)
@@ -875,7 +866,6 @@ impl Dictionary {
             if !mandarin_forms.is_empty() {
                 trie.insert(&mandarin_forms.to_ascii_lowercase(), entry_index);
             }
-            // also insert pinyin_lookup_forms / dialect_lookup_forms variants
             for form in pinyin_lookup_forms(&entry.mandarin_pinyin) {
                 let key = form.replace(' ', "").to_ascii_lowercase();
                 if !key.is_empty() {
@@ -1113,14 +1103,12 @@ impl Dictionary {
             dictionary.extend_from_tsv_internal(path, build_exact_indices)?;
         }
         dictionary.rebuild_new_old_map();
-        // Apply pair-restricted multi-reading augmentation with cross-file data
-        // so the non-cache path matches what build_fst bakes into the cache.
+        // Match the pair-restricted multi-reading augmentation baked into the cache.
         dictionary.rebuild_multi_reading_augmentation();
         let (fst_map, postings, postings_topk) = load_prebuilt_indexes(index_dir);
         dictionary.fst_map = fst_map;
         dictionary.postings = postings;
         dictionary.postings_topk = postings_topk;
-        // Persist runtime cache so subsequent loads skip TSV parsing.
         if let Some(cache_path) = cache_path.as_deref() {
             let _ = dictionary.write_runtime_cache(cache_path);
         }
@@ -1152,7 +1140,6 @@ impl Dictionary {
         if let Some(map) = &self.fst_map {
             if let Some(v) = map.get(key_bytes) {
                 let idx = v as usize;
-                // Prefer precomputed top-k if available for faster response
                 if let Some(topk) = &self.postings_topk {
                     if let Some(t) = topk.get(idx) {
                         return Some(t);
@@ -1197,9 +1184,6 @@ impl Dictionary {
                 }
             }
         }
-        // Fallback: use trie prefix scan — collect entries for any keys starting with compact
-        // naive approach: traverse trie by prefix and collect entries in subtree
-        // implement a simple DFS starting at node matching prefix
         let mut node = &self.syllable_trie.root;
         for ch in compact.chars() {
             if let Some(next) = node.children.get(&ch) {
@@ -1208,7 +1192,6 @@ impl Dictionary {
                 return out;
             }
         }
-        // collect entries in subtree, capped to avoid freezing on common prefixes
         const MAX_PREFIX_RESULTS: usize = 500;
         let mut stack: Vec<&crate::trie::TrieNode> = vec![node];
         while let Some(n) = stack.pop() {
@@ -1287,11 +1270,10 @@ impl Dictionary {
         build_exact_indices: bool,
     ) -> Result<(), DictionaryError> {
         self.cache_id = next_dictionary_id();
-        // 条目变更, 关联缓存失效(下次访问 associations() 时重建)。
+        // Invalidate the association cache; it is rebuilt on next access.
         let _ = self.association_cache.take();
         let content = fs::read_to_string(path)?;
         let mut lines = content.lines().enumerate();
-        // Skip header
         let mut header_found = false;
         for (_, raw) in lines.by_ref() {
             let line = raw.trim_end_matches(['\r', '\n']);
@@ -1307,7 +1289,6 @@ impl Dictionary {
             return Ok(());
         }
         let start_index = self.entries.len();
-        // Collect single-char readings for multi-reading augmentation.
         let mut char_readings: HashMap<String, Vec<String>> = HashMap::new();
         let mut char_readings_seen: HashMap<String, HashSet<String>> = HashMap::new();
         let mut new_entries: Vec<DictionaryEntry> = Vec::new();
@@ -1324,7 +1305,6 @@ impl Dictionary {
             if headword.is_empty() {
                 continue;
             }
-            // Collect per-character readings from ALL entries for multi-reading augmentation.
             let new_pinyin = normalize_pinyin(columns[2].trim());
             let syllables: Vec<String> = pinyin_segments(&new_pinyin)
                 .iter()
@@ -1437,8 +1417,7 @@ impl Dictionary {
             }
             new_entries.push(entry);
         }
-        // Augment syllable_index with single-char alternative readings.
-        // Use a per-entry HashSet to avoid O(n) Vec::contains checks.
+        // Add alternative readings to syllable_index; per-entry sets avoid repeated scans.
         for (offset, entry) in new_entries.iter().enumerate() {
             let chars: Vec<char> = entry.headword.chars().collect();
             if chars.len() <= 1 {
@@ -1461,7 +1440,6 @@ impl Dictionary {
                 }
             }
         }
-        // Merge this file's readings into the dictionary-wide multi-reading table.
         for (ch, readings) in char_readings {
             let existing = self.char_readings.entry(ch).or_default();
             for reading in readings {
@@ -1472,7 +1450,6 @@ impl Dictionary {
         }
         self.entries.extend(new_entries);
 
-        // Rebuild initial-index for all positions using HashSet dedup.
         self.initial_index.clear();
         for (pos, pos_map) in &self.syllable_index {
             let mut char_sets: HashMap<char, HashSet<u32>> = HashMap::new();
@@ -1494,7 +1471,7 @@ impl Dictionary {
 
     pub fn extend_from_entries(&mut self, new_entries: impl IntoIterator<Item = DictionaryEntry>) {
         self.cache_id = next_dictionary_id();
-        // 条目变更, 关联缓存失效(下次访问 associations() 时重建)。
+        // Invalidate the association cache; it is rebuilt on next access.
         let _ = self.association_cache.take();
         let start_index = self.entries.len();
         for (offset, mut entry) in new_entries.into_iter().enumerate() {
@@ -1503,7 +1480,6 @@ impl Dictionary {
                 continue;
             }
             entry.entry_index = entry_index;
-            // Record this entry's dialect readings in the multi-reading table.
             {
                 let syllables: Vec<String> = pinyin_segments(&entry.dialect_pinyin)
                     .iter()
@@ -1619,9 +1595,7 @@ impl Dictionary {
                 pairs.retain(|pair| pair.kind != PairKind::WenBai);
             }
         }
-        // Collect per-character readings from ALL entries.
         self.char_readings = collect_char_readings(&self.entries, wenbai);
-        // Augment syllable_index for all multi-character entries.
         let char_readings = &self.char_readings;
         for (entry_index, entry) in self.entries.iter().enumerate() {
             let chars: Vec<char> = entry.headword.chars().collect();
@@ -1644,8 +1618,7 @@ impl Dictionary {
                 }
             }
         }
-        // Register multi-reading full forms into the exact dialect index so
-        // every reading of a character ranks equally (等权, GannyuExact).
+        // Register multi-reading forms in the exact dialect index with equal weight.
         self.augment_dialect_index_multi_readings();
     }
 
@@ -1901,14 +1874,13 @@ impl Dictionary {
             Some(m) => m,
             None => return Vec::new(),
         };
-        // 先用精确查找（O(1)）
         if let Some(ids) = pos_map.get(&lookup) {
             return ids
                 .iter()
                 .filter_map(|i| self.entries.get(*i as usize))
                 .collect();
         }
-        // 未命中时再试 e↔ĕ 替代版
+        // Fall back to the e / ĕ variant.
         let alt = normalize_e_tone(&lookup);
         if alt != lookup {
             if let Some(ids) = pos_map.get(&alt) {

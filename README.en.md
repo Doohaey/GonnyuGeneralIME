@@ -21,15 +21,15 @@ Currently supports: **Lancong (Nanchang), Fenni (Fenyi), Fungcen (Fengcheng), Ti
 
 Rime schema repositories are available for Lancong (Nanchang), Fenni (Fenyi), Fungcen, Yikyan-Henfeng, Sinyi (Xinyu), and Goungon (Gao'an). Other installation options are available in the [Installation](#installation) section below.
 
-## Release 1.2.4
+## Release 1.2.7
 
-- data(dictionary): Minor fixes to the Nanchang dictionary.
-- feat(settings): Add input settings.
+- fix(dictionary): Spell [ɿ] syllables in the Lancong dictionary with `ï`.
+- feat(fuzzy): Add `ii` as a precise input for `ï`.
 
 ## Contents
 
 - [GonnyuGeneralIME — A General Gon(Gan) Chinese Input Method](#gonnyugeneralime--a-general-gongan-chinese-input-method)
-  - [Release 1.2.4](#release-124)
+  - [Release 1.2.7](#release-127)
   - [Contents](#contents)
   - [Overview](#overview)
     - [What it provides](#what-it-provides)
@@ -231,7 +231,7 @@ The system aims to cover phonemes across localities, represents necessary phonem
 | s | [s] | - | - | [θ] | - | - | - | - | - | - | - | - |  |  |
 | j | [tɕ] | - | - | - | - | - | - | - | - | - | - | - |  |  |
 | q | [tɕʰ] | - | - | - | - | - | - | - | - | - | - | - |  |  |
-| n | [ȵ] | - | [n] | - | - | [n] or [ɳ] | - | [n] | [ɳ] | [n] | [n] | - | - |  |
+| n | [ȵ] | - | [n] | [n] | - | [n] or [ɳ] | - | [n] | [ɳ] | [n] | [n] | - | - |  |
 | x | [ɕ] | - | - | － | － | - | - | - | - | - | - | - |  |  |
 | g | [k] | - | - | - | - | - | - | - | - | - | - | - |  |  |
 | k | [kʰ] | - | - | - | - | - | - | - | - | - | - | - |  |  |
@@ -300,9 +300,9 @@ Checked-tone codas follow these spelling and input rules.
 | ep | - | - | [ɛp] | - | - | - | - | - | - | - | - | - | - |  |
 | eop | - | [ɵp] | - | - | - | - | - | - | - | - | - | - | — |  |
 | aek | - | [æʔ] or [æk] | - | - | [æʔ] | - | - | - | - | - | - | - | — |  |
-| ak | [aʔ] | - | - | - | - | - | - | - | - | - | - | [ak] | — |  |
+| ak | [aʔ] | - | - | [ak] | - | - | - | - | - | - | - | [ak] | — |  |
 | aik | - | - | [aiʔ] | [aiʔ] | - | - | - | - | - | - | - | - | - |  |
-| ok | [ɔʔ] | [oʔ] | - | [oʔ] or [ɔk] | - | - | - | - | - | [oʔ] | - | [ɔk] | uok (Yikyan) |  |
+| ok | [ɔʔ] | [oʔ] | - | [oʔ] or [ɔk] or [ok] | - | - | - | - | - | [oʔ] | - | [ɔk] | uok (Yikyan) |  |
 | oek | - | - | - | [øʔ] | - | - | - | - | - | - | - | - | — |  |
 | oik | - | - | [ɔiʔ] | - | - | - | - | - | - | - | - | - | - |  |
 | ek | - | [ɛʔ] or [ɨʔ] | [ɛʔ] | [ɛʔ] or [əʔ] | - | - | - | [ɛʔ] or [ɪʔ] | - | [eʔ] | - | - | — |  |
@@ -317,12 +317,12 @@ Checked-tone codas follow these spelling and input rules.
 
 With no initial consonant:
 
-- Before `-a`, `-o`, or `-e`, initial `i` is written `y`.
-- In other positions, it is written `yi`.
+- Before `-a`, `-o`, or `-e`, initial `i` (including `ï`) is written `y`.
+- In other positions, `i` (including `ï`) is written `yi`(`yï`).
 
 | gon-pin | Default IPA | Fungcen IPA | Tiqien IPA | Sinyi IPA | Songau IPA | Seusong IPA | Jingon IPA | Yikyan-Henfeng IPA | Jisuibaedu IPA | Xyucuênn IPA | Singzï IPA | Goungon IPA | Accepted alternative input | Notes |
 | --- | --- | --- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | --- | --- |
-| i* | [i]  or  [ɿ] | - | - | - | - | [ʅ] | - | - | - | - | [ʅ] | - | — |  |
+| i* | [i]  or  [ɿ] | - | - | - | - | [ʅ] | - | - | - | - | [ʅ] | - | ii (→ ï) |  |
 | iae | - | - | - | - | [iæ] | - | - | - | - | [iæ] | - | - |  |  |
 | ia | [ia] | - | - | - | - | - | - | - | - | - | - | - | — |  |
 | io | - | [iɔ] | [iɔ] | [io] | - | [io] | [io] or [iɔ] | [io] | [io] | [io] or [iɔ] | [io] or [iɔ] | [iɔ] | - |  |
@@ -367,7 +367,7 @@ With no initial consonant:
 | iuok | - | - | - | [iuɔʔ] | - | - | - | - | - | - | - | - | - |  |
 | iuek | - | - | - | [iuəʔ] | - | - | - | - | - | - | - | - | - |  |
 
-\* `i`: Some regions use `ï` for IPA [ɿ], including [ɿ] in other finals. Input uses `i`, which can match `ï` through one-way fuzzy matching.
+\* `i`: Some regions use `ï` for IPA [ɿ], including [ɿ] in other finals. Input uses `i`, which can match `ï` through one-way fuzzy matching; `ii` precisely inputs `ï`.
 
 \* `iu`: Bare iu without an initial consonant is written yiu, distinct from yu for [y]. The same spelling applies when an entering-tone coda is attached directly to iu. Forms with other endings are an exception.
 

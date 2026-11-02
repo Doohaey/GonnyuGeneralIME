@@ -68,7 +68,7 @@ if [[ "$unsigned_test" != "1" && "$skip_notarization" != "1" ]]; then
     notary_args+=(--keychain "$GANNYU_MACOS_NOTARY_KEYCHAIN")
   fi
   xcrun notarytool submit "$final_package" "${notary_args[@]}"
-  xcrun stapler staple "$final_package"
+  bash "$script_dir/staple_package.sh" "$final_package"
   spctl --assess --type install --verbose=4 "$final_package"
 fi
 

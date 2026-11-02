@@ -662,8 +662,7 @@ fn segment_and_collect_hits(
 
     let mut cache = SegmentationCache::default();
     let mut best: Option<WordSegmentation> = None;
-    // Primary search: normal syllables average >=2 chars, so bounding the
-    // syllable count at (len+1)/2 keeps the search cheap for pinyin input.
+    // Normal syllables use at least two characters, so bound the primary search.
     let primary_max = len.div_ceil(2).min(8);
     for n_syllables in 2..=primary_max {
         let Some(candidate) =
@@ -674,13 +673,8 @@ fn segment_and_collect_hits(
         update_best_word_segmentation(&mut best, candidate);
     }
 
-    // 首字母联想兜底: initial-letter chunks are a single char each, so an
-    // all-initials input like "nhk" needs up to `len` syllables to segment.
-    // Initials are the last resort: only when every syllable route (Gan
-    // exact / fuzzy / Mandarin) has failed do we deepen the search. Complete
-    // Gan syllables such as "ng"(五)/"ngo"(我) stay intact because chunk
-    // classification ranks GanExact/GanCompatible/Mandarin above Initial and
-    // update_best_word_segmentation keeps the best-scored segmentation.
+    // Initial-letter chunks are one character each; deepen the search only after
+    // all syllable routes fail. Complete Gan syllables keep their higher rank.
     if best.is_none() {
         for n_syllables in (primary_max + 1)..=8.min(len) {
             let Some(candidate) =
@@ -696,9 +690,7 @@ fn segment_and_collect_hits(
         for &id in &best.ids {
             if !direct_entry_ids.contains(&id) {
                 direct_entry_ids.insert(id);
-                // Multi-reading 等权: when every segmented syllable is a known
-                // reading of the entry's character at that position, the hit
-                // is Gan-exact, not fuzzy.
+                // Multiple readings rank as Gan-exact when every position matches a known reading.
                 let kind = match dictionary.entries().get(id) {
                     Some(entry)
                         if best.segments.iter().enumerate().all(|(position, segment)| {

@@ -65,7 +65,6 @@ impl Reading {
         if coda.is_empty() {
             return Some(self.syllable.clone());
         }
-        // Strip trailing tone digit before checking for coda suffix
         let syllable_notone = strip_tone(&self.syllable);
         if let Some(stripped) = syllable_notone.strip_suffix(coda) {
             return Some(stripped.to_string());

@@ -319,7 +319,6 @@ mod tests {
                 .frequency,
             Some(20001)
         );
-        // 累加到封顶
         for _ in 0..20 {
             dict.boost_frequency("车马");
         }
@@ -330,7 +329,6 @@ mod tests {
                 .frequency,
             Some(200000)
         );
-        // 封顶后不再累加
         dict.boost_frequency("车马");
         assert_eq!(
             dict.entries()
