@@ -367,7 +367,7 @@ With no initial consonant:
 | iuok | - | - | - | [iuɔʔ] | - | - | - | - | - | - | - | - | - |  |
 | iuek | - | - | - | [iuəʔ] | - | - | - | - | - | - | - | - | - |  |
 
-\* `i`: Some regions use `ï` for IPA [ɿ], including [ɿ] in other finals. Input uses `i`, which can match `ï` through one-way fuzzy matching; `ii` precisely inputs `ï`.
+\* `i`: Some regions use `ï` for IPA [ɿ], including [ɿ] in other finals. Input uses `i`, which can match `ï` through one-way fuzzy matching; `ii` precisely inputs `ï`. [ɿ] is an open final and is listed among the front-vowel finals by spelling.
 
 \* `iu`: Bare iu without an initial consonant is written yiu, distinct from yu for [y]. The same spelling applies when an entering-tone coda is attached directly to iu. Forms with other endings are an exception.
 
