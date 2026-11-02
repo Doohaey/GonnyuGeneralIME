@@ -1,11 +1,11 @@
 本词	国际音标	方言拼音	汉语拼音	词汇属性	对应官话词	官话拼音	词频	同义词	新旧标记
-大姨	tʰai2 i2	tai2 yi2	da4 yi2	官			120000		
+大姨	hai4 i2	hai4 yi2	da4 yi2	官			120000		
 不务正业	put5 u4 taŋ2 ȵiɛt5	but5 wu4 dang2 niêt5	bu4 wu4 zheng4 ye4	官			120000		
 亲嘴	tɕʰin1* tɕi3	qin1* ji3	qin1 zui3	官			120000		
 伤口血流很多	soŋ1 kʰɛu3 suɔt5 liu2 hɛn3 to1	song1 kêu3 suot5 liu2 hên3 do1	shang1 kou3 xue4 liu2 hen3 duo1	官			120000		
-别人	pʰiɛt5* ȵin2	piêt5* nin2	bie2 ren2	官			120000		
+别人	pʰiɛt5* ȵin1	piêt5* nin1	bie2 ren2	官			120000		
 厢房	sioŋ1 foŋ2	siong1 fong2	xiang1 fang2	官			120000		
-受欢迎	sɪu4 uɔn1 in2	seu4 won1 yin2	shou4 huan1 ying2	官			120000		
+受欢迎	sɪu4 ɸɔn1 in2	seu4 fon1 yin2	shou4 huan1 ying2	官			120000		
 合拢	hɔt5* luŋ3	hot5* lung3	he2 long3	官			120000		
 启蒙读书	tɕʰi3 maŋ1 tʰuʔ5* sɿ1	qi3 mang1 tuk5* sï1	qi3 meng2 du2 shu1	官			120000		
 大雁	hai4 ŋan2	hai4 ngan2	da4 yan4	官			120000		
@@ -37,7 +37,7 @@
 睡醒	sui2 saŋ3	sui2 sang3	shui4 xing3	官			120000		
 糟糕	tɕiau1 kau1	jiau1 gau1	zao1 gao1	官			120000		
 织布	tɕiəʔ5 pu2	jiek5 bu2	zhi1 bu4	官			120000		
-结实	tɕiɛt5 səʔ5	jiêt5 sek5	jie1 shi2	官			120000		
+结实	tɕiɛt5 sət5	jiêt5 set5	jie1 shi2	官			120000		
 结束	tɕiɛt5 sɿʔ5	jiêt5 sïk5	jie2 shu4	官			120000		
 耕田	kɛn1 tʰiɛn2	gên1 tiên2	geng1 tian2	官			230		
 背地里	pi1 tʰi4 tʰi3	bi1 ti4 ti3	bei4 di4 li3	官			120000		
@@ -108,7 +108,7 @@
 下来	ha4 lai2	ha4 lai2	xia4 lai2	官			125000		
 下面	ha4 miɛn2	ha4 miên2	xia4 mian4	官			128500		
 不须	put5 si1	but5 si1	bu4 xu1	官			129000		
-什么	səʔ5 ma1	sek5 ma1	shen2 me5	官			129163		
+什么	sɪt6 ma1	set6 ma1	shen2 me5	官			129163		
 伯母	paʔ1 mu3	bak1 mu3	bo2 mu3	官			122500		
 何时	ho2 ɕi2	ho2 xi2	he2 shi2	官			129163		
 侄子	tʰəʔ5* tsɿ3	tek5* zï3	zhi2 zi5	官			126096		
@@ -322,7 +322,7 @@
 英俊	in1 tɕiun2	yin1 jiun2	ying1 jun4	官			125000		
 鄙陋	pʰi4 lɛu4	pi4 lêu4	bi4 lou4	官			127232		
 腥臭	saŋ1 tʰɪu2	sang1 teu2	xing1 chou4	官			100000		
-很大	hɛn3 hai1*	hên3 hai1*	hen3 da4	官			125720		
+很大	hɛn3 hai4	hên3 hai4	hen3 da4	官			125720		
 很长	hɛn3 toŋ3	hên3 dong3	hen3 chang2	官			122720		
 很高	hɛn3 kau1	hên3 gau1	hen3 gao1	官			121720		
 轻薄	tɕʰin1* pʰo1*	qin1* po1*	qing1 bao2	官			120000		
@@ -524,7 +524,7 @@
 肏你爹	tsʰok5* ȵi3 tia1	cok5* ni3 dia1	cao4 ni3 die1	官			122000		
 水流声	sui3 liu2 sɪn1	sui3 liu2 sen1	shui3 liu2 sheng1	官			100000		
 木材欲断声	muʔ5 tsʰɔi2 iuʔ5 tʰuɔn4 sɪn1	muk5 coi2 yiuk5 tuon4 sen1	mu4 cai2 yu4 duan4 sheng1	官			105996		
-哇哇大叫	ua1 ua1 hai1* tɕiɛu2	wa1 wa1 hai1* jiêu2	wa1 wa1 da4 jiao4	官			100000		
+哇哇大叫	ua1 ua1 hai4 tɕiɛu2	wa1 wa1 hai4 jiêu2	wa1 wa1 da4 jiao4	官			100000		
 嗞哇乱叫	tsɿ1 ua1 luon4 tɕiɛu2	zï1 wa1 luon4 jiêu2	zi1 wa1 luan4 jiao4	官			100000		
 站着	tsan2 toʔ5	zan2 dok5	zhan4 zhe5	官			106972		
 趴着	pa1 toʔ5	ba1 dok5	pa1 zhe5	官			106972		
@@ -623,14 +623,14 @@
 好处	hau3 tɕʰy3	hau3 qyu3	hao3 chu4	官			120000		
 被子	pʰi4 tsɿ3	pi4 zï3	bei4 zi5	官			123000		
 塑料袋	soʔ5 liɛu4 tʰɔi4	sok5 liêu4 toi4	su4 liao4 dai4	官			124500		
-黄历	foŋ2 liət5	fong2 liet5	huang2 li4	官			100016		
+黄历	foŋ2 liəʔ5	fong2 liek5	huang2 li4	官			100016		
 杆子	kɔn3 tsɿ3	gon3 zï3	gan1 zi5	官			120000		
 舌头	sɛt5 tʰɛu2	sêt5 têu2	she2 tou2	官			100000		
 鸡鸡	tɕi1 tɕi1	ji1 ji1	ji1 ji1	官			100000		
 睾丸	kau1 yɔn2	gau1 yuon2	gao1 wan2	官			100000		
 肋骨	lɛʔ5 kuət5	lêk5 guet5	lei4 gu3	官			120000		
 腋下	iɛʔ5 ha4	yêk5 ha4	ye4 xia4	官			122000		
-大腿	hai1* tʰui3	hai1* tui3	da4 tui3	官			122000		
+大腿	hai4 tʰui3	hai4 tui3	da4 tui3	官			122000		
 睡意	suəi2 i2	sui2 yi2	shui4 yi4	官			120000		
 胃口	uəi4 kʰɛu3	wei4 kêu3	wei4 kou3	官			100000		
 喷嚏	fun2 tʰit5	fun2 tit5	pen1 ti4	官			100000		
@@ -669,15 +669,15 @@
 公鸭	kuŋ1 ŋat5	gung1 ngat5	gong1 ya1	官			100000		
 猴子	hɛu2 tsɿ3	hêu2 zï3	hou2 zi5	官			100000		
 甲鱼	kat5 ȵɿ2	gat5 nï2	jia3 yu2	官			100000		
-红凤菜	fuŋ1 fuŋ4 tsʰɔi4*	fung1 fung4 coi4*	hong2 feng4 cai4	官			125164		
+空心菜	kʰuŋ1* sin1 tsʰɔi4*	kung1* sin1 coi4*	kong1 xin1 cai4	官			125164		
 叶子	iɛt5 tsɿ3	yêt5 zï3	ye4 zi5	官			100000		
 绿叶蔬菜	liuʔ5 iɛt5 sɿ1 tsʰɔi4*	liuk5 yêt5 sï1 coi4*	lv4 ye4 shu1 cai4	官			100000		
 梗子	kuaŋ3 tsɿ3	guang3 zï3	geng3 zi5	官			100000		
 植物的茎	tʰəʔ5* ut5 tit5 tɕin1	tek5* wut5 dit5 jin1	zhi2 wu4 de5 jing1	官			129426		
-白菜梗子	pʰɛt5* tsʰɔi4* kuaŋ3 tsɿ3	pêt5* coi4* guang3 zï3	bai2 cai4 geng3 zi5	官			100000		
-白菜叶儿	pʰɛt5* tsʰɔi4* iɛt5 ɵ2	pêt5* coi4* yêt5 eo2	bai2 cai4 ye4 er5	官			100000		
-红凤菜叶	fuŋ1 fuŋ4 tsʰɔi4* iɛt5	fung1 fung4 coi4* yêt5	hong2 feng4 cai4 ye4	官			100000		
-红凤菜茎	fuŋ1 fuŋ4 tsʰɔi4* tɕin1	fung1 fung4 coi4* jin1	hong2 feng4 cai4 jing1	官			100000		
+白菜梗子	pʰaʔ5* tsʰɔi4* kuaŋ3 tsɿ3	pak5* coi4* guang3 zï3	bai2 cai4 geng3 zi5	官			100000		
+白菜叶儿	pʰaʔ5* tsʰɔi4* iɛt5 ɵ2	pak5* coi4* yêt5 eo2	bai2 cai4 ye4 er5	官			100000		
+空心菜叶	kʰuŋ1* sin1 tsʰɔi4* iɛt5	kung1* sin1 coi4* yêt5	kong1 xin1 cai4 ye4	官			100000		
+空心菜梗	kʰuŋ1* sin1 tsʰɔi4* tɕin1	kung1* sin4 coi4* jin1	kong1 xin1 cai4 jing1	官			100000		
 莴苣茎	uo1 tɕʰi1* tɕin1	wo1 qi1* jin1	wo1 ju4 jing1	官			100000		
 莴笋叶儿	uo1 sɪn3 iɛt5 ɵ2	wo1 sen3 yêt5 eo2	wo1 sun3 ye4 er5	官			100000		
 阉鸡	iɛn1 tɕi1	yên1 ji1	yan1 ji1	官			100000		
@@ -697,6 +697,6 @@
 露卵	lu1 luɔn3	lu1 luon3	lu4 luan3	赣			126000		
 额头	ŋaʔ5 tʰɛu1	ngak5 têu1	e2 tou2	官			120979		
 遂川	si2 tʰuɔn1*	si2 tuon1*	sui4 chuan1	赣			100000		
-星子	sin1 tsɿ3	sin1 zï3	xing1 zi5	赣			100000		
+星子	sin1 tsɿ3	sen1 zï3	xing1 zi5	赣			100000		
 高安	kau1 ŋon1	gau1 ngon1	gao1 an1	赣			100000		
 筠阳	iun2 ioŋ2	yun2 yong2	yun2 yang2	赣			100000		
