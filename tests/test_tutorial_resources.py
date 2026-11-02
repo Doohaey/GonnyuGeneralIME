@@ -24,7 +24,7 @@ def test_tutorial_resource_contains_the_requested_content() -> None:
         "读音前[新][老]分别表示新派与老派读音。新派读音是指近几十年受普通话与城市化影响逐渐普及的发音。",
         "读音前[文][白]分别表示文读音/白读音。文读音属于比较正式词语贴近各时期通用语读音。白读音是本地存在于日常词语的一些读音。同一个词语不同词语可能视词语来源采用不同读音。如“共(qiung5)太公”的“共”就是白读音。",
         "“A读音/[又]B读音”配对表示（词语中）某字可能有两个读音。",
-        "更多内容请查看本项目github，欢迎对本项目star支持！",
+        "更多内容请查看本项目github，有意见可以在这里提出issue反馈，或可通过README.md提供之方法联系作者，也欢迎对本项目star支持！",
         "https://github.com/Doohaey/GonnyuGeneralIME",
     ):
         assert text in tutorial
