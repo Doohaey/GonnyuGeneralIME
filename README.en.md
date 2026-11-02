@@ -26,7 +26,7 @@ Rime schema repositories are available for Lancong (Nanchang), Fenni (Fenyi), Fu
 - fix(dictionary): Spell [ɿ] syllables in the Lancong dictionary with `ï`.
 - docs(pinyin): Note that [ɿ] is an open final listed under front-vowel finals by spelling.
 - feat(fuzzy): Add `ii` as a precise input for `ï`.
-- fix(dictionary): Reconcile Sinyi readings, including aspiration tone split, word–character alignment, and merge residue.
+- fix(dictionary): Reconcile Sinyi readings.
 
 ## Contents
 
