@@ -317,8 +317,9 @@ Checked-tone codas follow these spelling and input rules.
 
 With no initial consonant:
 
-- Before `-a`, `-o`, or `-e`, initial `i` (including `ï`) is written `y`.
-- In other positions, `i` (including `ï`) is written `yi`(`yï`).
+- When `i` is followed by `-a`, `-o`, or `-e`, `i` is written `y`.
+- When `i` is followed by `-u`, a standalone syllable `iu` or `iu` directly followed by an entering-tone coda is written as a whole `yiu` (+ entering-tone coda), to distinguish it from `yu`; otherwise only `i` is written `y`.
+- In all other cases, `i` (including `ï`) is written `yi` (`yï`).
 
 | gon-pin | Default IPA | Fungcen IPA | Tiqien IPA | Sinyi IPA | Songau IPA | Seusong IPA | Jingon IPA | Yikyan-Henfeng IPA | Jisuibaedu IPA | Xyucuênn IPA | Singzï IPA | Goungon IPA | Accepted alternative input | Notes |
 | --- | --- | --- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | --- | --- |
@@ -369,14 +370,12 @@ With no initial consonant:
 
 \* `i`: Some regions use `ï` for IPA [ɿ], including [ɿ] in other finals. Input uses `i`, which can match `ï` through one-way fuzzy matching; `ii` precisely inputs `ï`. [ɿ] is an open final and is listed among the front-vowel finals by spelling.
 
-\* `iu`: Bare iu without an initial consonant is written yiu, distinct from yu for [y]. The same spelling applies when an entering-tone coda is attached directly to iu. Forms with other endings are an exception.
-
 #### Rounded finals
 
 With no initial consonant:
 
-- Before `-a`, `-o`, `-e`, or `-i`, initial `u` is written `w`.
-- In other positions, it is written `wu`.
+- When `u` is followed by `a`, `o`, `e`, or `i`, `u` is written `w`.
+- In all other cases, `u` is written `wu`.
 
 | gon-pin | Default IPA | Fungcen IPA | Tiqien IPA | Sinyi IPA | Songau IPA | Seusong IPA | Jingon IPA | Yikyan-Henfeng IPA | Jisuibaedu IPA | Xyucuênn IPA | Singzï IPA | Goungon IPA | Accepted alternative input | Notes |
 | --- | --- | --- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | --- | --- |
