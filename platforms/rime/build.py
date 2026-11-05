@@ -634,9 +634,11 @@ def write_option_resources(region: str, entries: list[Entry], output: Path,
     for mode, relations in itertools.product(("both", "new", "old"), (True, False)):
         suffix = "" if mode == "both" and relations else f"_{mode}_" + ("rel" if relations else "norel")
         name = root + suffix
+        dictionary_name = name if relations else root + ("" if mode == "both" else f"_{mode}_rel")
         selected = entries if not suffix else selected_entries(entries, mode, relations)
         if suffix:
-            write_dictionary(output / f"{name}.dict.yaml", selected, region, name)
+            if relations:
+                write_dictionary(output / f"{name}.dict.yaml", selected, region, name)
             annotations, before, after = build_metadata(selected, mode, include_synonyms=False)
             write_lua_data(output / "lua" / f"{name}_data.lua", annotations,
                            build_preferred_readings(selected), before, after,
@@ -656,7 +658,7 @@ def write_option_resources(region: str, entries: list[Entry], output: Path,
                 algebra.insert(-3, "    - erase/^[^GF].*$/")
             body = (
                 f"schema:\n  schema_id: {schema_id}\n  name: {region}\n  version: \"{VERSION}\"\n"
-                f"translator:\n  dictionary: {name}\n  prism: {schema_id}\n"
+                f"translator:\n  dictionary: {dictionary_name}\n  prism: {dictionary_name}{prism_suffix}\n"
                 f"  user_dict: {name}\n  enable_user_dict: true\n  enable_sentence: true\n"
                 "  enable_completion: true\n  spelling_hints: 8\n"
                 "speller:\n  alphabet: zyxwvutsrqponmlkjihgfedcba\n  delimiter: \" '\"\n  algebra:\n"

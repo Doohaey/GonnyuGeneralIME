@@ -1,5 +1,6 @@
 import hashlib
 import json
+import re
 from pathlib import Path
 
 from platforms.rime.build import (
@@ -415,6 +416,31 @@ def test_builds_rime_dictionary_annotations_and_relations(tmp_path: Path) -> Non
     assert "银行卡\tGnin Ghong Gka\t" in dictionary
     assert "@FUZZY_ALGEBRA@" not in schema
     assert (tmp_path / "default.custom.yaml").is_file()
+
+
+def test_norel_schemas_reuse_rel_dictionaries_and_keep_their_data(tmp_path: Path) -> None:
+    build("jingon", tmp_path)
+
+    for mode in ("both", "new", "old"):
+        rel_name = "gannyu_jingon" if mode == "both" else f"gannyu_jingon_{mode}_rel"
+        norel_name = f"gannyu_jingon_{mode}_norel"
+        schema = (tmp_path / f"{norel_name}.schema.yaml").read_text(encoding="utf-8")
+        assert f"schema_id: {norel_name}\n" in schema
+        assert f"dictionary: {rel_name}\n" in schema
+        assert f"prism: {rel_name}" in schema
+        assert f"user_dict: {norel_name}\n" in schema
+        assert not (tmp_path / f"{norel_name}.dict.yaml").exists()
+        assert (tmp_path / "lua" / f"{norel_name}_data.lua").is_file()
+        assert (tmp_path / "lua" / f"{norel_name}_annotations.bin").is_file()
+
+    _, source = load_entries("jingon")
+    for mode in ("both", "new", "old"):
+        rel = source if mode == "both" else selected_entries(source, mode, True)
+        norel = selected_entries(source, mode, False)
+        removed = {entry.word for entry in rel} - {entry.word for entry in norel}
+        data = (tmp_path / "lua" / f"gannyu_jingon_{mode}_norel_data.lua").read_text(encoding="utf-8")
+        forbidden = set(re.findall(r'\["((?:[^"\\]|\\.)*)"\] = true', data))
+        assert removed <= forbidden
 
 
 def test_rime_installers_install_the_shared_single_character_filter() -> None:
