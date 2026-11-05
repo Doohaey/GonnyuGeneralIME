@@ -555,9 +555,6 @@ mod tests {
             let hits = book.slang_by_trigger(gloss);
             assert!(hits.iter().any(|hit| hit.entry.slang == "脱"));
         }
-        assert_eq!(
-            book.slang_entries()[0].mandarin_glosses,
-            vec!["很", "极其"]
-        );
+        assert_eq!(book.slang_entries()[0].mandarin_glosses, vec!["很", "极其"]);
     }
 }
