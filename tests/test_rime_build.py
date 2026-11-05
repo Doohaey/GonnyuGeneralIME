@@ -428,6 +428,7 @@ def test_norel_schemas_reuse_rel_dictionaries_and_keep_their_data(tmp_path: Path
         assert f"schema_id: {norel_name}\n" in schema
         assert f"dictionary: {rel_name}\n" in schema
         assert f"prism: {rel_name}" in schema
+        assert "  dictionary_exclude:\n" in schema
         assert f"user_dict: {norel_name}\n" in schema
         assert not (tmp_path / f"{norel_name}.dict.yaml").exists()
         assert (tmp_path / "lua" / f"{norel_name}_data.lua").is_file()
@@ -441,6 +442,12 @@ def test_norel_schemas_reuse_rel_dictionaries_and_keep_their_data(tmp_path: Path
         data = (tmp_path / "lua" / f"gannyu_jingon_{mode}_norel_data.lua").read_text(encoding="utf-8")
         forbidden = set(re.findall(r'\["((?:[^"\\]|\\.)*)"\] = true', data))
         assert removed <= forbidden
+        schema = (tmp_path / f"gannyu_jingon_{mode}_norel.schema.yaml").read_text(encoding="utf-8")
+        excluded = {
+            json.loads(item)
+            for item in re.findall(r'^    - ("(?:[^"\\]|\\.)*")$', schema, re.MULTILINE)
+        }
+        assert excluded == removed
 
 
 def test_rime_installers_install_the_shared_single_character_filter() -> None:

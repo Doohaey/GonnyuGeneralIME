@@ -526,6 +526,11 @@ def write_dictionary(path: Path, entries: list[Entry], region: str, name: str | 
     return len(records)
 
 
+def dictionary_words(entries: list[Entry]) -> set[str]:
+    paired_readings = build_paired_readings(entries)
+    return {entry.word for entry in entries if entry_codes(entry, paired_readings)}
+
+
 def build_single_character_frequencies(entries: list[Entry]) -> dict[str, int]:
     frequencies: dict[str, int] = {}
     for entry in entries:
@@ -636,9 +641,17 @@ def write_option_resources(region: str, entries: list[Entry], output: Path,
         name = root + suffix
         dictionary_name = name if relations else root + ("" if mode == "both" else f"_{mode}_rel")
         selected = entries if not suffix else selected_entries(entries, mode, relations)
+        exclude_block = ""
         if suffix:
             if relations:
                 write_dictionary(output / f"{name}.dict.yaml", selected, region, name)
+            else:
+                rel_selected = entries if mode == "both" else selected_entries(entries, mode, True)
+                excluded = sorted(dictionary_words(rel_selected) - dictionary_words(selected))
+                if excluded:
+                    exclude_block = "  dictionary_exclude:\n" + "".join(
+                        f"    - {json.dumps(word, ensure_ascii=False)}\n" for word in excluded
+                    )
             annotations, before, after = build_metadata(selected, mode, include_synonyms=False)
             write_lua_data(output / "lua" / f"{name}_data.lua", annotations,
                            build_preferred_readings(selected), before, after,
@@ -659,7 +672,8 @@ def write_option_resources(region: str, entries: list[Entry], output: Path,
             body = (
                 f"schema:\n  schema_id: {schema_id}\n  name: {region}\n  version: \"{VERSION}\"\n"
                 f"translator:\n  dictionary: {dictionary_name}\n  prism: {dictionary_name}{prism_suffix}\n"
-                f"  user_dict: {name}\n  enable_user_dict: true\n  enable_sentence: true\n"
+                + exclude_block
+                + f"  user_dict: {name}\n  enable_user_dict: true\n  enable_sentence: true\n"
                 "  enable_completion: true\n  spelling_hints: 8\n"
                 "speller:\n  alphabet: zyxwvutsrqponmlkjihgfedcba\n  delimiter: \" '\"\n  algebra:\n"
                 + "\n".join(algebra) + "\n"
