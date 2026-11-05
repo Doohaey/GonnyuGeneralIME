@@ -63,6 +63,34 @@ if [[ ! -f "$output" ]]; then
   exit 1
 fi
 
+llvm_toolchain="$(find "$ndk_root/toolchains/llvm/prebuilt" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
+llvm_strip="$llvm_toolchain/bin/llvm-strip"
+llvm_objcopy="$llvm_toolchain/bin/llvm-objcopy"
+llvm_readelf="$llvm_toolchain/bin/llvm-readelf"
+for tool in "$llvm_strip" "$llvm_objcopy" "$llvm_readelf"; do
+  if [[ ! -x "$tool" ]]; then
+    echo "Android NDK LLVM tool is missing: $tool" >&2
+    exit 2
+  fi
+done
+
+symbols_dir="$rime_root/symbols/$abi"
+mkdir -p "$symbols_dir"
+cp "$output" "$symbols_dir/libgannyu_input_jni.so"
+"$llvm_objcopy" --only-keep-debug "$symbols_dir/libgannyu_input_jni.so" \
+  "$symbols_dir/libgannyu_input_jni.so.debug"
+"$llvm_strip" --strip-unneeded "$output"
+sections="$("$llvm_readelf" -S "$output")"
+if grep -qE '\.debug_info|\.symtab' <<<"$sections"; then
+  echo "Rime JNI strip left debug sections in $output" >&2
+  exit 1
+fi
+dynsyms="$("$llvm_readelf" --dyn-syms "$output")"
+if ! grep -q 'Java_' <<<"$dynsyms"; then
+  echo "Rime JNI strip removed required JNI symbols from $output" >&2
+  exit 1
+fi
+
 mkdir -p "$app_root/src/main/jniLibs/$abi"
 cp "$output" "$app_root/src/main/jniLibs/$abi/libgannyu_input_jni.so"
-echo "linked Rime JNI: $app_root/src/main/jniLibs/$abi/libgannyu_input_jni.so"
+echo "linked Rime JNI: $app_root/src/main/jniLibs/$abi/libgannyu_input_jni.so (symbols: $symbols_dir)"
