@@ -253,7 +253,7 @@ The system aims to cover phonemes across localities, represents necessary phonem
 
 Checked-tone codas follow these spelling and input rules.
 
-- The IPA coda [ʔ] is written as `-k` in Gon-pin.
+- The coda [ʔ] is written as `-k` in Gon-pin.
 - Checked-tone codas may be omitted during input while still matching the corresponding readings.
 - Each locality independently specifies a combination of `-t`, `-p`, and `-k`, or no checked-tone codas. The codas enabled for a locality are accepted interchangeably within that locality.
 
@@ -330,7 +330,7 @@ With no initial consonant:
 | ie | [iɛ] | - | - | [ie] | - | [ie] | - | - | - | [ie] | - | - | — |  |
 | iai | - | - | - | [iai] | - | - | - | - | - | - | - | - | - |  |
 | ioi | - | - | - | [ioi] or [iɔi] | - | - | - | - | - | - | - | - | - |  |
-| iu* | [iu] | - | - | - | - | - | - | - | - | - | - | - | iu, you (no initial) |  |
+| iu* | [iu] | - | - | - | - | - | - | - | - | - | - | - | you (no initial) |  |
 | iaeu | - | - | - | - | [iæu] | - | - | - | - | - | - | - |  |  |
 | iau | - | [iau] | [iau] | [iau] | - | [iɑu] | [iau] | [iau] | [iau] | - | [iau] | [iau] | - |  |
 | iou | - | - | - | - | - | - | [iɔu] | - | [iou] | - | - | - |  |  |
