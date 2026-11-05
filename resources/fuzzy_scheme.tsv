@@ -5,37 +5,23 @@ xyucuenn	rime	wun	wênn			syllable-final	false	false	primary	wun	零声母 wun �
 xyucuenn	rime	uenn	un			syllable-final	false	true	primary	b,p,m,f,v,d,t,n,l,g,k,h,j,q,x,r,z,c,s,ng,zh,ch,sh	鼻化韵旧式输入归并到 un 后继续匹配规范写法	none
 common	rime	et	iêt		额	syllable-final	false	true	primary	ng	输入 nget 匹配 ngiêt	none
 common	rime	yuen	yuon	yon	渲	syllable-final	false	false	primary	yuen,jyuen,nyuen,qyuen,xyuen	覆盖现有全部 yuon 规范音	none
-common	rime	ui	wi	ui	为	syllable-final	false	true	primary	ui	单写 ui→wi	none
-common	rime	uek	wêk			syllable-final	false	true	primary	uek	零声母 uek 输入匹配 wêk	none
-common	rime	uei	wêi	uɛi	为	syllable-final	false	true	primary	uei	零声母 uei 输入单向兼容 wêi；独立于 ui→wi	none
-common	rime	ueu	wêu			syllable-final	false	true	primary	ueu	零声母 ueu 输入匹配 wêu	none
 common	onset	g	gg			syllable-initial	false	true	primary			none
 common	rime	ue	yue	ye	月	anywhere	false	true	primary	jue,lue,nue,que,xue	ue 系专用桥接，须先于通用 u→yu；只接声母	none
-common	rime	u	wu	u	乌	syllable-final	false	true	primary	u	单写 u→wu	none
-common	rime	ueng	wêng			syllable-final	false	true	primary	ueng	零声母 ueng 匹配 wêng	none
 common	rime	yuet	yuot	yot	月	syllable-final	false	true	primary	yue,jyue,lyue,nyue,qyue,xyue	正确 t 尾兼容到 yuot	none
 yikyan-henfeng	rime	oi	uoi			syllable-initial	true	true	primary			none
 yikyan-henfeng	rime	uok	ok			syllable-final	true	false	primary		弋阳 uok 与 ok 双向兼容；可接收前序规则输出，但本规则结果不继续扩展	none
 common	rime	e	ek			syllable-final	false	true	fallback	be,bue,ce,cue,de,due,fe,fue,ge,gue,he,hue,jyue,kue,le,lue,me,mue,nyue,pe,pue,qyue,se,sue,te,tue,we,xyue,ye,yue,ze,zue	普通 e／ir→e 级联组合兼容	none
 fungcen	rime	ing	en	ɨn		syllable-final	false	false	primary		丰城 ing 输入单向兼容 en	none
-common	rime	ueik	wêik	uɛiʔ	为	syllable-final	false	true	primary	ueik	零声母 uei 的 k 尾输入兼容独立 wêik	none
-common	rime	uk	wuk			syllable-final	false	true	primary	uk	零声母 uk 匹配 wuk	none
 songau	coda	k	t			syllable-final	true	true	secondary		自动生成：完整音系检测到两种入声韵尾，允许互相模糊	none
-common	rime	iueok	yueok			syllable-final	false	true	primary	iueok	零声母 iueok 匹配 yueok	none
-common	rime	inn	yinn			syllable-final	false	true	primary	inn	零声母 inn 匹配 yinn	none
 common	rime	ir	e			anywhere	false	true	primary		ir 单向匹配普通 e，并允许继续匹配其他规则	none
-common	rime	un	wen	un	文	syllable-final	false	true	primary	un	零声母 un 输入匹配 wen	none
 yikyan-henfeng	coda		k			syllable-final	false	true	fallback		自动生成：完整音系检测到该入声韵尾，输入省略韵尾时匹配带尾形式	none
 yikyan-henfeng	rime	en	eng			syllable-final	false	true	primary			none
-common	rime	iuen	yuên			syllable-final	false	true	primary	iuen	零声母 iuen 匹配 yuên	none
 common	rime	nge	ngiêt		额	syllable-final	false	true	primary	nge	输入 nge 匹配 ngiêt	none
 common	rime	ngee	ngiêt		额	syllable-final	false	false	primary	ngee	输入 ngee 匹配 ngiêt	none
 common	rime	wen	won	uon	碗	syllable-final	false	false	primary	wen	won 可从 wen 模糊输入	none
 yikyan-henfeng	rime	uon	uong			syllable-final	false	true	primary			none
-common	rime	iuk	yiuk			syllable-final	false	true	primary	iuk	零声母 iuk 匹配 yiuk	none
 common	rime	i	ï	ɿ		anywhere	false	false	primary		i 可单向模糊匹配 ï	none
 common	onset	zr	zzr			syllable-initial	false	true	primary			none
-common	rime	uenn	wênn			syllable-final	false	true	primary	uenn	零声母 uenn 匹配 wênn	none
 common	rime	yueng	yuen			syllable-final	false	true	primary			none
 fungcen	coda		t		八	syllable-final	false	true	fallback			none
 common	rime	ve	yuek			syllable-final	false	true	fallback	jve,nve,qve,xve	普通 e／ir→e 级联组合兼容；只接声母	none
@@ -43,43 +29,26 @@ tiqien	coda		k			syllable-final	false	true	fallback		自动生成：完整音系
 xyucuenn	rime	ien	iênn			syllable-final	false	false	primary		鼻化韵普通 e 输入兼容 ê 拼写	none
 common	rime	suon	son		算	syllable-final	false	true	primary			none
 common	rime	wui	wi	ui	为	anywhere	false	true	primary	wui	零声母 wui 旧写兼容 ui 的转写形式，可接续匹配入声韵尾	none
-common	rime	iau	yêu	iɛu	妖	syllable-final	false	true	primary	iau	零声母 iau 输入匹配 yêu	none
 fungcen	coda	p	k			syllable-final	true	true	secondary			none
-common	rime	ut	wut			syllable-final	false	true	primary	ut	零声母 ut 单向匹配 wut	none
-common	rime	iet	yêt			syllable-final	false	true	primary	iet	输入 iet 匹配 yêt	none
-common	rime	iuenn	yuênn			syllable-final	false	true	primary	iuenn	零声母 iuenn 匹配 yuênn	none
 common	rime	o	eo	ɵ	儿	syllable-final	false	false	primary	o	独立音节 o 单向兼容 eo	none
-common	rime	uin	win			syllable-final	false	true	primary	uin	零声母 uin 匹配 win	none
 fungcen	coda	t	k			syllable-final	true	true	secondary			none
 common	rime	wei	wi	ui	为	anywhere	false	true	primary	wei	零声母 wei 单向兼容 wi，可接续匹配入声韵尾	none
 common	onset	siu	seu		兽	syllable-final	false	false	primary			none
 common	rime	uen	uon	uon	碗	syllable-final	false	false	primary		带声母 uon 可从 uen 模糊输入	none
-common	rime	iau	yeu	iɛu	妖	syllable-final	false	true	primary	iau	零声母 iau→yeu	none
-xyucuenn	rime	uen	wênn			syllable-final	false	false	primary	uen	零声母 uen 匹配遂川规范 wênn	none
-common	rime	iuot	yuot			syllable-final	false	true	primary	iuot	零声母 iuot 匹配 yuot	none
 songau	coda		k			syllable-final	false	true	fallback		自动生成：完整音系检测到该入声韵尾，输入省略韵尾时匹配带尾形式	none
-common	rime	ue	wê			syllable-final	false	true	primary	ue	零声母 ue 匹配 wê	none
 xyucuenn	rime	yuen	yuênn			syllable-final	false	false	primary		鼻化韵普通 e 输入兼容 ê 拼写	none
 common	rime	e	ê	ɛ	额	anywhere	false	true	primary		e 可单向模糊匹配 ê；匹配片段不得含 ir→e 生成的 e	not-derived-from-ir
 common	rime	ee	ê	ɛ	额	anywhere	false	true	primary		ee 可单向匹配帽子 e；匹配片段不得含 ir→e 生成的 e	not-derived-from-ir
-common	rime	ueik	weik			syllable-final	false	true	primary	ueik	入声形式同 uei	none
-common	rime	iuok	yuok	iuɔʔ		syllable-final	false	true	primary	iuok	零声母 iu 系带韵尾时省去 i，与 yu 系共用拼写	none
 common	rime	yue	yuot	yot	月	syllable-final	false	true	primary	yue,jyue,lyue,nyue,qyue,xyue	省略入声尾时兼容到 yuot	none
-common	rime	uei	wei	uei	为	syllable-final	false	true	primary	uei	零声母 uei→wei；带帽 ê 可由 e 或 ee 输入	none
-common	rime	uik	wik			syllable-final	false	true	primary	uik	零声母 uik 匹配 wik	none
 common	rime	wu	v			anywhere	false	false	primary	wu	wu 可单向兼容 v	none
 yikyan-henfeng	rime	on	ong			syllable-final	false	true	primary			none
 common	rime	yoin	yuon	yon	袁	syllable-final	false	false	secondary	yoin	零声母旧写向后兼容	none
 common	rime	vek	yuet			syllable-final	false	true	secondary	jvek,qvek	普通 e／ir→e 级联组合兼容	none
 common	rime	ve	yue	ye	月	anywhere	false	true	primary	jve,lve,nve,qve,xve	ve 系专用桥接，须先于通用 v→yu；只接声母	none
 common	rime	v	yu	y	与	anywhere	false	false	primary	b,p,m,f,d,t,n,l,g,k,h,j,q,x,r,z,c,s,ng,zh,ch,sh,w	仅已有声母后的 v→yu	none
-common	rime	ung	wung	uŋ	翁	syllable-final	false	true	primary	ung	零声母 ung→wung，与 ueng→weng 区分	none
-common	rime	uen	won	uon	碗	syllable-final	false	true	primary	uen	零声母 won 可从 uen 模糊输入	none
 common	rime	ieu	êu	ɛu	后	syllable-final	false	false	secondary	h	限定 hieu→hêu	none
 common	rime	ieeu	êu	ɛu	后	syllable-final	false	false	secondary	h	限定 hieeu→hêu	none
-common	rime	iuet	yuêt			syllable-final	false	true	primary	iuet	零声母 iuet 匹配 yuêt	none
 common	rime	yao	yêu	iɛu	妖	syllable-final	false	false	primary	yao	普通话 yao 输入匹配 yêu	none
-common	rime	uen	wên	uɛn	文	syllable-final	false	true	primary	uen	零声母 un/uen 同组；带帽 ê 可由 e 或 ee 输入	none
 yikyan-henfeng	rime	oi	ui			syllable-initial	true	true	primary			none
 common	rime	ek	et			syllable-final	false	true	secondary	bek,cek,fek,guek,jyuek,kuek,lek,nek,qyuek,sek,suek,tek,tuek,zek	普通 e／ir→e 级联组合兼容	none
 common	rime	w	v			anywhere	false	false	primary	w	w 可单向兼容 v	none
@@ -89,87 +58,53 @@ common	rime	cuon	con			syllable-final	false	false	primary	cuon	整音节 cuon→
 xyucuenn	coda		k			syllable-final	false	true	fallback		自动生成：完整音系检测到该入声韵尾，输入省略韵尾时匹配带尾形式	none
 common	rime	ou	eu	ɛu	后	syllable-final	false	false	primary	cou,dou,fou,gou,hou,jou,kou,lou,mou,ngou,pou,sou,tou,you,zou	普通话 ou 输入兼容规范 eu	none
 tiqien	coda		p			syllable-final	false	true	fallback		自动生成：完整音系检测到该入声韵尾，输入省略韵尾时匹配带尾形式	none
-common	rime	ieu	yêu	iɛu	夭	syllable-final	false	true	primary	ieu	输入 ieu 匹配 yêu	none
 xyucuenn	rime	yuin	yuinn			syllable-final	false	false	primary		遂川鼻化韵可由单 n 韵尾输入匹配 nn 规范写法	none
-common	rime	i	yi	i	一	syllable-final	false	false	primary	i	单写 i→yi	none
 common	rime	ii	ï	ɿ	丝	anywhere	false	true	primary		ii 精确输入 ï	none
-common	rime	i	yï	ɿ	世	syllable-final	false	false	primary	i	零声母 i 匹配 yï	none
-common	rime	ï	yï	ɿ	世	syllable-final	false	true	primary	ï	单写 ï→yï	none
-common	rime	ïk	yïk	ɿʔ		syllable-final	false	true	primary	ïk	零声母 ïk 匹配 yïk	none
 xyucuenn	rime	uan	uann			syllable-final	false	false	primary		遂川鼻化韵可由单 n 韵尾输入匹配 nn 规范写法	none
 xyucuenn	rime	en	ênn			syllable-final	false	false	primary		鼻化韵帽子 e 使用 ee 输入兼容	none
-common	onset	u	w	u	乌	syllable-initial	false	true	primary	ua,ue,uo,uê,uiê	零声母 u 系旧写兼容；ua→wa、uen→wen、uon→won，可接续匹配ê形式	none
 yikyan-henfeng	rime	yun	yung			syllable-final	false	true	primary			none
 common	rime	uei	ui	uei		syllable-final	false	true	primary	b,p,m,f,v,d,t,n,l,g,k,h,j,q,x,r,z,c,s,ng,zh,ch,sh	声母后省写；零声母保留 w 系拼写	none
 common	rime	fi	fêi			syllable-final	false	false	primary	fi	整音节 fi→fêi	none
 sinyi	coda		t			syllable-final	false	true	fallback			none
-common	rime	ing	ying			syllable-final	false	true	primary	ing	零声母 ing 匹配 ying	none
 common	rime	ieu	eu	ɛu	后	syllable-final	false	false	secondary	h	限定 hieu→heu	none
 common	rime	zuon	zon			syllable-final	false	false	primary	zuon	整音节 zuon→zon	none
-common	rime	iung	yung	iuŋ	用	syllable-final	false	true	primary	iung	零声母 iu 系带韵尾时省去 i，与 yu 系共用拼写	none
 common	rime	ciu	ceu			syllable-final	false	false	primary	ciu	整音节 ciu→ceu	none
 common	onset	b	bb			syllable-initial	false	true	primary			none
 common	rime	u	yu	y	与	anywhere	false	false	secondary	b,p,m,f,v,d,t,n,l,g,k,h,j,q,x,r,z,c,s,ng,zh,ch,sh	yu 可从声母后的 u 输入，且 u 不接在 y 后	none
 common	rime	yao	yeu	iɛu	妖	syllable-final	false	false	primary	yao	普通话拼音习惯输入	none
-common	rime	iuek	yuek	iuəʔ		syllable-final	false	true	primary	iuek	零声母 iu 系带韵尾时省去 i，与 yu 系共用拼写	none
 common	onset	zzh	zzr			syllable-initial	false	true	primary			none
 xyucuenn	rime	an	ann			syllable-final	false	false	primary		遂川鼻化韵可由单 n 韵尾输入匹配 nn 规范写法	none
-common	rime	in	yin	ɪŋ	因	syllable-final	false	true	primary	in	单写 in→yin	none
 common	rime	ep	et			syllable-final	false	true	secondary	guep	普通 e／ir→e 级联组合兼容	none
 common	rime	et	ek			syllable-final	false	true	secondary	bet,cet,det,fet,jyuet,kuet,let,met,pet,qyuet,set,tet,tuet,wet,yet,yuet,zet	普通 e／ir→e 级联组合兼容	none
 common	rime	en	iên			syllable-final	false	false	primary	ng,k,g	各地仅匹配带帽 iên 目标	none
 common	rime	yan	yên	ian	烟	syllable-final	false	false	primary	yan	仅保留输入 yan→yên 的模糊，不改写现有 yan	none
-common	rime	iep	yêp			syllable-final	false	true	primary	iep	输入 iep 匹配 yêp	none
-common	rime	uie	wiê			syllable-final	false	true	primary	uie	零声母 uie 匹配 wiê	none
-common	rime	uen	wen	uen	文	syllable-final	false	true	primary	uen	零声母 un/uen 同组；带帽 ê 可由 e 或 ee 输入	none
-common	rime	iue	yuê			syllable-final	false	true	primary	iue	零声母 iue 匹配 yuê	none
 lancong	coda		t		客	syllable-final	false	true	fallback		入声尾：输入不带尾可模糊匹配带尾（za→zat）	none
 common	rime	you	yiu	iu	有	anywhere	false	true	primary	you	yiu 可从 you 模糊输入，可接续匹配入声韵尾	none
 songau	coda		t			syllable-final	false	true	fallback		自动生成：完整音系检测到该入声韵尾，输入省略韵尾时匹配带尾形式	none
-common	rime	iong	yong	iuŋ	用	syllable-final	false	true	primary	iong	iong→yong	none
 common	onset	j	jj			syllable-initial	false	true	primary			none
-common	rime	ik	yik			syllable-final	false	true	primary	ik	零声母 ik 匹配 yik	none
 common	onset	d	dd			syllable-initial	false	true	primary			none
 common	onset	zh	zzr			syllable-initial	false	true	primary			none
-common	rime	ip	yip			syllable-final	false	true	primary	ip	零声母 ip 匹配 yip	none
 common	rime	eu	ieu	iɛu	够	syllable-final	false	true	secondary	ng,g,k	g/k/ng 后可省略 i	none
 common	rime	ueik	uik	ueiʔ		syllable-final	false	true	primary	b,p,m,f,v,d,t,n,l,g,k,h,j,q,x,r,z,c,s,ng,zh,ch,sh	声母后省写；零声母保留 w 系拼写	none
-common	rime	iuong	yuong			syllable-final	false	true	primary	iuong	零声母 iuong 匹配 yuong	none
 common	rime	ou	êu	ɛu	后	syllable-final	false	false	primary	cou,dou,fou,gou,hou,jou,kou,lou,mou,ngou,pou,sou,tou,you,zou	普通话 ou 输入兼容带帽 ê 形式	none
 lancong	coda		k		学	syllable-final	false	true	fallback		入声尾：输入不带尾可模糊匹配带 k 形式（lok）	none
 fungcen	coda	t	p			syllable-final	true	true	secondary			none
 tiqien	coda	k	p			syllable-final	true	true	secondary		自动生成：完整音系检测到两种入声韵尾，允许互相模糊	none
-common	rime	iue	yue			syllable-final	false	true	primary	iue	零声母 iue 匹配 yue	none
-common	rime	ien	yên	ian	烟	syllable-final	false	true	primary	ien	输入 ien 匹配 yên	none
 sinyi	coda		k			syllable-final	false	true	fallback			none
-common	rime	iuinn	yuinn			syllable-final	false	true	primary	iuinn	零声母 iuinn 匹配 yuinn	none
 common	onset	z	zz			syllable-initial	false	true	primary			none
 fungcen	coda		k		插	syllable-final	false	true	fallback			none
 common	rime	ve	yuet			syllable-final	false	true	fallback	jve,qve	普通 e／ir→e 级联组合兼容	none
-common	rime	uet	wêt			syllable-final	false	true	primary	uet	零声母 uet 输入匹配 wêt	none
-common	rime	iek	yêk			syllable-final	false	true	primary	iek	输入 iek 匹配 yêk	none
 common	rime	uen	un	uən		syllable-final	false	true	primary	b,p,m,f,v,d,t,n,l,g,k,h,j,q,x,r,z,c,s,ng,zh,ch,sh	声母后省写；零声母保留 w 系拼写	none
-common	rime	iu	yiu	iu	有	syllable-final	false	true	primary	iu	单写 iu→yiu，可接续匹配入声韵尾	none
 xyucuenn	rime	in	inn			syllable-final	false	false	primary		遂川鼻化韵可由单 n 韵尾输入匹配 nn 规范写法	none
-common	rime	iuon	yuon			syllable-final	false	true	primary	iuon	零声母 iuon 匹配 yuon	none
 lancong	coda	t	k		客/学	syllable-final	true	true	secondary		入声尾互相模糊	none
 common	rime	ep	ek			syllable-final	false	true	secondary	bep,cep,dep,fep,kuep,lep,mep,pep,sep,tep,tuep,wep,zep	普通 e／ir→e 级联组合兼容	none
-common	onset	i	y	i	也	syllable-initial	false	true	primary	ia,ie,io,iê	零声母 i 系旧写兼容；ia→ya、ieu→yeu、ion→yon、iou→you，可接续匹配ê形式	none
 common	rime	ue	yuek			syllable-final	false	true	fallback	jue,nue,que,xue	普通 e／ir→e 级联组合兼容；只接声母	none
-common	rime	iun	yun	iun		syllable-final	false	true	primary	iun	零声母 iu 系带韵尾时省去 i，与 yu 系共用拼写	none
-common	rime	it	yit			syllable-final	false	true	primary	it	零声母 it 单向匹配 yit	none
 sinyi	coda	k	t			syllable-final	true	true	secondary			none
 common	rime	ao	au	au	抱	syllable-final	false	true	primary		旧 ao 写法兼容	none
 lancong	rime	fi	fui			syllable-final	false	false	primary	fi	南昌整音节 fi→fui，单向兼容	none
-common	rime	iuek	yuêk			syllable-final	false	true	primary	iuek	零声母 iuek 匹配 yuêk	none
-common	rime	im	yim			syllable-final	false	true	primary	im	零声母 im 匹配 yim	none
-common	rime	uien	wiên			syllable-final	false	true	primary	uien	零声母 uien 匹配 wiên	none
 xyucuenn	rime	un	unn			syllable-final	false	false	primary	b,p,m,f,v,d,t,n,l,g,k,h,j,q,x,r,z,c,s,ng,zh,ch,sh	声母后 un 匹配规范鼻化韵 unn	none
-common	rime	ienn	yênn			syllable-final	false	true	primary	ienn	零声母 ienn 匹配 yênn	none
-common	rime	ie	yê			syllable-final	false	true	primary	ie	零声母 ie 匹配 yê	none
-common	rime	un	wun	un		syllable-final	false	true	primary	un	零声母 un 单向匹配 wun	none
 common	rime	yuek	yuot	yot	月	syllable-final	false	true	primary	yue,jyue,lyue,nyue,qyue,xyue	误写 k 尾仍兼容到 yuot	none
 goungon	coda		k			syllable-final	false	true	fallback		自动生成：完整音系检测到该入声韵尾，输入省略韵尾时匹配带尾形式	none
 goungon	coda		t			syllable-final	false	true	fallback		自动生成：完整音系检测到该入声韵尾，输入省略韵尾时匹配带尾形式	none
 goungon	coda	k	t			syllable-final	true	true	secondary		自动生成：完整音系检测到两种入声韵尾，允许互相模糊	none
-yikyan-henfeng	rime	ok	wok	uɔʔ	握、沃	syllable-final	false	true	primary	ok	弋阳零声母 ok 输入匹配 wok	none
+yikyan-henfeng	rime	ok	wok	uɔʔ	握、沃	syllable-final	false	true	primary	ok	弋阳 ok 单向输入匹配 wok；沿用规则接续设置	none
