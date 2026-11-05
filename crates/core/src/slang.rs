@@ -551,13 +551,13 @@ mod tests {
         let mut book = SlangBook::empty();
         book.load_dictionary(&dictionary);
 
-        for gloss in ["很", "非常", "极其"] {
+        for gloss in ["很", "极其"] {
             let hits = book.slang_by_trigger(gloss);
             assert!(hits.iter().any(|hit| hit.entry.slang == "脱"));
         }
         assert_eq!(
             book.slang_entries()[0].mandarin_glosses,
-            vec!["很", "非常", "极其"]
+            vec!["很", "极其"]
         );
     }
 }

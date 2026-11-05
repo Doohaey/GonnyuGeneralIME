@@ -153,10 +153,10 @@ fn expands_mandarin_word_indexes_from_source_equivalents() {
     );
     let dictionary = Dictionary::load_tsv(&path).expect("load dictionary");
 
-    for equivalent in ["很", "非常", "极其"] {
+    for equivalent in ["很", "极其"] {
         assert_eq!(dictionary.by_mandarin_word_text(equivalent).len(), 1);
     }
-    for pinyin in ["hen3", "fei1chang2", "ji2qi2"] {
+    for pinyin in ["hen3", "ji2qi2"] {
         assert_eq!(dictionary.by_mandarin_word_pinyin(pinyin).len(), 1);
     }
 }

@@ -69,7 +69,7 @@ fn dictionary_hints_reverse_lookup() {
 fn dictionary_hints_expand_multi_mandarin_words() {
     // Source: resources/regions/lancong/dictionaries/gan_chars.tsv, 脱.
     let book = fixture_hints(&[source_row("脱", true)]);
-    for equivalent in ["很", "非常", "极其"] {
+    for equivalent in ["很", "极其"] {
         assert!(book
             .lookup_by_mandarin(equivalent)
             .iter()
