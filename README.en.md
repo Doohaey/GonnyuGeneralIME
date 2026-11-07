@@ -282,7 +282,7 @@ Checked-tone codas follow these spelling and input rules.
 | an | [an] | - | - | - | - | - | - | - | - | - | - | - | — |  |
 | on | [on] | - | [ɔn] | [ɔn] | [ɔn] | - | [ɔn] | - | - | - | - | [ɔn] | — |  |
 | oen | - | - | - | [øn] | - | - | - | - | - | - | - | - | — |  |
-| en | [ɛn]  or  [ɨn] | [ən] | [ən] | [en] or [ɪn] | [ən] | [ən] | [ən] | [en] or [ɛen] or [ən] | - | - | [en] | [ən] | ing (Fungcen) |  |
+| en | [ɛn]  or  [ɨn] | [ən] | [ən] | [en] or [ɪn] | [ən] | [ən] | [ən] | [en] or [ən] | - | - | [en] | [ən] | ing (Fungcen) |  |
 | eon | - | - | - | - | - | - | - | - | - | - | - | [ɵn] |  |  |
 | ann* | - | - | - | - | - | - | - | - | - | [ã] | - | - | an |  |
 | ang | [ɑŋ] | - | [aŋ] | [aŋ] | - | - | - | - | - | - | - | - | — |  |
