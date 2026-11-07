@@ -144,7 +144,12 @@ impl FuzzyMap {
                     enabled
                         || matches!(
                             (entry.gon_fuzzy.as_str(), entry.gon_pin.as_str()),
-                            ("i", "ï") | ("ii", "ï") | ("e", "ê") | ("ee", "ê") | ("ir", "e") | ("er", "e")
+                            ("i", "ï")
+                                | ("ii", "ï")
+                                | ("e", "ê")
+                                | ("ee", "ê")
+                                | ("ir", "e")
+                                | ("er", "e")
                         )
                 })
                 .cloned()
