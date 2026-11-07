@@ -263,7 +263,7 @@ Checked-tone codas follow these spelling and input rules.
 | --- | --- | --- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | --- | --- |
 | ae | - | [æ] | - | - | [æ] | [æ] | [æ] | - | [æ] | [æ] | - | - | — |  |
 | a | [a] | - | - | - | - | - | - | - | - | - | - | - | — |  |
-| o | [o] | - | [ɔ] | - | - | - | [ɔ] | - | - | [ɔ] | [ɔ] | [ɔ] | — |  |
+| o* | [o] | - | [ɔ] | - | - | - | [ɔ] | - | - | [ɔ] | [ɔ] | [ɔ] | oo (→ ô) |  |
 | oe | - | - | - | [ø] | - | - | [œ] or [ø] | - | - | - | - | - |  |  |
 | e* | [e] | [ɛ] | [ɛ] | [ə] or [ɛ] | [ə] | - | [ə] or [ɛ] | [ə] or [ɛ] or [ɯ] | [ə] or [ɛ] | [ɛ] or [ɤ] | [ɛ] | [ə] or [ɛ] | ir (→ e), er (→ e), ee (→ ê) |  |
 | eo | [ɵ] | - | - | - | - | - | - | - | - | - | - | - | o (standalone syllable, one-way) |  |
@@ -313,11 +313,13 @@ Checked-tone codas follow these spelling and input rules.
 
 \* Some regions use `ê` for IPA [ɛ] or [e]; typing `e` alone matches `ê`, `ir` and `er` precisely correspond to Gon-pin `e`, and `ee` precisely corresponds to Gon-pin `ê`. The same applies to `ê` in other finals.
 
+\* Some regions use `ô` for IPA [ɔ]; typing `o` alone matches `ô`, and `oo` precisely corresponds to Gon-pin `ô`. The same applies to `ô` in other finals.
+
 #### Front-vowel finals
 
 With no initial consonant:
 
-- When `i` is followed by `-a`, `-o`, or `-e`, `i` is written `y`.
+- When `i` is followed by `-a`, `-o`, `-e`, or `-o` (including `ô`), `i` is written `y`.
 - When `i` is followed by `-u`, a standalone syllable `iu` or `iu` directly followed by an entering-tone coda is written as a whole `yiu` (+ entering-tone coda), to distinguish it from `yu`; otherwise only `i` is written `y`.
 - In all other cases, `i` (including `ï`) is written `yi` (`yï`).
 

@@ -136,7 +136,14 @@ fn hot_options_filter_before_lookup_and_restore_original_candidates() {
         .any(|candidate| candidate.text == "放牛"));
     assert!(pipeline.fuzzy_map().entries.iter().all(|entry| matches!(
         (entry.gon_fuzzy.as_str(), entry.gon_pin.as_str()),
-        ("i", "ï") | ("ii", "ï") | ("e", "ê") | ("ee", "ê") | ("ir", "e") | ("er", "e")
+        ("i", "ï")
+            | ("ii", "ï")
+            | ("e", "ê")
+            | ("ee", "ê")
+            | ("ir", "e")
+            | ("er", "e")
+            | ("o", "ô")
+            | ("oo", "ô")
     )));
     assert!(pipeline.fuzzy_map().entries.len() >= 3);
     assert!(pipeline

@@ -40,6 +40,8 @@ songau	coda		k			syllable-final	false	true	fallback		自动生成：完整音系
 xyucuenn	rime	yuen	yuênn			syllable-final	false	false	primary		鼻化韵普通 e 输入兼容 ê 拼写	none
 common	rime	e	ê	ɛ	额	anywhere	false	true	primary		e 可单向模糊匹配 ê；匹配片段不得含 ir/er→e 生成的 e	not-derived-from-ir
 common	rime	ee	ê	ɛ	额	anywhere	false	true	primary		ee 可单向匹配帽子 e；匹配片段不得含 ir/er→e 生成的 e	not-derived-from-ir
+common	rime	o	ô	ɔ	高	syllable-final	false	true	primary		o 可单向模糊匹配 ô	none
+common	rime	oo	ô	ɔ	高	syllable-final	false	true	primary		oo 精确输入 ô	none
 common	rime	yue	yuot	yot	月	syllable-final	false	true	primary	yue,jyue,lyue,nyue,qyue,xyue	省略入声尾时兼容到 yuot	none
 common	rime	wu	v			anywhere	false	false	primary	wu	wu 可单向兼容 v	none
 yikyan-henfeng	rime	on	ong			syllable-final	false	true	primary			none

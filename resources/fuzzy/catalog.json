@@ -99,6 +99,31 @@
           }
         },
         {
+          "id": "F206",
+          "match": [
+            "common",
+            "o",
+            "ô"
+          ],
+          "intent": "o 可单向模糊匹配 ô",
+          "origin": {
+            "kind": "explicit",
+            "basis": "单写 o 输入兼容 ô；oo 作为精确输入形式"
+          }
+        },
+        {
+          "id": "F207",
+          "match": [
+            "common",
+            "oo",
+            "ô"
+          ],
+          "intent": "oo 精确输入 ô",
+          "origin": {
+            "kind": "explicit"
+          }
+        },
+        {
           "id": "F046",
           "match": [
             "common",
