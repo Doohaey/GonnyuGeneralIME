@@ -368,7 +368,7 @@ With no initial consonant:
 | iuok | - | - | - | [iuɔʔ] | - | - | - | - | - | - | - | - | - |  |
 | iuek | - | - | - | [iuəʔ] | - | - | - | - | - | - | - | - | - |  |
 
-\* `i`: Some regions use `ï` for IPA [ɿ], including [ɿ] in other finals. Input uses `i`, which can match `ï` through one-way fuzzy matching; `ii` precisely inputs `ï`. [ɿ] is an open final and is listed among the front-vowel finals by spelling.
+\* `i`: Some regions use `ï` for IPA [ɿ] or [ʅ], including [ɿ] in other finals. Input uses `i`, which can match `ï` through one-way fuzzy matching; `ii` precisely inputs `ï`. [ɿ] and [ʅ] are open finals and are listed among the front-vowel finals by spelling.
 
 #### Rounded finals
 

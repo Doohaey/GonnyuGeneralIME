@@ -108,7 +108,7 @@ status = "active"
 "ɛn" = "ên"
 "ɛu" = "êu"
 "ɿ" = "ï"
-"ʅ" = "i"
+"ʅ" = "ï"
 
 [phonology]
 jqx_u_to_yu = false
