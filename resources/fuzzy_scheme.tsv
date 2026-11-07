@@ -111,3 +111,9 @@ goungon	coda		k			syllable-final	false	true	fallback		自动生成：完整音�
 goungon	coda		t			syllable-final	false	true	fallback		自动生成：完整音系检测到该入声韵尾，输入省略韵尾时匹配带尾形式	none
 goungon	coda	k	t			syllable-final	true	true	secondary		自动生成：完整音系检测到两种入声韵尾，允许互相模糊	none
 yikyan-henfeng	rime	ok	wok	uɔʔ	握、沃	syllable-final	false	true	primary	ok	弋阳 ok 单向输入匹配 wok；沿用规则接续设置	none
+lancong	onset	n	l		南	syllable-initial	false	false	primary	na,no,nu,nêt,nêu	南昌泥母洪音今读 l，输入 n 匹配 l；限登记前缀	none
+fenni	onset	n	l		南	syllable-initial	false	false	primary	nai,nak,nan,nau,nei,nen,neu,no,nu	分宜泥母洪音今读 l，输入 n 匹配 l；限登记前缀	none
+fungcen	onset	n	l		南	syllable-initial	false	false	primary	naek,nai,nan,nau,nok,non,nu,nên	丰城泥母洪音今读 l，输入 n 匹配 l；限登记前缀	none
+jisuibaedu	onset	n	l		南	syllable-initial	false	false	primary	nae,nai,nan,nau,no,nu,nên	吉水八都泥母洪音今读 l，输入 n 匹配 l；限登记前缀	none
+sinyi	onset	n	l		南	syllable-initial	false	false	primary	na,no,nu,nên,nêu	新余泥母洪音今读 l，输入 n 匹配 l；限登记前缀	none
+songau	onset	n	l		南	syllable-initial	false	false	primary	na,no,nu	上高泥母洪音今读 l，输入 n 匹配 l；限登记前缀	none

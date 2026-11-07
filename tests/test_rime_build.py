@@ -915,3 +915,66 @@ def test_y_to_yu_expansions_are_removed() -> None:
     algebra = compile_algebra({"yu", "yun", "yung", "yuon", "yue", "nyu"}, rules)
     for source, target in (("y", "yu"), ("yn", "yun"), ("yon", "yuon"), ("ye", "yue"), ("ny", "nyu")):
         assert f"    - derive/^G{target}$/F{source}/" not in algebra
+
+
+def test_n_l_hong_fuzzy_rules_are_scoped_to_registered_prefixes() -> None:
+    cases = {
+        "lancong": (
+            ["nan", "nong", "nu", "nêt", "nêu"],
+            ["ni", "nien", "nyu", "n"],
+        ),
+        "fenni": (
+            ["nai", "nak", "nan", "nang", "nau", "nei", "nen", "neu", "no", "nu"],
+            ["ni", "nien", "nyu", "na"],
+        ),
+        "fungcen": (
+            ["naek", "nai", "nan", "nau", "nok", "non", "nu", "nên"],
+            ["ni", "nien", "nyu", "na"],
+        ),
+        "jisuibaedu": (
+            ["nae", "nai", "nan", "nau", "no", "nu", "nên"],
+            ["ni", "nien", "nyu", "na"],
+        ),
+        "sinyi": (
+            ["na", "nai", "naik", "nan", "nat", "nau", "no", "nok", "nong", "nu", "nui", "nuk", "nun", "nung", "nuoi", "nuon", "nên", "nêu"],
+            ["ni", "nien", "nyu", "nï"],
+        ),
+        "songau": (
+            ["na", "naen", "nai", "nan", "nat", "nau", "no", "noi", "nok", "non", "not", "nu", "nuk", "nung"],
+            ["ni", "nien", "nyu"],
+        ),
+    }
+    for region, (positives, negatives) in cases.items():
+        rules = load_rules(RULES_PATH, region)
+        for spelling in positives:
+            assert any(
+                output.startswith("l") and output != spelling
+                for output in normalize(spelling, rules)
+            ), (region, spelling)
+        for spelling in negatives:
+            assert not any(
+                output.startswith("l") for output in normalize(spelling, rules)
+            ), (region, spelling)
+
+
+def test_fungcen_n_l_merger_rule_has_no_n_duplicates() -> None:
+    chars = (
+        RULES_PATH.parent / "regions/fungcen/dictionaries/chars.tsv"
+    ).read_text(encoding="utf-8").splitlines()[1:]
+    removed = {
+        ("乳", "nu3"),
+        ("南", "non2"),
+        ("男", "non2"),
+        ("奶", "nai1"),
+        ("奶", "nai3"),
+        ("挠", "nau2"),
+        ("耐", "nai4"),
+        ("诺", "nok6"),
+        ("弱", "nok6"),
+        ("熔", "nung2"),
+        ("难", "nan2"),
+    }
+    for line in chars:
+        fields = line.split("\t")
+        if len(fields) >= 3:
+            assert (fields[0], fields[2]) not in removed

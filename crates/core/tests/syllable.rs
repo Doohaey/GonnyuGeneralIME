@@ -78,3 +78,60 @@ fn yikyan_source_dictionary_spellings_are_preserved() {
         assert_dictionary_spellings_are_preserved("yikyan-henfeng", &syllables);
     }
 }
+
+#[test]
+fn n_l_hong_fuzzy_rules_are_scoped_to_registered_prefixes() {
+    let cases: &[(&str, &[&str], &[&str])] = &[
+        ("lancong", &["nan", "nong", "nu", "nêt", "nêu"], &["ni", "nien", "nyu", "n"]),
+        (
+            "fenni",
+            &["nai", "nak", "nan", "nang", "nau", "nei", "nen", "neu", "no", "nu"],
+            &["ni", "nien", "nyu", "na"],
+        ),
+        (
+            "fungcen",
+            &["naek", "nai", "nan", "nau", "nok", "non", "nu", "nên"],
+            &["ni", "nien", "nyu", "na"],
+        ),
+        (
+            "jisuibaedu",
+            &["nae", "nai", "nan", "nau", "no", "nu", "nên"],
+            &["ni", "nien", "nyu", "na"],
+        ),
+        (
+            "sinyi",
+            &[
+                "na", "nai", "naik", "nan", "nat", "nau", "no", "nok", "nong", "nu",
+                "nui", "nuk", "nun", "nung", "nuoi", "nuon", "nên", "nêu",
+            ],
+            &["ni", "nien", "nyu", "nï"],
+        ),
+        (
+            "songau",
+            &[
+                "na", "naen", "nai", "nan", "nat", "nau", "no", "noi", "nok", "non",
+                "not", "nu", "nuk", "nung",
+            ],
+            &["ni", "nien", "nyu"],
+        ),
+    ];
+    for (region, positives, negatives) in cases {
+        let map = FuzzyMap::load_tsv_for_region(fuzzy_path(), region).expect("load regional rules");
+        for spelling in *positives {
+            let forms = map.normalize(spelling, SyllableScheme::GonPin);
+            assert!(
+                forms
+                    .iter()
+                    .any(|form| form.text.starts_with('l') && form.text != *spelling),
+                "{region}: {spelling}"
+            );
+        }
+        for spelling in *negatives {
+            let forms = map.normalize(spelling, SyllableScheme::GonPin);
+            assert!(
+                !forms.iter().any(|form| form.text.starts_with('l')),
+                "{region}: {spelling}"
+            );
+        }
+    }
+}

@@ -1469,13 +1469,93 @@
           }
         }
       ]
+    },
+    {
+      "id": "linguistic_fuzzy",
+      "label": "语言学模糊",
+      "description": "按文献音类条件建立的地区模糊输入；用于音类相混、条件分化等。具体边界由规则表与统一约束执行。",
+      "rules": [
+        {
+          "id": "F308",
+          "match": [
+            "lancong",
+            "n",
+            "l"
+          ],
+          "intent": "南昌泥母洪音今读来母，输入 n 匹配 l；限登记前缀",
+          "origin": {
+            "kind": "linguistic"
+          }
+        },
+        {
+          "id": "F309",
+          "match": [
+            "fenni",
+            "n",
+            "l"
+          ],
+          "intent": "分宜泥母洪音今读来母，输入 n 匹配 l；限登记前缀",
+          "origin": {
+            "kind": "linguistic"
+          }
+        },
+        {
+          "id": "F310",
+          "match": [
+            "fungcen",
+            "n",
+            "l"
+          ],
+          "intent": "丰城泥母洪音今读来母，输入 n 匹配 l；限登记前缀",
+          "origin": {
+            "kind": "linguistic"
+          }
+        },
+        {
+          "id": "F311",
+          "match": [
+            "jisuibaedu",
+            "n",
+            "l"
+          ],
+          "intent": "吉水八都泥母洪音今读来母，输入 n 匹配 l；限登记前缀",
+          "origin": {
+            "kind": "linguistic"
+          }
+        },
+        {
+          "id": "F312",
+          "match": [
+            "sinyi",
+            "n",
+            "l"
+          ],
+          "intent": "新余泥母洪音今读来母，输入 n 匹配 l；限登记前缀",
+          "origin": {
+            "kind": "linguistic"
+          }
+        },
+        {
+          "id": "F313",
+          "match": [
+            "songau",
+            "n",
+            "l"
+          ],
+          "intent": "上高泥母洪音今读来母，输入 n 匹配 l；限登记前缀",
+          "origin": {
+            "kind": "linguistic"
+          }
+        }
+      ]
     }
   ],
   "origin_kinds": {
     "explicit": "现有显式表项",
     "bridge": "用于接续的显式桥接",
     "composition": "基础规则组合的显式补充",
-    "generated": "按地区入声配置生成"
+    "generated": "按地区入声配置生成",
+    "linguistic": "文献音类条件"
   },
   "derivation_components": {
     "entering.omit": "按当地已启用入声尾省尾输入",
@@ -1580,6 +1660,19 @@
         "crates/core/src/syllable.rs"
       ],
       "rules": []
+    },
+    {
+      "id": "n_l_hong_xi",
+      "description": "泥来洪混细分：泥母一、二等和娘母二等（洪音）今读 l 的点位可接受 n→l 输入；泥/娘细音、日母/疑母细音 n 不转。各点只用登记前缀，丰城先清理同韵 n 读。",
+      "configuration": "resources/fuzzy_scheme.tsv",
+      "rules": [
+        "F308",
+        "F309",
+        "F310",
+        "F311",
+        "F312",
+        "F313"
+      ]
     }
   ],
   "separate_configuration": {
