@@ -103,6 +103,7 @@ int gannyu_engine_set_candidate_limit(GannyuPipelineHandle *handle, size_t limit
 int gannyu_engine_set_input_options(GannyuPipelineHandle *handle,
                                    int annotations, int relations, int fuzzy,
                                    int mandarin, int fuzzy_rules, int reading_mode);
+int gannyu_engine_transcription_scheme_available(GannyuPipelineHandle *handle, int scheme);
 int gannyu_engine_set_transcription_scheme(GannyuPipelineHandle *handle, int scheme);
 int gannyu_engine_set_synonyms_enabled(GannyuPipelineHandle *handle, int enabled);
 int gannyu_engine_set_wenbai_enabled(GannyuPipelineHandle *handle, int enabled);

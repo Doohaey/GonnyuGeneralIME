@@ -5,10 +5,12 @@ import CGannyuInput
 public struct GannyuRegion: Decodable, Equatable {
     public let id: String
     public let nameZh: String
+    public let transcriptionSchemes: [String]?
 
     private enum CodingKeys: String, CodingKey {
         case id
         case nameZh = "name_zh"
+        case transcriptionSchemes = "transcription_schemes"
     }
 }
 
@@ -134,15 +136,26 @@ public final class GannyuRegionStore {
         let stored = UserDefaults.standard.string(forKey: key)
         let resolved = regions.contains(where: { $0.id == stored }) ? stored! : first.id
         if stored != resolved { UserDefaults.standard.set(resolved, forKey: key) }
+        if let region = regions.first(where: { $0.id == resolved }) {
+            normalizeScheme(for: region)
+        }
         return resolved
     }
 
     public func select(_ regionID: String) -> Bool {
         guard let regions = try? GannyuEngine.availableRegions(),
-              regions.contains(where: { $0.id == regionID }) else { return false }
+              let region = regions.first(where: { $0.id == regionID }) else { return false }
         UserDefaults.standard.set(regionID, forKey: key)
+        normalizeScheme(for: region)
         NotificationCenter.default.post(name: Self.didChange, object: regionID)
         return true
+    }
+
+    private func normalizeScheme(for region: GannyuRegion) {
+        guard !(region.transcriptionSchemes ?? []).contains("ipa") else { return }
+        if inputOptions[8] != 0 {
+            setInputOption(8, value: 0)
+        }
     }
 }
 
@@ -197,6 +210,11 @@ public final class GannyuEngine {
         guard wenbaiStatus == gannyu_ffi_status_ok() else { throw GannyuEngineError.status(wenbaiStatus, Self.lastError()) }
         let schemeStatus = gannyu_engine_set_transcription_scheme(handle, values[8])
         guard schemeStatus == gannyu_ffi_status_ok() else { throw GannyuEngineError.status(schemeStatus, Self.lastError()) }
+    }
+
+    public func transcriptionSchemeAvailable(_ scheme: Int32) -> Bool {
+        guard let handle else { return scheme == 0 }
+        return gannyu_engine_transcription_scheme_available(handle, scheme) != 0
     }
 
     public func snapshot() throws -> GannyuSnapshot {

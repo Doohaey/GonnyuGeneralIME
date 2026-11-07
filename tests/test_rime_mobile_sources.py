@@ -95,3 +95,10 @@ def test_android_link_step_includes_pinned_boost_regex() -> None:
     ).read_text(encoding="utf-8")
 
     assert "libboost_regex.a" in android_cmake
+
+
+def test_mobile_manifest_exposes_transcription_schemes() -> None:
+    from platforms.rime.mobile.build_resources import region_metadata
+
+    assert "ipa" in region_metadata("songau")["transcription_schemes"]
+    assert region_metadata("fenni")["transcription_schemes"] == ["gon-pin"]

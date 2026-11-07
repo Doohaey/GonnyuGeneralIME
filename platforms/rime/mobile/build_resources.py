@@ -36,14 +36,18 @@ def active_regions() -> list[str]:
     return [line for line in result.stdout.splitlines() if line]
 
 
-def region_metadata(region: str) -> dict[str, str]:
+def region_metadata(region: str) -> dict[str, object]:
     config_path = ROOT / "resources" / "regions" / region / "region.toml"
     with config_path.open("rb") as handle:
         config = tomllib.load(handle)
+    schemes = (config.get("transcription") or {}).get("schemes", ["gon-pin"])
+    if isinstance(schemes, str):
+        schemes = [schemes]
     return {
         "id": region,
         "name_zh": str(config["region"]["name_zh"]),
         "schema_id": f"gannyu_{region}",
+        "transcription_schemes": [str(scheme) for scheme in schemes],
     }
 
 

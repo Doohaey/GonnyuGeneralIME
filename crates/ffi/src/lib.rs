@@ -1405,6 +1405,25 @@ pub unsafe extern "C" fn gannyu_engine_set_input_options(
 }
 
 #[no_mangle]
+pub unsafe extern "C" fn gannyu_engine_transcription_scheme_available(
+    handle: *mut GannyuPipelineHandle,
+    scheme: c_int,
+) -> c_int {
+    if handle.is_null() {
+        return 0;
+    }
+    let scheme = match scheme {
+        0 => gannyu_input_core::TranscriptionScheme::GonPin,
+        1 => gannyu_input_core::TranscriptionScheme::Ipa,
+        _ => return 0,
+    };
+    (*handle)
+        .pipeline
+        .lock()
+        .transcription_scheme_available(scheme) as c_int
+}
+
+#[no_mangle]
 pub unsafe extern "C" fn gannyu_engine_set_transcription_scheme(
     handle: *mut GannyuPipelineHandle,
     scheme: c_int,

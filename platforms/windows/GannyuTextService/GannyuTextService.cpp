@@ -1439,9 +1439,11 @@ public:
     const std::string &CurrentRegionId() const { return regionId_; }
 
     int InputOption(size_t index) const { return inputOptions_[index]; }
+    bool SchemeAvailable() const { return schemeAvailable_; }
 
     void SelectInputOption(UINT itemId) {
         if (itemId < 1000 || itemId > 1010) return;
+        if (itemId == 1010 && !schemeAvailable_) return;
         const size_t indices[] = {0, 1, 6, 2, 3, 7, 4};
         if (itemId == 1010) {
             inputOptions_[8] = !inputOptions_[8];
@@ -1583,6 +1585,7 @@ public:
                         if (option < 7 ? inputOptions_[indices[option]] != 0 : option < 10 ? inputOptions_[5] == static_cast<int>(option - 7) : inputOptions_[8] != 0) flags |= MF_CHECKED;
                         if (!scheme2 && (option == 4 || option == 5 || option == 6) && !inputOptions_[2]) flags |= MF_GRAYED;
                         if (scheme2 && (option == 3 || option == 6)) flags |= MF_GRAYED;
+                        if (option == 10 && !schemeAvailable_) flags |= MF_GRAYED;
                         AppendMenuW(menu, flags, 1000 + option, titles[option]);
                     }
                 } else {
@@ -1670,6 +1673,8 @@ private:
         inputOptions_[7] = (encoded & 1024) ? static_cast<int>((encoded >> 9) & 1) : 1;
         inputOptions_[8] = static_cast<int>((encoded >> 11) & 1);
         if (pipeline_) {
+            schemeAvailable_ = gannyu_engine_transcription_scheme_available(pipeline_, 1) != 0;
+            if (!schemeAvailable_) inputOptions_[8] = 0;
             gannyu_engine_set_input_options(pipeline_, inputOptions_[0], inputOptions_[1], inputOptions_[2], inputOptions_[3], inputOptions_[4], inputOptions_[5]);
             gannyu_engine_set_synonyms_enabled(pipeline_, inputOptions_[6]);
             gannyu_engine_set_wenbai_enabled(pipeline_, inputOptions_[7]);
@@ -2910,6 +2915,7 @@ private:
     DWORD conversionCookie_ = TF_INVALID_COOKIE;
     GannyuPipelineHandle *pipeline_ = nullptr;
     std::array<int, 9> inputOptions_{{1, 1, 1, 1, 1, 0, 1, 1, 0}};
+    bool schemeAvailable_ = false;
     GannyuSearchCandidateProvider *searchProvider_ = nullptr;
     GannyuFunctionProvider *functionProvider_ = nullptr;
     GannyuMenuButton *langBarButton_ = nullptr;
@@ -3063,6 +3069,7 @@ STDMETHODIMP GannyuMenuButton::InitMenu(ITfMenu *menu) {
         DWORD flags = (option < 7 ? owner_->InputOption(indices[option]) != 0 : option < 10 ? owner_->InputOption(5) == static_cast<int>(option - 7) : owner_->InputOption(8) != 0) ? TF_LBMENUF_CHECKED : 0;
         if (!scheme2 && (option == 4 || option == 5 || option == 6) && !owner_->InputOption(2)) flags |= TF_LBMENUF_GRAYED;
         if (scheme2 && (option == 3 || option == 6)) flags |= TF_LBMENUF_GRAYED;
+        if (option == 10 && !owner_->SchemeAvailable()) flags |= TF_LBMENUF_GRAYED;
         menu->AddMenuItem(1000 + option, flags, nullptr, nullptr, titles[option], static_cast<ULONG>(wcslen(titles[option])), nullptr);
     }
     return S_OK;

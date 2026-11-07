@@ -663,6 +663,13 @@ impl InputPipeline {
         candidates
     }
 
+    pub fn transcription_scheme_available(&self, scheme: crate::TranscriptionScheme) -> bool {
+        match scheme {
+            crate::TranscriptionScheme::GonPin => true,
+            crate::TranscriptionScheme::Ipa => self.source_scheme2.is_some(),
+        }
+    }
+
     pub fn fuzzy_map(&self) -> &FuzzyMap {
         &self.fuzzy
     }

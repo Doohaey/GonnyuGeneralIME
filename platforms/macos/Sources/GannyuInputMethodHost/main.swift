@@ -150,6 +150,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             settings.addItem(item)
         }
+        let currentRegion = (try? GannyuEngine.availableRegions())?.first { $0.id == GannyuRegionStore.shared.currentID() }
+        let schemeAvailable = currentRegion?.transcriptionSchemes?.contains("ipa") ?? false
         let schemeItem = NSMenuItem(
             title: GannyuRegionStore.optionTitles[8],
             action: #selector(selectInputOption(_:)),
@@ -157,7 +159,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
         schemeItem.target = self
         schemeItem.tag = 8
-        schemeItem.state = values[8] != 0 ? .on : .off
+        schemeItem.state = (schemeAvailable && values[8] != 0) ? .on : .off
+        schemeItem.isEnabled = schemeAvailable
         settings.addItem(schemeItem)
         settings.addItem(.separator())
         for (index, title) in ["新老兼有", "新派", "老派"].enumerated() {

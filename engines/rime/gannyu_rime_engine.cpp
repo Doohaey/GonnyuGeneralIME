@@ -639,8 +639,13 @@ int gannyu_engine_switch_region(GannyuPipelineHandle* handle, const char* region
     if (!HasRegisteredHandleLocked(runtime, handle)) return kInvalidArgument;
     const std::string previous_region = handle->region_id;
     handle->region_id = region_id;
-    const std::string schema = SchemaFor(*handle);
-    const bool handled = Api()->select_schema(handle->session, schema.c_str());
+    std::string schema = SchemaFor(*handle);
+    bool handled = Api()->select_schema(handle->session, schema.c_str());
+    if (!handled && handle->ipa_scheme) {
+      handle->ipa_scheme = false;
+      schema = SchemaFor(*handle);
+      handled = Api()->select_schema(handle->session, schema.c_str());
+    }
     if (handled) {
       handle->schema_id = schema;
       ApplyInputOptions(handle);
@@ -659,6 +664,29 @@ int gannyu_engine_set_ascii_mode(GannyuPipelineHandle* handle, int enabled, char
     if (!HasRegisteredHandleLocked(runtime, handle)) return kInvalidArgument;
     Api()->set_option(handle->session, "ascii_mode", enabled ? True : False);
     return WriteSnapshot(handle, true, std::nullopt, out_json);
+  });
+}
+
+int gannyu_engine_transcription_scheme_available(GannyuPipelineHandle* handle, int scheme) {
+  return AbiStatus([&] {
+    if (handle == nullptr || (scheme != 0 && scheme != 1)) return 0;
+    if (scheme == 0) return 1;
+    Runtime& runtime = GlobalRuntime();
+    std::lock_guard<std::mutex> lock(runtime.mutex);
+    if (!HasRegisteredHandleLocked(runtime, handle)) return 0;
+    RimeSchemaList list{};
+    if (!Api()->get_schema_list(&list)) return 0;
+    const std::string target = "gannyu_" + handle->region_id + "_ipa";
+    bool found = false;
+    for (size_t index = 0; index < list.size; ++index) {
+      if (list.list != nullptr && list.list[index].schema_id != nullptr &&
+          target == list.list[index].schema_id) {
+        found = true;
+        break;
+      }
+    }
+    Api()->free_schema_list(&list);
+    return found ? 1 : 0;
   });
 }
 

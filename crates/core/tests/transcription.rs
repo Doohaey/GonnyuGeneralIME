@@ -39,6 +39,8 @@ fn second_scheme_reads_and_displays_the_projected_reading() {
     let resource = load_region_from_manifest(root.join("manifest.toml"), "test").unwrap();
     let mut pipeline =
         InputPipeline::load_with_user_data_dir(&resource, Some(&root.join("user"))).unwrap();
+    assert!(pipeline.transcription_scheme_available(TranscriptionScheme::Ipa));
+    assert!(!InputPipeline::empty().transcription_scheme_available(TranscriptionScheme::Ipa));
     assert!(pipeline
         .retrieve("ka1")
         .iter()
