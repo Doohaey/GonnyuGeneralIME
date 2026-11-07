@@ -388,15 +388,15 @@ With no initial consonant:
 | ue | [ue] | [uɛ] | [uɛ] | [uɛ] | - | - | [uɛ] | [uɛ] | [uɛ] | - | [uɛ] | - | - |  |
 | uia | - | - | - | - | - | - | - | - | - | - | [uia] | - |  |  |
 | uie | - | [uiɛ] | - | - | - | - | - | - | - | - | - | - | — |  |
-| ui | [ui] | - | - | - | - | - | - | - | - | - | - | - | ui |  |
+| ui | [ui] | - | - | - | - | - | - | - | - | - | - | - | — |  |
 | uai | [uai] | - | - | - | - | [ʯai] | - | - | - | - | - | - | - |  |
 | uoi | - | - | [uɔi] | [uoi] or [uɔi] | - | - | - | [uoi] | - | - | - | - | — |  |
-| uei | [uei] | [uɛi] | - | [uəi] | - | [ʯei] | - | - | - | - | - | [uəi] or [uɛi] | ui (after initial, one-way) |  |
+| uei | — | [uɛi] | - | [uəi] | - | [uei] or [ʯei] | [uei] | [uei] | - | - | [uei] | [uəi] or [uɛi] | ui (after initial, one-way) |  |
 | ueu | - | - | - | [uəu] or [ueu] | - | - | - | - | - | - | - | - | - |  |
-| un | [un] | - | - | - | - | - | - | - | - | - | - | - | un |  |
+| un | [un] | - | - | - | - | - | - | - | - | - | - | - | — |  |
 | uan | [uan] | - | - | [uɑn] | - | - | - | - | - | - | - | - | - |  |
 | uon | [uon] | - | [uɔn] | [uɔn] | - | - | [uɔn] | - | - | - | - | [uɔn] | uen, wen (no initial) |  |
-| uen | [uen] | [uɛn] | [uɛn] | - | - | [uən] or [ʯən] or [ʯɛn] | [uɛn] | [uɛn] | - | - | - | [uən] or [uɛn] | un (after initial, one-way) |  |
+| uen | — | [uɛn] | [uɛn] | - | - | [uən] or [ʯən] or [ʯɛn] | [uɛn] | [uen] or [uɛn] | - | - | [uen] | [uən] or [uɛn] | un (after initial, one-way) |  |
 | ueon | - | - | - | - | - | - | - | - | - | - | - | [uɵn] |  |  |
 | uin | - | [uin] | - | [uin] | - | - | - | - | - | - | [uin] | - | - |  |
 | uien | - | [uiɛn] | - | - | - | - | - | - | - | - | [uiɛn] | - | - |  |
