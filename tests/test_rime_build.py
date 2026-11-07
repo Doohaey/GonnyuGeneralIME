@@ -51,14 +51,17 @@ def test_disabled_relations_remove_source_mandarin_entries_and_references() -> N
 
 def test_special_vowel_inputs_survive_without_optional_rules() -> None:
     rules = essential_rules(load_rules(RULES_PATH, "lancong"))
-    assert {(rule.source, rule.target) for rule in rules} == {("ir", "e"), ("e", "ê"), ("ee", "ê"), ("i", "ï"), ("ii", "ï")}
+    assert {(rule.source, rule.target) for rule in rules} == {
+        ("ir", "e"), ("er", "e"), ("e", "ê"), ("ee", "ê"), ("i", "ï"), ("ii", "ï")
+    }
     _, entries = load_entries("lancong")
     special = next(strip_tone(entry.gan) for entry in entries if entry.word == "且" and entry.new_old.startswith("新"))
     assert special in normalize(special.replace("ê", "ee"), rules)
     plain = next(strip_tone(part) for entry in entries for part in syllables(entry.gan) if "e" in part and "ê" not in part)
-    forms = normalize(plain.replace("e", "ir"), rules)
-    assert plain in forms
-    assert plain.replace("e", "ê") not in forms
+    for alias in ("ir", "er"):
+        forms = normalize(plain.replace("e", alias), rules)
+        assert plain in forms
+        assert plain.replace("e", "ê") not in forms
 
 
 def test_synonyms_are_separate_from_gan_mandarin_relations_and_characters_survive() -> None:
@@ -265,17 +268,20 @@ def test_eo_accepts_only_standalone_o_one_way() -> None:
             assert f"    - derive/^G{target}$/F{source}/" not in algebra
 
 
-def test_ir_matches_plain_e_and_double_e_matches_circumflex_one_way() -> None:
+def test_ir_and_er_match_plain_e_and_double_e_matches_circumflex_one_way() -> None:
     rules = load_rules(RULES_PATH)
-    rule = next(rule for rule in rules if rule.source == "ir" and rule.target == "e")
-    assert rule.chainable
-    for plain, circumflex in (("ir", "ee"), ("irn", "een"), ("gen", "geen")):
+    for alias in ("ir", "er"):
+        rule = next(rule for rule in rules if rule.source == alias and rule.target == "e")
+        assert rule.chainable
+    for plain, circumflex in (("ir", "ee"), ("irn", "een"), ("gen", "geen"),
+                              ("er", "ee"), ("ern", "een"), ("gen", "geen")):
         assert plain in normalize(plain, rules)
         assert circumflex in normalize(circumflex, rules)
         assert "ê" not in normalize(plain, rules)
         assert plain not in normalize(circumflex, rules, reverse=True)
     algebra = compile_algebra({"e", "ê", "gêk"}, rules)
     assert "    - derive/^Ge$/Fir/" in algebra
+    assert "    - derive/^Ge$/Fer/" in algebra
     assert "    - derive/^Ggêk$/Fgeek/" in algebra
     assert "    - derive/^Gê$/Fee/" in algebra
     assert "    - derive/^Ge$/Fê/" not in algebra
@@ -306,6 +312,10 @@ def test_ir_and_double_e_inputs_select_plain_and_circumflex_e() -> None:
         ("irn", "een", "en", "ên"),
         ("girn", "geen", "gen", "gên"),
         ("bir", "beek", "be", "bêk"),
+        ("er", "ee", "e", "ê"),
+        ("ern", "een", "en", "ên"),
+        ("gern", "geen", "gen", "gên"),
+        ("ber", "beek", "be", "bêk"),
     ):
         assert plain in normalize(plain_input, rules)
         assert circumflex not in normalize(plain_input, rules)
@@ -318,7 +328,9 @@ def test_ir_and_double_e_inputs_select_plain_and_circumflex_e() -> None:
     assert "    - derive/^Gê$/Fee/" in algebra
     assert "    - derive/^Ggêk$/Fgeek/" in algebra
     assert "    - derive/^Ge$/Fir/" in algebra
+    assert "    - derive/^Ge$/Fer/" in algebra
     assert "    - derive/^Ggek$/Fgirk/" in algebra
+    assert "    - derive/^Ggek$/Fgerk/" in algebra
 
 
 def test_plain_e_combinations_are_common_terminal_and_preserve_tiers() -> None:

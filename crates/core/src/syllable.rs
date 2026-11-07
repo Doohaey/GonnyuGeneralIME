@@ -144,7 +144,7 @@ impl FuzzyMap {
                     enabled
                         || matches!(
                             (entry.gon_fuzzy.as_str(), entry.gon_pin.as_str()),
-                            ("i", "ï") | ("ii", "ï") | ("e", "ê") | ("ee", "ê") | ("ir", "e")
+                            ("i", "ï") | ("ii", "ï") | ("e", "ê") | ("ee", "ê") | ("ir", "e") | ("er", "e")
                         )
                 })
                 .cloned()
@@ -421,7 +421,7 @@ impl FuzzyMap {
                         continue;
                     }
                     let candidate_origins =
-                        carry_ir_e_origins(&origins, start, source_length, to.len(), from, to);
+                        carry_plain_e_origins(&origins, start, source_length, to.len(), from, to);
                     let state = (candidate.clone(), candidate_origins.clone());
                     if produced.contains(&state)
                         || (!produced_texts.contains(&candidate)
@@ -579,7 +579,7 @@ fn substitute_final_matches(text: &str, from: &str, to: &str) -> Vec<(String, us
     vec![(next, text.len() - from.len(), from.len())]
 }
 
-fn carry_ir_e_origins(
+fn carry_plain_e_origins(
     origins: &[usize],
     start: usize,
     source_length: usize,
@@ -599,7 +599,7 @@ fn carry_ir_e_origins(
             carried.extend(to.char_indices().map(|(offset, _)| start + offset));
         }
     }
-    if from == "ir" && to == "e" {
+    if matches!((from, to), ("ir", "e") | ("er", "e")) {
         carried.push(start);
     }
     carried.sort_unstable();

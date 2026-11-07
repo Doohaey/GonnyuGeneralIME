@@ -112,8 +112,12 @@ def substitute(
     return [candidate for candidate, _, _ in substitute_matches(text, source, target, applies, initials)]
 
 
-def _carry_ir_e_origins(origins: frozenset[int], start: int, source_length: int,
-                        target_length: int, source: str, target: str) -> frozenset[int]:
+PLAIN_E_ALIASES = {("ir", "e"), ("er", "e")}
+PLAIN_E_ALIAS_SOURCES = {source for source, _target in PLAIN_E_ALIASES}
+
+
+def _carry_plain_e_origins(origins: frozenset[int], start: int, source_length: int,
+                           target_length: int, source: str, target: str) -> frozenset[int]:
     end = start + source_length
     shift = target_length - source_length
     carried = {position if position < start else position + shift
@@ -121,7 +125,7 @@ def _carry_ir_e_origins(origins: frozenset[int], start: int, source_length: int,
     carried.update(position for position in origins if position < start)
     if any(start <= position < end for position in origins):
         carried.update(range(start, start + target_length))
-    if source == "ir" and target == "e":
+    if (source, target) in PLAIN_E_ALIASES:
         carried.add(start)
     return frozenset(carried)
 
@@ -155,7 +159,7 @@ def normalize(value: str, rules: list[FuzzyRule], reverse: bool = False) -> dict
                         start <= position < start + source_length for position in origins
                     ):
                         continue
-                    candidate_origins = _carry_ir_e_origins(
+                    candidate_origins = _carry_plain_e_origins(
                         origins, start, source_length, len(target), source, target
                     )
                     state = (candidate, candidate_origins)
@@ -181,6 +185,10 @@ def inverse_candidates(value: str, rules: list[FuzzyRule]) -> set[str]:
     while frontier and len(outputs) < MAX_FORMS:
         base = frontier.pop(0)
         for rule in rules:
+            if (rule.source, rule.target) in PLAIN_E_ALIASES and any(
+                alias in base for alias in PLAIN_E_ALIAS_SOURCES
+            ):
+                continue
             directions = [(rule.target, rule.source)]
             if rule.bidirectional:
                 directions.append((rule.source, rule.target))
@@ -227,5 +235,5 @@ def compile_algebra(canonical: set[str], rules: list[FuzzyRule]) -> list[str]:
 
 def essential_rules(rules: list[FuzzyRule]) -> list[FuzzyRule]:
     return [rule for rule in rules if (rule.source, rule.target) in {
-        ("i", "ï"), ("ii", "ï"), ("e", "ê"), ("ee", "ê"), ("ir", "e"),
+        ("i", "ï"), ("ii", "ï"), ("e", "ê"), ("ee", "ê"), ("ir", "e"), ("er", "e"),
     }]

@@ -72,7 +72,7 @@
     {
       "id": "symbol_input",
       "label": "特殊符号输入",
-      "description": "ê、普通 e 与 ï 的输入表示。",
+      "description": "ê、普通 e（ir／er）与 ï 的输入表示。",
       "rules": [
         {
           "id": "F044",
@@ -106,6 +106,18 @@
             "e"
           ],
           "intent": "ir 单向匹配普通 e",
+          "origin": {
+            "kind": "explicit"
+          }
+        },
+        {
+          "id": "F205",
+          "match": [
+            "common",
+            "er",
+            "e"
+          ],
+          "intent": "er 单向匹配普通 e",
           "origin": {
             "kind": "explicit"
           }
@@ -855,7 +867,7 @@
             "e",
             "ek"
           ],
-          "intent": "普通 e 输入或 ir→e 级联与省尾输入组合",
+          "intent": "普通 e 输入或 ir/er→e 级联与省尾输入组合",
           "origin": {
             "kind": "explicit"
           }
@@ -867,11 +879,12 @@
             "e",
             "et"
           ],
-          "intent": "普通 e 输入或 ir→e 级联与省尾输入组合",
+          "intent": "普通 e 输入或 ir/er→e 级联与省尾输入组合",
           "origin": {
             "kind": "composition",
             "parents": [
               "F046",
+              "F205",
               "entering.omit"
             ]
           }
@@ -883,11 +896,12 @@
             "ek",
             "et"
           ],
-          "intent": "普通 e 输入或 ir→e 级联与入声尾互兼容组合",
+          "intent": "普通 e 输入或 ir/er→e 级联与入声尾互兼容组合",
           "origin": {
             "kind": "composition",
             "parents": [
               "F046",
+              "F205",
               "entering.mutual"
             ]
           }
@@ -899,11 +913,12 @@
             "ep",
             "ek"
           ],
-          "intent": "普通 e 输入或 ir→e 级联与入声尾互兼容组合",
+          "intent": "普通 e 输入或 ir/er→e 级联与入声尾互兼容组合",
           "origin": {
             "kind": "composition",
             "parents": [
               "F046",
+              "F205",
               "entering.mutual"
             ]
           }
@@ -915,11 +930,12 @@
             "ep",
             "et"
           ],
-          "intent": "普通 e 输入或 ir→e 级联与入声尾互兼容组合",
+          "intent": "普通 e 输入或 ir/er→e 级联与入声尾互兼容组合",
           "origin": {
             "kind": "composition",
             "parents": [
               "F046",
+              "F205",
               "entering.mutual"
             ]
           }
@@ -931,11 +947,12 @@
             "et",
             "ek"
           ],
-          "intent": "普通 e 输入或 ir→e 级联与入声尾互兼容组合",
+          "intent": "普通 e 输入或 ir/er→e 级联与入声尾互兼容组合",
           "origin": {
             "kind": "composition",
             "parents": [
               "F046",
+              "F205",
               "entering.mutual"
             ]
           }
@@ -947,11 +964,12 @@
             "ue",
             "yuek"
           ],
-          "intent": "普通 e 输入或 ir→e 级联、声母后 u/v 拼写与省尾输入组合",
+          "intent": "普通 e 输入或 ir/er→e 级联、声母后 u/v 拼写与省尾输入组合",
           "origin": {
             "kind": "composition",
             "parents": [
               "F046",
+              "F205",
               "F017",
               "entering.omit"
             ]
@@ -964,11 +982,12 @@
             "ve",
             "yuek"
           ],
-          "intent": "普通 e 输入或 ir→e 级联、声母后 u/v 拼写与省尾输入组合",
+          "intent": "普通 e 输入或 ir/er→e 级联、声母后 u/v 拼写与省尾输入组合",
           "origin": {
             "kind": "composition",
             "parents": [
               "F046",
+              "F205",
               "F016",
               "entering.omit"
             ]
@@ -981,11 +1000,12 @@
             "ve",
             "yuet"
           ],
-          "intent": "普通 e 输入或 ir→e 级联、声母后 u/v 拼写与省尾输入组合",
+          "intent": "普通 e 输入或 ir/er→e 级联、声母后 u/v 拼写与省尾输入组合",
           "origin": {
             "kind": "composition",
             "parents": [
               "F046",
+              "F205",
               "F016",
               "entering.omit"
             ]
@@ -998,11 +1018,12 @@
             "vek",
             "yuet"
           ],
-          "intent": "普通 e 输入或 ir→e 级联、声母后 u/v 拼写与入声尾互兼容组合",
+          "intent": "普通 e 输入或 ir/er→e 级联、声母后 u/v 拼写与入声尾互兼容组合",
           "origin": {
             "kind": "composition",
             "parents": [
               "F046",
+              "F205",
               "F016",
               "entering.mutual"
             ]
@@ -1444,13 +1465,14 @@
     },
     {
       "id": "plain_e_exclusion",
-      "description": "ir→e 的结果保留字符来源位置，可继续参加其他兼容；e/ee→ê 遇到含 ir 来源的匹配片段时跳过该次转换。直接输入的 e/ee 可匹配 ê，同一字符串中其他位置的直接 e/ee 按原规则处理。转换条件由 e/ee→ê 表项的 conversion_condition 管理。",
+      "description": "ir/er→e 的结果保留字符来源位置，可继续参加其他兼容；e/ee→ê 遇到含 ir/er 来源的匹配片段时跳过该次转换。直接输入的 e/ee 可匹配 ê，同一字符串中其他位置的直接 e/ee 按原规则处理。转换条件由 e/ee→ê 表项的 conversion_condition 管理。",
       "implementation": [
         "platforms/rime/fuzzy.py",
         "crates/core/src/syllable.rs"
       ],
       "rules": [
         "F046",
+        "F205",
         "F047",
         "F048",
         "F049",
@@ -1566,7 +1588,7 @@
     },
     {
       "field": "conversion_condition",
-      "description": "none 表示没有额外来源条件。not-derived-from-ir 适用于 e/ee→ê，按字符来源限制匹配片段；普通位置、起首和接续设置同时生效。"
+      "description": "none 表示没有额外来源条件。not-derived-from-ir 适用于 e/ee→ê，按字符来源限制匹配片段（含 ir/er→e 生成的 e）；普通位置、起首和接续设置同时生效。"
     }
   ],
   "implementation_notes": [
