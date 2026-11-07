@@ -49,27 +49,29 @@ Rime schema repositories are available for Lancong (Nanchang), Fenni (Fenyi), Fu
     - [Rime](#rime)
     - [Input settings](#input-settings)
   - [The General Gon-pin Romanisation](#the-general-gon-pin-romanisation)
-    - [Initials](#initials)
-    - [Finals](#finals)
-      - [Open finals](#open-finals)
-      - [Front-vowel finals](#front-vowel-finals)
-      - [Rounded finals](#rounded-finals)
-      - [Rounded front-vowel finals](#rounded-front-vowel-finals)
-      - [Syllabic laterals and nasals](#syllabic-laterals-and-nasals)
-      - [Other segments](#other-segments)
-    - [Tones](#tones)
-      - [Lancong (Nanchang)](#lancong-nanchang)
-      - [Fungcen (Fengcheng)](#fungcen-fengcheng)
-      - [Tiqien (Lichuan)](#tiqien-lichuan)
-      - [Sinyi (Xinyu City)](#sinyi-xinyu-city)
-      - [Songau (Shanggao)](#songau-shanggao)
-      - [Seusong (Susong)](#seusong-susong)
-      - [Jingon (Jian City)](#jingon-jian-city)
-      - [Yikyan-Henfeng (Yiyang-Hengfeng)](#yikyan-henfeng-yiyang-hengfeng)
-      - [Jisuibaedu (Jishuibadou)](#jisuibaedu-jishuibadou)
-      - [Xyucuênn (Suichuan)](#xyucuênn-suichuan)
-      - [Singzï (Xingzi)](#singzï-xingzi)
-      - [Goungon (Goungon)](#goungon-goungon)
+    - [First scheme (Han-Pinyin style)](#first-scheme-han-pinyin-style)
+      - [Initials](#initials)
+      - [Finals](#finals)
+        - [Open finals](#open-finals)
+        - [Front-vowel finals](#front-vowel-finals)
+        - [Rounded finals](#rounded-finals)
+        - [Rounded front-vowel finals](#rounded-front-vowel-finals)
+        - [Syllabic laterals and nasals](#syllabic-laterals-and-nasals)
+        - [Other segments](#other-segments)
+      - [Tones](#tones)
+        - [Lancong (Nanchang)](#lancong-nanchang)
+        - [Fungcen (Fengcheng)](#fungcen-fengcheng)
+        - [Tiqien (Lichuan)](#tiqien-lichuan)
+        - [Sinyi (Xinyu City)](#sinyi-xinyu-city)
+        - [Songau (Shanggao)](#songau-shanggao)
+        - [Seusong (Susong)](#seusong-susong)
+        - [Jingon (Jian City)](#jingon-jian-city)
+        - [Yikyan-Henfeng (Yiyang-Hengfeng)](#yikyan-henfeng-yiyang-hengfeng)
+        - [Jisuibaedu (Jishuibadou)](#jisuibaedu-jishuibadou)
+        - [Xyucuênn (Suichuan)](#xyucuênn-suichuan)
+        - [Singzï (Xingzi)](#singzï-xingzi)
+        - [Goungon (Goungon)](#goungon-goungon)
+    - [Second scheme (Compositional)](#second-scheme-compositional)
   - [References](#references)
     - [Literature](#literature)
     - [Reference implementations](#reference-implementations)
@@ -197,6 +199,7 @@ All switches are enabled by default, with both newer and older readings selected
 | Synonym associations | Control associated synonym candidates and their annotations, independently of Gan–Mandarin associations and annotations. |
 | Fuzzy matching | Master switch for Mandarin Pinyin compatibility, literary–colloquial matching, and other fuzzy rules. Mandarin Pinyin compatibility allows words to be found using Mandarin Pinyin. Literary–colloquial matching links literary and colloquial readings; disabling it preserves their labels. Other fuzzy rules control matching beyond compatibility for the special i, e, and o phonemes (ï, ê, ô). |
 | Reading mode | Select both newer and older readings, newer readings, or older readings. This affects matching and the readings shown in annotations. |
+| Scheme | Select the first scheme (Han-Pinyin style) or the second scheme (Compositional). Localities without the second scheme offer the first scheme only. |
 
 Disabling fuzzy matching suspends its three child options while preserving their selections; these options appear greyed out on mobile.
 
@@ -206,15 +209,19 @@ Disabling fuzzy matching suspends its three child options while preserving their
 | Windows | With the Gan input method active, open **输入设置** in the language bar. |
 | iOS, Android | Open the Gan input method app and adjust **输入设置**. |
 | Rime | Open the front end’s schema menu and select a switch or reading mode. |
-| Native Linux Fcitx5 | These settings have no interface yet. Fcitx5 Rime uses the Rime schema menu. |
+| Native Linux Fcitx5 | Install the `gonnyu` (first scheme, Han-Pinyin style) or `gonnyu-ipa` (second scheme, Compositional) input method; there is no runtime scheme switch. |
 
 ## The General Gon-pin Romanisation
 
-The general Gon(Gan) romanisation (gon-pin) used by this project represents Gon(Gan) pronunciation while keeping its spellings as close as practical to Hanyu Pinyin for everyday input.
 
-The system aims to cover phonemes across localities, represents necessary phonemic contrasts, and provides consistent notation for nasalised finals and voiced consonants in some Gon(Gan) varieties. To accommodate mergers in newer varieties and facilitate input, it does not attempt to transcribe every phonetic detail, such as breathy or slack phonation, and merges sound values that are not contrastive within a locality or occur as alternative pronunciations.
 
-### Initials
+The input method provides two parallel schemes: the first scheme (Han-Pinyin style) and the second scheme (Compositional). They can be switched in Input settings.
+
+### First scheme (Han-Pinyin style)
+
+The general Gon(Gan) romanisation (gon-pin) first scheme used by this project represents Gon(Gan) pronunciation while keeping its spellings as close as practical to Hanyu Pinyin for everyday input.
+
+#### Initials
 
 | gon-pin | Default IPA | Fungcen IPA | Tiqien IPA | Sinyi IPA | Songau IPA | Seusong IPA | Jingon IPA | Yikyan-Henfeng IPA | Jisuibaedu IPA | Xyucuênn IPA | Singzï IPA | Goungon IPA | Accepted alternative input | Notes |
 | --- | --- | --- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | --- | --- |
@@ -249,7 +256,7 @@ The system aims to cover phonemes across localities, represents necessary phonem
 | zz | - | - | - | - | - | - | - | - | - | - | [dz] | - | z (one-way) |  |
 | zzr | - | - | - | - | - | - | - | - | - | - | [dʐ] | - | zr, zh, zzh (one-way) |  |
 
-### Finals
+#### Finals
 
 Checked-tone codas follow these spelling and input rules.
 
@@ -257,7 +264,7 @@ Checked-tone codas follow these spelling and input rules.
 - Checked-tone codas may be omitted during input while still matching the corresponding readings.
 - Each locality independently specifies a combination of `-t`, `-p`, and `-k`, or no checked-tone codas. The codas enabled for a locality are accepted interchangeably within that locality.
 
-#### Open finals
+##### Open finals
 
 | gon-pin | Default IPA | Fungcen IPA | Tiqien IPA | Sinyi IPA | Songau IPA | Seusong IPA | Jingon IPA | Yikyan-Henfeng IPA | Jisuibaedu IPA | Xyucuênn IPA | Singzï IPA | Goungon IPA | Accepted alternative input | Notes |
 | --- | --- | --- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | --- | --- |
@@ -315,7 +322,7 @@ Checked-tone codas follow these spelling and input rules.
 
 \* Some regions use `ô` for IPA [ɔ]; typing `o` alone matches `ô`, and `oo` precisely corresponds to Gon-pin `ô`. The same applies to `ô` in other finals.
 
-#### Front-vowel finals
+##### Front-vowel finals
 
 With no initial consonant:
 
@@ -372,7 +379,7 @@ With no initial consonant:
 
 \* `i`: Some regions use `ï` for IPA [ɿ] or [ʅ], including [ɿ] in other finals. Input uses `i`, which can match `ï` through one-way fuzzy matching; `ii` precisely inputs `ï`. [ɿ] and [ʅ] are open finals and are listed among the front-vowel finals by spelling.
 
-#### Rounded finals
+##### Rounded finals
 
 With no initial consonant:
 
@@ -424,7 +431,7 @@ With no initial consonant:
 
 \* `u`: The rounded postalveolar apical vowel [ʯ] is written u; finals beginning with [ʯ] also use u-series spellings. The vowel and its medial forms correspond to the front rounded series and are listed under rounded finals by spelling.
 
-#### Rounded front-vowel finals
+##### Rounded front-vowel finals
 
 `yu` is provisionally used throughout for [y].
 
@@ -453,7 +460,7 @@ With no initial consonant:
 | yuek | - | [yeʔ] | - | [yəʔ] | - | - | - | [yəʔ] or [yɛʔ] or [yɪʔ] | - | [yeʔ] | - | - | — |  |
 | yueok | - | [yɵʔ] | - | - | - | - | - | - | - | - | - | - | — |  |
 
-#### Syllabic laterals and nasals
+##### Syllabic laterals and nasals
 
 | gon-pin | Default IPA | Fungcen IPA | Tiqien IPA | Sinyi IPA | Songau IPA | Seusong IPA | Jingon IPA | Yikyan-Henfeng IPA | Jisuibaedu IPA | Xyucuênn IPA | Singzï IPA | Goungon IPA | Notes |
 | --- | --- | --- | --- | --- | --- | --- | ------- | ------- | ------- | ------- | ------- | ------- | --- |
@@ -462,15 +469,15 @@ With no initial consonant:
 | ng | [ŋ̩] | - | [ŋ̍] | [ŋ̍] | [ŋ̍] | - | [ŋ̍] | [ŋ̍] | [ŋ̍] | - | - | [ŋ̍] |  |
 | l | - | - | - | - | - | [ɭ̩] | - | - | - | - | - | - |  |
 
-#### Other segments
+##### Other segments
 
 The system also records a number of extensions based on published descriptions and observed sound changes, including pronunciations recorded in a 1935 language survey and selected alternations involving `-n` and `-ng` codas.
 
-### Tones
+#### Tones
 
 `0` denotes the neutral tone.
 
-#### Lancong (Nanchang)
+##### Lancong (Nanchang)
 
 The Lancong (Nanchang) dictionary uses seven tone markers:
 
@@ -484,7 +491,7 @@ The Lancong (Nanchang) dictionary uses seven tone markers:
 | 6 | yin checked | 5 |
 | 7 | yang checked | 1 or 2 |
 
-#### Fungcen (Fengcheng)
+##### Fungcen (Fengcheng)
 
 The Fungcen (Fengcheng) dictionary uses six tone markers:
 
@@ -497,7 +504,7 @@ The Fungcen (Fengcheng) dictionary uses six tone markers:
 | 5 | yin checked | 1 |
 | 6 | yang checked | 5 |
 
-#### Tiqien (Lichuan)
+##### Tiqien (Lichuan)
 
 The Tiqien (Lichuan) dictionary uses the following tone markers:
 
@@ -511,7 +518,7 @@ The Tiqien (Lichuan) dictionary uses the following tone markers:
 | 6 | yin checked | 3 |
 | 7 | yang checked | 5 |
 
-#### Sinyi (Xinyu City)
+##### Sinyi (Xinyu City)
 
 The Sinyi (Xinyu City) dictionary uses the following tone markers:
 
@@ -529,7 +536,7 @@ The Sinyi (Xinyu City) dictionary uses the following tone markers:
 
 Departing B and yang checked occur around Shuibei; in the urban area, they have merged with yang level and yin checked B, respectively.
 
-#### Songau (Shanggao)
+##### Songau (Shanggao)
 
 The Songau (Shanggao) dictionary uses the following tone markers:
 
@@ -541,7 +548,7 @@ The Songau (Shanggao) dictionary uses the following tone markers:
 | 4 | departing | 51 |
 | 5 | checked | 4 |
 
-#### Seusong (Susong)
+##### Seusong (Susong)
 
 The Seusong (Susong) dictionary uses the following tone markers:
 
@@ -554,7 +561,7 @@ The Seusong (Susong) dictionary uses the following tone markers:
 | 5 | yang departing | 314 |
 | 6 | checked | 55 |
 
-#### Jingon (Jian City)
+##### Jingon (Jian City)
 
 The Jingon (Jian City) dictionary uses the following tone markers:
 
@@ -566,7 +573,7 @@ The Jingon (Jian City) dictionary uses the following tone markers:
 | 4 | departing | 214 |
 | 5 | high rising | 35 |
 
-#### Yikyan-Henfeng (Yiyang-Hengfeng)
+##### Yikyan-Henfeng (Yiyang-Hengfeng)
 
 The Yikyan-Henfeng (Yiyang-Hengfeng) dictionary uses the following tone markers:
 
@@ -580,7 +587,7 @@ The Yikyan-Henfeng (Yiyang-Hengfeng) dictionary uses the following tone markers:
 | 6 | yin checked | 5 |
 | 7 | yang checked | 4 |
 
-#### Jisuibaedu (Jishuibadou)
+##### Jisuibaedu (Jishuibadou)
 
 The Jisuibaedu (Jishuibadou) dictionary uses the following tone markers:
 
@@ -591,7 +598,7 @@ The Jisuibaedu (Jishuibadou) dictionary uses the following tone markers:
 | 3 | rising | 213 |
 | 4 | departing | 31 |
 
-#### Xyucuênn (Suichuan)
+##### Xyucuênn (Suichuan)
 
 The Xyucuênn (Suichuan) dictionary uses the following tone markers:
 
@@ -605,7 +612,7 @@ The Xyucuênn (Suichuan) dictionary uses the following tone markers:
 | 5* | departing B | 55 |
 | 6 | checked | 5 |
 
-#### Singzï (Xingzi)
+##### Singzï (Xingzi)
 
 The Singzï (Xingzi) dictionary uses the following tone markers:
 
@@ -619,7 +626,7 @@ The Singzï (Xingzi) dictionary uses the following tone markers:
 | 5 | yang departing | 21 |
 | 6 | checked | 35 |
 
-#### Goungon (Goungon)
+##### Goungon (Goungon)
 
 Goungon tones are shown under the same tone markers with separate columns for literature and source-data notation and the project's interpretation. The source-data column retains the dictionary source's pitch values. The project's interpretation was proposed by the Goungon dictionary contributor from auditory observations, experimental phonetic measurements, and comparison with the literature.
 
@@ -641,6 +648,87 @@ The Goungon dictionary contributor supplied the following two sets of measuremen
 | Set 2 | 25 | 12 | 41 | 33 | 11 | 3 | 1 |
 
 The contributor also reports alternative literature notations of 213 for yang level, 44 or 55 for yin departing, 22 or 33 for yang departing, 4 or 3 for yin checked, and 2 or 3 for yang checked. Repeated measurements gave 12 or 112 for yang level, with the rise remaining below level 3; 41 or 42 for the rising tone; and usually 3, approaching level 4, for yin checked. Yang checked was also measured as 21 with a falling contour.
+
+
+### Second scheme (Compositional)
+
+#### Initials
+
+| Place | Stop, voiceless | Stop, aspirated | Stop, voiced | Affricate, voiceless | Affricate, aspirated | Affricate, voiced | Fricative, voiceless | Fricative, voiced | Nasal | Lateral |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Bilabial | p[p] | ph[pʰ] | b[b] | — | — | — | f[ɸ] | v[β] | m[m] | — |
+| Labiodental | — | — | — | — | — | — | f[f] | v[v] | — | — |
+| Apical dental | — | — | — | ts[ts] | tsh[tsʰ] | dz[dz] | s[s] | z[z] | — | — |
+| Apical alveolar | t[t] | th[tʰ] | d[d] | — | — | — | — | — | n[n] | l[l] |
+| Blade | — | — | — | tr[tʃ] | trh[tʃʰ] | dr[dʒ] | sr[ʃ] | zr[ʒ] | — | — |
+| Retroflex | — | — | — | tr[tʂ] | trh[tʂʰ] | dr[dʐ] | sr[ʂ] | zr[ʐ] | nr[ɳ] | — |
+| Palatal | tj[ȶ] | tjh[ȶʰ] | dj[ȡ] | c[tɕ] | ch[tɕʰ] | dzj[dʑ] | x/hj[ɕ] | zj[ʑ] | nj[ȵ] | — |
+| Palatal central | kj[c] | khj[cʰ] | gj[ɟ] | — | — | — | — | — | gn[ɲ] | — |
+| Velar | k[k] | kh[kʰ] | g[ɡ] | — | — | — | h[x] | gh[ɣ] | ng[ŋ] | — |
+| Glottal | -h[ʔ] | — | — | — | — | — | h[h] | gh[ɦ] | — | — |
+
+- Breathy voiced consonants add `h` after the consonant; both `[ɦ]` and `[ɡʰ]` are written `gh`.
+- When an initial ends in `-j`, the `-i-` medial is omitted.
+- `-h[ʔ]` is a coda only and is written `h`.
+
+#### Finals
+
+Second-scheme finals are formed by combining the vowel table and codas directly.
+
+|  | Front unrounded | Front rounded | Central unrounded | Central rounded | Back unrounded | Back rounded |
+| --- | --- | --- | --- | --- | --- | --- |
+| Apical | ii[ɿ][ʅ] | yu[ʮ][ʯ] | — | — | — | — |
+| High | i[i] | y[y] | ir[ɨ] | yr[ʉ] | ur[ɯ] | u[u] |
+|  | ir[ɪ] | y[ʏ] | — | — | u[ʊ] | — |
+| Close-mid | e[e] | oe[ø] | er[ɘ] | eo[ɵ] | er[ɤ] | o[o] |
+| Mid | — | — | er[ə] | — | — | — |
+| Open-mid | ee[ɛ] | oe[œ] | er[ɜ] | — | ea[ʌ] | oo[ɔ] |
+|  | ae[æ] | — | ar[ɐ] | eo[ɞ] | — | — |
+| Low | a[a] | oe[ɶ] | — | — | a[ɑ] | oa[ɒ] |
+
+| Coda | Second scheme |
+| --- | --- |
+| p | p |
+| t | t |
+| k | k |
+| ʔ | h |
+| m | m |
+| n | n |
+| ŋ | ng |
+
+Syllabic laterals and nasals:
+
+| Syllabic | Second scheme |
+| --- | --- |
+| m̩ | m |
+| n̩ | n |
+| ŋ̍ / ŋ̩ | ng |
+| ɭ̩ | l |
+
+Nasalisation is written `nn`; if a nasalised vowel still has a nasal coda, only the coda is written.
+
+#### Tones
+
+The second scheme uses universal tone numbers.
+
+| Tone number | Tone class |
+| --- | --- |
+| 0 | Neutral |
+| 1 | Yin ping |
+| 2 | Yang ping |
+| 3 | Shang (yin shang) |
+| 4 | Yang shang |
+| 5 | Qu (yin qu) |
+| 6 | Yang qu |
+| 7 | Ru (yin ru) |
+| 8 | Yang ru |
+| 9 | Special tone class |
+
+`*` marks a secondary tone and may follow the number, as in `1*`. Locality tone classes are assigned to these universal numbers by tone-class name.
+
+#### Other notes
+
+Switch schemes in Input settings; localities without the second scheme offer the first scheme only.
 
 ## References
 
