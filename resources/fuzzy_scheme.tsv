@@ -2,7 +2,6 @@ region	category	gon_fuzzy	gon_pin	ipa	example	applies	bidirectional	chainable	pr
 xyucuenn	rime	ian	iann			syllable-final	false	false	primary		遂川鼻化韵可由单 n 韵尾输入匹配 nn 规范写法	none
 common	rime	ên	ênn			syllable-final	false	false	primary		鼻化韵帽子 e 单 n 输入匹配双 n 规范写法	none
 xyucuenn	rime	wun	wênn			syllable-final	false	false	primary	wun	零声母 wun 输入匹配规范 wênn	none
-xyucuenn	rime	uenn	un			syllable-final	false	true	primary	b,p,m,f,v,d,t,n,l,g,k,h,j,q,x,r,z,c,s,ng,zh,ch,sh	鼻化韵旧式输入归并到 un 后继续匹配规范写法	none
 common	rime	et	iêt		额	syllable-final	false	true	primary	ng	输入 nget 匹配 ngiêt	none
 common	rime	yuen	yuon	yon	渲	syllable-final	false	false	primary	yuen,jyuen,nyuen,qyuen,xyuen	覆盖现有全部 yuon 规范音	none
 common	onset	g	gg			syllable-initial	false	true	primary			none
@@ -66,7 +65,6 @@ common	rime	ii	ï	ɿ	丝	anywhere	false	true	primary		ii 精确输入 ï	none
 xyucuenn	rime	uan	uann			syllable-final	false	false	primary		遂川鼻化韵可由单 n 韵尾输入匹配 nn 规范写法	none
 xyucuenn	rime	en	ênn			syllable-final	false	false	primary		鼻化韵帽子 e 使用 ee 输入兼容	none
 yikyan-henfeng	rime	yun	yung			syllable-final	false	true	primary			none
-common	rime	uei	ui	uei		syllable-final	false	true	primary	b,p,m,f,v,d,t,n,l,g,k,h,j,q,x,r,z,c,s,ng,zh,ch,sh	声母后省写；零声母保留 w 系拼写	none
 common	rime	fi	fêi			syllable-final	false	false	primary	fi	整音节 fi→fêi	none
 sinyi	coda		t			syllable-final	false	true	fallback			none
 common	rime	ieu	eu	ɛu	后	syllable-final	false	false	secondary	h	限定 hieu→heu	none
@@ -88,7 +86,6 @@ common	onset	j	jj			syllable-initial	false	true	primary			none
 common	onset	d	dd			syllable-initial	false	true	primary			none
 common	onset	zh	zzr			syllable-initial	false	true	primary			none
 common	rime	eu	ieu	iɛu	够	syllable-final	false	true	secondary	ng,g,k	g/k/ng 后可省略 i	none
-common	rime	ueik	uik	ueiʔ		syllable-final	false	true	primary	b,p,m,f,v,d,t,n,l,g,k,h,j,q,x,r,z,c,s,ng,zh,ch,sh	声母后省写；零声母保留 w 系拼写	none
 common	rime	ou	êu	ɛu	后	syllable-final	false	false	primary	cou,dou,fou,gou,hou,jou,kou,lou,mou,ngou,pou,sou,tou,you,zou	普通话 ou 输入兼容带帽 ê 形式	none
 lancong	coda		k		学	syllable-final	false	true	fallback		入声尾：输入不带尾可模糊匹配带 k 形式（lok）	none
 fungcen	coda	t	p			syllable-final	true	true	secondary			none
@@ -97,7 +94,6 @@ sinyi	coda		k			syllable-final	false	true	fallback			none
 common	onset	z	zz			syllable-initial	false	true	primary			none
 fungcen	coda		k		插	syllable-final	false	true	fallback			none
 common	rime	ve	yuet			syllable-final	false	true	fallback	jve,qve	普通 e／ir／er→e 级联组合兼容	none
-common	rime	uen	un	uən		syllable-final	false	true	primary	b,p,m,f,v,d,t,n,l,g,k,h,j,q,x,r,z,c,s,ng,zh,ch,sh	声母后省写；零声母保留 w 系拼写	none
 xyucuenn	rime	in	inn			syllable-final	false	false	primary		遂川鼻化韵可由单 n 韵尾输入匹配 nn 规范写法	none
 lancong	coda	t	k		客/学	syllable-final	true	true	secondary		入声尾互相模糊	none
 common	rime	ep	ek			syllable-final	false	true	secondary	bep,cep,dep,fep,kuep,lep,mep,pep,sep,tep,tuep,wep,zep	普通 e／ir／er→e 级联组合兼容	none
@@ -105,12 +101,19 @@ common	rime	ue	yuek			syllable-final	false	true	fallback	jue,nue,que,xue	普通 
 sinyi	coda	k	t			syllable-final	true	true	secondary			none
 common	rime	ao	au	au	抱	syllable-final	false	true	primary		旧 ao 写法兼容	none
 lancong	rime	fi	fui			syllable-final	false	false	primary	fi	南昌整音节 fi→fui，单向兼容	none
-xyucuenn	rime	un	unn			syllable-final	false	false	primary	b,p,m,f,v,d,t,n,l,g,k,h,j,q,x,r,z,c,s,ng,zh,ch,sh	声母后 un 匹配规范鼻化韵 unn	none
 common	rime	yuek	yuot	yot	月	syllable-final	false	true	primary	yue,jyue,lyue,nyue,qyue,xyue	误写 k 尾仍兼容到 yuot	none
 goungon	coda		k			syllable-final	false	true	fallback		自动生成：完整音系检测到该入声韵尾，输入省略韵尾时匹配带尾形式	none
 goungon	coda		t			syllable-final	false	true	fallback		自动生成：完整音系检测到该入声韵尾，输入省略韵尾时匹配带尾形式	none
 goungon	coda	k	t			syllable-final	true	true	secondary		自动生成：完整音系检测到两种入声韵尾，允许互相模糊	none
 yikyan-henfeng	rime	ok	wok	uɔʔ	握、沃	syllable-final	false	true	primary	ok	弋阳 ok 单向输入匹配 wok；沿用规则接续设置	none
+common	rime	ui	uei	uei		syllable-final	false	true	primary	b,p,m,f,v,d,t,n,l,g,k,h,j,q,x,r,z,c,s,ng,zh,ch,sh	输入省写匹配全写存储；声母后单向	none
+common	rime	ui	uêi	uɛi		syllable-final	false	true	primary	b,p,m,f,v,d,t,n,l,g,k,h,j,q,x,r,z,c,s,ng,zh,ch,sh	输入省写匹配全写存储；声母后单向	none
+common	rime	un	uen	uən		syllable-final	false	true	primary	b,p,m,f,v,d,t,n,l,g,k,h,j,q,x,r,z,c,s,ng,zh,ch,sh	输入省写匹配全写存储；声母后单向	none
+common	rime	un	uên	uɛn		syllable-final	false	true	primary	b,p,m,f,v,d,t,n,l,g,k,h,j,q,x,r,z,c,s,ng,zh,ch,sh	输入省写匹配全写存储；声母后单向	none
+common	rime	un	uênn	ũɛ̃		syllable-final	false	true	primary	b,p,m,f,v,d,t,n,l,g,k,h,j,q,x,r,z,c,s,ng,zh,ch,sh	输入省写匹配全写存储；声母后单向	none
+common	rime	uen	uênn	ũɛ̃		syllable-final	false	true	primary	b,p,m,f,v,d,t,n,l,g,k,h,j,q,x,r,z,c,s,ng,zh,ch,sh	输入省写匹配全写存储；声母后单向	none
+common	rime	uik	ueik	ueik		syllable-final	false	true	primary	b,p,m,f,v,d,t,n,l,g,k,h,j,q,x,r,z,c,s,ng,zh,ch,sh	输入省写匹配全写存储；声母后单向	none
+common	rime	uik	uêik	uɛiʔ		syllable-final	false	true	primary	b,p,m,f,v,d,t,n,l,g,k,h,j,q,x,r,z,c,s,ng,zh,ch,sh	输入省写匹配全写存储；声母后单向	none
 lancong	onset	n	l		南	syllable-initial	false	false	primary	na,no,nu,nêt,nêu	南昌泥母洪音今读 l，输入 n 匹配 l；限登记前缀	none
 fenni	onset	n	l		南	syllable-initial	false	false	primary	nai,nak,nan,nau,nei,nen,neu,no,nu	分宜泥母洪音今读 l，输入 n 匹配 l；限登记前缀	none
 fungcen	onset	n	l		南	syllable-initial	false	false	primary	naek,nai,nan,nau,nok,non,nu,nên	丰城泥母洪音今读 l，输入 n 匹配 l；限登记前缀	none

@@ -388,18 +388,20 @@ With no initial consonant:
 | ue | [ue] | [uɛ] | [uɛ] | [uɛ] | - | - | [uɛ] | [uɛ] | [uɛ] | - | [uɛ] | - | - |  |
 | uia | - | - | - | - | - | - | - | - | - | - | [uia] | - |  |  |
 | uie | - | [uiɛ] | - | - | - | - | - | - | - | - | - | - | — |  |
-| ui* | [ui] or [uei] | [uɛi] | - | [uəi] | - | [ʯei] | - | - | - | - | - | [uəi] or [uɛi] | uei, ui, wui (no initial), wei (no initial) |  |
+| ui | [ui] | - | - | - | - | - | - | - | - | - | - | - | ui |  |
 | uai | [uai] | - | - | - | - | [ʯai] | - | - | - | - | - | - | - |  |
 | uoi | - | - | [uɔi] | [uoi] or [uɔi] | - | - | - | [uoi] | - | - | - | - | — |  |
+| uei | [uei] | [uɛi] | - | [uəi] | - | [ʯei] | - | - | - | - | - | [uəi] or [uɛi] | ui (after initial, one-way) |  |
 | ueu | - | - | - | [uəu] or [ueu] | - | - | - | - | - | - | - | - | - |  |
-| un* | [un] or [uen] | [uɛn] | [uɛn] | - | - | [uən] or [ʯən] or [ʯɛn] | [uɛn] | [uɛn] | [uɛn] | - | - | [uən] or [uɛn] | uen |  |
+| un | [un] | - | - | - | - | - | - | - | - | - | - | - | un |  |
 | uan | [uan] | - | - | [uɑn] | - | - | - | - | - | - | - | - | - |  |
 | uon | [uon] | - | [uɔn] | [uɔn] | - | - | [uɔn] | - | - | - | - | [uɔn] | uen, wen (no initial) |  |
+| uen | [uen] | [uɛn] | [uɛn] | - | - | [uən] or [ʯən] or [ʯɛn] | [uɛn] | [uɛn] | - | - | - | [uən] or [uɛn] | un (after initial, one-way) |  |
 | ueon | - | - | - | - | - | - | - | - | - | - | - | [uɵn] |  |  |
 | uin | - | [uin] | - | [uin] | - | - | - | - | - | - | [uin] | - | - |  |
 | uien | - | [uiɛn] | - | - | - | - | - | - | - | - | [uiɛn] | - | - |  |
-| unn | - | - | - | - | - | - | - | - | - | [ũɛ̃] | - | - | un, uen, uenn |  |
 | uann | - | - | - | - | - | - | - | - | - | [uã] | - | - | uan |  |
+| uenn | - | - | - | - | - | - | - | - | - | [ũɛ̃] | - | - | un (after initial, one-way) |  |
 | ung | [uŋ] | - | - | - | - | - | - | - | - | - | - | - | — |  |
 | uang | [uɑŋ] | - | [uaŋ] | [uaŋ] | - | - | - | - | - | [uãŋ] | - | - | - |  |
 | uong | [uɔŋ] | [uoŋ] | - | [uoŋ] | - | - | - | - | [uoŋ] | [uɔ̃ŋ] | - | - | uon (Yikyan) |  |
@@ -417,14 +419,10 @@ With no initial consonant:
 | uok | [uoʔ] | [uɔʔ] | [uɔʔ] | [uɔʔ] | - | - | - | [uɔʔ] | - | - | - | - | ok (Yikyan) |  |
 | uoik | - | - | [uɔiʔ] | - | - | - | - | - | - | - | - | - | - |  |
 | uek | — | [uɛʔ] or [uɨʔ] | [uɛʔ] | [uɛʔ] or [uəʔ] | - | - | - | [uəʔ] or [uɛʔ] or [uɪʔ] | - | [ueʔ] | - | - | — |  |
-| uik | - | [uɛiʔ] | [uiʔ] | [uəiʔ] | - | - | - | - | - | - | - | - | ueik |  |
+| ueik | - | [uɛiʔ] | - | [uəiʔ] | - | - | - | - | - | - | - | - | uik (after initial, one-way) |  |
+| uik | - | - | [uiʔ] | - | - | - | - | - | - | - | - | - | uik |  |
 
 \* `u`: The rounded postalveolar apical vowel [ʯ] is written u; finals beginning with [ʯ] also use u-series spellings. The vowel and its medial forms correspond to the front rounded series and are listed under rounded finals by spelling.
-
-\* `uei`: `uei` and `uêi` are shortened to `ui` after an initial consonant and grouped under `ui` in this table. With no initial, the forms are `wei` and `wêi`; [ui] has the form `wi`. The same applies to checked-tone forms.
-
-\* `uen` and `uên` shorten to `un` after an initial and are grouped under `un`; zero-initial forms are `wen` and `wên`. Nasalized forms follow the same pattern.
-
 
 #### Rounded front-vowel finals
 

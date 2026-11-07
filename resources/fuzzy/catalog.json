@@ -20,42 +20,6 @@
           }
         },
         {
-          "id": "F119",
-          "match": [
-            "common",
-            "uei",
-            "ui"
-          ],
-          "intent": "声母后省写；零声母保留 w 系拼写",
-          "origin": {
-            "kind": "explicit"
-          }
-        },
-        {
-          "id": "F121",
-          "match": [
-            "common",
-            "uen",
-            "un"
-          ],
-          "intent": "声母后省写；零声母保留 w 系拼写",
-          "origin": {
-            "kind": "explicit"
-          }
-        },
-        {
-          "id": "F123",
-          "match": [
-            "common",
-            "ueik",
-            "uik"
-          ],
-          "intent": "声母后省写；零声母保留 w 系拼写",
-          "origin": {
-            "kind": "explicit"
-          }
-        },
-        {
           "id": "F201",
           "match": [
             "yikyan-henfeng",
@@ -63,6 +27,102 @@
             "wok"
           ],
           "intent": "弋阳 ok 单向输入匹配 wok；沿用规则接续设置",
+          "origin": {
+            "kind": "explicit"
+          }
+        },
+        {
+          "id": "F300",
+          "match": [
+            "common",
+            "ui",
+            "uei"
+          ],
+          "intent": "输入省写匹配全写存储；声母后单向",
+          "origin": {
+            "kind": "explicit"
+          }
+        },
+        {
+          "id": "F301",
+          "match": [
+            "common",
+            "ui",
+            "uêi"
+          ],
+          "intent": "输入省写匹配全写存储；声母后单向",
+          "origin": {
+            "kind": "explicit"
+          }
+        },
+        {
+          "id": "F302",
+          "match": [
+            "common",
+            "un",
+            "uen"
+          ],
+          "intent": "输入省写匹配全写存储；声母后单向",
+          "origin": {
+            "kind": "explicit"
+          }
+        },
+        {
+          "id": "F303",
+          "match": [
+            "common",
+            "un",
+            "uên"
+          ],
+          "intent": "输入省写匹配全写存储；声母后单向",
+          "origin": {
+            "kind": "explicit"
+          }
+        },
+        {
+          "id": "F304",
+          "match": [
+            "common",
+            "un",
+            "uênn"
+          ],
+          "intent": "输入省写匹配全写存储；声母后单向",
+          "origin": {
+            "kind": "explicit"
+          }
+        },
+        {
+          "id": "F305",
+          "match": [
+            "common",
+            "uen",
+            "uênn"
+          ],
+          "intent": "输入省写匹配全写存储；声母后单向",
+          "origin": {
+            "kind": "explicit"
+          }
+        },
+        {
+          "id": "F306",
+          "match": [
+            "common",
+            "uik",
+            "ueik"
+          ],
+          "intent": "输入省写匹配全写存储；声母后单向",
+          "origin": {
+            "kind": "explicit"
+          }
+        },
+        {
+          "id": "F307",
+          "match": [
+            "common",
+            "uik",
+            "uêik"
+          ],
+          "intent": "输入省写匹配全写存储；声母后单向",
           "origin": {
             "kind": "explicit"
           }
@@ -826,30 +886,6 @@
             "ênn"
           ],
           "intent": "普通 e 输入兼容帽子 e 鼻化韵",
-          "origin": {
-            "kind": "explicit"
-          }
-        },
-        {
-          "id": "F166",
-          "match": [
-            "xyucuenn",
-            "uenn",
-            "un"
-          ],
-          "intent": "鼻化韵旧式输入归并到 un 后继续匹配规范写法",
-          "origin": {
-            "kind": "explicit"
-          }
-        },
-        {
-          "id": "F167",
-          "match": [
-            "xyucuenn",
-            "un",
-            "unn"
-          ],
-          "intent": "声母后 un 匹配规范鼻化韵 unn",
           "origin": {
             "kind": "explicit"
           }

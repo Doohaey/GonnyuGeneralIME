@@ -28,6 +28,8 @@ pub struct RegionConfig {
     pub dictionaries: DictionaryFiles,
     #[serde(default)]
     pub language: LanguageFiles,
+    #[serde(default)]
+    pub transcription: TranscriptionFiles,
     #[serde(default, deserialize_with = "deserialize_tone_classes")]
     pub tone_classes: BTreeMap<String, ToneClass>,
 }
@@ -64,6 +66,15 @@ pub struct LanguageFiles {
     pub gan_words: Option<String>,
     pub pinyin_rules: Option<String>,
     pub raw_input: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, PartialEq, Eq)]
+pub struct TranscriptionFiles {
+    pub schemes: Vec<String>,
+    pub default: Option<String>,
+    pub scheme2_map: Option<String>,
+    pub gon_to_scheme2: Option<String>,
+    pub tone_map: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
@@ -191,6 +202,9 @@ impl RegionConfig {
             self.language.gan_chars.as_deref(),
             self.language.gan_words.as_deref(),
             self.language.pinyin_rules.as_deref(),
+            self.transcription.scheme2_map.as_deref(),
+            self.transcription.gon_to_scheme2.as_deref(),
+            self.transcription.tone_map.as_deref(),
         ];
         candidates.into_iter().flatten().collect()
     }

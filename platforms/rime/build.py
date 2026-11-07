@@ -676,7 +676,7 @@ def write_option_resources(region: str, entries: list[Entry], output: Path,
                 algebra.insert(-3, "    - erase/^[^GF].*$/")
             body = (
                 f"schema:\n  schema_id: {schema_id}\n  name: {region}\n  version: \"{VERSION}\"\n"
-                f"translator:\n  dictionary: {dictionary_name}\n  prism: {schema_id}\n"
+                f"translator:\n  dictionary: {dictionary_name}\n  prism: {dictionary_name}{prism_suffix}\n"
                 + exclude_block
                 + f"  user_dict: {name}\n  enable_user_dict: true\n  enable_sentence: true\n"
                 "  enable_completion: true\n  spelling_hints: 8\n"
@@ -705,6 +705,8 @@ def write_option_resources(region: str, entries: list[Entry], output: Path,
             for mandarin, wenbai in itertools.product((True, False), repeat=2):
                 ipa_suffix = ("" if mandarin else "_gan") + ("" if wenbai else "_nowenbai")
                 schema_id = base_id + suffix + ipa_suffix
+                rel_suffix = suffix if relations else ("" if mode == "both" else f"_{mode}_rel")
+                prism_name = base_id + rel_suffix + ipa_suffix
                 algebra = transcription.scheme2_algebra(gon_map, mandarin=mandarin, wenbai=wenbai)
                 if schema_id == base_id:
                     base_body = (
@@ -717,7 +719,7 @@ def write_option_resources(region: str, entries: list[Entry], output: Path,
                 else:
                     body = (
                         f"schema:\n  schema_id: {schema_id}\n  name: {region}\n  version: \"{VERSION}\"\n"
-                        f"translator:\n  dictionary: {dictionary_name}\n  prism: {schema_id}\n"
+                        f"translator:\n  dictionary: {dictionary_name}\n  prism: {prism_name}\n"
                         + exclude_block
                         + f"  user_dict: {name}_ipa\n  enable_user_dict: true\n  enable_sentence: true\n"
                         "  enable_completion: true\n  spelling_hints: 8\n"

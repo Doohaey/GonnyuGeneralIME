@@ -169,29 +169,31 @@ def test_ui_shortening_preserves_onset_ui_and_legacy_w_forms() -> None:
     for spelling in ("wui", "wei"):
         assert "wi" in normalize(spelling, rules)
     assert "wui" not in normalize("wi", rules)
-    assert "gui" in normalize("guei", rules)
+    assert "guei" in normalize("gui", rules)
+    assert "guêi" in normalize("gui", rules)
     assert "guêi" in normalize("gueei", rules)
     for spelling in ("uei", "uêi"):
         assert "wêi" not in normalize(spelling, rules)
     assert "gwi" not in normalize("gui", rules)
-    algebra = compile_algebra({"wi", "gui"}, rules)
+    algebra = compile_algebra({"wi", "guei"}, rules)
     for spelling in ("wui", "wei"):
         assert f"    - derive/^Gwi$/F{spelling}/" in algebra
-    assert "    - derive/^Ggui$/Fguei/" in algebra
+    assert "    - derive/^Gguei$/Fgui/" in algebra
 
 
-def test_ueik_rules_follow_uei_with_checked_coda() -> None:
+def test_ueik_rules_follow_ui_with_checked_coda() -> None:
     rules = load_rules(RULES_PATH)
-    source, target = "uei", "ui"
-    plain = [rule for rule in rules if rule.source == source and rule.target == target]
-    checked = [rule for rule in rules if rule.source == source + "k" and rule.target == target + "k"]
-    assert len(plain) == len(checked) == 1
-    plain, checked = plain[0], checked[0]
+    for source, target in (("ui", "uei"), ("ui", "uêi"), ("uik", "ueik"), ("uik", "uêik")):
+        matched = [rule for rule in rules if rule.source == source and rule.target == target]
+        assert len(matched) == 1
+    plain = [rule for rule in rules if rule.source == "ui" and rule.target == "uei"][0]
+    checked = [rule for rule in rules if rule.source == "uik" and rule.target == "ueik"][0]
     assert checked.applies == plain.applies
     assert checked.bidirectional == plain.bidirectional
     assert checked.tier == plain.tier
     assert plain.starts_with == checked.starts_with
-    assert "guik" in normalize("gueik", rules)
+    assert "gueik" in normalize("guik", rules)
+    assert "guêik" in normalize("guik", rules)
     assert "wêi" not in normalize("uêi", rules)
     assert "wêik" not in normalize("uêik", rules)
 
@@ -204,12 +206,13 @@ def test_ueik_shortened_forms_compile_to_stored_codes() -> None:
     for spelling in ("ueik", "uêik", "weik", "wêik"):
         assert "uik" not in normalize(spelling, rules)
     for initial in ("g", "n", "ng", "zh"):
-        assert initial + "uik" in normalize(initial + "ueik", rules)
-    algebra = compile_algebra({"weik", "wêik", "guik"}, rules)
+        assert initial + "ueik" in normalize(initial + "uik", rules)
+        assert initial + "uêik" in normalize(initial + "uik", rules)
+    algebra = compile_algebra({"weik", "wêik", "gueik"}, rules)
     assert "    - derive/^Gweik$/Fueik/" not in algebra
     assert "    - derive/^Gwêik$/Fueik/" not in algebra
     assert "    - derive/^Gwêik$/Fuêik/" not in algebra
-    assert "    - derive/^Gguik$/Fgueik/" in algebra
+    assert "    - derive/^Ggueik$/Fguik/" in algebra
 
 
 def test_zero_initial_weik_never_becomes_uik() -> None:
@@ -861,7 +864,7 @@ def test_rime_installers_discover_regions_from_build_output() -> None:
 
 def test_onset_contractions_preserve_onset_forms() -> None:
     rules = load_rules(RULES_PATH)
-    for source, target in (("guei", "gui"), ("guen", "gun"), ("vuei", "vui")):
+    for source, target in (("gui", "guei"), ("gun", "guen"), ("vui", "vuei")):
         assert target in normalize(source, rules)
     for source in ("uen", "uên"):
         assert "wên" not in normalize(source, rules)
@@ -990,6 +993,8 @@ def test_scheme2_is_built_from_dictionary_ipa_without_fuzzy_switches(tmp_path: P
     assert "gannyu_no_fuzzy_rules" not in base
     for suffix in ("", "_gan", "_nowenbai", "_gan_nowenbai"):
         assert (tmp_path / f"gannyu_songau_ipa{suffix}.schema.yaml").is_file()
+    norel = (tmp_path / "gannyu_songau_ipa_new_norel_gan.schema.yaml").read_text(encoding="utf-8")
+    assert "prism: gannyu_songau_ipa_new_rel_gan" in norel
     assert "gannyu_songau_ipa" in (tmp_path / "default.custom.yaml").read_text(encoding="utf-8")
 
     fenni_counts = build("fenni", tmp_path)
