@@ -218,7 +218,7 @@ The system aims to cover phonemes across localities, represents necessary phonem
 
 | gon-pin | Default IPA | Fungcen IPA | Tiqien IPA | Sinyi IPA | Songau IPA | Seusong IPA | Jingon IPA | Yikyan-Henfeng IPA | Jisuibaedu IPA | Xyucuênn IPA | Singzï IPA | Goungon IPA | Accepted alternative input | Notes |
 | --- | --- | --- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | --- | --- |
-| ∅ | [] or [ʔ] | - | - | - | - | - | - | - | - | - | - | - |  | Zero initial |
+| ∅ | [] or [ʔ] | - | - | - | - | - | - | - | - | - | - | - |  | Zero initial, with [ʔ] as a special case. |
 | b | [p] | - | - | - | - | - | - | - | - | - | - | - |  |  |
 | p | [pʰ] | - | - | - | - | - | - | - | - | - | - | - |  |  |
 | m | [m] | - | - | - | - | - | - | - | - | - | - | - | - |  |
