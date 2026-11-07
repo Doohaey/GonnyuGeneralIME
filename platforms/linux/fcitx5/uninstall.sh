@@ -15,10 +15,12 @@ ADDON_LIBDIR="$(pkg-config --variable=libdir Fcitx5Core 2>/dev/null)"
 ADDON_LIBDIR="${ADDON_LIBDIR:-$PREFIX/lib}"
 
 echo "[1/2] 卸载系统文件 (sudo)"
-sudo rm -f "$ADDON_LIBDIR/fcitx5/libfcitx5-gannyu.so"
-sudo rm -f "$PREFIX/lib/fcitx5/libfcitx5-gannyu.so"
-sudo rm -f "$PREFIX/share/fcitx5/inputmethod/gannyu.conf"
-sudo rm -f "$PREFIX/share/fcitx5/addon/gannyu.conf"
+for addon in gonnyu gonnyu-ipa gannyu; do
+  sudo rm -f "$ADDON_LIBDIR/fcitx5/libfcitx5-$addon.so"
+  sudo rm -f "$PREFIX/lib/fcitx5/libfcitx5-$addon.so"
+  sudo rm -f "$PREFIX/share/fcitx5/inputmethod/$addon.conf"
+  sudo rm -f "$PREFIX/share/fcitx5/addon/$addon.conf"
+done
 
 echo "[2/2] 移除资源链接 $SUPPORT/resources"
 [ -L "$SUPPORT/resources" ] && rm -f "$SUPPORT/resources" || true

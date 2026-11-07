@@ -1,8 +1,8 @@
 [InputMethod]
 Name=GonnyuGeneralIME
-NativeName=赣语
+NativeName=@GONNYU_NATIVE_NAME@
 Icon=fcitx-gannyu
-Label=赣
+Label=@GONNYU_LABEL@
 LangCode=zh
-Addon=gannyu
+Addon=@GONNYU_ADDON_ID@
 Configurable=False

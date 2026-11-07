@@ -107,8 +107,10 @@ BUILD_DIR="$REPO_ROOT/build/linux-fcitx5"
 cmake -S "$SCRIPT_DIR" -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=Release
 cmake --build "$BUILD_DIR" -j
 
-(cd "$REPO_ROOT" && run_cargo run -p gannyu-sanitize-binary --release -- "$BUILD_DIR/libfcitx5-gannyu.so")
-(cd "$REPO_ROOT" && run_cargo run -p gannyu-sanitize-binary --release -- "$BUILD_DIR/libfcitx5-gannyu.so" --verify-release --repo-root "$REPO_ROOT")
+for addon in gonnyu gonnyu-ipa; do
+  (cd "$REPO_ROOT" && run_cargo run -p gannyu-sanitize-binary --release -- "$BUILD_DIR/libfcitx5-$addon.so")
+  (cd "$REPO_ROOT" && run_cargo run -p gannyu-sanitize-binary --release -- "$BUILD_DIR/libfcitx5-$addon.so" --verify-release --repo-root "$REPO_ROOT")
+done
 
 echo "构建完成: $BUILD_DIR"
 echo "运行 install.sh 将制品安装到系统。"

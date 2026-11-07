@@ -21,6 +21,13 @@
 #include <string>
 #include <vector>
 
+#ifndef GANNYU_TRANSCRIPTION_SCHEME
+#define GANNYU_TRANSCRIPTION_SCHEME 0
+#endif
+#ifndef GANNYU_ADDON_ID
+#define GANNYU_ADDON_ID "gonnyu"
+#endif
+
 namespace {
 
 std::string resolveManifestPath() {
@@ -247,7 +254,8 @@ public:
           factory_([](fcitx::InputContext &) { return new GannyuEngineState; }) {
         instance_->inputContextManager().registerProperty("gannyuState", &factory_);
         regionAction_ = std::make_unique<GannyuRegionAction>(this);
-        instance_->userInterfaceManager().registerAction("gannyu-region", regionAction_.get());
+        instance_->userInterfaceManager().registerAction(
+            std::string("gannyu-region-") + GANNYU_ADDON_ID, regionAction_.get());
         regionAction_->setMenu(&regionMenu_);
         manifestPath_ = resolveManifestPath();
         regionId_ = std::getenv("GANNYU_REGION_ID") ? std::getenv("GANNYU_REGION_ID") : "lancong";
@@ -611,7 +619,12 @@ private:
         GannyuPipelineHandle *h = nullptr;
         const char *region = regionId_.empty() ? nullptr : regionId_.c_str();
         int code = gannyu_pipeline_create(manifestPath_.c_str(), region, &h);
-        if (code == 0) pipeline_ = h;
+        if (code == 0) {
+            pipeline_ = h;
+            if (GANNYU_TRANSCRIPTION_SCHEME != 0) {
+                gannyu_engine_set_transcription_scheme(pipeline_, 1);
+            }
+        }
     }
 
     void loadRegions() {
