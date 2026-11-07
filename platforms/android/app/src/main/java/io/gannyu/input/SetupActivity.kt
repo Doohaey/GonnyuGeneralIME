@@ -28,6 +28,7 @@ class SetupActivity : Activity() {
     private lateinit var regionSpinner: Spinner
     private lateinit var manageUserDataButton: Button
     private lateinit var openImePickerButton: Button
+    private lateinit var inputOptionsContainer: android.widget.LinearLayout
     private var busy = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,10 +41,9 @@ class SetupActivity : Activity() {
         regionSpinner = findViewById(R.id.regionSpinner)
         manageUserDataButton = findViewById(R.id.manageUserData)
         openImePickerButton = findViewById(R.id.openImePicker)
-        val inputOptions = android.widget.LinearLayout(this).apply { orientation = android.widget.LinearLayout.VERTICAL }
-        findViewById<android.widget.LinearLayout>(R.id.settingsSections).addView(inputOptions, 2)
-        inputOptions.addView(TextView(this).apply { text = "输入设置"; textSize = 18f })
-        GannyuInputMethodService.populateInputOptions(this, inputOptions)
+        inputOptionsContainer = android.widget.LinearLayout(this).apply { orientation = android.widget.LinearLayout.VERTICAL }
+        findViewById<android.widget.LinearLayout>(R.id.settingsSections).addView(inputOptionsContainer, 2)
+        refreshInputOptions()
         setupRegionPicker(statusView)
         manageUserDataButton.setOnClickListener { showClearChoices() }
 
@@ -64,6 +64,12 @@ class SetupActivity : Activity() {
     override fun onResume() {
         super.onResume()
         updateImeSetupState()
+    }
+
+    private fun refreshInputOptions() {
+        inputOptionsContainer.removeAllViews()
+        inputOptionsContainer.addView(TextView(this).apply { text = "输入设置"; textSize = 18f })
+        GannyuInputMethodService.populateInputOptions(this, inputOptionsContainer)
     }
 
     private fun scrollToRegionPicker() {
@@ -123,6 +129,7 @@ class SetupActivity : Activity() {
                 if (selected.id != GannyuInputMethodService.selectedRegionId(this@SetupActivity)) {
                     GannyuInputMethodService.setSelectedRegionId(this@SetupActivity, selected.id)
                     Log.i(TAG, "region switched to ${selected.id}")
+                    refreshInputOptions()
                     maybePreload(selected, force = true)
                     return
                 }

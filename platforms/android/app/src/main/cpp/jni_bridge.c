@@ -190,12 +190,14 @@ Java_io_gannyu_input_NativePipelineBridge_nativeDestroy(JNIEnv* env, jobject thi
 JNIEXPORT jboolean JNICALL
 Java_io_gannyu_input_NativePipelineBridge_nativeSetInputOptions(JNIEnv* env, jobject thiz, jlong handle, jintArray values) {
     (void)thiz;
-    if (values == NULL || (*env)->GetArrayLength(env, values) != 8) return JNI_FALSE;
-    jint options[8];
-    (*env)->GetIntArrayRegion(env, values, 0, 8, options);
+    if (values == NULL || (*env)->GetArrayLength(env, values) != 9) return JNI_FALSE;
+    jint options[9];
+    (*env)->GetIntArrayRegion(env, values, 0, 9, options);
     if ((*env)->ExceptionCheck(env)) return JNI_FALSE;
     return gannyu_engine_set_input_options((GannyuPipelineHandle*)(intptr_t)handle,
         options[0], options[1], options[2], options[3], options[4], options[5]) == 0 &&
         gannyu_engine_set_synonyms_enabled((GannyuPipelineHandle*)(intptr_t)handle, options[6]) == 0 &&
-        gannyu_engine_set_wenbai_enabled((GannyuPipelineHandle*)(intptr_t)handle, options[7]) == 0 ? JNI_TRUE : JNI_FALSE;
+        gannyu_engine_set_wenbai_enabled((GannyuPipelineHandle*)(intptr_t)handle, options[7]) == 0 &&
+        gannyu_engine_set_transcription_scheme((GannyuPipelineHandle*)(intptr_t)handle, options[8]) == 0
+        ? JNI_TRUE : JNI_FALSE;
 }

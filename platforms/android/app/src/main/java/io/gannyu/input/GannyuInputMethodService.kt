@@ -72,7 +72,7 @@ class GannyuInputMethodService : InputMethodService() {
         val asciiMode: Boolean = false
     )
 
-    data class RegionOption(val id: String, val nameZh: String) {
+    data class RegionOption(val id: String, val nameZh: String, val transcriptionSchemes: List<String>) {
         val displayLabel: String
             get() = "$nameZh（$id）"
     }
@@ -169,13 +169,26 @@ class GannyuInputMethodService : InputMethodService() {
 
         fun inputOptions(context: Context): IntArray {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            return IntArray(8) { index -> if (index == 5) prefs.getInt("input_option_5", 0).coerceIn(0, 2) else if (prefs.getBoolean("input_option_$index", true)) 1 else 0 }
+            val region = availableRegions(context).firstOrNull { it.id == selectedRegionId(context) }
+            val schemeAvailable = region?.transcriptionSchemes?.contains("ipa") == true
+            if (!schemeAvailable && prefs.getBoolean("input_option_8", false)) {
+                prefs.edit().putBoolean("input_option_8", false).apply()
+            }
+            return IntArray(9) { index ->
+                when (index) {
+                    5 -> prefs.getInt("input_option_5", 0).coerceIn(0, 2)
+                    8 -> if (schemeAvailable && prefs.getBoolean("input_option_8", false)) 1 else 0
+                    else -> if (prefs.getBoolean("input_option_$index", true)) 1 else 0
+                }
+            }
         }
 
         fun populateInputOptions(context: Context, container: LinearLayout) {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             val values = inputOptions(context)
-            val labels = listOf("副标题", "赣普词语连带", "模糊匹配", "普拼兼容", "其他模糊规则", "读音模式", "同义词连带", "文白匹配")
+            val region = availableRegions(context).firstOrNull { it.id == selectedRegionId(context) }
+            val schemeAvailable = region?.transcriptionSchemes?.contains("ipa") == true
+            val labels = listOf("副标题", "赣普词语连带", "模糊匹配", "普拼兼容", "其他模糊规则", "读音模式", "同义词连带", "文白匹配", "二式")
             val indices = listOf(0, 1, 6, 2, 3, 7, 4)
             val switches = indices.map { index ->
                 val label = labels[index]
@@ -187,15 +200,28 @@ class GannyuInputMethodService : InputMethodService() {
                     container.addView(this)
                 }
             }
+            val schemeSwitch = android.widget.Switch(context).apply {
+                text = labels[8]
+                isChecked = values[8] != 0
+                isEnabled = schemeAvailable
+                setPadding((12 * resources.displayMetrics.density).toInt(), 8, 12, 8)
+                container.addView(this)
+            }
             fun updateEnabled() {
-                switches[4].isEnabled = switches[3].isChecked
-                switches[5].isEnabled = switches[3].isChecked
-                switches[6].isEnabled = switches[3].isChecked
+                val scheme2 = schemeSwitch.isChecked
+                switches[3].isEnabled = !scheme2
+                switches[6].isEnabled = !scheme2
+                switches[4].isEnabled = scheme2 || switches[3].isChecked
+                switches[5].isEnabled = scheme2 || switches[3].isChecked
             }
             switches.forEachIndexed { index, control -> control.setOnCheckedChangeListener { _, checked ->
                 prefs.edit().putBoolean("input_option_${indices[index]}", checked).apply()
                 updateEnabled()
             } }
+            schemeSwitch.setOnCheckedChangeListener { _, checked ->
+                prefs.edit().putBoolean("input_option_8", checked).apply()
+                updateEnabled()
+            }
             updateEnabled()
             container.addView(TextView(context).apply { text = "读音模式"; setPadding(12, 12, 12, 0) })
             val modes = android.widget.RadioGroup(context)
@@ -391,7 +417,10 @@ class GannyuInputMethodService : InputMethodService() {
                 val id = item.optString("id").trim()
                 if (id.isEmpty()) continue
                 val name = item.optString("name_zh").trim().ifBlank { id }
-                regions += RegionOption(id = id, nameZh = name)
+                val schemes = item.optJSONArray("transcription_schemes")
+                val transcriptionSchemes = if (schemes == null) emptyList() else
+                    List(schemes.length()) { index -> schemes.optString(index).trim() }.filter { it.isNotEmpty() }
+                regions += RegionOption(id = id, nameZh = name, transcriptionSchemes = transcriptionSchemes)
             }
             return regions
         }
