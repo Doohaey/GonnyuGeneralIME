@@ -72,7 +72,7 @@
     {
       "id": "symbol_input",
       "label": "特殊符号输入",
-      "description": "ê、普通 e（ir／er）与 ï 的输入表示。",
+      "description": "ê、普通 e（ir／er）、ï 与 ô 的输入表示。",
       "rules": [
         {
           "id": "F044",

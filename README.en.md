@@ -195,7 +195,7 @@ All switches are enabled by default, with both newer and older readings selected
 | Annotations | Show or hide candidate readings and annotations. |
 | Gan–Mandarin associations | Control associated Gan and Mandarin candidates and their annotations. Disabling this filters Mandarin words while retaining single-character candidates. |
 | Synonym associations | Control associated synonym candidates and their annotations, independently of Gan–Mandarin associations and annotations. |
-| Fuzzy matching | Master switch for Mandarin Pinyin compatibility, literary–colloquial matching, and other fuzzy rules. Mandarin Pinyin compatibility allows words to be found using Mandarin Pinyin. Literary–colloquial matching links literary and colloquial readings; disabling it preserves their labels. Other fuzzy rules control matching beyond compatibility for the special i and e phonemes. |
+| Fuzzy matching | Master switch for Mandarin Pinyin compatibility, literary–colloquial matching, and other fuzzy rules. Mandarin Pinyin compatibility allows words to be found using Mandarin Pinyin. Literary–colloquial matching links literary and colloquial readings; disabling it preserves their labels. Other fuzzy rules control matching beyond compatibility for the special i, e, and o phonemes (ï, ê, ô). |
 | Reading mode | Select both newer and older readings, newer readings, or older readings. This affects matching and the readings shown in annotations. |
 
 Disabling fuzzy matching suspends its three child options while preserving their selections; these options appear greyed out on mobile.
