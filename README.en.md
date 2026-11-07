@@ -387,7 +387,7 @@ With no initial consonant:
 | uo | [uo] | - | [uɔ] | - | - | - | - | - | - | - | - | [uɔ] | - |  |
 | ue | [ue] | [uɛ] | [uɛ] | [uɛ] | - | - | [uɛ] | [uɛ] | [uɛ] | - | [uɛ] | - | - |  |
 | uia | - | - | - | - | - | - | - | - | - | - | [uia] | - |  |  |
-| uie | - | [uiɛ] | - | - | - | - | - | - | - | - | - | - | wie (no initial) |  |
+| uie | - | [uiɛ] | - | - | - | - | - | - | - | - | - | - | — |  |
 | ui* | [ui] or [uei] | [uɛi] | - | [uəi] | - | [ʯei] | - | - | - | - | - | [uəi] or [uɛi] | uei, ui, wui (no initial), wei (no initial) |  |
 | uai | [uai] | - | - | - | - | [ʯai] | - | - | - | - | - | - | - |  |
 | uoi | - | - | [uɔi] | [uoi] or [uɔi] | - | - | - | [uoi] | - | - | - | - | — |  |
