@@ -14,3 +14,7 @@ gan_chars = "dictionaries/gan_chars.tsv"
 gan_words = "dictionaries/gan_words.tsv"
 pinyin_rules = "pinyin_rules.md"
 raw_input = "raw/source.dict.yaml"
+
+[transcription]
+schemes = ["gon-pin"]
+default = "gon-pin"

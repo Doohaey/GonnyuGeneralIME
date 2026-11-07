@@ -95,3 +95,11 @@ chars = "dictionaries/chars.tsv"
 words = "dictionaries/words.tsv"
 gan_chars = "dictionaries/gan_chars.tsv"
 gan_words = "dictionaries/gan_words.tsv"
+
+[transcription]
+schemes = ["gon-pin", "ipa"]
+default = "gon-pin"
+
+[transcription.ipa]
+ee_e_opposition = false
+oo_o_opposition = false
