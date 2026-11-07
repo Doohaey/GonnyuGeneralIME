@@ -3,13 +3,28 @@ set -euo pipefail
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 REPO_ROOT="$( cd "$SCRIPT_DIR/../../.." && pwd )"
 
+ADDONS=()
 if [ -d "$SCRIPT_DIR/payload" ]; then
   PAYLOAD_DIR="$SCRIPT_DIR/payload"
+  for addon in gonnyu gonnyu-ipa; do
+    if [ -f "$PAYLOAD_DIR/libfcitx5-$addon.so" ]; then
+      ADDONS+=("$addon")
+    fi
+  done
 else
   PAYLOAD_DIR="${GANNYU_PACKAGE_ROOT:-$REPO_ROOT/build/linux-fcitx5}"
+  if [ "$#" -gt 0 ]; then
+    ADDONS=("$@")
+  else
+    ADDONS=(gonnyu gonnyu-ipa)
+  fi
 fi
 
-ADDONS=(gonnyu gonnyu-ipa)
+if [ "${#ADDONS[@]}" -eq 0 ]; then
+  echo "未找到可安装的 fcitx5 addon" >&2
+  exit 1
+fi
+
 for addon in "${ADDONS[@]}"; do
   for required in "$PAYLOAD_DIR/libfcitx5-$addon.so" "$PAYLOAD_DIR/$addon.conf" "$PAYLOAD_DIR/$addon-addon.conf"; do
     if [ ! -f "$required" ]; then

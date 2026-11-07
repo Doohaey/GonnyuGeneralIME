@@ -18,6 +18,10 @@ def test_fcitx5_installs_both_addon_configs() -> None:
     assert 'inputmethod/$addon.conf' in install
     assert 'addon/$addon.conf' in install
     package = (FCITX / "package.sh").read_text(encoding="utf-8")
-    assert "for addon in gonnyu gonnyu-ipa" in package
+    assert 'stage_addon gonnyu ' in package
+    assert 'stage_addon gonnyu-ipa ' in package
+    assert "fcitx5-gonnyu.tar.gz" in package
+    assert "fcitx5-gonnyu-ipa.tar.gz" in package
+    assert 'ADDONS+=("$addon")' in install
     build = (FCITX / "build.sh").read_text(encoding="utf-8")
     assert "for addon in gonnyu gonnyu-ipa" in build
