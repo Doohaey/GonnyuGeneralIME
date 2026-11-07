@@ -88,13 +88,21 @@ RESOURCE_BUILD_ROOT="$(mktemp -d)"
 trap 'rm -rf "$RESOURCE_BUILD_ROOT"' EXIT
 export GONNYU_RESOURCE_DIR="$RESOURCE_BUILD_ROOT/bundle"
 export RUSTFLAGS="--remap-path-prefix=$(realpath "$REPO_ROOT")=. ${RUSTFLAGS:-}"
-echo "[1/3] 构建运行资源"
+echo "[1/4] 构建运行资源"
 (cd "$REPO_ROOT" && run_cargo run -p gonnyu-resource-build --release -- "$REPO_ROOT/resources" "$GONNYU_RESOURCE_DIR")
 
-echo "[2/3] 编译 Rust FFI"
+echo "[2/4] 生成二式转写表"
+transcription_tool="${GANNYU_TRANSCRIPTION_TOOL:-$REPO_ROOT/../tools/build_transcription_resources.py}"
+if [ -f "$transcription_tool" ]; then
+  python3 "$transcription_tool" --root "$REPO_ROOT/resources" --output "$GONNYU_RESOURCE_DIR/regions"
+else
+  echo "二式转写表生成器未找到，跳过：$transcription_tool" >&2
+fi
+
+echo "[3/4] 编译 Rust FFI"
 (cd "$REPO_ROOT" && run_cargo build -p gannyu-input-ffi --release)
 
-echo "[3/3] CMake build fcitx5 addon"
+echo "[4/4] CMake build fcitx5 addon"
 BUILD_DIR="$REPO_ROOT/build/linux-fcitx5"
 cmake -S "$SCRIPT_DIR" -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=Release
 cmake --build "$BUILD_DIR" -j

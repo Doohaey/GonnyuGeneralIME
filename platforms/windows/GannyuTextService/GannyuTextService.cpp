@@ -1441,11 +1441,15 @@ public:
     int InputOption(size_t index) const { return inputOptions_[index]; }
 
     void SelectInputOption(UINT itemId) {
-        if (itemId < 1000 || itemId > 1009) return;
+        if (itemId < 1000 || itemId > 1010) return;
         const size_t indices[] = {0, 1, 6, 2, 3, 7, 4};
-        const size_t index = itemId < 1007 ? indices[itemId - 1000] : 5;
-        inputOptions_[index] = index == 5 ? static_cast<int>(itemId - 1007) : !inputOptions_[index];
-        DWORD encoded = (static_cast<DWORD>(inputOptions_[5]) << 5) | (static_cast<DWORD>(inputOptions_[6] != 0) << 7) | 256 | (static_cast<DWORD>(inputOptions_[7] != 0) << 9) | 1024;
+        if (itemId == 1010) {
+            inputOptions_[8] = !inputOptions_[8];
+        } else {
+            const size_t index = itemId < 1007 ? indices[itemId - 1000] : 5;
+            inputOptions_[index] = index == 5 ? static_cast<int>(itemId - 1007) : !inputOptions_[index];
+        }
+        DWORD encoded = (static_cast<DWORD>(inputOptions_[5]) << 5) | (static_cast<DWORD>(inputOptions_[6] != 0) << 7) | 256 | (static_cast<DWORD>(inputOptions_[7] != 0) << 9) | 1024 | (static_cast<DWORD>(inputOptions_[8] != 0) << 11);
         for (size_t i = 0; i < 5; ++i) encoded |= static_cast<DWORD>(inputOptions_[i] != 0) << i;
         HKEY key = nullptr;
         if (RegCreateKeyExW(HKEY_CURRENT_USER, kRegionRegistryPath, 0, nullptr, 0, KEY_WRITE, nullptr, &key, nullptr) == ERROR_SUCCESS) {
@@ -1456,6 +1460,7 @@ public:
             gannyu_engine_set_input_options(pipeline_, inputOptions_[0], inputOptions_[1], inputOptions_[2], inputOptions_[3], inputOptions_[4], inputOptions_[5]);
             gannyu_engine_set_synonyms_enabled(pipeline_, inputOptions_[6]);
             gannyu_engine_set_wenbai_enabled(pipeline_, inputOptions_[7]);
+            gannyu_engine_set_transcription_scheme(pipeline_, inputOptions_[8]);
         }
         selectedIndex_ = 0;
         RefreshCandidates();
@@ -1570,12 +1575,14 @@ public:
                 if (!settings && !PtInRect(&regionButtonRect_, point)) return 0;
                 HMENU menu = CreatePopupMenu();
                 if (settings) {
-                    const wchar_t *titles[] = {L"副标题", L"赣普词语连带", L"同义词连带", L"模糊匹配", L"　普拼兼容", L"　文白匹配", L"　其他模糊规则", L"新老兼有", L"新派", L"老派"};
+                    const wchar_t *titles[] = {L"副标题", L"赣普词语连带", L"同义词连带", L"模糊匹配", L"　普拼兼容", L"　文白匹配", L"　其他模糊规则", L"新老兼有", L"新派", L"老派", L"二式"};
                     const size_t indices[] = {0, 1, 6, 2, 3, 7, 4};
-                    for (UINT option = 0; option < 10; ++option) {
+                    const bool scheme2 = inputOptions_[8] != 0;
+                    for (UINT option = 0; option < 11; ++option) {
                         UINT flags = MF_STRING;
-                        if (option < 7 ? inputOptions_[indices[option]] != 0 : inputOptions_[5] == static_cast<int>(option - 7)) flags |= MF_CHECKED;
-                        if ((option == 4 || option == 5 || option == 6) && !inputOptions_[2]) flags |= MF_GRAYED;
+                        if (option < 7 ? inputOptions_[indices[option]] != 0 : option < 10 ? inputOptions_[5] == static_cast<int>(option - 7) : inputOptions_[8] != 0) flags |= MF_CHECKED;
+                        if (!scheme2 && (option == 4 || option == 5 || option == 6) && !inputOptions_[2]) flags |= MF_GRAYED;
+                        if (scheme2 && (option == 3 || option == 6)) flags |= MF_GRAYED;
                         AppendMenuW(menu, flags, 1000 + option, titles[option]);
                     }
                 } else {
@@ -1656,15 +1663,17 @@ private:
     void ApplyStoredInputOptions() {
         DWORD encoded = 31;
         DWORD size = sizeof(encoded);
-        if (RegGetValueW(HKEY_CURRENT_USER, kRegionRegistryPath, L"InputOptions", RRF_RT_REG_DWORD, nullptr, &encoded, &size) != ERROR_SUCCESS || (encoded & ~2047u) != 0 || ((encoded >> 5) & 3) > 2) encoded = 31;
+        if (RegGetValueW(HKEY_CURRENT_USER, kRegionRegistryPath, L"InputOptions", RRF_RT_REG_DWORD, nullptr, &encoded, &size) != ERROR_SUCCESS || (encoded & ~4095u) != 0 || ((encoded >> 5) & 3) > 2) encoded = 31;
         for (size_t index = 0; index < 5; ++index) inputOptions_[index] = (encoded >> index) & 1;
         inputOptions_[5] = static_cast<int>((encoded >> 5) & 3);
         inputOptions_[6] = (encoded & 256) ? static_cast<int>((encoded >> 7) & 1) : 1;
         inputOptions_[7] = (encoded & 1024) ? static_cast<int>((encoded >> 9) & 1) : 1;
+        inputOptions_[8] = static_cast<int>((encoded >> 11) & 1);
         if (pipeline_) {
             gannyu_engine_set_input_options(pipeline_, inputOptions_[0], inputOptions_[1], inputOptions_[2], inputOptions_[3], inputOptions_[4], inputOptions_[5]);
             gannyu_engine_set_synonyms_enabled(pipeline_, inputOptions_[6]);
             gannyu_engine_set_wenbai_enabled(pipeline_, inputOptions_[7]);
+            gannyu_engine_set_transcription_scheme(pipeline_, inputOptions_[8]);
         }
     }
 
@@ -2900,7 +2909,7 @@ private:
     DWORD keyboardOpenCookie_ = TF_INVALID_COOKIE;
     DWORD conversionCookie_ = TF_INVALID_COOKIE;
     GannyuPipelineHandle *pipeline_ = nullptr;
-    std::array<int, 8> inputOptions_{{1, 1, 1, 1, 1, 0, 1, 1}};
+    std::array<int, 9> inputOptions_{{1, 1, 1, 1, 1, 0, 1, 1, 0}};
     GannyuSearchCandidateProvider *searchProvider_ = nullptr;
     GannyuFunctionProvider *functionProvider_ = nullptr;
     GannyuMenuButton *langBarButton_ = nullptr;
@@ -3047,11 +3056,13 @@ STDMETHODIMP GannyuMenuButton::InitMenu(ITfMenu *menu) {
         }
         return S_OK;
     }
-    const wchar_t *titles[] = {L"副标题", L"赣普词语连带", L"同义词连带", L"模糊匹配", L"　普拼兼容", L"　文白匹配", L"　其他模糊规则", L"新老兼有", L"新派", L"老派"};
+    const wchar_t *titles[] = {L"副标题", L"赣普词语连带", L"同义词连带", L"模糊匹配", L"　普拼兼容", L"　文白匹配", L"　其他模糊规则", L"新老兼有", L"新派", L"老派", L"二式"};
     const size_t indices[] = {0, 1, 6, 2, 3, 7, 4};
-    for (UINT option = 0; option < 10; ++option) {
-        DWORD flags = (option < 7 ? owner_->InputOption(indices[option]) != 0 : owner_->InputOption(5) == static_cast<int>(option - 7)) ? TF_LBMENUF_CHECKED : 0;
-        if ((option == 4 || option == 5 || option == 6) && !owner_->InputOption(2)) flags |= TF_LBMENUF_GRAYED;
+    const bool scheme2 = owner_->InputOption(8) != 0;
+    for (UINT option = 0; option < 11; ++option) {
+        DWORD flags = (option < 7 ? owner_->InputOption(indices[option]) != 0 : option < 10 ? owner_->InputOption(5) == static_cast<int>(option - 7) : owner_->InputOption(8) != 0) ? TF_LBMENUF_CHECKED : 0;
+        if (!scheme2 && (option == 4 || option == 5 || option == 6) && !owner_->InputOption(2)) flags |= TF_LBMENUF_GRAYED;
+        if (scheme2 && (option == 3 || option == 6)) flags |= TF_LBMENUF_GRAYED;
         menu->AddMenuItem(1000 + option, flags, nullptr, nullptr, titles[option], static_cast<ULONG>(wcslen(titles[option])), nullptr);
     }
     return S_OK;

@@ -1391,10 +1391,41 @@ pub unsafe extern "C" fn gannyu_engine_set_input_options(
             mandarin: mandarin != 0,
             fuzzy_rules: fuzzy_rules != 0,
             reading_mode,
+            scheme: pipeline.input_options().scheme,
         };
         if pipeline.input_options() == options {
             return STATUS_OK;
         }
+        pipeline.set_input_options(options);
+    }
+    let mut session = handle.session.lock();
+    session.page_number = 0;
+    clear_accumulated_selection(&mut session);
+    STATUS_OK
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn gannyu_engine_set_transcription_scheme(
+    handle: *mut GannyuPipelineHandle,
+    scheme: c_int,
+) -> c_int {
+    clear_last_error();
+    if handle.is_null() {
+        return invalid_argument("engine handle is null");
+    }
+    let scheme = match scheme {
+        0 => gannyu_input_core::TranscriptionScheme::GonPin,
+        1 => gannyu_input_core::TranscriptionScheme::Ipa,
+        _ => return invalid_argument("transcription scheme must be 0 or 1"),
+    };
+    let handle = &*handle;
+    {
+        let mut pipeline = handle.pipeline.lock();
+        let mut options = pipeline.input_options();
+        if options.scheme == scheme {
+            return STATUS_OK;
+        }
+        options.scheme = scheme;
         pipeline.set_input_options(options);
     }
     let mut session = handle.session.lock();

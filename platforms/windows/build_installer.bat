@@ -80,6 +80,13 @@ call :load_vs x64 || exit /b 1
 pushd "%REPO_ROOT%"
 mkdir "%RESOURCE_BUILD_ROOT%" || goto :err
 cargo run -p gonnyu-resource-build --release -- "%REPO_ROOT%\resources" "%GONNYU_RESOURCE_DIR%" || goto :err
+if exist "%REPO_ROOT%\..\tools\build_transcription_resources.py" (
+  where python >nul 2>nul || (
+    echo Missing python for transcription table generation.
+    goto :err
+  )
+  python "%REPO_ROOT%\..\tools\build_transcription_resources.py" --root "%REPO_ROOT%\resources" --output "%GONNYU_RESOURCE_DIR%\regions" || goto :err
+)
 cargo build --release -p gannyu-input-ffi --target x86_64-pc-windows-msvc || goto :err
 cargo build --release -p gannyu-sanitize-binary || goto :err
 popd

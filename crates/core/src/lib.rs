@@ -10,12 +10,13 @@ mod resources;
 mod retrieval;
 mod slang;
 mod syllable;
+mod transcription;
 mod trie;
 pub use trie::Trie;
 mod user_dict;
 
 pub use dictionary::{Dictionary, DictionaryEntry, DictionaryError};
-pub use input_options::{InputOptions, ReadingMode};
+pub use input_options::{InputOptions, ReadingMode, TranscriptionScheme};
 pub use mandarin_hints::{MandarinHintBook, MandarinHintEntry, MandarinHintError};
 pub use pipeline::{
     CandidateSource, CandidateTier, ComposedCandidate, InputPipeline, PipelineError,
@@ -41,3 +42,4 @@ pub use syllable::{
     FuzzyApplies, FuzzyCategory, FuzzyEntry, FuzzyMap, NormalizedSyllable, PriorityTier,
     SyllableError, SyllableScheme,
 };
+pub use transcription::Scheme2Map;

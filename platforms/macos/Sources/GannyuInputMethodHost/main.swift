@@ -143,9 +143,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             item.tag = index
             item.indentationLevel = [3, 7, 4].contains(index) ? 1 : 0
             item.state = values[index] != 0 ? .on : .off
-            item.isEnabled = [3, 7, 4].contains(index) ? values[2] != 0 : true
+            if values[8] != 0 {
+                item.isEnabled = ![2, 4].contains(index)
+            } else {
+                item.isEnabled = [3, 7, 4].contains(index) ? values[2] != 0 : true
+            }
             settings.addItem(item)
         }
+        let schemeItem = NSMenuItem(
+            title: GannyuRegionStore.optionTitles[8],
+            action: #selector(selectInputOption(_:)),
+            keyEquivalent: ""
+        )
+        schemeItem.target = self
+        schemeItem.tag = 8
+        schemeItem.state = values[8] != 0 ? .on : .off
+        settings.addItem(schemeItem)
         settings.addItem(.separator())
         for (index, title) in ["新老兼有", "新派", "老派"].enumerated() {
             let item = NSMenuItem(title: title, action: #selector(selectInputOption(_:)), keyEquivalent: "")

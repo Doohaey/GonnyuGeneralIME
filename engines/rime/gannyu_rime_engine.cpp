@@ -20,6 +20,8 @@
 struct GannyuPipelineHandle {
   RimeSessionId session = 0;
   std::string schema_id;
+  std::string region_id;
+  bool ipa_scheme = false;
   size_t candidate_limit = 0;
   std::array<int, 6> input_options{{1, 1, 1, 1, 1, 0}};
   bool synonyms_enabled = true;
@@ -27,6 +29,10 @@ struct GannyuPipelineHandle {
 };
 
 namespace {
+
+std::string SchemaFor(const GannyuPipelineHandle& handle) {
+  return "gannyu_" + handle.region_id + (handle.ipa_scheme ? "_ipa" : "");
+}
 
 constexpr int kOk = 0;
 constexpr int kInvalidArgument = 1;
@@ -397,7 +403,8 @@ int Create(const char* shared_data_dir,
   if (!EnsureRuntimeLocked(shared, prebuilt_data_dir, user_data_dir)) return kLoadFailure;
   auto handle = std::make_unique<GannyuPipelineHandle>();
   const std::string region = region_id && *region_id ? region_id : "lancong";
-  handle->schema_id = "gannyu_" + region;
+  handle->region_id = region;
+  handle->schema_id = SchemaFor(*handle);
   if (!StartSessionLocked(handle.get())) {
     FinalizeUnusedRuntimeLocked(runtime);
     return kLoadFailure;
@@ -630,11 +637,15 @@ int gannyu_engine_switch_region(GannyuPipelineHandle* handle, const char* region
     Runtime& runtime = GlobalRuntime();
     std::lock_guard<std::mutex> lock(runtime.mutex);
     if (!HasRegisteredHandleLocked(runtime, handle)) return kInvalidArgument;
-    const std::string schema = "gannyu_" + std::string(region_id);
+    const std::string previous_region = handle->region_id;
+    handle->region_id = region_id;
+    const std::string schema = SchemaFor(*handle);
     const bool handled = Api()->select_schema(handle->session, schema.c_str());
     if (handled) {
       handle->schema_id = schema;
       ApplyInputOptions(handle);
+    } else {
+      handle->region_id = previous_region;
     }
     return WriteSnapshot(handle, handled, std::nullopt, out_json);
   });
@@ -648,6 +659,28 @@ int gannyu_engine_set_ascii_mode(GannyuPipelineHandle* handle, int enabled, char
     if (!HasRegisteredHandleLocked(runtime, handle)) return kInvalidArgument;
     Api()->set_option(handle->session, "ascii_mode", enabled ? True : False);
     return WriteSnapshot(handle, true, std::nullopt, out_json);
+  });
+}
+
+int gannyu_engine_set_transcription_scheme(GannyuPipelineHandle* handle, int scheme) {
+  return AbiStatus([&] {
+    if (handle == nullptr || (scheme != 0 && scheme != 1)) return kInvalidArgument;
+    Runtime& runtime = GlobalRuntime();
+    std::lock_guard<std::mutex> lock(runtime.mutex);
+    if (!HasRegisteredHandleLocked(runtime, handle)) return kInvalidArgument;
+    const bool ipa = scheme == 1;
+    if (handle->ipa_scheme == ipa) return kOk;
+    handle->ipa_scheme = ipa;
+    const std::string schema = SchemaFor(*handle);
+    const bool handled = Api()->select_schema(handle->session, schema.c_str());
+    if (handled) {
+      handle->schema_id = schema;
+      ApplyInputOptions(handle);
+    } else {
+      handle->ipa_scheme = !ipa;
+      SetError("second transcription scheme is unavailable for this region");
+    }
+    return handled ? kOk : kLoadFailure;
   });
 }
 

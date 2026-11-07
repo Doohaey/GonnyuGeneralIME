@@ -11,6 +11,7 @@ use crate::retrieval::{
 };
 use crate::slang::{SlangBook, SlangError, TriggerKind};
 use crate::syllable::{FuzzyMap, SyllableError};
+use crate::transcription::Scheme2Map;
 use crate::user_dict::UserDictionary;
 use ahash::AHashMap as HashMap;
 use serde::Serialize;
@@ -75,6 +76,8 @@ pub struct InputPipeline {
     input_options: crate::InputOptions,
     excluded_words: std::collections::HashSet<Box<str>>,
     source_dictionary: Option<Dictionary>,
+    source_scheme2: Option<Dictionary>,
+    scheme2_map: Option<Scheme2Map>,
     source_fuzzy: Option<FuzzyMap>,
     slang: SlangBook,
     hints: MandarinHintBook,
@@ -207,6 +210,8 @@ impl InputPipeline {
             input_options: crate::InputOptions::default(),
             excluded_words: std::collections::HashSet::new(),
             source_dictionary: None,
+            source_scheme2: None,
+            scheme2_map: None,
             source_fuzzy: None,
             slang: SlangBook::empty(),
             hints: MandarinHintBook::empty(),
@@ -249,6 +254,10 @@ impl InputPipeline {
             let index_dir = Some(resource.root.join("indexes"));
             pipeline.dictionary = Dictionary::load_split_tsvs(&paths, index_dir.as_deref())?;
             pipeline.default_words = load_default_words(resource, &pipeline.dictionary)?;
+            if let Some(map) = Scheme2Map::load(resource).map_err(ResourceError::Io)? {
+                pipeline.source_scheme2 = Some(map.dictionary(&pipeline.dictionary));
+                pipeline.scheme2_map = Some(map);
+            }
         }
         if !pipeline.dictionary.is_empty() {
             let dict = &pipeline.dictionary;
@@ -315,6 +324,17 @@ impl InputPipeline {
         // Seed self-made words without a frequency with a random initial value.
         pipeline.seed_user_dict_frequencies();
         let user_entries: Vec<_> = pipeline.user_dict.entries().cloned().collect();
+        if let (Some(map), Some(source)) = (
+            pipeline.scheme2_map.as_ref(),
+            pipeline.source_scheme2.as_mut(),
+        ) {
+            let converted = user_entries.iter().cloned().map(|mut entry| {
+                entry.dialect_pinyin = map.convert_reading(&entry.dialect_pinyin).into();
+                entry.entry_index = 0;
+                entry
+            });
+            source.extend_from_entries(converted);
+        }
         pipeline.dictionary.extend_from_entries(user_entries);
         Ok(pipeline)
     }
@@ -332,11 +352,34 @@ impl InputPipeline {
             .find(|e| e.headword.as_ref() == headword)
             .cloned();
         if let Some(entry) = entry {
+            let (scheme1_entry, scheme2_entry) = match self.scheme2_map.as_ref() {
+                Some(map) if self.input_options.scheme == crate::TranscriptionScheme::Ipa => {
+                    let mut scheme1 = entry.clone();
+                    scheme1.dialect_pinyin = map.to_scheme1_reading(&entry.dialect_pinyin).into();
+                    (scheme1, entry.clone())
+                }
+                Some(map) => {
+                    let mut scheme2 = entry.clone();
+                    scheme2.dialect_pinyin = map.convert_reading(&entry.dialect_pinyin).into();
+                    (entry.clone(), scheme2)
+                }
+                None => (entry.clone(), entry.clone()),
+            };
             if let Some(source) = self.source_dictionary.as_mut() {
-                source.extend_from_entries(std::iter::once(entry));
+                source.extend_from_entries(std::iter::once(scheme1_entry));
+            } else if self.input_options.scheme != crate::TranscriptionScheme::Ipa {
+                self.dictionary
+                    .extend_from_entries(std::iter::once(scheme1_entry));
+            }
+            if let Some(source) = self.source_scheme2.as_mut() {
+                source.extend_from_entries(std::iter::once(scheme2_entry));
+            }
+            if self.input_options.scheme == crate::TranscriptionScheme::Ipa {
+                if let Some(source) = self.source_scheme2.as_ref() {
+                    self.dictionary = self.input_options.dictionary(source);
+                }
+            } else if let Some(source) = self.source_dictionary.as_ref() {
                 self.dictionary = self.input_options.dictionary(source);
-            } else {
-                self.dictionary.extend_from_entries(std::iter::once(entry));
             }
         }
         clear_retrieve_cache();
@@ -375,6 +418,9 @@ impl InputPipeline {
             if let Some(frequency) = self.user_dict.frequency(headword) {
                 self.dictionary.set_user_frequency(headword, frequency);
                 if let Some(source) = self.source_dictionary.as_mut() {
+                    source.set_user_frequency(headword, frequency);
+                }
+                if let Some(source) = self.source_scheme2.as_mut() {
                     source.set_user_frequency(headword, frequency);
                 }
             }
@@ -525,34 +571,49 @@ impl InputPipeline {
         self.input_options
     }
 
-    pub fn set_input_options(&mut self, options: crate::InputOptions) {
+    pub fn set_input_options(&mut self, mut options: crate::InputOptions) {
         if self.input_options == options {
             return;
         }
-        let dictionary_changed = self.input_options.relations_enabled()
-            != options.relations_enabled()
+        let use_ipa =
+            options.scheme == crate::TranscriptionScheme::Ipa && self.source_scheme2.is_some();
+        if options.scheme == crate::TranscriptionScheme::Ipa && !use_ipa {
+            options.scheme = crate::TranscriptionScheme::GonPin;
+        }
+        let scheme_changed = self.input_options.scheme != options.scheme;
+        let dictionary_changed = scheme_changed
+            || self.input_options.relations_enabled() != options.relations_enabled()
             || self.input_options.synonyms_enabled() != options.synonyms_enabled()
             || self.input_options.wenbai_enabled() != options.wenbai_enabled()
             || self.input_options.mandarin_enabled() != options.mandarin_enabled()
             || self.input_options.reading_mode != options.reading_mode;
         if dictionary_changed {
-            let original = options.relations_enabled()
-                && options.synonyms_enabled()
-                && options.wenbai_enabled()
-                && options.mandarin_enabled()
-                && options.reading_mode == crate::ReadingMode::Both;
-            if original {
-                if let Some(source) = self.source_dictionary.take() {
-                    self.dictionary = source;
+            if self.source_dictionary.is_none() {
+                self.source_dictionary = Some(std::mem::take(&mut self.dictionary));
+            }
+            let source = if use_ipa {
+                self.source_scheme2.as_ref().unwrap()
+            } else {
+                self.source_dictionary.as_ref().unwrap()
+            };
+            self.dictionary = options.dictionary(source);
+        }
+        if scheme_changed {
+            if use_ipa {
+                if self.source_fuzzy.is_none() {
+                    self.source_fuzzy = Some(std::mem::replace(&mut self.fuzzy, FuzzyMap::empty()));
+                } else {
+                    self.fuzzy = FuzzyMap::empty();
                 }
             } else {
-                if self.source_dictionary.is_none() {
-                    self.source_dictionary = Some(std::mem::take(&mut self.dictionary));
+                if let Some(source) = self.source_fuzzy.take() {
+                    self.fuzzy = source;
                 }
-                self.dictionary = options.dictionary(self.source_dictionary.as_ref().unwrap());
+                if !options.fuzzy_rules_enabled() {
+                    self.fuzzy = self.fuzzy.with_optional_rules(false);
+                }
             }
-        }
-        if self.input_options.fuzzy_rules_enabled() != options.fuzzy_rules_enabled() {
+        } else if self.input_options.fuzzy_rules_enabled() != options.fuzzy_rules_enabled() {
             if options.fuzzy_rules_enabled() {
                 if let Some(source) = self.source_fuzzy.take() {
                     self.fuzzy = source;
@@ -570,7 +631,12 @@ impl InputPipeline {
         }
         self.excluded_words.clear();
         if !options.relations_enabled() {
-            let source = self.source_dictionary.as_ref().unwrap_or(&self.dictionary);
+            let source = if use_ipa {
+                self.source_scheme2.as_ref()
+            } else {
+                self.source_dictionary.as_ref()
+            }
+            .unwrap_or(&self.dictionary);
             for entry in source.entries() {
                 if entry.is_mandarin_only() && entry.headword.chars().count() > 1 {
                     self.excluded_words.insert(entry.headword.clone());

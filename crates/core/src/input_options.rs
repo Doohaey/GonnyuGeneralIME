@@ -11,6 +11,14 @@ pub enum ReadingMode {
     Old,
 }
 
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum TranscriptionScheme {
+    #[default]
+    GonPin,
+    Ipa,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(default, rename_all = "camelCase")]
 pub struct InputOptions {
@@ -22,6 +30,7 @@ pub struct InputOptions {
     pub fuzzy_rules: bool,
     pub wenbai: bool,
     pub reading_mode: ReadingMode,
+    pub scheme: TranscriptionScheme,
 }
 
 impl Default for InputOptions {
@@ -35,6 +44,7 @@ impl Default for InputOptions {
             fuzzy_rules: true,
             wenbai: true,
             reading_mode: ReadingMode::Both,
+            scheme: TranscriptionScheme::GonPin,
         }
     }
 }
@@ -45,7 +55,10 @@ impl InputOptions {
     }
 
     pub fn mandarin_enabled(self) -> bool {
-        self.fuzzy && self.mandarin
+        match self.scheme {
+            TranscriptionScheme::Ipa => self.mandarin,
+            TranscriptionScheme::GonPin => self.fuzzy && self.mandarin,
+        }
     }
 
     pub fn synonyms_enabled(self) -> bool {
@@ -53,11 +66,14 @@ impl InputOptions {
     }
 
     pub fn wenbai_enabled(self) -> bool {
-        self.fuzzy && self.wenbai
+        match self.scheme {
+            TranscriptionScheme::Ipa => self.wenbai,
+            TranscriptionScheme::GonPin => self.fuzzy && self.wenbai,
+        }
     }
 
     pub fn fuzzy_rules_enabled(self) -> bool {
-        self.fuzzy && self.fuzzy_rules
+        self.scheme == TranscriptionScheme::GonPin && self.fuzzy && self.fuzzy_rules
     }
 
     pub(crate) fn dictionary(self, source: &Dictionary) -> Dictionary {
