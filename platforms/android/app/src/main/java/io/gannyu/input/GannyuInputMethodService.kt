@@ -188,7 +188,7 @@ class GannyuInputMethodService : InputMethodService() {
             val values = inputOptions(context)
             val region = availableRegions(context).firstOrNull { it.id == selectedRegionId(context) }
             val schemeAvailable = region?.transcriptionSchemes?.contains("ipa") == true
-            val labels = listOf("副标题", "赣普词语连带", "模糊匹配", "普拼兼容", "其他模糊规则", "读音模式", "同义词连带", "文白匹配", "二式")
+            val labels = listOf("副标题", "赣普词语连带", "模糊匹配", "普拼兼容", "其他模糊规则", "读音模式", "同义词连带", "文白匹配", "方案")
             val indices = listOf(0, 1, 6, 2, 3, 7, 4)
             val switches = indices.map { index ->
                 val label = labels[index]
@@ -200,15 +200,26 @@ class GannyuInputMethodService : InputMethodService() {
                     container.addView(this)
                 }
             }
-            val schemeSwitch = android.widget.Switch(context).apply {
-                text = labels[8]
-                isChecked = values[8] != 0
+            container.addView(TextView(context).apply { text = "方案"; setPadding(12, 12, 12, 0) })
+            val schemeGroup = android.widget.RadioGroup(context)
+            val firstScheme = android.widget.RadioButton(context).apply {
+                id = View.generateViewId()
+                text = "一式（汉拼式）"
+            }
+            val secondScheme = android.widget.RadioButton(context).apply {
+                id = View.generateViewId()
+                text = "二式（组合式）"
                 isEnabled = schemeAvailable
-                setPadding((12 * resources.displayMetrics.density).toInt(), 8, 12, 8)
-                container.addView(this)
+            }
+            schemeGroup.addView(firstScheme)
+            schemeGroup.addView(secondScheme)
+            if (values[8] != 0 && schemeAvailable) {
+                schemeGroup.check(secondScheme.id)
+            } else {
+                schemeGroup.check(firstScheme.id)
             }
             fun updateEnabled() {
-                val scheme2 = schemeSwitch.isChecked
+                val scheme2 = schemeGroup.checkedRadioButtonId == secondScheme.id
                 switches[3].isEnabled = !scheme2
                 switches[6].isEnabled = !scheme2
                 switches[4].isEnabled = scheme2 || switches[3].isChecked
@@ -218,10 +229,11 @@ class GannyuInputMethodService : InputMethodService() {
                 prefs.edit().putBoolean("input_option_${indices[index]}", checked).apply()
                 updateEnabled()
             } }
-            schemeSwitch.setOnCheckedChangeListener { _, checked ->
-                prefs.edit().putBoolean("input_option_8", checked).apply()
+            schemeGroup.setOnCheckedChangeListener { _, id ->
+                prefs.edit().putBoolean("input_option_8", id == secondScheme.id).apply()
                 updateEnabled()
             }
+            container.addView(schemeGroup)
             updateEnabled()
             container.addView(TextView(context).apply { text = "读音模式"; setPadding(12, 12, 12, 0) })
             val modes = android.widget.RadioGroup(context)

@@ -111,7 +111,7 @@ public final class GannyuRegionStore {
     public static let didChange = Notification.Name("org.doohaey.gonnyu.regionDidChange")
     private let key = "org.doohaey.gonnyu.region"
     public static let optionsDidChange = Notification.Name("org.doohaey.gonnyu.optionsDidChange")
-    public static let optionTitles = ["副标题", "赣普词语连带", "模糊匹配", "普拼兼容", "其他模糊规则", "读音模式", "同义词连带", "文白匹配", "二式"]
+    public static let optionTitles = ["副标题", "赣普词语连带", "模糊匹配", "普拼兼容", "其他模糊规则", "读音模式", "同义词连带", "文白匹配", "方案"]
 
     public var inputOptions: [Int32] {
         let stored = UserDefaults.standard.array(forKey: "GannyuInputOptions") as? [Int]

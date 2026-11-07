@@ -1442,11 +1442,13 @@ public:
     bool SchemeAvailable() const { return schemeAvailable_; }
 
     void SelectInputOption(UINT itemId) {
-        if (itemId < 1000 || itemId > 1010) return;
-        if (itemId == 1010 && !schemeAvailable_) return;
+        if (itemId < 1000 || itemId > 1011) return;
+        if (itemId == 1011 && !schemeAvailable_) return;
         const size_t indices[] = {0, 1, 6, 2, 3, 7, 4};
         if (itemId == 1010) {
-            inputOptions_[8] = !inputOptions_[8];
+            inputOptions_[8] = 0;
+        } else if (itemId == 1011) {
+            inputOptions_[8] = 1;
         } else {
             const size_t index = itemId < 1007 ? indices[itemId - 1000] : 5;
             inputOptions_[index] = index == 5 ? static_cast<int>(itemId - 1007) : !inputOptions_[index];
@@ -1577,15 +1579,23 @@ public:
                 if (!settings && !PtInRect(&regionButtonRect_, point)) return 0;
                 HMENU menu = CreatePopupMenu();
                 if (settings) {
-                    const wchar_t *titles[] = {L"副标题", L"赣普词语连带", L"同义词连带", L"模糊匹配", L"　普拼兼容", L"　文白匹配", L"　其他模糊规则", L"新老兼有", L"新派", L"老派", L"二式"};
+                    const wchar_t *titles[] = {L"副标题", L"赣普词语连带", L"同义词连带", L"模糊匹配", L"　普拼兼容", L"　文白匹配", L"　其他模糊规则", L"新老兼有", L"新派", L"老派", L"一式（汉拼式）", L"二式（组合式）"};
                     const size_t indices[] = {0, 1, 6, 2, 3, 7, 4};
                     const bool scheme2 = inputOptions_[8] != 0;
-                    for (UINT option = 0; option < 11; ++option) {
+                    for (UINT option = 0; option < 12; ++option) {
                         UINT flags = MF_STRING;
-                        if (option < 7 ? inputOptions_[indices[option]] != 0 : option < 10 ? inputOptions_[5] == static_cast<int>(option - 7) : inputOptions_[8] != 0) flags |= MF_CHECKED;
+                        if (option < 7) {
+                            if (inputOptions_[indices[option]] != 0) flags |= MF_CHECKED;
+                        } else if (option < 10) {
+                            if (inputOptions_[5] == static_cast<int>(option - 7)) flags |= MF_CHECKED;
+                        } else if (option == 10) {
+                            if (inputOptions_[8] == 0) flags |= MF_CHECKED;
+                        } else if (inputOptions_[8] != 0) {
+                            flags |= MF_CHECKED;
+                        }
                         if (!scheme2 && (option == 4 || option == 5 || option == 6) && !inputOptions_[2]) flags |= MF_GRAYED;
                         if (scheme2 && (option == 3 || option == 6)) flags |= MF_GRAYED;
-                        if (option == 10 && !schemeAvailable_) flags |= MF_GRAYED;
+                        if (option == 11 && !schemeAvailable_) flags |= MF_GRAYED;
                         AppendMenuW(menu, flags, 1000 + option, titles[option]);
                     }
                 } else {
@@ -3062,14 +3072,23 @@ STDMETHODIMP GannyuMenuButton::InitMenu(ITfMenu *menu) {
         }
         return S_OK;
     }
-    const wchar_t *titles[] = {L"副标题", L"赣普词语连带", L"同义词连带", L"模糊匹配", L"　普拼兼容", L"　文白匹配", L"　其他模糊规则", L"新老兼有", L"新派", L"老派", L"二式"};
+    const wchar_t *titles[] = {L"副标题", L"赣普词语连带", L"同义词连带", L"模糊匹配", L"　普拼兼容", L"　文白匹配", L"　其他模糊规则", L"新老兼有", L"新派", L"老派", L"一式（汉拼式）", L"二式（组合式）"};
     const size_t indices[] = {0, 1, 6, 2, 3, 7, 4};
     const bool scheme2 = owner_->InputOption(8) != 0;
-    for (UINT option = 0; option < 11; ++option) {
-        DWORD flags = (option < 7 ? owner_->InputOption(indices[option]) != 0 : option < 10 ? owner_->InputOption(5) == static_cast<int>(option - 7) : owner_->InputOption(8) != 0) ? TF_LBMENUF_CHECKED : 0;
+    for (UINT option = 0; option < 12; ++option) {
+        DWORD flags = 0;
+        if (option < 7) {
+            if (owner_->InputOption(indices[option]) != 0) flags |= TF_LBMENUF_CHECKED;
+        } else if (option < 10) {
+            if (owner_->InputOption(5) == static_cast<int>(option - 7)) flags |= TF_LBMENUF_CHECKED;
+        } else if (option == 10) {
+            if (owner_->InputOption(8) == 0) flags |= TF_LBMENUF_CHECKED;
+        } else if (owner_->InputOption(8) != 0) {
+            flags |= TF_LBMENUF_CHECKED;
+        }
         if (!scheme2 && (option == 4 || option == 5 || option == 6) && !owner_->InputOption(2)) flags |= TF_LBMENUF_GRAYED;
         if (scheme2 && (option == 3 || option == 6)) flags |= TF_LBMENUF_GRAYED;
-        if (option == 10 && !owner_->SchemeAvailable()) flags |= TF_LBMENUF_GRAYED;
+        if (option == 11 && !owner_->SchemeAvailable()) flags |= TF_LBMENUF_GRAYED;
         menu->AddMenuItem(1000 + option, flags, nullptr, nullptr, titles[option], static_cast<ULONG>(wcslen(titles[option])), nullptr);
     }
     return S_OK;

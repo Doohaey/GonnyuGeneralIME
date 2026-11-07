@@ -1,7 +1,7 @@
 
 schema:
   schema_id: gannyu_@REGION@
-  name: @REGION_LABEL@
+  name: @REGION_LABEL@（一式·汉拼式）
   version: "@VERSION@"
 @OPTIONS_DEPENDENCIES@
   author:

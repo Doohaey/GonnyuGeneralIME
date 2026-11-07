@@ -152,16 +152,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         let currentRegion = (try? GannyuEngine.availableRegions())?.first { $0.id == GannyuRegionStore.shared.currentID() }
         let schemeAvailable = currentRegion?.transcriptionSchemes?.contains("ipa") ?? false
-        let schemeItem = NSMenuItem(
-            title: GannyuRegionStore.optionTitles[8],
-            action: #selector(selectInputOption(_:)),
-            keyEquivalent: ""
-        )
-        schemeItem.target = self
-        schemeItem.tag = 8
-        schemeItem.state = (schemeAvailable && values[8] != 0) ? .on : .off
-        schemeItem.isEnabled = schemeAvailable
-        settings.addItem(schemeItem)
+        let schemeEntry = NSMenuItem(title: "方案", action: nil, keyEquivalent: "")
+        let schemeMenu = NSMenu(title: "方案")
+        schemeMenu.autoenablesItems = false
+        let firstScheme = NSMenuItem(title: "一式（汉拼式）", action: #selector(selectInputOption(_:)), keyEquivalent: "")
+        firstScheme.target = self
+        firstScheme.tag = 20
+        firstScheme.state = values[8] == 0 ? .on : .off
+        schemeMenu.addItem(firstScheme)
+        let secondScheme = NSMenuItem(title: "二式（组合式）", action: #selector(selectInputOption(_:)), keyEquivalent: "")
+        secondScheme.target = self
+        secondScheme.tag = 21
+        secondScheme.state = (schemeAvailable && values[8] != 0) ? .on : .off
+        secondScheme.isEnabled = schemeAvailable
+        schemeMenu.addItem(secondScheme)
+        schemeEntry.submenu = schemeMenu
+        settings.addItem(schemeEntry)
         settings.addItem(.separator())
         for (index, title) in ["新老兼有", "新派", "老派"].enumerated() {
             let item = NSMenuItem(title: title, action: #selector(selectInputOption(_:)), keyEquivalent: "")
@@ -175,6 +181,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func selectInputOption(_ item: NSMenuItem) {
         let values = GannyuRegionStore.shared.inputOptions
+        if item.tag == 20 || item.tag == 21 {
+            GannyuRegionStore.shared.setInputOption(8, value: item.tag == 21 ? 1 : 0)
+            return
+        }
         let index = item.tag < 10 ? item.tag : 5
         let value = item.tag < 10 ? (values[index] == 0 ? 1 : 0) : Int32(item.tag - 10)
         GannyuRegionStore.shared.setInputOption(index, value: value)
