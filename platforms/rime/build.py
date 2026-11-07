@@ -19,10 +19,11 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 
 try:
-    from . import build_cache
+    from . import build_cache, transcription
     from .fuzzy import compile_algebra, essential_rules, load_rules
 except ImportError:
     import build_cache
+    import transcription
     from fuzzy import compile_algebra, essential_rules, load_rules
 
 
@@ -36,6 +37,7 @@ LUA_NAMES = (
 )
 LUA_SOURCES = {name: (PLATFORM_DIR / name).read_bytes() for name in LUA_NAMES}
 SCHEMA_TEMPLATE = (PLATFORM_DIR / "gannyu.schema.yaml").read_text(encoding="utf-8")
+SCHEMA_IPA_TEMPLATE = (PLATFORM_DIR / "gannyu_ipa.schema.yaml").read_text(encoding="utf-8")
 HEADERS = (
     "本词",
     "国际音标",
@@ -631,7 +633,10 @@ def selected_entries(entries: list[Entry], mode: str, relations: bool) -> list[E
 
 
 def write_option_resources(region: str, entries: list[Entry], output: Path,
-                           full_algebra: list[str], special_algebra: list[str]) -> list[str]:
+                           full_algebra: list[str], special_algebra: list[str],
+                           region_name: str = "",
+                           ipa_enabled: bool = False,
+                           gon_map: dict[str, tuple[str, ...]] | None = None) -> list[str]:
     dependencies = []
     root = f"gannyu_{region}"
     forbidden_words = sorted({entry.word for entry in entries if entry.category == "官" and len(entry.word) > 1}
@@ -671,7 +676,7 @@ def write_option_resources(region: str, entries: list[Entry], output: Path,
                 algebra.insert(-3, "    - erase/^[^GF].*$/")
             body = (
                 f"schema:\n  schema_id: {schema_id}\n  name: {region}\n  version: \"{VERSION}\"\n"
-                f"translator:\n  dictionary: {dictionary_name}\n  prism: {dictionary_name}{prism_suffix}\n"
+                f"translator:\n  dictionary: {dictionary_name}\n  prism: {schema_id}\n"
                 + exclude_block
                 + f"  user_dict: {name}\n  enable_user_dict: true\n  enable_sentence: true\n"
                 "  enable_completion: true\n  spelling_hints: 8\n"
@@ -680,14 +685,72 @@ def write_option_resources(region: str, entries: list[Entry], output: Path,
             )
             (output / f"{schema_id}.schema.yaml").write_text(body, encoding="utf-8")
             dependencies.append(schema_id)
+    if ipa_enabled and gon_map:
+        base_id = f"{root}_ipa"
+        ipa_dependencies: list[str] = []
+        base_body = None
+        for mode, relations in itertools.product(("both", "new", "old"), (True, False)):
+            suffix = "" if mode == "both" and relations else f"_{mode}_" + ("rel" if relations else "norel")
+            name = root + suffix
+            dictionary_name = name if relations else root + ("" if mode == "both" else f"_{mode}_rel")
+            exclude_block = ""
+            if not relations:
+                selected = entries if not suffix else selected_entries(entries, mode, False)
+                rel_selected = entries if mode == "both" else selected_entries(entries, mode, True)
+                excluded = sorted(dictionary_words(rel_selected) - dictionary_words(selected))
+                if excluded:
+                    exclude_block = "  dictionary_exclude:\n" + "".join(
+                        f"    - {json.dumps(word, ensure_ascii=False)}\n" for word in excluded
+                    )
+            for mandarin, wenbai in itertools.product((True, False), repeat=2):
+                ipa_suffix = ("" if mandarin else "_gan") + ("" if wenbai else "_nowenbai")
+                schema_id = base_id + suffix + ipa_suffix
+                algebra = transcription.scheme2_algebra(gon_map, mandarin=mandarin, wenbai=wenbai)
+                if schema_id == base_id:
+                    base_body = (
+                        SCHEMA_IPA_TEMPLATE
+                        .replace("@REGION@", region)
+                        .replace("@REGION_LABEL@", f"赣语－{region_name}")
+                        .replace("@VERSION@", VERSION)
+                        .replace("@FUZZY_ALGEBRA@", "\n".join(algebra))
+                    )
+                else:
+                    body = (
+                        f"schema:\n  schema_id: {schema_id}\n  name: {region}\n  version: \"{VERSION}\"\n"
+                        f"translator:\n  dictionary: {dictionary_name}\n  prism: {schema_id}\n"
+                        + exclude_block
+                        + f"  user_dict: {name}_ipa\n  enable_user_dict: true\n  enable_sentence: true\n"
+                        "  enable_completion: true\n  spelling_hints: 8\n"
+                        "speller:\n  alphabet: zyxwvutsrqponmlkjihgfedcba\n  delimiter: \" '\"\n  algebra:\n"
+                        + "\n".join(algebra) + "\n"
+                    )
+                    (output / f"{schema_id}.schema.yaml").write_text(body, encoding="utf-8")
+                    ipa_dependencies.append(schema_id)
+        if base_body is None:
+            raise ValueError(f"missing scheme2 base variant for {region}")
+        deps = "\n".join(f"    - {item}" for item in ipa_dependencies)
+        base_body = base_body.replace(
+            "@OPTIONS_DEPENDENCIES@",
+            "  dependencies:\n" + deps,
+        )
+        (output / f"{base_id}.schema.yaml").write_text(base_body, encoding="utf-8")
+        dependencies.append(base_id)
     return dependencies
+
+
+def _ipa_enabled(region: str) -> bool:
+    with (ROOT / "resources" / "regions" / region / "region.toml").open("rb") as handle:
+        return transcription.scheme2_config(tomllib.load(handle))[0]
 
 
 def write_default_custom(output: Path, regions: tuple[str, ...]) -> None:
     lines = ["patch:", "  switcher/save_options/+:" ]
     lines.extend(f"    - {option}" for option in OPTION_NAMES)
     lines.append("  schema_list/+:")
-    lines.extend(f"    - schema: gannyu_{region}" for region in regions)
+    for region in regions:
+        lines.append(f"    - schema: gannyu_{region}")
+        if _ipa_enabled(region):
+            lines.append(f"    - schema: gannyu_{region}_ipa")
     (output / "default.custom.yaml").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
@@ -698,7 +761,12 @@ def write_mobile_default(output: Path, regions: tuple[str, ...]) -> None:
     schemas such as luna_pinyin. Mobile packages ship only Gonnyu schemas, so
     their base config must not name an external schema during deployment.
     """
-    schema_list = "\n".join(f"  - schema: gannyu_{region}" for region in regions)
+    schema_list = "\n".join(
+        line for region in regions for line in (
+            f"  - schema: gannyu_{region}",
+            *( [f"  - schema: gannyu_{region}_ipa"] if _ipa_enabled(region) else [] ),
+        )
+    )
     (output / "default.yaml").write_text(
         "# Generated mobile Rime defaults; do not edit.\n"
         f"config_version: \"{VERSION}\"\n\n"
@@ -805,6 +873,8 @@ def build(region: str, output: Path, display_name: str = "short") -> dict[str, i
     paths = [config_path, ROOT / "LICENSE", PLATFORM_DIR / "build.py",
              PLATFORM_DIR / "fuzzy.py", PLATFORM_DIR / "build_cache.py",
              PLATFORM_DIR / "gannyu.schema.yaml",
+             PLATFORM_DIR / "gannyu_ipa.schema.yaml",
+             PLATFORM_DIR / "transcription.py",
              *(PLATFORM_DIR / name for name in LUA_NAMES)]
     paths.extend(region_dir / config["language"][name]
                  for name in ("chars", "words", "gan_chars", "gan_words")
@@ -910,7 +980,17 @@ def build_uncached(region: str, output: Path, display_name: str = "short") -> di
         .replace("@FUZZY_ALGEBRA@", "\n".join(["    - xform/^W/G/", *algebra]))
     )
     (output / f"{schema_id}.schema.yaml").write_text(schema, encoding="utf-8")
-    dependencies = write_option_resources(region, entries, output, algebra, compile_algebra(canonical, essential_rules(rules)))
+    ipa_enabled, ee_e_opposition, oo_o_opposition = transcription.scheme2_config(config)
+    gon_map = (transcription.build_gon_map(entries, ee_e_opposition=ee_e_opposition,
+                                           oo_o_opposition=oo_o_opposition)
+               if ipa_enabled else {})
+    if ipa_enabled and not gon_map:
+        ipa_enabled = False
+    dependencies = write_option_resources(
+        region, entries, output, algebra,
+        compile_algebra(canonical, essential_rules(rules)),
+        region_name=region_name, ipa_enabled=ipa_enabled, gon_map=gon_map,
+    )
     schema_path = output / f"{schema_id}.schema.yaml"
     schema_path.write_text(schema_path.read_text(encoding="utf-8").replace("@OPTIONS_DEPENDENCIES@", "  dependencies:\n" + "\n".join(f"    - {name}" for name in dependencies)), encoding="utf-8")
     write_default_custom(output, (region,))
@@ -922,6 +1002,7 @@ def build_uncached(region: str, output: Path, display_name: str = "short") -> di
         "readings": len(readings),
         "relations": len(before) + len(after),
         "fuzzy_spellings": len(algebra) - 3,
+        "scheme2_spellings": sum(len(values) for values in gon_map.values()),
     }
 
 

@@ -43,4 +43,19 @@ for _, annotations in ipairs({false, true}) do
     end
   end
 end
+
+
+local ipa = environment({"gannyu_no_annotations"}, {
+  gannyu_old = true,
+  gannyu_no_mandarin = true,
+  gannyu_no_wenbai = true,
+})
+ipa.engine.schema.schema_id = "gannyu_test_ipa"
+local ipa_dictionary, ipa_suffix = options.names(ipa)
+assert(ipa_dictionary == "gannyu_test_old_rel")
+assert(ipa_suffix == "_old_rel_gan_nowenbai")
+ipa.engine.context = {get_option = function(_, key) return key == "gannyu_both" end}
+ipa_dictionary, ipa_suffix = options.names(ipa)
+assert(ipa_dictionary == "gannyu_test" and ipa_suffix == "")
+
 print("switch declarations control hot options without an additional marker")

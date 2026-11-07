@@ -19,17 +19,26 @@ function M.enabled(env, name)
 end
 
 function M.names(env)
-  if not supported(env) then return env.engine.schema.schema_id, "" end
+  local schema_id = env.engine.schema.schema_id
+  local ipa = schema_id:sub(-4) == "_ipa"
+  local root = ipa and schema_id:sub(1, -5) or schema_id
+  if not supported(env) then return schema_id, "" end
   local context = env.engine and env.engine.context
   local mode = context and context:get_option("gannyu_new") and "new"
     or context and context:get_option("gannyu_old") and "old" or "both"
   local relations = M.enabled(env, "relations")
   local dictionary = mode == "both" and relations and "" or "_" .. mode .. (relations and "_rel" or "_norel")
+  if ipa then
+    local mandarin = M.enabled(env, "mandarin")
+    local wenbai = M.enabled(env, "wenbai")
+    local suffix = dictionary .. (mandarin and "" or "_gan") .. (wenbai and "" or "_nowenbai")
+    return root .. dictionary, suffix
+  end
   local full = M.enabled(env, "fuzzy") and M.enabled(env, "fuzzy_rules")
   local mandarin = M.enabled(env, "fuzzy") and M.enabled(env, "mandarin")
   local prism = full and mandarin and "" or (full and "_full" or "_special") .. (mandarin and "_mix" or "_gan")
   local wenbai = M.enabled(env, "fuzzy") and M.enabled(env, "wenbai")
-  return env.engine.schema.schema_id .. dictionary, dictionary .. prism .. (wenbai and "" or "_nowenbai")
+  return schema_id .. dictionary, dictionary .. prism .. (wenbai and "" or "_nowenbai")
 end
 
 return M

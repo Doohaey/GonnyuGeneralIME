@@ -1,0 +1,79 @@
+
+schema:
+  schema_id: gannyu_@REGION@_ipa
+  name: @REGION_LABEL@（二式）
+  version: "@VERSION@"
+@OPTIONS_DEPENDENCIES@
+  author:
+    - GannyuInputMethod contributors
+  description: |
+    二式（IPA 转写）方案；不使用一式的模糊、特殊符号和零声母转写规则。
+
+switches:
+  - name: ascii_mode
+    reset: 0
+    states: [@REGION_LABEL@（二式）, 西]
+  - name: gannyu_no_annotations
+    states: [副标题开, 副标题关]
+  - name: gannyu_no_relations
+    states: [赣普连带开, 赣普连带关]
+  - name: gannyu_no_synonyms
+    states: [同义词连带开, 同义词连带关]
+  - name: gannyu_no_mandarin
+    states: ["  普拼兼容开", "  普拼兼容关"]
+  - name: gannyu_no_wenbai
+    states: ["  文白匹配开", "  文白匹配关"]
+  - options: [gannyu_both, gannyu_new, gannyu_old]
+    states: [新老兼有, 新派, 老派]
+
+engine:
+  processors:
+    - ascii_composer
+    - recognizer
+    - key_binder
+    - speller
+    - punctuator
+    - selector
+    - navigator
+    - express_editor
+  segmentors:
+    - ascii_segmentor
+    - matcher
+    - abc_segmentor
+    - punct_segmentor
+    - fallback_segmentor
+  translators:
+    - punct_translator
+    - lua_translator@*gannyu_options_translator
+  filters:
+    - lua_filter@*gannyu_single_char_filter
+    - lua_filter@*gannyu_relation_filter
+    - lua_filter@*gannyu_annotation_filter
+    - uniquifier
+
+speller:
+  alphabet: zyxwvutsrqponmlkjihgfedcba
+  delimiter: " '"
+  algebra:
+@FUZZY_ALGEBRA@
+
+translator:
+  dictionary: gannyu_@REGION@
+  enable_user_dict: true
+  enable_sentence: true
+  enable_completion: true
+  spelling_hints: 8
+  prism: gannyu_@REGION@_ipa
+  user_dict: gannyu_@REGION@_ipa
+
+menu:
+  page_size: 9
+
+punctuator:
+  import_preset: default
+
+key_binder:
+  import_preset: default
+
+recognizer:
+  import_preset: default
