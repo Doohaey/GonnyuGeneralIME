@@ -82,10 +82,16 @@ fn yikyan_source_dictionary_spellings_are_preserved() {
 #[test]
 fn n_l_hong_fuzzy_rules_are_scoped_to_registered_prefixes() {
     let cases: &[(&str, &[&str], &[&str])] = &[
-        ("lancong", &["nan", "nong", "nu", "nêt", "nêu"], &["ni", "nien", "nyu", "n"]),
+        (
+            "lancong",
+            &["nan", "nong", "nu", "nêt", "nêu"],
+            &["ni", "nien", "nyu", "n"],
+        ),
         (
             "fenni",
-            &["nai", "nak", "nan", "nang", "nau", "nei", "nen", "neu", "no", "nu"],
+            &[
+                "nai", "nak", "nan", "nang", "nau", "nei", "nen", "neu", "no", "nu",
+            ],
             &["ni", "nien", "nyu", "na"],
         ),
         (
@@ -101,20 +107,24 @@ fn n_l_hong_fuzzy_rules_are_scoped_to_registered_prefixes() {
         (
             "sinyi",
             &[
-                "na", "nai", "naik", "nan", "nat", "nau", "no", "nok", "nong", "nu",
-                "nui", "nuk", "nun", "nung", "nuoi", "nuon", "nên", "nêu",
+                "na", "nai", "naik", "nan", "nat", "nau", "no", "nok", "nong", "nu", "nui", "nuk",
+                "nun", "nung", "nuoi", "nuon", "nên", "nêu",
             ],
             &["ni", "nien", "nyu", "nï"],
         ),
         (
             "songau",
             &[
-                "na", "naen", "nai", "nan", "nat", "nau", "no", "noi", "nok", "non",
-                "not", "nu", "nuk", "nung",
+                "na", "naen", "nai", "nan", "nat", "nau", "no", "noi", "nok", "non", "not", "nu",
+                "nuk", "nung",
             ],
             &["ni", "nien", "nyu"],
         ),
-        ("goungon", &["nai", "nung", "nen", "nin", "nong"], &["ni", "nian", "niong"]),
+        (
+            "goungon",
+            &["nai", "nung", "nen", "nin", "nong"],
+            &["ni", "nian", "niong"],
+        ),
     ];
     for (region, positives, negatives) in cases {
         let map = FuzzyMap::load_tsv_for_region(fuzzy_path(), region).expect("load regional rules");
