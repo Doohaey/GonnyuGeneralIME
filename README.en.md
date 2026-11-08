@@ -136,7 +136,7 @@ Have the Mandarin word in mind first? Type its familiar Pinyin and find the Gan 
 
 ### Literary or colloquial — clear at a glance
 
-Gan everyday speech and written expression can sound different. The input method lays both readings out clearly, so your writing always fits the moment.
+Literary and colloquial layers, clearly shown.
 
 ![Literary and colloquial reading example: miangnit](resources/images/selection/miangnit.png)
 
