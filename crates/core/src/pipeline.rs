@@ -343,7 +343,14 @@ impl InputPipeline {
         if !self.dictionary.by_headword(headword).is_empty() {
             return false;
         }
-        if !self.user_dict.add(headword, pinyin, mandarin_pinyin) {
+        let stored_pinyin = match (&self.scheme2_map, self.input_options.scheme) {
+            (Some(map), crate::TranscriptionScheme::Ipa) => map.to_scheme1_reading(pinyin),
+            _ => pinyin.to_string(),
+        };
+        if !self
+            .user_dict
+            .add(headword, &stored_pinyin, mandarin_pinyin)
+        {
             return false;
         }
         let entry = self
@@ -353,11 +360,6 @@ impl InputPipeline {
             .cloned();
         if let Some(entry) = entry {
             let (scheme1_entry, scheme2_entry) = match self.scheme2_map.as_ref() {
-                Some(map) if self.input_options.scheme == crate::TranscriptionScheme::Ipa => {
-                    let mut scheme1 = entry.clone();
-                    scheme1.dialect_pinyin = map.to_scheme1_reading(&entry.dialect_pinyin).into();
-                    (scheme1, entry.clone())
-                }
                 Some(map) => {
                     let mut scheme2 = entry.clone();
                     scheme2.dialect_pinyin = map.convert_reading(&entry.dialect_pinyin).into();

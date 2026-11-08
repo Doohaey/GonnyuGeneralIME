@@ -72,4 +72,20 @@ fn second_scheme_reads_and_displays_the_projected_reading() {
         .retrieve("ka1")
         .iter()
         .any(|candidate| candidate.text == "甲"));
+
+    drop(pipeline);
+    let mut reloaded =
+        InputPipeline::load_with_user_data_dir(&resource, Some(&root.join("user"))).unwrap();
+    assert!(reloaded
+        .retrieve("ka3")
+        .iter()
+        .any(|candidate| candidate.text == "甲乙"));
+    reloaded.set_input_options(InputOptions {
+        scheme: TranscriptionScheme::Ipa,
+        ..InputOptions::default()
+    });
+    assert!(reloaded
+        .retrieve("kha3")
+        .iter()
+        .any(|candidate| candidate.text == "甲乙"));
 }
