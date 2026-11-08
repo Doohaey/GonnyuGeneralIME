@@ -267,7 +267,7 @@ The table below lists initial spellings by segment; IPA is shown in brackets.
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Bilabial | b[p] | p[pʰ] | bb[b] | — | — | — | f[ɸ] | — | m[m] | — |
 | Labiodental | — | — | — | — | — | — | f[f] | v[v] | — | — |
-| Apical dental | — | — | — | z[ts] | c[tsʰ] | zz[dz] | s[s][θ] | — | — | — |
+| Apical dental | — | — | — | z[ts] | c[tsʰ] | zz[dz] | s[s] | — | — | — |
 | Apical alveolar | d[t] | t[tʰ] | dd[d] | — | — | — | — | — | n[n] | l[l] |
 | Blade | — | — | — | — | — | — | — | — | — | — |
 | Retroflex | — | — | — | zh[tʂ] | ch[tʂʰ] | zzr[dʐ] | sh[ʂ] | r[ʐ] | n[ɳ] | — |
@@ -285,7 +285,7 @@ The tables below list vowel, coda, and syllabic spellings by segment; IPA is sho
 |  | Front unrounded | Front rounded | Central unrounded | Central rounded | Back unrounded | Back rounded |
 | --- | --- | --- | --- | --- | --- | --- |
 | Apical | i(ï)[ɿ][ʅ] | yu[ʯ] | — | — | — | — |
-| High | i[i] | yu[y] | e[ɨ] | — | e[ɯ] | u[u] |
+| High | i[i] | yu[y] | e[ɨ] | — | — | u[u] |
 |  | e[ɪ] | — | — | — | — | — |
 | Close-mid | e(ê)[e] | oe[ø] | — | eo[ɵ] | e[ɤ] | o[o] |
 | Mid | — | — | e[ə] | — | — | — |
