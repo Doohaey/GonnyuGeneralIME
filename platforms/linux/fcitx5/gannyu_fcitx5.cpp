@@ -279,7 +279,7 @@ public:
     GannyuEngine(fcitx::Instance *instance)
         : instance_(instance),
           factory_([](fcitx::InputContext &) { return new GannyuEngineState; }) {
-        instance_->inputContextManager().registerProperty("gannyuState", &factory_);
+        instance_->inputContextManager().registerProperty(std::string(GANNYU_ADDON_ID) + "State", &factory_);
         regionAction_ = std::make_unique<GannyuRegionAction>(this);
         instance_->userInterfaceManager().registerAction(
             std::string("gannyu-region-") + GANNYU_ADDON_ID, regionAction_.get());
