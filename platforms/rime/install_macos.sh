@@ -32,6 +32,9 @@ install -m 0644 "$output_dir"/lua/gannyu_annotation_filter.lua "$user_dir/lua/ga
 install -m 0644 "$output_dir"/lua/gannyu_single_char_filter.lua "$user_dir/lua/gannyu_single_char_filter.lua"
 install -m 0644 "$output_dir"/lua/gannyu_relation_filter.lua "$user_dir/lua/gannyu_relation_filter.lua"
 for data in "$output_dir"/lua/gannyu_*_data.lua; do install -m 0644 "$data" "$user_dir/lua/"; done
+for data in "$output_dir"/lua/gannyu_*_scheme2.lua; do
+  [ -e "$data" ] && install -m 0644 "$data" "$user_dir/lua/"
+done
 rm -f "$user_dir/lua/gannyu_filter.lua" "$user_dir/lua/gannyu_default_processor.lua" "$user_dir/lua/gannyu_default_translator.lua"
 
 if [[ ! -e "$user_dir/default.custom.yaml" ]]; then
