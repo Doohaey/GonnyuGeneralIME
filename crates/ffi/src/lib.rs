@@ -98,6 +98,8 @@ struct EngineSessionState {
     accumulated_text: String,
     accumulated_readings: Vec<String>,
     accumulated_mandarin_readings: Vec<String>,
+    accumulated_readings_incomplete: bool,
+    accumulated_mandarin_incomplete: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -183,15 +185,24 @@ fn clear_accumulated_selection(session: &mut EngineSessionState) {
     session.accumulated_text.clear();
     session.accumulated_readings.clear();
     session.accumulated_mandarin_readings.clear();
+    session.accumulated_readings_incomplete = false;
+    session.accumulated_mandarin_incomplete = false;
 }
 
 fn maybe_save_user_word(pipeline: &mut InputPipeline, session: &mut EngineSessionState) {
-    if session.accumulated_text.chars().count() >= 2 && !session.accumulated_readings.is_empty() {
-        let mandarin = session.accumulated_mandarin_readings.join(" ");
+    if session.accumulated_text.chars().count() >= 2
+        && !session.accumulated_readings_incomplete
+        && !session.accumulated_readings.is_empty()
+    {
+        let mandarin = if session.accumulated_mandarin_incomplete {
+            String::new()
+        } else {
+            session.accumulated_mandarin_readings.join(" ")
+        };
         let _ = pipeline.add_user_word(
             &session.accumulated_text,
             &session.accumulated_readings.join(" "),
-            if mandarin.is_empty() { "" } else { &mandarin },
+            &mandarin,
         );
     }
     clear_accumulated_selection(session);
@@ -220,6 +231,8 @@ fn select_candidate_internal(
     session.accumulated_text.push_str(&committed);
     if let Some(reading) = candidate.reading.as_ref().filter(|value| !value.is_empty()) {
         session.accumulated_readings.push(reading.clone());
+    } else {
+        session.accumulated_readings_incomplete = true;
     }
     if let Some(reading) = candidate
         .mandarin_reading
@@ -227,6 +240,8 @@ fn select_candidate_internal(
         .filter(|value| !value.is_empty())
     {
         session.accumulated_mandarin_readings.push(reading.clone());
+    } else {
+        session.accumulated_mandarin_incomplete = true;
     }
     let consumed = candidate.consumed_bytes.min(session.raw_input.len());
     if consumed < session.raw_input.len() && session.raw_input.is_char_boundary(consumed) {

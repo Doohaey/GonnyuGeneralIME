@@ -202,8 +202,18 @@ public:
     std::string accumulatedReading;
     std::string accumulatedMandarinReading;
     std::string originalInput;
+    bool accumulatedReadingsIncomplete = false;
+    bool accumulatedMandarinIncomplete = false;
     bool doubleQuoteOpen = false;
     bool singleQuoteOpen = false;
+
+    void clearAccumulatedSelection() {
+        accumulatedText.clear();
+        accumulatedReading.clear();
+        accumulatedMandarinReading.clear();
+        accumulatedReadingsIncomplete = false;
+        accumulatedMandarinIncomplete = false;
+    }
 
     std::string nextDoubleQuote() {
         bool opening = doubleQuoteOpen;
@@ -309,10 +319,14 @@ public:
         if (!reading.empty()) {
             if (!state->accumulatedReading.empty()) state->accumulatedReading += " ";
             state->accumulatedReading += reading;
+        } else {
+            state->accumulatedReadingsIncomplete = true;
         }
         if (!mandarinReading.empty()) {
             if (!state->accumulatedMandarinReading.empty()) state->accumulatedMandarinReading += " ";
             state->accumulatedMandarinReading += mandarinReading;
+        } else {
+            state->accumulatedMandarinIncomplete = true;
         }
         if (state->buffer.size() >= 4 && consumed > 0 && consumed < (int)state->buffer.size()) {
             state->buffer = state->buffer.substr(consumed);
@@ -409,9 +423,7 @@ public:
         if (sym == FcitxKey_Return) {
             if (!state->buffer.empty()) {
                 ic->commitString(state->buffer);
-                state->accumulatedText.clear();
-                state->accumulatedReading.clear();
-                state->accumulatedMandarinReading.clear();
+                state->clearAccumulatedSelection();
                 state->originalInput.clear();
                 resetState(ic, state);
                 event.filterAndAccept();
@@ -501,9 +513,7 @@ public:
         }
         if (sym == FcitxKey_Escape) {
             if (!state->buffer.empty()) {
-                state->accumulatedText.clear();
-                state->accumulatedReading.clear();
-                state->accumulatedMandarinReading.clear();
+                state->clearAccumulatedSelection();
                 state->originalInput.clear();
                 resetState(ic, state);
                 event.filterAndAccept();
@@ -512,9 +522,7 @@ public:
         }
         if (sym >= FcitxKey_a && sym <= FcitxKey_z) {
             if (state->buffer.empty()) {
-                state->accumulatedText.clear();
-                state->accumulatedReading.clear();
-                state->accumulatedMandarinReading.clear();
+                state->clearAccumulatedSelection();
             }
             state->buffer.insert(state->cursor, 1, static_cast<char>(sym));
             ++state->cursor;
@@ -525,9 +533,7 @@ public:
         }
         if (sym >= FcitxKey_A && sym <= FcitxKey_Z) {
             if (state->buffer.empty()) {
-                state->accumulatedText.clear();
-                state->accumulatedReading.clear();
-                state->accumulatedMandarinReading.clear();
+                state->clearAccumulatedSelection();
             }
             state->buffer.insert(state->cursor, 1, static_cast<char>(sym - FcitxKey_A + FcitxKey_a));
             ++state->cursor;
@@ -538,9 +544,7 @@ public:
         }
         if (sym == FcitxKey_apostrophe) {
             if (state->buffer.empty()) {
-                state->accumulatedText.clear();
-                state->accumulatedReading.clear();
-                state->accumulatedMandarinReading.clear();
+                state->clearAccumulatedSelection();
             }
             state->buffer.insert(state->cursor, 1, '\'');
             ++state->cursor;
@@ -853,6 +857,7 @@ private:
     }
 
     void resetState(fcitx::InputContext *ic, GannyuEngineState *state) {
+        state->clearAccumulatedSelection();
         state->buffer.clear();
         state->cursor = 0;
         state->sentenceMode = false;
@@ -871,17 +876,19 @@ private:
             i += (lead < 0x80) ? 1 : ((lead < 0xE0) ? 2 : ((lead < 0xF0) ? 3 : 4));
             ++count;
         }
-        if (count >= 2 && !state->accumulatedReading.empty() && pipeline_) {
+        if (count >= 2 && !state->accumulatedReadingsIncomplete &&
+            !state->accumulatedReading.empty() && pipeline_) {
+            const std::string mandarin = state->accumulatedMandarinIncomplete
+                ? std::string()
+                : state->accumulatedMandarinReading;
             gannyu_pipeline_user_dict_add(
                 pipeline_,
                 state->accumulatedText.c_str(),
                 state->accumulatedReading.c_str(),
-                state->accumulatedMandarinReading.c_str(),
+                mandarin.c_str(),
                 nullptr);
         }
-        state->accumulatedText.clear();
-        state->accumulatedReading.clear();
-        state->accumulatedMandarinReading.clear();
+        state->clearAccumulatedSelection();
         state->originalInput.clear();
     }
 
