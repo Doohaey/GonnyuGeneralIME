@@ -54,8 +54,10 @@ def test_fcitx5_scopes_user_data_by_region() -> None:
 
     assert "std::string regionUserDataDirectory(const std::string &region)" in source
     assert '"XDG_DATA_HOME"' in source
-    assert '"/.local/share/gannyu-input"' in source
-    assert '"/regions/"' in source
+    assert 'std::filesystem::path(xdg) / "gannyu-input"' in source
+    assert 'std::filesystem::path(home) / ".local" / "share" / "gannyu-input"' in source
+    assert "std::filesystem::path base" in source
+    assert '(base / "regions" / region).string()' in source
     assert "gannyu_pipeline_create_with_user_data_dir(" in source
     assert "regionUserDataDirectory(regionId_)" in source
 

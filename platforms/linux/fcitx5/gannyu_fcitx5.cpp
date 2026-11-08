@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <cstring>
+#include <filesystem>
 #include <functional>
 #include <list>
 #include <memory>
@@ -60,15 +61,15 @@ std::string regionUserDataDirectory(const std::string &region) {
         region.find('/') != std::string::npos || region.find('\\') != std::string::npos) {
         return {};
     }
-    std::string base;
+    std::filesystem::path base;
     if (const char *xdg = std::getenv("XDG_DATA_HOME"); xdg && *xdg) {
-        base = std::string(xdg) + "/gannyu-input";
+        base = std::filesystem::path(xdg) / "gannyu-input";
     } else if (const char *home = std::getenv("HOME"); home && *home) {
-        base = std::string(home) + "/.local/share/gannyu-input";
+        base = std::filesystem::path(home) / ".local" / "share" / "gannyu-input";
     } else {
         return {};
     }
-    return base + "/regions/" + region;
+    return (base / "regions" / region).string();
 }
 
 struct RankedItem {
