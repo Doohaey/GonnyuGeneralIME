@@ -427,7 +427,7 @@ With no initial consonant:
 | uoik | - | - | [uɔiʔ] | - | - | - | - | - | - | - | - | - | - |  |
 | uek | — | [uɛʔ] or [uɨʔ] | [uɛʔ] | [uɛʔ] or [uəʔ] | - | - | - | [uəʔ] or [uɛʔ] | - | [ueʔ] | - | - | — |  |
 | ueik | - | [uɛiʔ] | - | [uəiʔ] | - | - | - | - | - | - | - | - | uik (after initial, one-way) |  |
-| uik | - | - | [uiʔ] | - | - | - | - | - | - | - | - | - | uik |  |
+| uik | - | - | [uiʔ] | - | - | - | - | - | - | - | - | - | - |  |
 
 \* `u`: The rounded postalveolar apical vowel [ʯ] is written u; finals beginning with [ʯ] also use u-series spellings. The vowel and its medial forms correspond to the front rounded series and are listed under rounded finals by spelling.
 

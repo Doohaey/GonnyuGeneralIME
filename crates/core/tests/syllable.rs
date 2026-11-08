@@ -114,6 +114,7 @@ fn n_l_hong_fuzzy_rules_are_scoped_to_registered_prefixes() {
             ],
             &["ni", "nien", "nyu"],
         ),
+        ("goungon", &["nai", "nen", "nin"], &["ni", "nian", "niong", "nong"]),
     ];
     for (region, positives, negatives) in cases {
         let map = FuzzyMap::load_tsv_for_region(fuzzy_path(), region).expect("load regional rules");

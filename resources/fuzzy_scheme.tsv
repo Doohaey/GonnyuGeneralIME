@@ -120,3 +120,4 @@ fungcen	onset	n	l		南	syllable-initial	false	false	primary	naek,nai,nan,nau,nok
 jisuibaedu	onset	n	l		南	syllable-initial	false	false	primary	nae,nai,nan,nau,no,nu,nên	吉水八都泥母洪音今读 l，输入 n 匹配 l；限登记前缀	none
 sinyi	onset	n	l		南	syllable-initial	false	false	primary	na,no,nu,nên,nêu	新余泥母洪音今读 l，输入 n 匹配 l；限登记前缀	none
 songau	onset	n	l		南	syllable-initial	false	false	primary	na,no,nu	上高泥母洪音今读 l，输入 n 匹配 l；限登记前缀	none
+goungon	onset	n	l		泥	syllable-initial	false	false	primary	nai,nen,nin	高安泥/娘细音 l 读；限 nai、nen、nin；i、ong 不转	none

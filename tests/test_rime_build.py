@@ -946,6 +946,10 @@ def test_n_l_hong_fuzzy_rules_are_scoped_to_registered_prefixes() -> None:
             ["na", "naen", "nai", "nan", "nat", "nau", "no", "noi", "nok", "non", "not", "nu", "nuk", "nung"],
             ["ni", "nien", "nyu"],
         ),
+        "goungon": (
+            ["nai", "nen", "nin"],
+            ["ni", "nian", "niong", "nong"],
+        ),
     }
     for region, (positives, negatives) in cases.items():
         rules = load_rules(RULES_PATH, region)
