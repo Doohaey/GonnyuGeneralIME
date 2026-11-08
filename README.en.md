@@ -751,6 +751,7 @@ The project compiles its regional dictionaries from participants’ everyday lan
 14. Jiangxi Provincial Local Gazetteer Compilation Committee; Chen Changyi, editor. *Gazetteer of the Dialects of Jiangxi Province* (江西省方言志) [M]. Beijing: Fangzhi Press, 2005. *Jiangxi Provincial Gazetteer*, vol. 96. ISBN 7-80192-490-8. [Catalogue](https://search.worldcat.org/title/70105497).
 15. Xiao Jiugen. *A Study of the Badu Dialect* (八都方言研究) [D]. Master's thesis, Guangxi University, 2001.
 16. Mei Zhixing. *A Study of Variation in the Central Rounded Vowel [ɵ] in the Goungon Dialect* (高安方言央圆唇元音[ɵ]的变异研究) [Dissertation]. Guangdong University of Foreign Studies, 2020.
+17. 南陸 (srili). Zhihu profile [EB/OL]. <https://www.zhihu.com/people/srili>. Accessed 2026-11-08.
 
 ### Reference implementations
 
@@ -807,3 +808,4 @@ We believe our work is an important part of protecting Sinitic linguistic divers
 6. 剑邑 Jason. Fungcen (Fengcheng) testing and feedback.
 7. Brian Z. Xinyu (新喻) readings and dictionary entries. <https://github.com/BrianIZKom1911>
 8. 阿星. Goungon phonology and dictionary resources.
+9. 新余渝水Anatolia. Drafted the Second Scheme (Compositional) of Gon-pin.
