@@ -226,27 +226,27 @@ The general Gon(Gan) romanisation (gon-pin) first scheme used by this project re
 
 #### Initials
 
-| gon-pin | Default IPA | Fungcen IPA | Tiqien IPA | Sinyi IPA | Songau IPA | Seusong IPA | Jingon IPA | Yikyan-Henfeng IPA | Jisuibaedu IPA | Xyucuênn IPA | Singzï IPA | Goungon IPA | Accepted alternative input | Notes |
+| gon-pin | Lancong IPA | Fungcen IPA | Tiqien IPA | Sinyi IPA | Songau IPA | Seusong IPA | Jingon IPA | Yikyan-Henfeng IPA | Jisuibaedu IPA | Xyucuênn IPA | Singzï IPA | Goungon IPA | Accepted alternative input | Notes |
 | --- | --- | --- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | --- | --- |
 | ∅ | [] or [ʔ] | - | - | - | - | - | - | - | - | - | - | - |  | Zero initial, with [ʔ] as a special case. |
-| b | [p] | - | - | - | - | - | - | - | - | - | - | - |  |  |
-| p | [pʰ] | - | - | - | - | - | - | - | - | - | - | - |  |  |
-| m | [m] | - | - | - | - | - | - | - | - | - | - | - | - |  |
-| f | [f] or [ɸ] | - | - | - | - | - | - | - | - | - | - | - | — | Usually transcribed as [f]; some consider it closer to [ɸ], a bilabial sound. |
-| d | [t] | - | - | - | - | - | - | - | - | - | - | - |  |  |
-| t | [tʰ] | - | - | - | - | - | - | - | - | - | - | - |  |  |
-| l | [l] | - | - | - | - | - | - | - | - | - | - | - | - |  |
-| z | [ts] | - | - | - | - | - | - | - | - | - | - | - |  |  |
-| c | [tsʰ] | - | - | - | - | - | - | - | - | - | - | - |  |  |
-| s | [s] | - | - | [θ] | - | - | - | - | - | - | - | - |  |  |
-| j | [tɕ] | - | - | - | - | - | - | - | - | - | - | - |  |  |
-| q | [tɕʰ] | - | - | - | - | - | - | - | - | - | - | - |  |  |
-| n | [ȵ] | - | [n] | [n] | - | [n] or [ɳ] | - | [n] | [ɳ] | [n] | [n] | - | - |  |
-| x | [ɕ] | - | - | － | － | - | - | - | - | - | - | - |  |  |
-| g | [k] | - | - | - | - | - | - | - | - | - | - | - |  |  |
-| k | [kʰ] | - | - | - | - | - | - | - | - | - | - | - |  |  |
-| ng | [ŋ] | - | - | - | - | - | - | - | - | - | - | - | - | Velar nasal; example: 五 ng3. |
-| h | [h] | [x] | - | - | [x] | [x] | [x] | [x] | [x] | - | [x] | - | — | The default [h] is articulated farther back than Mandarin h. |
+| b | [p] | [p] | [p] | [p] | [p] | [p] | [p] | [p] | [p] | [p] | [p] | [p] |  |  |
+| p | [pʰ] | [pʰ] | [pʰ] | [pʰ] | [pʰ] | [pʰ] | [pʰ] | [pʰ] | [pʰ] | [pʰ] | - | [pʰ] |  |  |
+| m | [m] | [m] | [m] | [m] | [m] | [m] | [m] | [m] | [m] | [m] | [m] | [m] | - |  |
+| f | [ɸ] or [f] | [f] | [f] | [ɸ] or [f] | [f] | [f] | [f] | [f] | [f] | [f] | [f] | [f] | — | Usually transcribed as [f]; some consider it closer to [ɸ], a bilabial sound. |
+| d | [t] | [t] | [t] | [t] | [t] | [t] | [t] | [t] | [t] | [t] | [t] | [t] |  |  |
+| t | [tʰ] | [tʰ] | [tʰ] | [tʰ] | [tʰ] | [tʰ] | [tʰ] | [tʰ] | [tʰ] | [tʰ] | - | [tʰ] |  |  |
+| l | [l] | [l] | [l] | [l] | [l] | [l] | [l] | [l] | [l] | [l] | [l] | [l] | - |  |
+| z | [ts] | [ts] | [ts] | [ts] | [ts] | [ts] | [ts] | [ts] | [ts] | [ts] | [ts] | [ts] |  |  |
+| c | [tsʰ] | [tsʰ] | [tsʰ] | [tsʰ] | [tsʰ] | [tsʰ] | [tsʰ] | [tsʰ] | [tsʰ] | [tsʰ] | - | [tsʰ] |  |  |
+| s | [s] | [s] | [s] | [s] | [s] | [s] | [s] | [s] | [s] | [s] | [s] | [s] |  |  |
+| j | [tɕ] | [tɕ] | [tɕ] | [tɕ] | [tɕ] | [tɕ] | [tɕ] | [tɕ] | [tɕ] | [tɕ] | [tɕ] | [tɕ] |  |  |
+| q | [tɕʰ] | [tɕʰ] | [tɕʰ] | [tɕʰ] | [tɕʰ] | [tɕʰ] | [tɕʰ] | [tɕʰ] | [tɕʰ] | [tɕʰ] | - | [tɕʰ] |  |  |
+| n | [n] or [ȵ] | [n] or [ȵ] | [n] | [ȵ] | [ȵ] | [n] or [ɳ] or [ȵ] | [ȵ] | [n] or [ȵ] | [ɳ] | [n] or [ȵ] | [n] or [ȵ] | - | - |  |
+| x | [ɕ] | [ɕ] | [ɕ] | [ɕ] | [ɕ] | [ɕ] | [ɕ] | [ɕ] | [ɕ] | [ɕ] | [ɕ] | [ɕ] |  |  |
+| g | [k] | [k] | [k] | [k] | [k] | [k] | [k] | [k] | [k] | [k] | [k] | [k] |  |  |
+| k | [kʰ] | [kʰ] | [kʰ] | [kʰ] | [kʰ] | [kʰ] | [kʰ] | [kʰ] | [kʰ] | [kʰ] | - | [kʰ] |  |  |
+| ng | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | - | Velar nasal; example: 五 ng3. |
+| h | [h] | [x] or [h] | [h] | [h] | [x] | [x] | [x] or [h] | [x] | [x] | [h] | [x] | [h] | — | The default [h] is articulated farther back than Mandarin h. |
 | v | - | [v] | [v] | - | [v] | - | - | - | - | - | - | - | w, wu (at the start of a syllable, one-way) |  |
 | ch | - | - | - | - | - | [tʂʰ] | - | - | - | - | - | - |  |  |
 | r | - | - | - | - | - | [ʐ] | - | - | - | - | - | - |  |  |
@@ -277,12 +277,6 @@ The table below lists initial spellings by segment; IPA is shown in brackets.
 | Glottal | — | — | — | — | — | — | h[h] | — | — | — |
 
 #### Finals
-
-Checked-tone codas follow these spelling and input rules.
-
-- The coda [ʔ] is written as `-k` in Gon-pin.
-- Checked-tone codas may be omitted during input while still matching the corresponding readings.
-- Each locality independently specifies a combination of `-t`, `-p`, and `-k`, or no checked-tone codas. The codas enabled for a locality are accepted interchangeably within that locality.
 
 ##### Final segments
 
@@ -316,57 +310,63 @@ The tables below list vowel, coda, and syllabic spellings by segment; IPA is sho
 | ŋ̩ / ŋ̍ | ng |
 | ɭ̩ | l |
 
+Checked-tone codas follow these spelling and input rules.
+
+- The coda [ʔ] is written as `-k` in Gon-pin.
+- Checked-tone codas may be omitted during input while still matching the corresponding readings.
+- Each locality independently specifies a combination of `-t`, `-p`, and `-k`, or no checked-tone codas. The codas enabled for a locality are accepted interchangeably within that locality.
+
 ##### Open finals
 
-| gon-pin | Default IPA | Fungcen IPA | Tiqien IPA | Sinyi IPA | Songau IPA | Seusong IPA | Jingon IPA | Yikyan-Henfeng IPA | Jisuibaedu IPA | Xyucuênn IPA | Singzï IPA | Goungon IPA | Accepted alternative input | Notes |
+| gon-pin | Lancong IPA | Fungcen IPA | Tiqien IPA | Sinyi IPA | Songau IPA | Seusong IPA | Jingon IPA | Yikyan-Henfeng IPA | Jisuibaedu IPA | Xyucuênn IPA | Singzï IPA | Goungon IPA | Accepted alternative input | Notes |
 | --- | --- | --- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | --- | --- |
-| ae | - | [æ] | - | - | [æ] | [æ] | [æ] | - | [æ] | [æ] | - | - | — |  |
-| a | [a] | - | - | - | - | - | - | - | - | - | - | - | — |  |
-| o* | [o] | - | [ɔ] | - | - | - | [ɔ] | - | - | [ɔ] | [ɔ] | [ɔ] | oo (→ ô) |  |
-| oe | - | - | - | [ø] | - | - | [œ] or [ø] | - | - | - | - | - |  |  |
-| e* | [e] | [ɛ] | [ɛ] | [ə] or [ɛ] | [ə] | - | [ə] or [ɛ] | [ə] or [ɛ] or [ɯ] | [ə] or [ɛ] | [ɛ] or [ɤ] | [ɛ] | [ə] or [ɛ] | ir (→ e), er (→ e), ee (→ ê) |  |
-| eo | [ɵ] | - | - | - | - | - | - | - | - | - | - | - | o (standalone syllable, one-way) |  |
-| ai | [ai] | - | - | - | - | - | - | - | - | - | - | - | — |  |
-| oi | [oi] | - | [ɔi] | [ɔi] | [ɔi] | - | [ɔi] | - | - | - | - | [ɔi] | — |  |
-| ei | [ei] or [ɨi] | [ɛi] | [ɛi] | [əi] | - | - | - | - | - | - | - | [əi] or [ɛi] | — | － |
+| ae | - | - | - | - | [æ] | [æ] | [æ] | - | [æ] | [æ] | - | - | — |  |
+| a | [a] | [a] | [a] | [a] | [a] | [a] | [a] | [a] | [a] | [a] | [a] | [a] | — |  |
+| o* | [o] | [o] | [ɔ] | [o] | [o] | [o] | [o] or [ɔ] | [o] | [o] | [o] or [ɔ] | [o] or [ɔ] | [ɔ] | oo (→ ô) |  |
+| oe | - | - | - | [ø] | - | - | [œ] | - | - | - | - | - |  |  |
+| e* | [e] or [ə] | [ə] or [ɛ] | [ɛ] | [e] or [ɛ] | [ə] | [e] | [ə] or [ɛ] | [e] or [ə] or [ɛ] | [ə] or [ɛ] | [e] or [ɤ] or [ɛ] | [ɛ] | [ə] or [ɛ] | ir (→ e), er (→ e), ee (→ ê) |  |
+| eo | [ɵ] | [ɵ] | [ɵ] | [ɵ] | - | - | [ɵ] | - | - | - | - | [ɵ] | o (standalone syllable, one-way) |  |
+| ai | [ai] | [ai] | [ai] | [ai] | [ai] | [ai] | [ai] | [ai] | [ai] | [ai] | [ai] | [ai] | — |  |
+| oi | [oi] | [oi] | [ɔi] | [oi] or [ɔi] | [ɔi] | - | [ɔi] | [oi] | - | - | - | [ɔi] | — |  |
+| ei | [ɨi] or [ei] | [ɛi] | [ɛi] | [əi] | - | [ei] | [ei] | [ei] | - | - | [ei] | [ei] or [əi] or [ɛi] | — | － |
 | eoi | - | - | - | [ɵi] | - | - | - | - | - | - | - | - | — |  |
 | aeu | - | - | - | - | [æu] | - | - | - | - | - | - | - |  |  |
-| au | [au] | [ɑu] | - | - | - | [ɑu] | - | - | - | - | - | - | ao |  |
+| au | [au] | [ɑu] | [au] | [au] | [au] | [ɑu] | [au] | [au] | [au] | - | [au] | [au] | ao |  |
 | ou | - | - | [ɔu] | - | - | - | - | [ɔu] | - | - | - | [ɔu] | - |  |
-| eu | [ɛu] or  [ɨu] | [əu] | - | [əu] or [ɪu] | - | [əu] | - | [əu] | - | - | [eu] | [əu] | ou (after some initials), ieu (after h) |  |
+| eu | [ɨu] or [ɛu] | [əu] or [ɛu] | [ɛu] | [ɪu] or [ɛu] | - | [əu] | [ɛu] | [əu] or [ɛu] | [ɛu] | - | [eu] or [ɛu] | [əu] or [ɛu] | ou (after some initials), ieu (after h) |  |
 | am | - | [am] | [am] | - | - | - | - | - | - | - | - | - | — |  |
 | om | - | - | [ɔm] | - | - | - | - | - | - | - | - | - | - |  |
 | em | - | - | [ɛm] | - | - | - | - | - | - | - | - | - | - |  |
 | aen | - | - | - | - | [æn] | - | - | - | - | - | - | - |  |  |
-| an | [an] | - | - | - | - | - | - | - | - | - | - | - | — |  |
-| on | [on] | - | [ɔn] | [ɔn] | [ɔn] | - | [ɔn] | - | - | - | - | [ɔn] | — |  |
+| an | [an] | [an] | [an] | [an] | [an] | [an] | [an] | [an] | [an] | - | [an] | [an] | — |  |
+| on | [on] | [on] | [ɔn] | [on] or [ɔn] | [ɔn] | [on] | [on] or [ɔn] | [on] | [on] | - | [on] | [ɔn] | — |  |
 | oen | - | - | - | [øn] | - | - | - | - | - | - | - | - | — |  |
-| en | [ɛn]  or  [ɨn] | [ən] | [ən] | [en] or [ɪn] | [ən] | [ən] | [ən] | [en] or [ən] | - | - | [en] | [ən] | ing (Fungcen) |  |
+| en | [ɨn] or [en] or [ən] or [ɛn] | [ən] or [ɛn] | [ən] or [ɛn] | [ɪn] or [en] or [ɛn] | [ən] | [ən] | [ən] or [ɛn] | [en] or [ən] or [ɛn] | [ɛn] | - | [en] or [ɛn] | [ən] or [ɛn] | ing (Fungcen) |  |
 | eon | - | - | - | - | - | - | - | - | - | - | - | [ɵn] |  |  |
 | ann* | - | - | - | - | - | - | - | - | - | [ã] | - | - | an |  |
-| ang | [ɑŋ] | - | [aŋ] | [aŋ] | - | - | - | - | - | - | - | - | — |  |
-| ong | [ɔŋ] | [oŋ] | - | [oŋ] | - | [oŋ] | - | - | [oŋ] | - | - | - | on (Yikyan) | Yikyan does not distinguish front and back variants of ong. |
+| ang | [ɑŋ] | [ɑŋ] | [ɑŋ] | [ɑŋ] | - | [ɑŋ] | [ɑŋ] | - | [ɑŋ] | - | [ɑŋ] | [ɑŋ] | — |  |
+| ong | [ɔŋ] | [oŋ] | [ɔŋ] | [oŋ] | - | [oŋ] | [ɔŋ] | [ɔŋ] | [oŋ] | [ɔŋ] | [ɔŋ] | [ɔŋ] | on (Yikyan) | Yikyan does not distinguish front and back variants of ong. |
 | eng | - | - | [ɛŋ] | - | - | - | [əŋ] | [əŋ] | - | [ɤŋ] | [eŋ] | - | en (Yikyan) | Most speakers no longer distinguish en and eng in Yikyan. |
 | aet | - | [æt] | - | - | [æt] | - | - | - | - | - | - | - | — |  |
-| at | [at] | - | - | - | - | - | - | - | - | - | - | - | — |  |
-| ot | [ot] | - | - | [ɔt] | [ɔt] | - | - | - | - | - | - | [ɔt] | — |  |
+| at | [at] | [at] | - | [at] | [at] | - | - | - | - | - | - | [at] | — |  |
+| ot | [ot] | [ot] | - | [ɔt] | [ot] or [ɔt] | - | - | - | - | - | - | [ɔt] | — |  |
 | oet | - | - | - | [øt] | - | - | - | - | - | - | - | - | — |  |
-| et | [ɛt]  or  [ɨt] | - | - | [ət] or [ɪt] | - | - | - | - | - | - | - | [ət] | — |  |
-| eot | - | [ɵt] | - | [ɵt] | - | - | - | - | - | - | - | - | — |  |
+| et | [ɨt] or [et] or [ət] or [ɛt] | [ɛt] | - | [ɪt] or [ət] or [ɛt] | - | - | - | - | - | - | - | [ət] or [ɛt] | — |  |
+| eot | - | [ɵt] | - | - | - | - | - | - | - | - | - | - | — |  |
 | aep | - | [æp] | - | - | - | - | - | - | - | - | - | - | — |  |
 | ap | - | [ap] | [ap] | - | - | - | - | - | - | - | - | - | — |  |
 | op | - | - | [ɔp] | - | - | - | - | - | - | - | - | - | — |  |
 | ep | - | - | [ɛp] | - | - | - | - | - | - | - | - | - | - |  |
 | eop | - | [ɵp] | - | - | - | - | - | - | - | - | - | - | — |  |
-| aek | - | [æʔ] or [æk] | - | - | [æʔ] | - | - | - | - | - | - | - | — |  |
-| ak | [aʔ] | - | - | [ak] | - | - | - | - | - | - | - | [ak] | — |  |
+| aek | - | [æʔ] | - | - | [æʔ] | - | - | - | - | - | - | - | — |  |
+| ak | [aʔ] or [ɑʔ] | [aʔ] | [aʔ] | [ak] or [aʔ] | [aʔ] | - | - | [aʔ] | - | [aʔ] | - | [ak] or [aʔ] | — |  |
 | aik | - | - | [aiʔ] | [aiʔ] | - | - | - | - | - | - | - | - | - |  |
-| ok | [ɔʔ] | [oʔ] | - | [oʔ] or [ɔk] or [ok] | - | - | - | - | - | [oʔ] | - | [ɔk] | uok (Yikyan) |  |
+| ok | [oʔ] or [ɔʔ] | [oʔ] or [ɔʔ] | [ɔʔ] | [ok] or [oʔ] or [ɔʔ] | [ɔʔ] | - | - | [ɔʔ] | - | [oʔ] | - | [ɔk] or [ɔʔ] | uok (Yikyan) |  |
 | oek | - | - | - | [øʔ] | - | - | - | - | - | - | - | - | — |  |
 | oik | - | - | [ɔiʔ] | - | - | - | - | - | - | - | - | - | - |  |
-| ek | - | [ɛʔ] or [ɨʔ] | [ɛʔ] | [ɛʔ] or [əʔ] | - | - | - | [ɛʔ] or [ɪʔ] | - | [eʔ] | - | - | — |  |
+| ek | - | [ɨʔ] or [ɛʔ] | [ɛʔ] | [əʔ] or [ɛʔ] | - | - | - | [ɪʔ] or [ɛʔ] | - | [eʔ] | - | - | — |  |
 | eok | - | [ɵʔ] | - | - | - | - | - | - | - | - | - | - | — |  |
-| euk | - | - | - | [ɪuʔ] | - | - | - | - | - | - | - | - | — |  |
+| euk | - | - | - | - | - | - | - | - | - | - | - | - | — |  |
 
 \* Nasalized finals are marked with `nn` at the end; a final single `n` can be typed as a one-way alias for `nn`, e.g. `an`→`ann`. The other nasalized finals in the tables follow the same rule. Omit `nn` when a coda follows.
 
@@ -382,50 +382,50 @@ With no initial consonant:
 - When `i` is followed by `-u`, a standalone syllable `iu` or `iu` directly followed by an entering-tone coda is written as a whole `yiu` (+ entering-tone coda), to distinguish it from `yu`; otherwise only `i` is written `y`.
 - In all other cases, `i` (including `ï`) is written `yi` (`yï`).
 
-| gon-pin | Default IPA | Fungcen IPA | Tiqien IPA | Sinyi IPA | Songau IPA | Seusong IPA | Jingon IPA | Yikyan-Henfeng IPA | Jisuibaedu IPA | Xyucuênn IPA | Singzï IPA | Goungon IPA | Accepted alternative input | Notes |
+| gon-pin | Lancong IPA | Fungcen IPA | Tiqien IPA | Sinyi IPA | Songau IPA | Seusong IPA | Jingon IPA | Yikyan-Henfeng IPA | Jisuibaedu IPA | Xyucuênn IPA | Singzï IPA | Goungon IPA | Accepted alternative input | Notes |
 | --- | --- | --- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | --- | --- |
-| i* | [i]  or  [ɿ] | - | - | - | - | [ʅ] | - | - | - | - | [ʅ] | - | ii (→ ï) |  |
+| i* | [ɿ] or [i] | [i] | [ɿ] or [i] | [ɿ] or [i] | [i] | [ʅ] or [ɿ] or [i] | [ɿ] or [i] | [ɿ] or [i] | [ɿ] or [i] | [ɿ] or [i] | [ʅ] or [ɿ] or [i] | [i] | ii (→ ï) |  |
 | iae | - | - | - | - | [iæ] | - | - | - | - | [iæ] | - | - |  |  |
-| ia | [ia] | - | - | - | - | - | - | - | - | - | - | - | — |  |
+| ia | [ia] | [ia] | [ia] | [ia] | [ia] | [ia] | [ia] | [ia] | [ia] | [ia] | [ia] | [ia] | — |  |
 | io | - | [iɔ] | [iɔ] | [io] | - | [io] | [io] or [iɔ] | [io] | [io] | [io] or [iɔ] | [io] or [iɔ] | [iɔ] | - |  |
-| ie | [iɛ] | - | - | [ie] | - | [ie] | - | - | - | [ie] | - | - | — |  |
+| ie | [ie] | [iɛ] | [iɛ] | [ie] or [iɛ] | [iɛ] | [ie] | [iɛ] | [iɛ] | [iɛ] | [ie] | [iɛ] | [iɛ] | — |  |
 | iai | - | - | - | [iai] | - | - | - | - | - | - | - | - | - |  |
 | ioi | - | - | - | [ioi] or [iɔi] | - | - | - | - | - | - | - | - | - |  |
-| iu* | [iu] | - | - | - | - | - | - | - | - | - | - | - | you (no initial) |  |
+| iu* | [iu] | [iu] | [iu] | [iu] | [iu] | - | [iu] | [iu] | [iu] | [iu] | [iu] | [iu] | you (no initial) |  |
 | iaeu | - | - | - | - | [iæu] | - | - | - | - | - | - | - |  |  |
 | iau | - | [iau] | [iau] | [iau] | - | [iɑu] | [iau] | [iau] | [iau] | - | [iau] | [iau] | - |  |
 | iou | - | - | - | - | - | - | [iɔu] | - | [iou] | - | - | - |  |  |
-| ieu | [iɛu] | [iəu] | - | [iəu] | - | [iəu] | - | [iəu] | - | - | - | - | eu (after g, k, ng) |  |
+| ieu | [iɛu] | [iəu] or [iɛu] | - | [iɛu] | [iɛu] | [iəu] | - | [iəu] | - | - | - | [iɛu] | eu (after g, k, ng) |  |
 | im | - | [im] | [im] | - | - | - | - | - | - | - | - | - | - |  |
 | iam | - | - | [iam] | - | - | - | - | - | - | - | - | - | - |  |
-| in | [in] | - | - | - | - | - | - | - | - | - | - | - | — |  |
+| in | [in] | [in] | [in] | [in] | [in] | [in] | [in] | [in] | [in] | - | [in] | [in] | — |  |
 | iaen | - | - | - | - | [iæn] | - | - | - | - | - | - | - |  |  |
 | ian | - | [ian] | - | [ian] | [ian] | - | - | [ian] | - | - | - | - | - |  |
 | ion | - | - | - | [ion] or [iɔn] | [iɔn] | - | - | - | - | - | - | [iɔn] |  |  |
-| ien | [iɛn] | - | - | [ien] | - | - | - | [ien] or [iən] | - | - | - | - | en (after g, k, ng) |  |
+| ien | [iɛn] | [iɛn] | [iɛn] | [ien] or [iɛn] | [iɛn] | [iɛn] | [iɛn] | [ien] or [iɛn] | [iɛn] | - | [iɛn] | [iɛn] | en (after g, k, ng) |  |
 | iun | - | - | - | [iun] | - | - | - | - | - | - | - | - | - |  |
 | inn | - | - | - | - | - | - | - | - | - | [ĩ] | - | - | in |  |
 | iann | - | - | - | - | - | - | - | - | - | [iã] | - | - | ian |  |
 | ienn | - | - | - | - | - | - | - | - | - | [iɛ̃] | - | - | ien |  |
 | ing | - | - | [iŋ] | - | - | - | - | - | - | - | [iŋ] | - | - |  |
-| iang | [iɑŋ] | - | [iaŋ] | [iaŋ] | - | - | - | - | - | [iãŋ] | - | - | - |  |
-| iong | [iɔŋ] | [ioŋ] | - | [ioŋ] | - | [ioŋ] | - | - | [ioŋ] | - | - | - | - |  |
-| iung | [iuŋ] | - | - | - | - | - | - | - | - | - | - | - | - |  |
-| it | [it] | - | - | - | - | - | - | - | - | - | - | - | — |  |
+| iang | [iɑŋ] | [iɑŋ] | [iɑŋ] | [iɑŋ] | - | [iɑŋ] | [iɑŋ] | [iɑŋ] | [iɑŋ] | [iɑ̃ŋ] | [iɑŋ] | [iɑŋ] | - |  |
+| iong | [iɔŋ] | [ioŋ] | [iɔŋ] | [ioŋ] | - | [ioŋ] | [iɔŋ] | - | [ioŋ] | [iɔŋ] | [iɔŋ] | [iɔŋ] | - |  |
+| iung | [iuŋ] | [iuŋ] | [iuŋ] | [iuŋ] | [iuŋ] | - | [iuŋ] | [iuŋ] | [iuŋ] | - | - | [iuŋ] | - |  |
+| it | [it] | [it] | - | [it] | [it] | - | - | - | - | - | - | [it] | — |  |
 | iat | - | [iat] | - | [iat] | - | - | - | - | - | - | - | - | - |  |
 | iot | - | - | - | [iɔt] | - | - | - | - | - | - | - | - | — |  |
-| iet | [iet] | [iɛt] | - | [iɛt] or [iət] | [iɛt] | - | - | - | - | - | - | [iɛt] | et (after ng) |  |
-| iut | - | - | - | [iut] | - | - | - | - | - | - | - | - | - |  |
+| iet | [iɛt] | [iɛt] | - | [iət] or [iɛt] | [iɛt] | - | - | - | - | - | - | [iɛt] | et (after ng) |  |
+| iut | - | - | - | - | - | - | - | - | - | - | - | - | - |  |
 | ip | - | [ip] | [ip] | - | - | - | - | - | - | - | - | - | - |  |
 | iap | - | [iap] | [iap] | - | - | - | - | - | - | - | - | - | - |  |
 | iep | - | [iɛp] | - | - | - | - | - | - | - | - | - | - | — |  |
-| ik | [iʔ] | - | - | [ɿʔ] | - | - | - | - | - | - | - | - |  |  |
+| ik | [ɿʔ] or [iʔ] | [iʔ] | [iʔ] | [ɿʔ] or [iʔ] | [iʔ] | - | - | [iʔ] | - | - | - | - |  |  |
 | iaek | - | - | - | - | [iæʔ] | - | - | - | - | - | - | - |  |  |
-| iak | [iaʔ] | - | - | [iɑʔ] | - | - | - | - | - | - | - | [iak] | - |  |
+| iak | [iaʔ] | [iaʔ] | [iaʔ] | [iaʔ] or [iɑʔ] | [iaʔ] | - | - | [iaʔ] | - | [iaʔ] | - | [iak] or [iaʔ] | - |  |
 | iaik | - | - | - | [iaiʔ] | - | - | - | - | - | - | - | - | - |  |
-| iok | [iɔʔ] | - | - | [ioʔ] | - | - | - | - | - | [ioʔ] | - | [iɔk] | - |  |
-| iek | - | [iɛʔ] | [iɛʔ] | [iɛʔ] or [iəʔ] | [iɛʔ] | - | - | [iɛʔ] or [iɪʔ] | - | [ieʔ] | - | - |  |  |
-| iuk | [iuʔ] | - | - | - | - | - | - | - | - | - | - | [iuk] | - |  |
+| iok | [ioʔ] or [iɔʔ] | [iɔʔ] | [iɔʔ] | [ioʔ] or [iɔʔ] | [iɔʔ] | - | - | - | - | [ioʔ] | - | [iɔk] | - |  |
+| iek | - | [iɛʔ] | [iɛʔ] | [iəʔ] or [iɛʔ] | [iɛʔ] | - | - | [iɪʔ] or [iɛʔ] | - | [ieʔ] | - | - |  |  |
+| iuk | [iuʔ] | [iuʔ] | [iuʔ] | [iuʔ] | [iuʔ] | - | - | [iuʔ] | - | - | - | [iuk] | - |  |
 | iuok | - | - | - | [iuɔʔ] | - | - | - | - | - | - | - | - | - |  |
 | iuek | - | - | - | [iuəʔ] | - | - | - | - | - | - | - | - | - |  |
 
@@ -438,88 +438,88 @@ With no initial consonant:
 - When `u` is followed by `a`, `o`, `e`, or `i`, `u` is written `w`.
 - In all other cases, `u` is written `wu`.
 
-| gon-pin | Default IPA | Fungcen IPA | Tiqien IPA | Sinyi IPA | Songau IPA | Seusong IPA | Jingon IPA | Yikyan-Henfeng IPA | Jisuibaedu IPA | Xyucuênn IPA | Singzï IPA | Goungon IPA | Accepted alternative input | Notes |
+| gon-pin | Lancong IPA | Fungcen IPA | Tiqien IPA | Sinyi IPA | Songau IPA | Seusong IPA | Jingon IPA | Yikyan-Henfeng IPA | Jisuibaedu IPA | Xyucuênn IPA | Singzï IPA | Goungon IPA | Accepted alternative input | Notes |
 | --- | --- | --- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | --- | --- |
-| u | [u] | - | - | - | - | - | - | - | - | - | - | - | - |  |
+| u | [u] | [u] | [u] | [u] | [u] | [u] | [u] | [u] | [u] | [u] | [u] | [u] | - |  |
 | uae | - | - | - | - | - | [uæ] | - | - | [uæ] | - | - | - |  |  |
-| ua | [ua] | - | - | - | - | - | - | - | - | - | - | - | - |  |
-| uo | [uo] | - | [uɔ] | - | - | - | - | - | - | - | - | [uɔ] | - |  |
-| ue | [ue] | [uɛ] | [uɛ] | [uɛ] | - | - | [uɛ] | [uɛ] | [uɛ] | - | [uɛ] | - | - |  |
+| ua | [ua] or [uɑ] | [ua] | [ua] | [ua] | - | [ua] | [ua] | [ua] | [ua] | [ua] | [ua] | [ua] | - |  |
+| uo | [uo] | [uo] | [uɔ] | [uo] | - | [uo] | [uo] | [uo] | [uo] | [uo] | [uo] | [uɔ] | - |  |
+| ue | [ue] | - | [uɛ] | [ue] or [uɛ] | - | - | [uɛ] | [uɛ] | [uɛ] | [ue] | [uɛ] | - | - |  |
 | uia | - | - | - | - | - | - | - | - | - | - | [uia] | - |  |  |
 | uie | - | [uiɛ] | - | - | - | - | - | - | - | - | - | - | — |  |
-| ui | [ui] | - | - | - | - | - | - | - | - | - | - | - | — |  |
-| uai | [uai] | - | - | - | - | - | - | - | - | - | - | - | - |  |
+| ui | [ui] | [ui] | [ui] | [ui] | - | - | - | [ui] | [ui] | [ui] | - | [ui] | — |  |
+| uai | [uai] | [uai] | [uai] | [uai] | - | [uai] | [uai] | [uai] | [uai] | - | [uai] | [uai] | - |  |
 | uoi | - | - | [uɔi] | [uoi] or [uɔi] | - | - | - | [uoi] | - | - | - | - | — |  |
 | uei | — | [uɛi] | - | [uəi] | - | [uei] | [uei] | [uei] | - | - | [uei] | [uəi] or [uɛi] | ui (after initial, one-way) |  |
-| ueu | - | - | - | [uəu] or [ueu] | - | - | - | - | - | - | - | - | - |  |
-| un | [un] | - | - | - | - | - | - | - | - | - | - | - | — |  |
-| uan | [uan] | - | - | [uɑn] | - | - | - | - | - | - | - | - | - |  |
-| uon | [uon] | - | [uɔn] | [uɔn] | - | - | [uɔn] | - | - | - | - | [uɔn] | uen, wen (no initial) |  |
+| ueu | - | - | - | [ueu] | - | - | - | - | - | - | - | - | - |  |
+| un | [un] | [un] | [un] | [un] | - | - | [un] | - | [un] | - | - | - | — |  |
+| uan | [uan] | [uan] | [uan] | [uan] or [uɑn] | - | [uan] | [uan] | [uan] | [uan] | - | [uan] | [uan] | - |  |
+| uon | [uon] | [uon] | [uɔn] | [uon] or [uɔn] | - | - | [uon] or [uɔn] | [uon] | [uon] | - | [uon] | [uɔn] | uen, wen (no initial) |  |
 | uen | — | [uɛn] | [uɛn] | - | - | [uən] | [uɛn] | [uen] or [uɛn] | - | - | [uen] | [uən] or [uɛn] | un (after initial, one-way) |  |
 | ueon | - | - | - | - | - | - | - | - | - | - | - | [uɵn] |  |  |
 | uin | - | [uin] | - | [uin] | - | - | - | - | - | - | [uin] | - | - |  |
 | uien | - | [uiɛn] | - | - | - | - | - | - | - | - | [uiɛn] | - | - |  |
 | uann | - | - | - | - | - | - | - | - | - | [uã] | - | - | uan |  |
 | uenn | - | - | - | - | - | - | - | - | - | [ũɛ̃] | - | - | un (after initial, one-way) |  |
-| ung | [uŋ] | - | - | - | - | - | - | - | - | - | - | - | — |  |
-| uang | [uɑŋ] | - | [uaŋ] | [uaŋ] | - | - | - | - | - | [uãŋ] | - | - | - |  |
-| uong | [uɔŋ] | [uoŋ] | - | [uoŋ] | - | - | - | - | [uoŋ] | [uɔ̃ŋ] | - | - | uon (Yikyan) |  |
+| ung | [uŋ] | [uŋ] | [uŋ] | [uŋ] | [uŋ] | - | [uŋ] | [uŋ] | [uŋ] | - | - | [uŋ] | — |  |
+| uang | [uɑŋ] | [uɑŋ] | [uɑŋ] | [uɑŋ] | - | [uɑŋ] | [uɑŋ] | - | [uɑŋ] | [uɑ̃ŋ] | [uɑŋ] | [uɑŋ] | - |  |
+| uong | [uoŋ] or [uɔŋ] | [uoŋ] | [uɔŋ] | [uoŋ] | - | - | [uɔŋ] | [uɔŋ] | [uoŋ] | [uɔ̃ŋ] | [uɔŋ] | [uɔŋ] | uon (Yikyan) |  |
 | ueng | - | - | - | - | - | - | - | [ueŋ] | - | - | [ueŋ] | - | — |  |
-| ut | [ut] | - | - | - | - | - | - | - | - | - | - | - | - |  |
+| ut | [ut] | [ut] | - | [ut] | [ut] | - | - | - | - | - | - | - | - |  |
 | uaet | - | [uæt] | - | - | - | - | - | - | - | - | - | - | - |  |
-| uat | [uat] | - | - | - | - | - | - | - | - | - | - | - | - |  |
-| uot | [uot] | - | - | [uɔt] | - | - | - | - | - | - | - | - | - |  |
-| uet | [uɛt] | [uɨt] | - | [uət] | - | - | - | - | - | - | - | [uət] | - |  |
-| uep | - | [uɛp] | - | - | - | - | - | - | - | - | - | - | - |  |
-| uk | [uʔ] | - | - | - | - | - | - | - | - | - | - | [uk] | - |  |
+| uat | [uat] | - | - | [uat] | - | - | - | - | - | - | - | [uat] | - |  |
+| uot | [uot] | [uot] | - | [uot] or [uɔt] | - | - | - | - | - | - | - | - | - |  |
+| uet | [uət] or [uɛt] | - | - | [uət] or [uɛt] | - | - | - | - | - | - | - | [uət] or [uɛt] | - |  |
+| uep | - | - | - | - | - | - | - | - | - | - | - | - | - |  |
+| uk | [uk] or [uʔ] | [uʔ] | [uʔ] | [uʔ] | [uʔ] | - | - | [uʔ] | - | - | - | [uk] or [uʔ] | - |  |
 | uaek | - | [uæʔ] | - | - | - | - | - | - | - | - | - | - | - |  |
-| uak | [uaʔ] | - | - | - | - | - | - | - | - | - | - | - | - |  |
+| uak | [uaʔ] | [uaʔ] | [uaʔ] | [uaʔ] | - | - | - | [uaʔ] | - | [uaʔ] | - | - | - |  |
 | uaik | - | - | [uaiʔ] | [uaiʔ] | - | - | - | - | - | - | - | - | - |  |
-| uok | [uoʔ] | [uɔʔ] | [uɔʔ] | [uɔʔ] | - | - | - | [uɔʔ] | - | - | - | - | ok (Yikyan) |  |
+| uok | [uɔʔ] | [uoʔ] or [uɔʔ] | [uɔʔ] | [uoʔ] or [uɔʔ] | - | - | - | [uɔʔ] | - | [uoʔ] | - | - | ok (Yikyan) |  |
 | uoik | - | - | [uɔiʔ] | - | - | - | - | - | - | - | - | - | - |  |
-| uek | — | [uɛʔ] or [uɨʔ] | [uɛʔ] | [uɛʔ] or [uəʔ] | - | - | - | [uəʔ] or [uɛʔ] | - | [ueʔ] | - | - | — |  |
-| ueik | - | [uɛiʔ] | - | [uəiʔ] | - | - | - | - | - | - | - | - | uik (after initial, one-way) |  |
+| uek | — | [uɨʔ] or [uɛʔ] | [uɛʔ] | [uɛʔ] | - | - | - | [uəʔ] or [uɛʔ] | - | [ueʔ] | - | - | — |  |
+| ueik | - | [uɛiʔ] | - | - | - | - | - | - | - | - | - | - | uik (after initial, one-way) |  |
 | uik | - | - | [uiʔ] | - | - | - | - | - | - | - | - | - | - |  |
 
 ##### Rounded front-vowel finals
 
 `yu` is used throughout for [y] and [ʯ].
 
-| gon-pin | Default IPA | Fungcen IPA | Tiqien IPA | Sinyi IPA | Songau IPA | Seusong IPA | Jingon IPA | Yikyan-Henfeng IPA | Jisuibaedu IPA | Xyucuênn IPA | Singzï IPA | Goungon IPA | Accepted alternative input | Notes |
+| gon-pin | Lancong IPA | Fungcen IPA | Tiqien IPA | Sinyi IPA | Songau IPA | Seusong IPA | Jingon IPA | Yikyan-Henfeng IPA | Jisuibaedu IPA | Xyucuênn IPA | Singzï IPA | Goungon IPA | Accepted alternative input | Notes |
 | --- | --- | --- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | --- | --- |
-| yu | [y] | - | - | - | - | [ʯ] | - | - | - | - | - | - | v (after an initial only), u (after an initial only, never immediately after y) |  |
+| yu | [y] | [y] | [y] | [y] | - | [ʯ] | [y] | [y] | [y] | [y] | - | - | v (after an initial only), u (after an initial only, never immediately after y) |  |
 | yuae | - | - | - | - | - | [ʯæ] | - | - | - | - | - | - | — |  |
 | yua | - | - | - | - | - | - | - | [ya] | - | - | - | - | — |  |
-| yue | [ye] | - | - | - | - | - | [yɛ] | [yɛ] | [yə] | - | - | - | - |  |
+| yue | [ye] or [yə] | [ye] | - | - | - | - | [yɛ] | [yɛ] | [yə] | [ye] | - | - | - |  |
 | yueo | - | [yɵ] | - | - | - | - | - | - | - | - | - | - | — |  |
 | yuai | - | - | - | - | - | [ʯai] | - | - | - | - | - | - | — |  |
 | yuoi | - | - | - | - | - | - | - | [yoi] | - | - | - | - | — |  |
 | yuei | - | - | - | - | - | [ʯei] | - | - | - | - | - | - | — |  |
-| yun | [yn] | - | - | - | - | - | - | - | - | - | - | - | — |  |
-| yuon | [yon] | - | - | [yɔn] | - | - | [yɔn] | - | - | - | - | [yɔn] | yoin (without an initial), yuen |  |
-| yuen | - | - | - | - | - | [ʯən] or [ʯɛn] | [yɛn] | [yɛn] or [yɛŋ] | - | - | - | - | yueng |  |
+| yun | [yn] | [yn] | [yn] | - | - | - | [yn] | [yn] | [yn] | - | - | - | — |  |
+| yuon | [yon] | [yon] | - | [yɔn] | - | - | [yon] or [yɔn] | [yon] | [yon] | - | - | [yɔn] | yoin (without an initial), yuen |  |
+| yuen | - | - | - | - | - | [ʯən] or [ʯɛn] | [yɛn] | [yɛn] | - | - | - | - | yueng |  |
 | yuenn | - | - | - | - | - | - | - | - | - | [yɛ̃] | - | - | yuen |  |
 | yuinn | - | - | - | - | - | - | - | - | - | [yĩ] | - | - | yuin |  |
 | yung | － | - | - | - | - | - | - | [yŋ] | - | - | - | - | yun (Yikyan) |  |
 | yuong | - | - | - | - | - | - | - | [yɔŋ] | - | - | - | - |  |  |
 | yueng | - | - | - | - | - | - | - | [yeŋ] | - | - | - | - | — |  |
-| yut | [yt] | - | - | - | - | - | - | - | - | - | - | - | - |  |
+| yut | [yt] | [yt] | - | [yt] | - | - | - | - | - | - | - | - | - |  |
 | yuot | [yot] | - | - | [yɔt] | - | - | - | - | - | - | - | [yɔt] | yue, yuet, yuek |  |
-| yuet | - | [yet] | - | [yət] | - | - | - | - | - | - | - | - | - |  |
+| yuet | - | [yet] | - | - | - | - | - | - | - | - | - | - | - |  |
 | yuep | - | [yep] | - | - | - | - | - | - | - | - | - | - | — |  |
 | yuk | - | [yʔ] | [yʔ] | [yʔ] | - | - | - | [yʔ] | - | - | - | - | - |  |
 | yuak | - | - | - | - | - | - | - | [yaʔ] | - | - | - | - | - |  |
 | yuok | - | - | - | [yɔʔ] | - | - | - | [yɔʔ] | - | - | - | - | - |  |
-| yuek | - | [yeʔ] | - | [yəʔ] | - | - | - | [yəʔ] or [yɛʔ] or [yɪʔ] | - | [yeʔ] | - | - | — |  |
+| yuek | - | [yeʔ] | - | [yəʔ] | - | - | - | [yɛʔ] | - | [yeʔ] | - | - | — |  |
 | yueok | - | [yɵʔ] | - | - | - | - | - | - | - | - | - | - | — |  |
 
 ##### Syllabic laterals and nasals
 
-| gon-pin | Default IPA | Fungcen IPA | Tiqien IPA | Sinyi IPA | Songau IPA | Seusong IPA | Jingon IPA | Yikyan-Henfeng IPA | Jisuibaedu IPA | Xyucuênn IPA | Singzï IPA | Goungon IPA | Notes |
+| gon-pin | Lancong IPA | Fungcen IPA | Tiqien IPA | Sinyi IPA | Songau IPA | Seusong IPA | Jingon IPA | Yikyan-Henfeng IPA | Jisuibaedu IPA | Xyucuênn IPA | Singzï IPA | Goungon IPA | Notes |
 | --- | --- | --- | --- | --- | --- | --- | ------- | ------- | ------- | ------- | ------- | ------- | --- |
-| m | [m̩] | - | - | - | - | - | - | - | - | - | - | - |  |
-| n | [n̩] | - | - | - | - | - | - | - | - | - | - | - |  |
-| ng | [ŋ̩] | - | [ŋ̍] | [ŋ̍] | [ŋ̍] | - | [ŋ̍] | [ŋ̍] | [ŋ̍] | - | - | [ŋ̍] |  |
+| m | [m̩] | [m̩] | [m̩] | [m̩] | [m̩] | [m̩] | [m̩] | [m̩] | [m̩] | - | [m̩] | [m̩] |  |
+| n | [n̩] | - | - | [n̩] | - | [n̩] | - | [n̩] | - | - | [n̩] | - |  |
+| ng | [ŋ̍] | [ŋ̩] | [ŋ̍] | [ŋ̍] | [ŋ̍] | - | [ŋ̍] | [ŋ̍] | [ŋ̍] | - | - | [ŋ̍] |  |
 | l | - | - | - | - | - | [ɭ̩] | - | - | - | - | - | - |  |
 
 #### Tones
