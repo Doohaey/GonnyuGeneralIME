@@ -469,7 +469,8 @@ def test_rime_installers_install_the_shared_single_character_filter() -> None:
 
     for name in ("install.sh", "install_macos.sh"):
         source = (root / "platforms" / "rime" / name).read_text(encoding="utf-8")
-        assert "gannyu_single_char_filter.lua" in source
+        assert '"$output_dir"/lua/*.lua' in source
+        assert '"$output_dir"/lua/gannyu_*_annotations.bin' in source
 
 
 def test_rime_build_writes_resource_manifest(tmp_path: Path) -> None:
