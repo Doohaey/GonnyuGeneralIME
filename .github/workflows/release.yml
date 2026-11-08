@@ -48,7 +48,8 @@ jobs:
           find release-assets -maxdepth 1 -type f ! \( \
             -name 'GonnyuGeneralIME-${{ steps.product.outputs.version }}-rime-*.zip' -o \
             -name 'GonnyuGeneralIME-${{ steps.product.outputs.version }}-android.apk' -o \
-            -name 'GonnyuGeneralIME-${{ steps.product.outputs.version }}-fcitx5.tar.gz' -o \
+            -name 'GonnyuGeneralIME-${{ steps.product.outputs.version }}-fcitx5-gonnyu.tar.gz' -o \
+            -name 'GonnyuGeneralIME-${{ steps.product.outputs.version }}-fcitx5-gonnyu-ipa.tar.gz' -o \
             -name 'GonnyuGeneralIME-${{ steps.product.outputs.version }}-windows-installer.exe' -o \
             -name 'GonnyuGeneralIME-${{ steps.product.outputs.version }}-macos.pkg' \
           \) -delete
@@ -60,11 +61,11 @@ jobs:
           while IFS= read -r region; do
             regions+=("$region")
           done < <(python3 platforms/rime/build.py --list-regions)
-          test "$(find release-assets -maxdepth 1 -type f | wc -l)" -eq "$((4 + ${#regions[@]}))"
+          test "$(find release-assets -maxdepth 1 -type f | wc -l)" -eq "$((5 + ${#regions[@]}))"
           for region in "${regions[@]}"; do
             test -f "release-assets/GonnyuGeneralIME-${PRODUCT_VERSION}-rime-${region}.zip"
           done
-          for suffix in android.apk fcitx5.tar.gz windows-installer.exe macos.pkg; do
+          for suffix in android.apk fcitx5-gonnyu.tar.gz fcitx5-gonnyu-ipa.tar.gz windows-installer.exe macos.pkg; do
             test -f "release-assets/GonnyuGeneralIME-${PRODUCT_VERSION}-${suffix}"
           done
           release_flags=()

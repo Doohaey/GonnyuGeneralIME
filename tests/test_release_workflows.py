@@ -28,7 +28,7 @@ def test_release_workflow_uses_tagged_workspace_version() -> None:
     assert "scripts/" not in content
     assert "actions/setup-python@v5" in content
     assert "platforms/rime/build.py --list-regions" in content
-    assert '"$((4 + ${#regions[@]}))"' in content
+    assert '"$((5 + ${#regions[@]}))"' in content
     assert "macos.pkg" in content
     assert "uses: ./.github/workflows/macos.yml" in content
     assert "GonnyuGeneralIME-${{ steps.product.outputs.version }}-*" in content
@@ -43,8 +43,10 @@ def test_release_workflow_uses_tagged_workspace_version() -> None:
 
 def test_fcitx5_workflow_runs_an_isolated_installer_smoke_test() -> None:
     content = (ROOT / ".github/workflows/fcitx5.yml").read_text(encoding="utf-8")
-    assert 'DESTDIR="$smoke_root/root" bash "$smoke_root/install.sh"' in content
-    assert 'tar -xzf "$artifact" -C "$smoke_root"' in content
+    assert "for addon in gonnyu gonnyu-ipa; do" in content
+    assert 'artifact="build/GonnyuGeneralIME-${{ steps.product.outputs.version }}-fcitx5-$addon.tar.gz"' in content
+    assert 'DESTDIR="$root" bash "$package_root/install.sh"' in content
+    assert 'tar -xzf "$artifact" -C "$package_root"' in content
 
 
 def test_fcitx5_buffer_supports_middle_editing() -> None:

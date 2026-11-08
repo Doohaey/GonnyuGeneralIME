@@ -172,15 +172,16 @@ Download and run `GonnyuGeneralIME-version-windows-installer.exe`. After the ins
 
 ### Linux Fcitx5
 
-Download `GonnyuGeneralIME-version-fcitx5.tar.gz`, extract it, and run the installer included in the archive:
+Each scheme ships separately: download `GonnyuGeneralIME-version-fcitx5-gonnyu.tar.gz` for the first scheme or `GonnyuGeneralIME-version-fcitx5-gonnyu-ipa.tar.gz` for the second. Extract the archive and run the installer included in it:
 
 ```sh
-tar -xzf GonnyuGeneralIME-version-fcitx5.tar.gz
-cd GonnyuGeneralIME-version-fcitx5
+mkdir GonnyuGeneralIME-fcitx5
+tar -xzf GonnyuGeneralIME-version-fcitx5-gonnyu.tar.gz -C GonnyuGeneralIME-fcitx5
+cd GonnyuGeneralIME-fcitx5
 ./install.sh
 ```
 
-Restart Fcitx5 with `fcitx5 -r`, or sign out and back in. Then add **Gannyu Gan / 赣语** in `fcitx5-configtool`.
+Restart Fcitx5 with `fcitx5 -r`, or sign out and back in. Then add **GonnyuGeneralIME / 赣语（一式）** or **GonnyuGeneralIME (Compositional) / 赣语（二式）** in `fcitx5-configtool`.
 
 ### Rime
 

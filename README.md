@@ -173,15 +173,16 @@ iOS 上使用输入法时，除法国用户外，请直接到app store下载＂�
 
 ### Linux：Fcitx5
 
-下载 `GonnyuGeneralIME-版本号-fcitx5.tar.gz`，解压后运行包内安装程序：
+一式与二式分别打包：一式下载 `GonnyuGeneralIME-版本号-fcitx5-gonnyu.tar.gz`，二式下载 `GonnyuGeneralIME-版本号-fcitx5-gonnyu-ipa.tar.gz`。解压后运行包内安装程序：
 
 ```sh
-tar -xzf GonnyuGeneralIME-版本号-fcitx5.tar.gz
-cd GonnyuGeneralIME-版本号-fcitx5
+mkdir GonnyuGeneralIME-fcitx5
+tar -xzf GonnyuGeneralIME-版本号-fcitx5-gonnyu.tar.gz -C GonnyuGeneralIME-fcitx5
+cd GonnyuGeneralIME-fcitx5
 ./install.sh
 ```
 
-重启 Fcitx5（`fcitx5 -r`）或注销后重新登录，并在 `fcitx5-configtool` 中添加“Gannyu Gan / 赣语”。
+重启 Fcitx5（`fcitx5 -r`）或注销后重新登录，并在 `fcitx5-configtool` 中添加“GonnyuGeneralIME / 赣语（一式）”或“GonnyuGeneralIME (Compositional) / 赣语（二式）”。
 
 ### Rime
 

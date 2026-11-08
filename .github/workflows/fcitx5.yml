@@ -67,14 +67,21 @@ jobs:
       - run: |
           smoke_root="$(mktemp -d)"
           trap 'rm -rf "$smoke_root"' EXIT
-          artifact="build/GonnyuGeneralIME-${{ steps.product.outputs.version }}-fcitx5.tar.gz"
-          tar -xzf "$artifact" -C "$smoke_root"
-          DESTDIR="$smoke_root/root" bash "$smoke_root/install.sh"
-          test -f "$smoke_root/root$(pkg-config --variable=libdir Fcitx5Core)/fcitx5/libfcitx5-gannyu.so"
-          test -f "$smoke_root/root/usr/share/fcitx5/inputmethod/gannyu.conf"
-          test -f "$smoke_root/root/usr/share/fcitx5/addon/gannyu.conf"
+          for addon in gonnyu gonnyu-ipa; do
+            artifact="build/GonnyuGeneralIME-${{ steps.product.outputs.version }}-fcitx5-$addon.tar.gz"
+            package_root="$smoke_root/$addon"
+            mkdir -p "$package_root"
+            tar -xzf "$artifact" -C "$package_root"
+            root="$smoke_root/root-$addon"
+            DESTDIR="$root" bash "$package_root/install.sh"
+            test -f "$root$(pkg-config --variable=libdir Fcitx5Core)/fcitx5/libfcitx5-$addon.so"
+            test -f "$root/usr/share/fcitx5/inputmethod/$addon.conf"
+            test -f "$root/usr/share/fcitx5/addon/$addon.conf"
+          done
       - uses: actions/upload-artifact@v4
         with:
           name: GonnyuGeneralIME-${{ steps.product.outputs.version }}-fcitx5
-          path: build/GonnyuGeneralIME-${{ steps.product.outputs.version }}-fcitx5.tar.gz
+          path: |
+            build/GonnyuGeneralIME-${{ steps.product.outputs.version }}-fcitx5-gonnyu.tar.gz
+            build/GonnyuGeneralIME-${{ steps.product.outputs.version }}-fcitx5-gonnyu-ipa.tar.gz
           if-no-files-found: error

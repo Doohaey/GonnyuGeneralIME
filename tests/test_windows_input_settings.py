@@ -37,13 +37,15 @@ struct ITfMenu {
 };
 struct GannyuTextService {
     std::vector<std::string> regions{"lancong", "fenni"};
-    std::array<int, 8> options{{1, 1, 1, 1, 1, 0, 1, 1}};
+    std::array<int, 9> options{{1, 1, 1, 1, 1, 0, 1, 1, 0}};
     std::string selected = "lancong";
     UINT option = 0;
+    bool scheme_available = true;
     const auto& RegionIds() const { return regions; }
     std::wstring RegionLabel(size_t index) const { return index == 0 ? L"南昌" : L"分宜"; }
     const auto& CurrentRegionId() const { return selected; }
     int InputOption(size_t index) const { return options[index]; }
+    bool SchemeAvailable() const { return scheme_available; }
     void SelectInputOption(UINT id) { option = id; }
     void SwitchRegion(const std::string& id) { selected = id; }
 };
@@ -69,28 +71,36 @@ int main() {
     assert(owner.selected == "fenni");
     region.OnMenuSelect(1000);
     assert(owner.option == 0);
+    const wchar_t *labels[] = {L"副标题", L"赣普词语连带", L"同义词连带", L"模糊匹配", L"　普拼兼容", L"　文白匹配", L"　其他模糊规则", L"新老兼有", L"新派", L"老派", L"一式（汉拼式）", L"二式（组合式）"};
     for (int annotations : {0, 1}) {
         for (int fuzzy : {0, 1}) {
-            owner.options[0] = annotations;
-            owner.options[2] = fuzzy;
             for (int mode = 0; mode < 3; ++mode) {
-                owner.options[5] = mode;
-                ITfMenu options;
-                assert(settings.InitMenu(&options) == S_OK);
-                assert(options.items.size() == 10);
-                assert(options.items[0].label == L"副标题");
-                assert(options.items[1].label == L"赣普词语连带");
-                assert(options.items[2].label == L"同义词连带");
-                assert(bool(options.items[1].flags & TF_LBMENUF_GRAYED) == false);
-                assert(bool(options.items[2].flags & TF_LBMENUF_GRAYED) == false);
-                assert(bool(options.items[4].flags & TF_LBMENUF_GRAYED) == !fuzzy);
-                assert(bool(options.items[5].flags & TF_LBMENUF_GRAYED) == !fuzzy);
-                assert(bool(options.items[6].flags & TF_LBMENUF_GRAYED) == !fuzzy);
-                assert(options.items[5].label == L"　文白匹配");
-                assert(options.items[1].flags & TF_LBMENUF_CHECKED);
-                assert(options.items[2].flags & TF_LBMENUF_CHECKED);
-                for (int selected = 0; selected < 3; ++selected)
-                    assert(bool(options.items[7 + selected].flags & TF_LBMENUF_CHECKED) == (selected == mode));
+                for (int second : {0, 1}) {
+                    for (int available : {0, 1}) {
+                        owner.options = {{annotations, 1, fuzzy, 1, 1, mode, 1, 1, second}};
+                        owner.scheme_available = available != 0;
+                        ITfMenu options;
+                        assert(settings.InitMenu(&options) == S_OK);
+                        assert(options.items.size() == 12);
+                        for (int i = 0; i < 12; ++i) assert(options.items[i].label == labels[i]);
+                        assert(bool(options.items[0].flags & TF_LBMENUF_CHECKED) == (annotations != 0));
+                        assert(options.items[1].flags & TF_LBMENUF_CHECKED);
+                        assert(options.items[2].flags & TF_LBMENUF_CHECKED);
+                        assert(bool(options.items[3].flags & TF_LBMENUF_CHECKED) == (fuzzy != 0));
+                        assert(options.items[4].flags & TF_LBMENUF_CHECKED);
+                        assert(options.items[5].flags & TF_LBMENUF_CHECKED);
+                        assert(options.items[6].flags & TF_LBMENUF_CHECKED);
+                        for (int selected = 0; selected < 3; ++selected)
+                            assert(bool(options.items[7 + selected].flags & TF_LBMENUF_CHECKED) == (selected == mode));
+                        assert(bool(options.items[10].flags & TF_LBMENUF_CHECKED) == (second == 0));
+                        assert(bool(options.items[11].flags & TF_LBMENUF_CHECKED) == (second != 0));
+                        assert(bool(options.items[3].flags & TF_LBMENUF_GRAYED) == (second != 0));
+                        assert(bool(options.items[4].flags & TF_LBMENUF_GRAYED) == (!second && !fuzzy));
+                        assert(bool(options.items[5].flags & TF_LBMENUF_GRAYED) == (!second && !fuzzy));
+                        assert(bool(options.items[6].flags & TF_LBMENUF_GRAYED) == (second || (!second && !fuzzy)));
+                        assert(bool(options.items[11].flags & TF_LBMENUF_GRAYED) == !available);
+                    }
+                }
             }
         }
     }
@@ -101,7 +111,7 @@ int main() {
     owner.regions.resize(1);
     ITfMenu single_region_settings;
     assert(settings.InitMenu(&single_region_settings) == S_OK);
-    assert(single_region_settings.items.size() == 10);
+    assert(single_region_settings.items.size() == 12);
     assert(settings.InitMenu(nullptr) == E_INVALIDARG);
 }
 '''
