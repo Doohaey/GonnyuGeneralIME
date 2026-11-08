@@ -67,7 +67,7 @@ RESOURCE_LOGIC_FUNCTIONS = frozenset((
     "trailing_tone", "suppress_neutral_displays", "build_metadata",
     "build_preferred_readings", "build_synonym_relations", "entry_codes",
     "write_dictionary", "build_single_character_frequencies", "write_annotation_store",
-    "write_lua_data", "selected_entries", "write_option_resources", "build_uncached",
+    "write_lua_data", "write_scheme2_display", "selected_entries", "write_option_resources", "build_uncached",
 ))
 RESOURCE_LOGIC_CONSTANTS = frozenset(("HEADERS", "MAX_FORMS", "LUA_NAMES"))
 
@@ -556,6 +556,16 @@ def write_annotation_store(path: Path, name: str, annotations: dict[str, str]) -
     path.write_bytes(header + payload)
 
 
+def write_scheme2_display(path: Path, gon_map: dict[str, tuple[str, ...]], tone_map: dict[str, str]) -> None:
+    spellings = {gon: values[0] for gon, values in sorted(gon_map.items()) if values}
+    lines = ["return {", "  spellings = {"]
+    lines.extend(f"    [{lua_quote(key)}] = {lua_quote(value)}," for key, value in spellings.items())
+    lines.extend(["  },", "  tones = {"])
+    lines.extend(f"    [{lua_quote(key)}] = {lua_quote(value)}," for key, value in sorted(tone_map.items()))
+    lines.extend(["  },", "}", ""])
+    path.write_text("\n".join(lines), encoding="utf-8")
+
+
 def write_lua_data(
     path: Path,
     annotations: dict[str, str],
@@ -988,6 +998,12 @@ def build_uncached(region: str, output: Path, display_name: str = "short") -> di
                if ipa_enabled else {})
     if ipa_enabled and not gon_map:
         ipa_enabled = False
+    if ipa_enabled:
+        write_scheme2_display(
+            output / "lua" / f"gannyu_{region}_scheme2.lua",
+            gon_map,
+            transcription.build_tone_map(config),
+        )
     dependencies = write_option_resources(
         region, entries, output, algebra,
         compile_algebra(canonical, essential_rules(rules)),

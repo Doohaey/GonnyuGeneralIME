@@ -156,6 +156,66 @@ def build_gon_map(entries, *, ee_e_opposition: bool = False,
     return {gan: tuple(sorted(values)) for gan, values in result.items()}
 
 
+def _derive_tone_base(name: str) -> int:
+    name = name.replace("陰", "阴").replace("陽", "阳").strip()
+    name = re.sub(r"[甲乙丙丁]$", "", name)
+    if "平" in name:
+        category = "ping"
+    elif "上" in name:
+        category = "shang"
+    elif "去" in name:
+        category = "qu"
+    elif "入" in name:
+        category = "ru"
+    else:
+        return 9
+    if "阴" in name:
+        polarity = "yin"
+    elif "阳" in name:
+        polarity = "yang"
+    else:
+        polarity = "neutral"
+    if polarity == "yin":
+        return {"ping": 1, "shang": 3, "qu": 5, "ru": 7}[category]
+    if polarity == "yang":
+        return {"ping": 2, "shang": 4, "qu": 6, "ru": 8}[category]
+    return {"ping": 1, "shang": 3, "qu": 5, "ru": 7}[category]
+
+
+def tone_to_scheme2(marker: str, tone_classes: dict, overrides: dict | None = None) -> str:
+    marker = str(marker or "").strip()
+    match = re.fullmatch(r"([0-9])(\*?)", marker)
+    if not match:
+        return marker
+    number, star = match.groups()
+    if number == "0":
+        return "0" + star
+    overrides = overrides or {}
+    override = overrides.get(marker)
+    if override is None:
+        override = overrides.get(number)
+        if override is not None and star:
+            override = str(override) + star
+    if override is not None:
+        return str(override)
+    entry = tone_classes.get(marker) or tone_classes.get(number) or {}
+    name = str(entry.get("name", "")) if isinstance(entry, dict) else ""
+    if not name:
+        return marker
+    return f"{_derive_tone_base(name)}{star}"
+
+
+def build_tone_map(config: dict) -> dict[str, str]:
+    section = config.get("transcription", {}) or {}
+    overrides = (section.get("ipa", {}) or {}).get("tone_map", {}) or {}
+    classes = config.get("tone_classes", {}) or {}
+    result = {"0": "0"}
+    for marker in classes:
+        marker = str(marker)
+        result[marker] = tone_to_scheme2(marker, classes, overrides)
+    return result
+
+
 def scheme2_algebra(gon_map: dict[str, tuple[str, ...]], *,
                     mandarin: bool = True, wenbai: bool = True) -> list[str]:
     rules: list[str] = ["    - xform/^W/G/" if wenbai else "    - erase/^W.*$/"]

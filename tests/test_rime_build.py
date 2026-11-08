@@ -21,6 +21,7 @@ from platforms.rime.build import (
     strip_tone,
     write_resource_manifest,
 )
+from platforms.rime import transcription
 from platforms.rime.fuzzy import compile_algebra, essential_rules, load_rules, normalize
 
 
@@ -670,7 +671,7 @@ def test_sentence_readings_use_highest_frequency_toned_character_entries() -> No
 def test_annotation_filter_rebuilds_sentence_readings_and_cleans_internal_marker() -> None:
     source = (Path(__file__).resolve().parents[1] / "platforms" / "rime" / "gannyu_annotation_filter.lua").read_text(encoding="utf-8")
 
-    assert "sentence_reading(candidate.text, data)" in source
+    assert "sentence_reading(candidate.text, data, display)" in source
     assert ':gsub("^G", ""):gsub(" G", " ")' in source
 
 
@@ -999,8 +1000,18 @@ def test_scheme2_is_built_from_dictionary_ipa_without_fuzzy_switches(tmp_path: P
         assert (tmp_path / f"gannyu_songau_ipa{suffix}.schema.yaml").is_file()
     norel = (tmp_path / "gannyu_songau_ipa_new_norel_gan.schema.yaml").read_text(encoding="utf-8")
     assert "prism: gannyu_songau_ipa_new_rel_gan" in norel
+    display = (tmp_path / "lua/gannyu_songau_scheme2.lua").read_text(encoding="utf-8")
+    assert "spellings = {" in display
+    assert "tones = {" in display
+    assert '["qit"] = "chit"' in display
+    assert '["5"] = "7"' in display
     assert "gannyu_songau_ipa" in (tmp_path / "default.custom.yaml").read_text(encoding="utf-8")
 
     fenni_counts = build("fenni", tmp_path)
     assert fenni_counts["scheme2_spellings"] == 0
     assert not (tmp_path / "gannyu_fenni_ipa.schema.yaml").exists()
+
+
+def test_scheme2_tone_map_keeps_starred_subclasses() -> None:
+    tones = transcription.build_tone_map({"tone_classes": {"5*": {"name": "阴入乙"}}})
+    assert tones["5*"] == "7*"
