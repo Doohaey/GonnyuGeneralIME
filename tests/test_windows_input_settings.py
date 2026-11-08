@@ -94,10 +94,10 @@ int main() {
                             assert(bool(options.items[7 + selected].flags & TF_LBMENUF_CHECKED) == (selected == mode));
                         assert(bool(options.items[10].flags & TF_LBMENUF_CHECKED) == (second == 0));
                         assert(bool(options.items[11].flags & TF_LBMENUF_CHECKED) == (second != 0));
-                        assert(bool(options.items[3].flags & TF_LBMENUF_GRAYED) == (second != 0));
-                        assert(bool(options.items[4].flags & TF_LBMENUF_GRAYED) == (!second && !fuzzy));
-                        assert(bool(options.items[5].flags & TF_LBMENUF_GRAYED) == (!second && !fuzzy));
-                        assert(bool(options.items[6].flags & TF_LBMENUF_GRAYED) == (second || (!second && !fuzzy)));
+                        assert(!(options.items[3].flags & TF_LBMENUF_GRAYED));
+                        assert(bool(options.items[4].flags & TF_LBMENUF_GRAYED) == (!fuzzy));
+                        assert(bool(options.items[5].flags & TF_LBMENUF_GRAYED) == (!fuzzy));
+                        assert(bool(options.items[6].flags & TF_LBMENUF_GRAYED) == (second || !fuzzy));
                         assert(bool(options.items[11].flags & TF_LBMENUF_GRAYED) == !available);
                     }
                 }
