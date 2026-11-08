@@ -1028,12 +1028,16 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--region", default="all")
     parser.add_argument("--list-regions", action="store_true")
+    parser.add_argument("--list-second-scheme-regions", action="store_true")
     parser.add_argument("--display-name", choices=("short", "apple"), default="short")
     parser.add_argument("--output", type=Path, default=ROOT / "build" / "rime")
     args = parser.parse_args()
     available = active_regions()
     if args.list_regions:
         print("\n".join(available))
+        return
+    if args.list_second_scheme_regions:
+        print("\n".join(region for region in available if _second_scheme_enabled(region)))
         return
     if args.region == "all":
         regions = available

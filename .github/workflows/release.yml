@@ -61,9 +61,16 @@ jobs:
           while IFS= read -r region; do
             regions+=("$region")
           done < <(python3 platforms/rime/build.py --list-regions)
-          test "$(find release-assets -maxdepth 1 -type f | wc -l)" -eq "$((5 + ${#regions[@]}))"
+          second_regions=()
+          while IFS= read -r region; do
+            second_regions+=("$region")
+          done < <(python3 platforms/rime/build.py --list-second-scheme-regions)
+          test "$(find release-assets -maxdepth 1 -type f | wc -l)" -eq "$((5 + ${#regions[@]} + ${#second_regions[@]}))"
           for region in "${regions[@]}"; do
             test -f "release-assets/GonnyuGeneralIME-${PRODUCT_VERSION}-rime-${region}.zip"
+          done
+          for region in "${second_regions[@]}"; do
+            test -f "release-assets/GonnyuGeneralIME-${PRODUCT_VERSION}-rime-${region}-II.zip"
           done
           for suffix in android.apk fcitx5-gonnyu.tar.gz fcitx5-gonnyu-ipa.tar.gz windows-installer.exe macos.pkg; do
             test -f "release-assets/GonnyuGeneralIME-${PRODUCT_VERSION}-${suffix}"

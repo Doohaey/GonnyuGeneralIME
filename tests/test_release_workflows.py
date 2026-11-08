@@ -1,3 +1,5 @@
+import subprocess
+import sys
 from pathlib import Path
 
 
@@ -28,11 +30,13 @@ def test_release_workflow_uses_tagged_workspace_version() -> None:
     assert "scripts/" not in content
     assert "actions/setup-python@v5" in content
     assert "platforms/rime/build.py --list-regions" in content
-    assert '"$((5 + ${#regions[@]}))"' in content
+    assert "platforms/rime/build.py --list-second-scheme-regions" in content
+    assert '"$((5 + ${#regions[@]} + ${#second_regions[@]}))"' in content
     assert "macos.pkg" in content
     assert "uses: ./.github/workflows/macos.yml" in content
     assert "GonnyuGeneralIME-${{ steps.product.outputs.version }}-*" in content
     assert "rime-${region}.zip" in content
+    assert "rime-${region}-II.zip" in content
     assert 'gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1' in content
     assert 'gh release upload "$GITHUB_REF_NAME" release-assets/* --clobber' in content
     assert 'gh release edit "$GITHUB_REF_NAME"' in content
@@ -40,6 +44,20 @@ def test_release_workflow_uses_tagged_workspace_version() -> None:
     assert 'release_flags=(--prerelease --latest=false)' in content
     assert '--verify-tag' in content
     assert 'if [[ "$PRODUCT_VERSION" == *-* ]]; then' in content
+
+def test_second_scheme_region_listing_matches_region_configuration() -> None:
+    result = subprocess.run(
+        [sys.executable, str(ROOT / "platforms/rime/build.py"), "--list-second-scheme-regions"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    regions = set(result.stdout.split())
+
+    assert "lancong" in regions
+    assert "goungon" in regions
+    assert "fenni" not in regions
+
 
 def test_fcitx5_workflow_runs_an_isolated_installer_smoke_test() -> None:
     content = (ROOT / ".github/workflows/fcitx5.yml").read_text(encoding="utf-8")
