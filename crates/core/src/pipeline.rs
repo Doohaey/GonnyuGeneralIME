@@ -364,21 +364,12 @@ impl InputPipeline {
         if let Some(entry) = entry {
             if self.input_options.scheme == crate::TranscriptionScheme::Ipa {
                 if let Some(source) = self.source_scheme2.as_mut() {
-                    source.extend_from_entries(std::iter::once(entry));
+                    source.extend_from_entries(std::iter::once(entry.clone()));
                 }
-                if let Some(source) = self.source_scheme2.as_ref() {
-                    self.dictionary = self.input_options.dictionary(source);
-                }
-            } else {
-                if let Some(source) = self.source_dictionary.as_mut() {
-                    source.extend_from_entries(std::iter::once(entry));
-                } else {
-                    self.dictionary.extend_from_entries(std::iter::once(entry));
-                }
-                if let Some(source) = self.source_dictionary.as_ref() {
-                    self.dictionary = self.input_options.dictionary(source);
-                }
+            } else if let Some(source) = self.source_dictionary.as_mut() {
+                source.extend_from_entries(std::iter::once(entry.clone()));
             }
+            self.dictionary.extend_from_entries(std::iter::once(entry));
         }
         clear_retrieve_cache();
         self.sentence_prefix_cache.get_mut().clear();
@@ -1226,6 +1217,51 @@ mod tests {
                     .get(*id as usize)
                     .is_some_and(|entry| entry.headword.as_ref() == "车马")
             }));
+    }
+
+    #[test]
+    fn add_user_word_with_source_dictionary_is_incremental_and_searchable() {
+        let mut pipeline = pipeline_with_temp_user_dict();
+        let entry = |headword: &str, pinyin: &str| crate::dictionary::DictionaryEntry {
+            headword: headword.into(),
+            ipa: "".into(),
+            dialect_pinyin: pinyin.into(),
+            mandarin_pinyin: "".into(),
+            category: "赣".into(),
+            mandarin_word: "".into(),
+            mandarin_word_pinyin: "".into(),
+            frequency: Some(1),
+            synonyms: "".into(),
+            entry_index: 0,
+            new_old: "".into(),
+        };
+        pipeline
+            .dictionary
+            .extend_from_entries([entry("我", "ngo3")]);
+        let mut options = pipeline.input_options();
+        options.relations = false;
+        pipeline.set_input_options(options);
+        assert!(pipeline.source_dictionary.is_some());
+
+        assert!(pipeline.add_user_word("车马", "ca1 ma1", "che1 ma3"));
+        assert!(pipeline
+            .retrieve("ca1ma1")
+            .iter()
+            .any(|candidate| candidate.text == "车马"));
+        assert!(!pipeline
+            .source_dictionary
+            .as_ref()
+            .unwrap()
+            .by_headword("车马")
+            .is_empty());
+
+        let mut options = pipeline.input_options();
+        options.relations = true;
+        pipeline.set_input_options(options);
+        assert!(pipeline
+            .retrieve("ca1ma1")
+            .iter()
+            .any(|candidate| candidate.text == "车马"));
     }
 
     #[test]
