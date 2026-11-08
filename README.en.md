@@ -293,22 +293,26 @@ The tables below list vowel, coda, and syllabic spellings by segment; IPA is sho
 |  | ae[æ] | — | — | — | — | — |
 | Low | a[a] | — | — | — | a[ɑ] | — |
 
-| Coda | Spelling |
-| --- | --- |
-| p | p |
-| t | t |
-| k | k |
-| ʔ | k |
-| m | m |
-| n | n |
-| ŋ | ng |
+Coda:
 
-| Syllabic | Spelling |
+| Spelling | IPA |
 | --- | --- |
-| m̩ | m |
-| n̩ | n |
-| ŋ̩ / ŋ̍ | ng |
-| ɭ̩ | l |
+| p | [p] |
+| t | [t] |
+| k | [k] |
+| k | [ʔ] |
+| m | [m] |
+| n | [n] |
+| ng | [ŋ] |
+
+Syllabic laterals and nasals:
+
+| Spelling | IPA |
+| --- | --- |
+| m | [m̩] |
+| n | [n̩] |
+| ng | [ŋ̩] / [ŋ̍] |
+| l | [ɭ̩] |
 
 Checked-tone codas follow these spelling and input rules.
 
@@ -735,24 +739,26 @@ Second-scheme finals are formed by combining the vowel table and codas directly.
 |  | ae[æ] | — | ar[ɐ] | eo[ɞ] | — | — |
 | Low | a[a] | oe[ɶ] | — | — | a[ɑ] | oa[ɒ] |
 
-| Coda | Second scheme |
+Coda:
+
+| Spelling | IPA |
 | --- | --- |
-| p | p |
-| t | t |
-| k | k |
-| ʔ | h |
-| m | m |
-| n | n |
-| ŋ | ng |
+| p | [p] |
+| t | [t] |
+| k | [k] |
+| h | [ʔ] |
+| m | [m] |
+| n | [n] |
+| ng | [ŋ] |
 
 Syllabic laterals and nasals:
 
-| Syllabic | Second scheme |
+| Spelling | IPA |
 | --- | --- |
-| m̩ | m |
-| n̩ | n |
-| ŋ̍ / ŋ̩ | ng |
-| ɭ̩ | l |
+| m | [m̩] |
+| n | [n̩] |
+| ng | [ŋ̍] / [ŋ̩] |
+| l | [ɭ̩] |
 
 Nasalisation is written `nn`; if a nasalised vowel still has a nasal coda, only the coda is written.
 
