@@ -50,6 +50,9 @@ fn second_scheme_reads_and_displays_the_projected_reading() {
         scheme: TranscriptionScheme::Ipa,
         ..InputOptions::default()
     });
+    assert!(pipeline
+        .user_dict_path()
+        .ends_with("user_dictionary_II.tsv"));
     let candidate = pipeline
         .retrieve("kha2")
         .into_iter()
@@ -64,7 +67,7 @@ fn second_scheme_reads_and_displays_the_projected_reading() {
         .any(|candidate| candidate.text == "甲乙"));
 
     pipeline.set_input_options(InputOptions::default());
-    assert!(pipeline
+    assert!(!pipeline
         .retrieve("ka3")
         .iter()
         .any(|candidate| candidate.text == "甲乙"));
@@ -76,7 +79,7 @@ fn second_scheme_reads_and_displays_the_projected_reading() {
     drop(pipeline);
     let mut reloaded =
         InputPipeline::load_with_user_data_dir(&resource, Some(&root.join("user"))).unwrap();
-    assert!(reloaded
+    assert!(!reloaded
         .retrieve("ka3")
         .iter()
         .any(|candidate| candidate.text == "甲乙"));
@@ -85,7 +88,19 @@ fn second_scheme_reads_and_displays_the_projected_reading() {
         ..InputOptions::default()
     });
     assert!(reloaded
+        .user_dict_path()
+        .ends_with("user_dictionary_II.tsv"));
+    assert!(reloaded
         .retrieve("kha3")
         .iter()
         .any(|candidate| candidate.text == "甲乙"));
+
+    assert!(reloaded.clear_user_data(true, true));
+    for name in ["user_dictionary.tsv", "user_dictionary_II.tsv"] {
+        let content = std::fs::read_to_string(root.join("user").join(name)).unwrap_or_default();
+        assert!(
+            !content.contains("甲乙"),
+            "{name} still contains the cleared word"
+        );
+    }
 }

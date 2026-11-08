@@ -87,8 +87,11 @@ pub struct InputPipeline {
     fuzzy: FuzzyMap,
     tone_values: HashMap<String, u8>,
     user_dict: UserDictionary,
+    user_dict_ipa: UserDictionary,
     frequency_boosts: HashMap<String, u64>,
+    frequency_boosts_ipa: HashMap<String, u64>,
     boosts_path: std::path::PathBuf,
+    boosts_path_ipa: std::path::PathBuf,
     sentence_prefix_cache: RefCell<HashMap<(String, usize), Vec<RankedCandidate>>>,
 }
 
@@ -200,11 +203,16 @@ impl InputPipeline {
     }
 
     fn empty_with_user_data_dir(user_data_dir: Option<&Path>) -> InputPipeline {
-        let user_dict = match user_data_dir {
-            Some(directory) => {
-                UserDictionary::load_or_create_at(directory.join("user_dictionary.tsv"))
+        let (user_dict, user_dict_ipa) = match user_data_dir {
+            Some(directory) => (
+                UserDictionary::load_or_create_at(directory.join("user_dictionary.tsv")),
+                UserDictionary::load_or_create_at(directory.join("user_dictionary_II.tsv")),
+            ),
+            None => {
+                let user_dict = UserDictionary::load_or_create();
+                let ipa_path = user_dict.path().with_file_name("user_dictionary_II.tsv");
+                (user_dict, UserDictionary::load_or_create_at(ipa_path))
             }
-            None => UserDictionary::load_or_create(),
         };
         InputPipeline {
             input_options: crate::InputOptions::default(),
@@ -221,8 +229,11 @@ impl InputPipeline {
             fuzzy: FuzzyMap::empty(),
             tone_values: HashMap::new(),
             user_dict,
+            user_dict_ipa,
             frequency_boosts: HashMap::new(),
+            frequency_boosts_ipa: HashMap::new(),
             boosts_path: PathBuf::new(),
+            boosts_path_ipa: PathBuf::new(),
             sentence_prefix_cache: RefCell::new(HashMap::new()),
         }
     }
@@ -309,12 +320,13 @@ impl InputPipeline {
             }
         }
         pipeline.tone_values = eight_tone_class_map(&resource.config.tone_classes);
-        pipeline.boosts_path = pipeline
+        let boosts_root = pipeline
             .user_dict
             .path()
             .parent()
-            .unwrap_or_else(|| Path::new("."))
-            .join("frequency_boosts.jsonl");
+            .unwrap_or_else(|| Path::new("."));
+        pipeline.boosts_path = boosts_root.join("frequency_boosts.jsonl");
+        pipeline.boosts_path_ipa = boosts_root.join("frequency_boosts_II.jsonl");
         pipeline.load_frequency_boosts();
         pipeline
             .user_dict
@@ -323,19 +335,17 @@ impl InputPipeline {
         pipeline.merge_boosts_into_user_dict();
         // Seed self-made words without a frequency with a random initial value.
         pipeline.seed_user_dict_frequencies();
-        let user_entries: Vec<_> = pipeline.user_dict.entries().cloned().collect();
-        if let (Some(map), Some(source)) = (
-            pipeline.scheme2_map.as_ref(),
-            pipeline.source_scheme2.as_mut(),
-        ) {
-            let converted = user_entries.iter().cloned().map(|mut entry| {
-                entry.dialect_pinyin = map.convert_reading(&entry.dialect_pinyin).into();
-                entry.entry_index = 0;
-                entry
-            });
-            source.extend_from_entries(converted);
+        if let Some(source) = pipeline.source_scheme2.as_ref() {
+            pipeline
+                .user_dict_ipa
+                .prune_existing(|hw| !source.by_headword(hw).is_empty());
         }
-        pipeline.dictionary.extend_from_entries(user_entries);
+        let gon_entries: Vec<_> = pipeline.user_dict.entries().cloned().collect();
+        let ipa_entries: Vec<_> = pipeline.user_dict_ipa.entries().cloned().collect();
+        if let Some(source) = pipeline.source_scheme2.as_mut() {
+            source.extend_from_entries(ipa_entries);
+        }
+        pipeline.dictionary.extend_from_entries(gon_entries);
         Ok(pipeline)
     }
 
@@ -343,14 +353,7 @@ impl InputPipeline {
         if !self.dictionary.by_headword(headword).is_empty() {
             return false;
         }
-        let stored_pinyin = match (&self.scheme2_map, self.input_options.scheme) {
-            (Some(map), crate::TranscriptionScheme::Ipa) => map.to_scheme1_reading(pinyin),
-            _ => pinyin.to_string(),
-        };
-        if !self
-            .user_dict
-            .add(headword, &stored_pinyin, mandarin_pinyin)
-        {
+        if !self.user_dict.add(headword, pinyin, mandarin_pinyin) {
             return false;
         }
         let entry = self
@@ -359,29 +362,22 @@ impl InputPipeline {
             .find(|e| e.headword.as_ref() == headword)
             .cloned();
         if let Some(entry) = entry {
-            let (scheme1_entry, scheme2_entry) = match self.scheme2_map.as_ref() {
-                Some(map) => {
-                    let mut scheme2 = entry.clone();
-                    scheme2.dialect_pinyin = map.convert_reading(&entry.dialect_pinyin).into();
-                    (entry.clone(), scheme2)
-                }
-                None => (entry.clone(), entry.clone()),
-            };
-            if let Some(source) = self.source_dictionary.as_mut() {
-                source.extend_from_entries(std::iter::once(scheme1_entry));
-            } else if self.input_options.scheme != crate::TranscriptionScheme::Ipa {
-                self.dictionary
-                    .extend_from_entries(std::iter::once(scheme1_entry));
-            }
-            if let Some(source) = self.source_scheme2.as_mut() {
-                source.extend_from_entries(std::iter::once(scheme2_entry));
-            }
             if self.input_options.scheme == crate::TranscriptionScheme::Ipa {
+                if let Some(source) = self.source_scheme2.as_mut() {
+                    source.extend_from_entries(std::iter::once(entry));
+                }
                 if let Some(source) = self.source_scheme2.as_ref() {
                     self.dictionary = self.input_options.dictionary(source);
                 }
-            } else if let Some(source) = self.source_dictionary.as_ref() {
-                self.dictionary = self.input_options.dictionary(source);
+            } else {
+                if let Some(source) = self.source_dictionary.as_mut() {
+                    source.extend_from_entries(std::iter::once(entry));
+                } else {
+                    self.dictionary.extend_from_entries(std::iter::once(entry));
+                }
+                if let Some(source) = self.source_dictionary.as_ref() {
+                    self.dictionary = self.input_options.dictionary(source);
+                }
             }
         }
         clear_retrieve_cache();
@@ -393,15 +389,18 @@ impl InputPipeline {
         if !clear_words && !clear_frequencies {
             return false;
         }
-        if clear_words && !self.user_dict.clear() {
+        if clear_words && (!self.user_dict.clear() || !self.user_dict_ipa.clear()) {
             return false;
         }
         if clear_frequencies {
             let boosts = HashMap::new();
-            if !self.save_frequency_boosts(&boosts) {
+            if !save_frequency_boosts_at(&self.boosts_path, &boosts)
+                || !save_frequency_boosts_at(&self.boosts_path_ipa, &boosts)
+            {
                 return false;
             }
             self.frequency_boosts = boosts;
+            self.frequency_boosts_ipa = HashMap::new();
         }
         clear_retrieve_cache();
         self.sentence_prefix_cache.get_mut().clear();
@@ -419,10 +418,11 @@ impl InputPipeline {
             }
             if let Some(frequency) = self.user_dict.frequency(headword) {
                 self.dictionary.set_user_frequency(headword, frequency);
-                if let Some(source) = self.source_dictionary.as_mut() {
-                    source.set_user_frequency(headword, frequency);
-                }
-                if let Some(source) = self.source_scheme2.as_mut() {
+                if self.input_options.scheme == crate::TranscriptionScheme::Ipa {
+                    if let Some(source) = self.source_scheme2.as_mut() {
+                        source.set_user_frequency(headword, frequency);
+                    }
+                } else if let Some(source) = self.source_dictionary.as_mut() {
                     source.set_user_frequency(headword, frequency);
                 }
             }
@@ -456,44 +456,67 @@ impl InputPipeline {
 
     fn load_frequency_boosts(&mut self) {
         const MAX_BOOST: u64 = 200000;
-        let Ok(content) = std::fs::read_to_string(&self.boosts_path) else {
-            return;
-        };
-        for line in content.lines() {
-            let trimmed = line.trim();
-            if trimmed.is_empty() || trimmed.starts_with('#') {
-                continue;
-            }
-            if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(trimmed) {
-                if let (Some(word), Some(boost)) =
-                    (parsed["word"].as_str(), parsed["boost"].as_u64())
-                {
-                    self.frequency_boosts
-                        .insert(word.to_string(), boost.min(MAX_BOOST));
+        fn read(path: &Path) -> HashMap<String, u64> {
+            let Ok(content) = std::fs::read_to_string(path) else {
+                return HashMap::new();
+            };
+            let mut boosts = HashMap::new();
+            for line in content.lines() {
+                let trimmed = line.trim();
+                if trimmed.is_empty() || trimmed.starts_with('#') {
+                    continue;
+                }
+                if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(trimmed) {
+                    if let (Some(word), Some(boost)) =
+                        (parsed["word"].as_str(), parsed["boost"].as_u64())
+                    {
+                        boosts.insert(word.to_string(), boost.min(MAX_BOOST));
+                    }
                 }
             }
+            boosts
         }
+        self.frequency_boosts = read(&self.boosts_path);
+        self.frequency_boosts_ipa = read(&self.boosts_path_ipa);
     }
 
     /// Merge self-made word boosts into the user dictionary frequency column
     /// (cap 200000) and remove them from the boost list.
     fn merge_boosts_into_user_dict(&mut self) {
-        let mut updates: Vec<(String, u64)> = Vec::new();
-        let mut removed: Vec<String> = Vec::new();
-        for (word, boost) in self.frequency_boosts.iter() {
-            if self.user_dict.contains(word) {
-                updates.push((word.clone(), *boost));
-                removed.push(word.clone());
+        fn merge(
+            dictionary: &mut UserDictionary,
+            boosts: &HashMap<String, u64>,
+        ) -> Option<Vec<String>> {
+            let updates: Vec<(String, u64)> = boosts
+                .iter()
+                .filter(|(word, _)| dictionary.contains(word))
+                .map(|(word, boost)| (word.clone(), *boost))
+                .collect();
+            if updates.is_empty() || dictionary.set_frequencies(&updates) != updates.len() {
+                return None;
             }
+            Some(updates.into_iter().map(|(word, _)| word).collect())
         }
-        if !updates.is_empty() && self.user_dict.set_frequencies(&updates) == updates.len() {
-            let mut staged = self.frequency_boosts.clone();
-            for word in &removed {
-                staged.remove(word);
+
+        let mut staged = self.frequency_boosts.clone();
+        let mut changed = false;
+        if let Some(removed) = merge(&mut self.user_dict, &staged) {
+            for word in removed {
+                staged.remove(&word);
             }
-            if self.save_frequency_boosts(&staged) {
-                self.frequency_boosts = staged;
+            changed = true;
+        }
+        if let Some(removed) = merge(&mut self.user_dict_ipa, &staged) {
+            for word in removed {
+                staged.remove(&word);
             }
+            changed = true;
+        }
+        if changed
+            && save_frequency_boosts_at(&self.boosts_path, &staged)
+            && save_frequency_boosts_at(&self.boosts_path_ipa, &staged)
+        {
+            self.frequency_boosts = staged;
         }
     }
 
@@ -501,56 +524,20 @@ impl InputPipeline {
     fn seed_user_dict_frequencies(&mut self) {
         use rand::Rng;
         let mut rng = rand::thread_rng();
-        let updates: Vec<(String, u64)> = self
-            .user_dict
-            .entries()
-            .filter(|e| e.frequency.is_none_or(|f| f <= 1))
-            .map(|e| (e.headword.to_string(), rng.gen_range(10000..=15000)))
-            .collect();
-        if !updates.is_empty() {
-            self.user_dict.set_frequencies(&updates);
+        for dictionary in [&mut self.user_dict, &mut self.user_dict_ipa] {
+            let updates: Vec<(String, u64)> = dictionary
+                .entries()
+                .filter(|e| e.frequency.is_none_or(|f| f <= 1))
+                .map(|e| (e.headword.to_string(), rng.gen_range(10000..=15000)))
+                .collect();
+            if !updates.is_empty() {
+                dictionary.set_frequencies(&updates);
+            }
         }
     }
 
     fn save_frequency_boosts(&self, boosts: &HashMap<String, u64>) -> bool {
-        if self.boosts_path.as_os_str().is_empty() {
-            return true;
-        }
-        let parent = self
-            .boosts_path
-            .parent()
-            .filter(|path| !path.as_os_str().is_empty())
-            .unwrap_or_else(|| Path::new("."));
-        if std::fs::create_dir_all(parent).is_err() {
-            return false;
-        }
-        let mut file = match tempfile::NamedTempFile::new_in(parent) {
-            Ok(file) => file,
-            Err(_) => return false,
-        };
-        #[cfg(unix)]
-        if file
-            .as_file()
-            .set_permissions(std::fs::Permissions::from_mode(0o600))
-            .is_err()
-        {
-            return false;
-        }
-        use std::io::Write;
-        let mut rows: Vec<_> = boosts.iter().filter(|(_, boost)| **boost > 0).collect();
-        rows.sort_by(|left, right| left.0.cmp(right.0));
-        for (word, boost) in rows {
-            let Ok(word_json) = serde_json::to_string(word) else {
-                return false;
-            };
-            if writeln!(file, r#"{{"word":{},"boost":{}}}"#, word_json, boost).is_err() {
-                return false;
-            }
-        }
-        if file.flush().is_err() || file.as_file().sync_all().is_err() {
-            return false;
-        }
-        file.persist(&self.boosts_path).is_ok()
+        save_frequency_boosts_at(&self.boosts_path, boosts)
     }
 
     pub fn slang_book(&self) -> &SlangBook {
@@ -583,6 +570,11 @@ impl InputPipeline {
             options.scheme = crate::TranscriptionScheme::GonPin;
         }
         let scheme_changed = self.input_options.scheme != options.scheme;
+        if scheme_changed {
+            std::mem::swap(&mut self.user_dict, &mut self.user_dict_ipa);
+            std::mem::swap(&mut self.frequency_boosts, &mut self.frequency_boosts_ipa);
+            std::mem::swap(&mut self.boosts_path, &mut self.boosts_path_ipa);
+        }
         let dictionary_changed = scheme_changed
             || self.input_options.relations_enabled() != options.relations_enabled()
             || self.input_options.synonyms_enabled() != options.synonyms_enabled()
@@ -1094,6 +1086,46 @@ fn trigger_kind_label(kind: TriggerKind) -> &'static str {
     }
 }
 
+fn save_frequency_boosts_at(path: &Path, boosts: &HashMap<String, u64>) -> bool {
+    if path.as_os_str().is_empty() {
+        return true;
+    }
+    let parent = path
+        .parent()
+        .filter(|path| !path.as_os_str().is_empty())
+        .unwrap_or_else(|| Path::new("."));
+    if std::fs::create_dir_all(parent).is_err() {
+        return false;
+    }
+    let mut file = match tempfile::NamedTempFile::new_in(parent) {
+        Ok(file) => file,
+        Err(_) => return false,
+    };
+    #[cfg(unix)]
+    if file
+        .as_file()
+        .set_permissions(std::fs::Permissions::from_mode(0o600))
+        .is_err()
+    {
+        return false;
+    }
+    use std::io::Write;
+    let mut rows: Vec<_> = boosts.iter().filter(|(_, boost)| **boost > 0).collect();
+    rows.sort_by(|left, right| left.0.cmp(right.0));
+    for (word, boost) in rows {
+        let Ok(word_json) = serde_json::to_string(word) else {
+            return false;
+        };
+        if writeln!(file, r#"{{"word":{},"boost":{}}}"#, word_json, boost).is_err() {
+            return false;
+        }
+    }
+    if file.flush().is_err() || file.as_file().sync_all().is_err() {
+        return false;
+    }
+    file.persist(path).is_ok()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1110,8 +1142,11 @@ mod tests {
             std::process::id(),
             nonce
         ));
-        pipeline.user_dict = UserDictionary::empty_at(path);
+        pipeline.user_dict = UserDictionary::empty_at(path.clone());
+        pipeline.user_dict_ipa =
+            UserDictionary::empty_at(path.with_file_name("user_dictionary_II.tsv"));
         pipeline.boosts_path = PathBuf::new();
+        pipeline.boosts_path_ipa = PathBuf::new();
         pipeline
     }
 
