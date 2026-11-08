@@ -241,11 +241,11 @@ The general Gon(Gan) romanisation (gon-pin) first scheme used by this project re
 | s | [s] | [s] | [s] | [s] | [s] | [s] | [s] | [s] | [s] | [s] | [s] | [s] |  |  |
 | j | [tɕ] | [tɕ] | [tɕ] | [tɕ] | [tɕ] | [tɕ] | [tɕ] | [tɕ] | [tɕ] | [tɕ] | [tɕ] | [tɕ] |  |  |
 | q | [tɕʰ] | [tɕʰ] | [tɕʰ] | [tɕʰ] | [tɕʰ] | [tɕʰ] | [tɕʰ] | [tɕʰ] | [tɕʰ] | [tɕʰ] | - | [tɕʰ] |  |  |
-| n | [n] or [ȵ] | [n] or [ȵ] | [n] | [ȵ] | [ȵ] | [n] or [ɳ] or [ȵ] | [ȵ] | [n] or [ȵ] | [ɳ] | [n] or [ȵ] | [n] or [ȵ] | - | - |  |
+| n | [ȵ] | [ȵ] | [n] | [ȵ] | [ȵ] | [n] or [ɳ] or [ȵ] | [ȵ] | [n] or [ȵ] | [ɳ] | [n] or [ȵ] | [n] or [ȵ] | - | - |  |
 | x | [ɕ] | [ɕ] | [ɕ] | [ɕ] | [ɕ] | [ɕ] | [ɕ] | [ɕ] | [ɕ] | [ɕ] | [ɕ] | [ɕ] |  |  |
 | g | [k] | [k] | [k] | [k] | [k] | [k] | [k] | [k] | [k] | [k] | [k] | [k] |  |  |
 | k | [kʰ] | [kʰ] | [kʰ] | [kʰ] | [kʰ] | [kʰ] | [kʰ] | [kʰ] | [kʰ] | [kʰ] | - | [kʰ] |  |  |
-| ng | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | - | Velar nasal; example: 五 ng3. |
+| ng | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | - | Velar nasal; example: 眼 ngan3. |
 | h | [h] | [x] or [h] | [h] | [h] | [x] | [x] | [x] or [h] | [x] | [x] | [h] | [x] | [h] | — | The default [h] is articulated farther back than Mandarin h. |
 | v | - | [v] | [v] | - | [v] | - | - | - | - | - | - | - | w, wu (at the start of a syllable, one-way) |  |
 | ch | - | - | - | - | - | [tʂʰ] | - | - | - | - | - | - |  |  |
