@@ -40,16 +40,17 @@ def _package(output: Path, archive_root: Path, region: str, platform: str, *,
     archive_root.mkdir(parents=True, exist_ok=True)
     root = f"gannyu_{region}"
     all_files = _files(output)
+    scheme2_root = f"konny_{region}"
     if scheme2:
         selected = [
             name for name in all_files
             if name in {"LICENSE"}
-            or name.startswith(f"{root}_II") and name.endswith(".schema.yaml")
+            or name.startswith(f"{scheme2_root}_II") and name.endswith(".schema.yaml")
             or name.startswith(f"{root}") and name.endswith(".dict.yaml")
             or name.startswith(f"lua/{root}") and (
                 name.endswith("_data.lua") or name.endswith("_annotations.bin")
             )
-            or name == f"lua/{root}_scheme2.lua"
+            or name == f"lua/{scheme2_root}_scheme2.lua"
             or name in {
                 "lua/gannyu_input_options.lua", "lua/gannyu_options_translator.lua",
                 "lua/gannyu_annotation_store.lua", "lua/gannyu_data_lifecycle.lua",
@@ -57,7 +58,7 @@ def _package(output: Path, archive_root: Path, region: str, platform: str, *,
                 "lua/gannyu_relation_filter.lua",
             }
         ]
-        schema_id = f"{root}_II"
+        schema_id = f"{scheme2_root}_II"
     else:
         selected = [
             name for name in all_files
@@ -75,7 +76,7 @@ def _package(output: Path, archive_root: Path, region: str, platform: str, *,
             }
         ]
         schema_id = root
-    if scheme2 and f"{root}_II.schema.yaml" not in selected:
+    if scheme2 and f"{scheme2_root}_II.schema.yaml" not in selected:
         return Path()
     if not selected:
         return Path()

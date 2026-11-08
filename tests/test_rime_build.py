@@ -994,25 +994,32 @@ def test_fungcen_n_l_merger_rule_has_no_n_duplicates() -> None:
 def test_scheme2_is_built_from_dictionary_ipa_without_fuzzy_rules(tmp_path: Path) -> None:
     counts = build("songau", tmp_path)
     assert counts["scheme2_spellings"] > 0
-    base = (tmp_path / "gannyu_songau_II.schema.yaml").read_text(encoding="utf-8")
-    assert "schema_id: gannyu_songau_II" in base
-    assert "prism: gannyu_songau_II" in base
+    first = (tmp_path / "gannyu_songau.schema.yaml").read_text(encoding="utf-8")
+    assert "schema_id: gannyu_songau" in first
+    assert "dictionary: gannyu_songau" in first
+    base = (tmp_path / "konny_songau_II.schema.yaml").read_text(encoding="utf-8")
+    assert "schema_id: konny_songau_II" in base
+    assert "prism: konny_songau_II" in base
+    assert "user_dict: konny_songau_II" in base
+    assert "dictionary: gannyu_songau" in base
     assert "gannyu_no_fuzzy" in base
     assert "gannyu_no_fuzzy_rules" not in base
     for suffix in ("", "_gan", "_nowenbai", "_gan_nowenbai"):
-        assert (tmp_path / f"gannyu_songau_II{suffix}.schema.yaml").is_file()
-    norel = (tmp_path / "gannyu_songau_II_new_norel_gan.schema.yaml").read_text(encoding="utf-8")
-    assert "prism: gannyu_songau_II_new_rel_gan" in norel
-    display = (tmp_path / "lua/gannyu_songau_scheme2.lua").read_text(encoding="utf-8")
+        assert (tmp_path / f"konny_songau_II{suffix}.schema.yaml").is_file()
+    norel = (tmp_path / "konny_songau_II_new_norel_gan.schema.yaml").read_text(encoding="utf-8")
+    assert "prism: konny_songau_II_new_rel_gan" in norel
+    assert "user_dict: konny_songau_new_norel_II" in norel
+    assert "dictionary: gannyu_songau" in norel
+    display = (tmp_path / "lua/konny_songau_scheme2.lua").read_text(encoding="utf-8")
     assert "spellings = {" in display
     assert "tones = {" in display
     assert '["qit"] = "chit"' in display
     assert '["5"] = "7"' in display
-    assert "gannyu_songau_II" in (tmp_path / "default.custom.yaml").read_text(encoding="utf-8")
+    assert "konny_songau_II" in (tmp_path / "default.custom.yaml").read_text(encoding="utf-8")
 
     fenni_counts = build("fenni", tmp_path)
     assert fenni_counts["scheme2_spellings"] == 0
-    assert not (tmp_path / "gannyu_fenni_II.schema.yaml").exists()
+    assert not (tmp_path / "konny_fenni_II.schema.yaml").exists()
 
 
 def test_scheme2_tone_map_keeps_starred_subclasses() -> None:

@@ -128,7 +128,7 @@ int main(int argc, char** argv) {
     check(gannyu_engine_set_input_options(handle, 1, 1, 0, 1, 1, 2) == 0, "old mode failed");
     check(snapshot().find("\"text\":\"义\"") != std::string::npos, "source old reading missing after hot toggle");
     check(input("yi").find("\"text\":\"义\"") == std::string::npos, "new lookup leaked into old mode");
-    for (const char* base : {"gannyu_lancong", "gannyu_lancong_II", "gannyu_lancong_ipa"}) {
+    for (const char* base : {"gannyu_lancong", "konny_lancong_II", "gannyu_lancong_II", "gannyu_lancong_ipa"}) {
       for (const char* suffix : {"", "_both_norel", "_new_rel", "_new_norel", "_old_rel", "_old_norel"}) {
         const auto path = std::filesystem::path(argv[3]) / (std::string(base) + suffix + ".userdb");
         std::filesystem::create_directories(path);
@@ -138,7 +138,7 @@ int main(int argc, char** argv) {
     char* reset = nullptr;
     check(gannyu_engine_reset_user_data(handle, GANNYU_USER_DATA_ALL, &reset) == 0, "reset failed");
     gannyu_string_destroy(reset);
-    for (const char* base : {"gannyu_lancong", "gannyu_lancong_II", "gannyu_lancong_ipa"}) {
+    for (const char* base : {"gannyu_lancong", "konny_lancong_II", "gannyu_lancong_II", "gannyu_lancong_ipa"}) {
       for (const char* suffix : {"", "_both_norel", "_new_rel", "_new_norel", "_old_rel", "_old_norel"}) {
         const auto marker = std::filesystem::path(argv[3]) / (std::string(base) + suffix + ".userdb") / "input-options-cleanup-marker";
         check(!std::filesystem::exists(marker), "variant user data survived reset");

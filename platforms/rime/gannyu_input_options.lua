@@ -18,10 +18,17 @@ function M.enabled(env, name)
   return not context or not context:get_option("gannyu_no_" .. name)
 end
 
+local function data_root(root)
+  if root:sub(1, 6) == "konny_" then
+    return "gannyu_" .. root:sub(7)
+  end
+  return root
+end
+
 function M.names(env)
   local schema_id = env.engine.schema.schema_id
   local ipa = schema_id:sub(-3) == "_II"
-  local root = ipa and schema_id:sub(1, -4) or schema_id
+  local root = ipa and data_root(schema_id:sub(1, -4)) or schema_id
   if not supported(env) then return schema_id, "" end
   local context = env.engine and env.engine.context
   local mode = context and context:get_option("gannyu_new") and "new"

@@ -31,7 +31,8 @@ struct GannyuPipelineHandle {
 namespace {
 
 std::string SchemaFor(const GannyuPipelineHandle& handle) {
-  return "gannyu_" + handle.region_id + (handle.scheme2 ? "_II" : "");
+  return handle.scheme2 ? "konny_" + handle.region_id + "_II"
+                        : "gannyu_" + handle.region_id;
 }
 
 constexpr int kOk = 0;
@@ -676,7 +677,7 @@ int gannyu_engine_transcription_scheme_available(GannyuPipelineHandle* handle, i
     if (!HasRegisteredHandleLocked(runtime, handle)) return 0;
     RimeSchemaList list{};
     if (!Api()->get_schema_list(&list)) return 0;
-    const std::string target = "gannyu_" + handle->region_id + "_II";
+    const std::string target = "konny_" + handle->region_id + "_II";
     bool found = false;
     for (size_t index = 0; index < list.size; ++index) {
       if (list.list != nullptr && list.list[index].schema_id != nullptr &&
@@ -792,17 +793,29 @@ int gannyu_engine_reset_user_data(GannyuPipelineHandle* handle, int scope, char*
 
     std::error_code remove_error;
     std::filesystem::path userdb;
-    const std::string prefix = "gannyu_" + handle->region_id;
+    const std::array<std::string, 2> prefixes{{
+        "gannyu_" + handle->region_id,
+        "konny_" + handle->region_id,
+    }};
     std::error_code iterator_error;
     std::filesystem::directory_iterator entries(runtime.user_data_dir, iterator_error);
     if (!iterator_error) {
       for (const auto& entry : entries) {
         const std::string name = entry.path().filename().string();
-        const bool boundary = name.size() == prefix.size() ||
-                              (name.size() > prefix.size() &&
-                               (name[prefix.size()] == '_' || name[prefix.size()] == '.'));
-        if (name.compare(0, prefix.size(), prefix) != 0 || !boundary ||
-            name.size() < 7 || name.compare(name.size() - 7, 7, ".userdb") != 0) {
+        bool matches = false;
+        for (const std::string& prefix : prefixes) {
+          if (name.size() < prefix.size() || name.compare(0, prefix.size(), prefix) != 0) {
+            continue;
+          }
+          const bool boundary = name.size() == prefix.size() ||
+                                name[prefix.size()] == '_' || name[prefix.size()] == '.';
+          if (boundary) {
+            matches = true;
+            break;
+          }
+        }
+        if (!matches || name.size() < 7 ||
+            name.compare(name.size() - 7, 7, ".userdb") != 0) {
           continue;
         }
         std::error_code error;

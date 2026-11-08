@@ -164,9 +164,10 @@ def build(output: Path, deployer: Path) -> None:
             region = stamp.name[len(".gannyu-cache-"):-len(".json")]
             if region not in regions:
                 removed_regions.append(region)
-                for path in shared.rglob(f"gannyu_{region}*"):
-                    if path.is_file():
-                        path.unlink()
+                for prefix in (f"gannyu_{region}", f"konny_{region}"):
+                    for path in shared.rglob(f"{prefix}*"):
+                        if path.is_file():
+                            path.unlink()
                 stamp.unlink()
         run(sys.executable, str(RIME_BUILD), "--region", "all", "--display-name", "apple", "--output", str(shared))
         source_key = deployment_fingerprint(shared, deployer)
@@ -211,9 +212,15 @@ def build(output: Path, deployer: Path) -> None:
                 if not old.is_file() or build_cache.digest(old) != checksum:
                     staged.unlink(missing_ok=True)
         for region in removed_regions:
-            for path in prebuilt.glob(f"gannyu_{region}*"):
-                if path.is_file():
-                    path.unlink()
+            for prefix in (f"gannyu_{region}", f"konny_{region}"):
+                for path in prebuilt.glob(f"{prefix}*"):
+                    if path.is_file():
+                        path.unlink()
+        if prebuilt.is_dir():
+            for region in regions:
+                for path in prebuilt.glob(f"gannyu_{region}_II*"):
+                    if path.is_file():
+                        path.unlink()
         for region in regions:
             before = output / "shared" / f".gannyu-cache-{region}.json"
             after = shared / f".gannyu-cache-{region}.json"

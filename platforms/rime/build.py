@@ -696,7 +696,7 @@ def write_option_resources(region: str, entries: list[Entry], output: Path,
             (output / f"{schema_id}.schema.yaml").write_text(body, encoding="utf-8")
             dependencies.append(schema_id)
     if second_scheme_enabled and gon_map:
-        base_id = f"{root}_II"
+        base_id = f"konny_{region}_II"
         scheme2_dependencies: list[str] = []
         base_body = None
         for mode, relations in itertools.product(("both", "new", "old"), (True, False)):
@@ -731,7 +731,7 @@ def write_option_resources(region: str, entries: list[Entry], output: Path,
                         f"schema:\n  schema_id: {schema_id}\n  name: {region}\n  version: \"{VERSION}\"\n"
                         f"translator:\n  dictionary: {dictionary_name}\n  prism: {prism_name}\n"
                         + exclude_block
-                        + f"  user_dict: {name}_II\n  enable_user_dict: true\n  enable_sentence: true\n"
+                        + f"  user_dict: konny_{region}{suffix}_II\n  enable_user_dict: true\n  enable_sentence: true\n"
                         "  enable_completion: true\n  spelling_hints: 8\n"
                         "speller:\n  alphabet: zyxwvutsrqponmlkjihgfedcba\n  delimiter: \" '\"\n  algebra:\n"
                         + "\n".join(algebra) + "\n"
@@ -762,7 +762,7 @@ def write_default_custom(output: Path, regions: tuple[str, ...]) -> None:
     for region in regions:
         lines.append(f"    - schema: gannyu_{region}")
         if _second_scheme_enabled(region):
-            lines.append(f"    - schema: gannyu_{region}_II")
+            lines.append(f"    - schema: konny_{region}_II")
     (output / "default.custom.yaml").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
@@ -776,7 +776,7 @@ def write_mobile_default(output: Path, regions: tuple[str, ...]) -> None:
     schema_list = "\n".join(
         line for region in regions for line in (
             f"  - schema: gannyu_{region}",
-            *( [f"  - schema: gannyu_{region}_II"] if _second_scheme_enabled(region) else [] ),
+            *( [f"  - schema: konny_{region}_II"] if _second_scheme_enabled(region) else [] ),
         )
     )
     (output / "default.yaml").write_text(
@@ -936,10 +936,21 @@ def build(region: str, output: Path, display_name: str = "short") -> dict[str, i
     for path in (output / "lua").glob(f"gannyu_{region}*"):
         if path.is_file():
             path.unlink()
+    for path in output.glob(f"konny_{region}.*"):
+        if path.is_file():
+            path.unlink()
+    for path in output.glob(f"konny_{region}_*"):
+        if path.is_file():
+            path.unlink()
+    for path in (output / "lua").glob(f"konny_{region}*"):
+        if path.is_file():
+            path.unlink()
     counts = build_uncached(region, output, display_name)
     files = [path for path in output.rglob("*") if path.is_file()
              and (path.name.startswith(f"gannyu_{region}.")
                   or path.name.startswith(f"gannyu_{region}_")
+                  or path.name.startswith(f"konny_{region}.")
+                  or path.name.startswith(f"konny_{region}_")
                   or path.name in LUA_NAMES or path.name == "LICENSE")]
     if build_cache.fingerprint(ROOT, paths, display_name) != key:
         raise RuntimeError(f"[{region}] source changed during generation")
@@ -1000,7 +1011,7 @@ def build_uncached(region: str, output: Path, display_name: str = "short") -> di
         second_scheme_enabled = False
     if second_scheme_enabled:
         write_scheme2_display(
-            output / "lua" / f"gannyu_{region}_scheme2.lua",
+            output / "lua" / f"konny_{region}_scheme2.lua",
             gon_map,
             transcription.build_tone_map(config),
         )

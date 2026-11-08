@@ -48,7 +48,7 @@ def _convert(text: str, spellings: dict[str, str], tones: dict[str, str]) -> str
 def test_all_second_scheme_regions_convert_to_scheme2_display(tmp_path: Path) -> None:
     for region in active_regions():
         build(region, tmp_path)
-        display_path = tmp_path / "lua" / f"gannyu_{region}_scheme2.lua"
+        display_path = tmp_path / "lua" / f"konny_{region}_scheme2.lua"
         if not display_path.is_file():
             assert region == "fenni"
             continue

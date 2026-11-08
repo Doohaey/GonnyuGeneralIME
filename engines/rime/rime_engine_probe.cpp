@@ -94,12 +94,14 @@ int main(int argc, char** argv) {
     }
 
     const std::string schema_id = std::string("gannyu_") + region;
+    const std::string second_schema_id = std::string("konny_") + region + "_II";
     const std::filesystem::path root = std::filesystem::path(argv[3]);
     const std::filesystem::path gon_marker = root / (schema_id + ".userdb") / "gonnyu-reset-probe";
-    const std::filesystem::path ii_marker = root / (schema_id + "_II.userdb") / "gonnyu-reset-probe";
+    const std::filesystem::path legacy_ii_marker = root / (schema_id + "_II.userdb") / "gonnyu-reset-probe";
+    const std::filesystem::path ii_marker = root / (second_schema_id + ".userdb") / "gonnyu-reset-probe";
     const std::filesystem::path legacy_marker = root / (schema_id + "_ipa.userdb") / "gonnyu-reset-probe";
     std::error_code directory_error;
-    for (const auto& marker : {gon_marker, ii_marker, legacy_marker}) {
+    for (const auto& marker : {gon_marker, legacy_ii_marker, ii_marker, legacy_marker}) {
       std::filesystem::create_directories(marker.parent_path(), directory_error);
       if (directory_error) {
         gannyu_pipeline_destroy(handle);
@@ -117,7 +119,8 @@ int main(int argc, char** argv) {
     std::puts(snapshot);
     gannyu_string_destroy(snapshot);
     if (!restored_schema || std::filesystem::exists(gon_marker) ||
-        std::filesystem::exists(ii_marker) || std::filesystem::exists(legacy_marker)) {
+        std::filesystem::exists(legacy_ii_marker) || std::filesystem::exists(ii_marker) ||
+        std::filesystem::exists(legacy_marker)) {
       gannyu_pipeline_destroy(handle);
       return 14;
     }

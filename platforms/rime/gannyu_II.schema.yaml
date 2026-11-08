@@ -1,6 +1,6 @@
 
 schema:
-  schema_id: gannyu_@REGION@_II
+  schema_id: konny_@REGION@_II
   name: @REGION_LABEL@（二式·组合式）
   version: "@VERSION@"
 @OPTIONS_DEPENDENCIES@
@@ -65,8 +65,8 @@ translator:
   enable_sentence: true
   enable_completion: true
   spelling_hints: 8
-  prism: gannyu_@REGION@_II
-  user_dict: gannyu_@REGION@_II
+  prism: konny_@REGION@_II
+  user_dict: konny_@REGION@_II
 
 menu:
   page_size: 9

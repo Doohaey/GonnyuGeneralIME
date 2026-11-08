@@ -17,7 +17,10 @@ test -f /usr/lib/x86_64-linux-gnu/rime-plugins/librime-lua.so ||
   echo "warning: librime-lua was not found in the standard plugin directory" >&2
 
 mkdir -p "$user_dir/lua"
-for schema in "$output_dir"/gannyu_*.schema.yaml; do install -m 0644 "$schema" "$user_dir/"; done
+for schema in "$output_dir"/gannyu_*.schema.yaml "$output_dir"/konny_*.schema.yaml; do
+  [ -e "$schema" ] || continue
+  install -m 0644 "$schema" "$user_dir/"
+done
 install -m 0644 "$output_dir"/gannyu_*.dict.yaml "$user_dir/"
 for data in "$output_dir"/lua/*.lua; do install -m 0644 "$data" "$user_dir/lua/"; done
 for data in "$output_dir"/lua/gannyu_*_annotations.bin; do install -m 0644 "$data" "$user_dir/lua/"; done
@@ -30,6 +33,9 @@ else
   while IFS= read -r region; do
     grep -q "schema: gannyu_${region}" "$user_dir/default.custom.yaml" || echo "warning: add gannyu_${region} to $user_dir/default.custom.yaml" >&2
   done < <(python3 "$repo_root/platforms/rime/build.py" --list-regions)
+  while IFS= read -r region; do
+    grep -q "schema: konny_${region}_II" "$user_dir/default.custom.yaml" || echo "warning: add konny_${region}_II to $user_dir/default.custom.yaml" >&2
+  done < <(python3 "$repo_root/platforms/rime/build.py" --list-second-scheme-regions)
 fi
 
 rime_deployer --build "$user_dir" "$shared_dir" "$user_dir/build"
