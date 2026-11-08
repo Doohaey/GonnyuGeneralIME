@@ -39,7 +39,7 @@ def test_package_region_splits_one_and_two_scheme_archives(tmp_path: Path) -> No
     two = package_region._package(output, archives, region, "universal", scheme2=True)
 
     assert one.name.endswith(f"-rime-{region}.zip")
-    assert two.name.endswith(f"-rime-{region}-ipa.zip")
+    assert two.name.endswith(f"-rime-{region}-II.zip")
     with ZipFile(one) as archive:
         names = set(archive.namelist())
         assert f"gannyu_{region}.schema.yaml" in names

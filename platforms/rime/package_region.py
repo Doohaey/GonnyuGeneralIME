@@ -32,7 +32,7 @@ def _default_custom(schema_id: str) -> str:
 
 def _archive_name(version: str, platform: str, region: str, scheme2: bool) -> str:
     stem = f"GonnyuGeneralIME-{version}-rime-{platform}-{region}" if platform != "universal" else f"GonnyuGeneralIME-{version}-rime-{region}"
-    return f"{stem}{'-ipa' if scheme2 else ''}.zip"
+    return f"{stem}{'-II' if scheme2 else ''}.zip"
 
 
 def _package(output: Path, archive_root: Path, region: str, platform: str, *,
