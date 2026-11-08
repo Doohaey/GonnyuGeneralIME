@@ -220,10 +220,10 @@ class GannyuInputMethodService : InputMethodService() {
             }
             fun updateEnabled() {
                 val scheme2 = schemeGroup.checkedRadioButtonId == secondScheme.id
-                switches[3].isEnabled = !scheme2
+                switches[3].isEnabled = true
                 switches[6].isEnabled = !scheme2
-                switches[4].isEnabled = scheme2 || switches[3].isChecked
-                switches[5].isEnabled = scheme2 || switches[3].isChecked
+                switches[4].isEnabled = switches[3].isChecked
+                switches[5].isEnabled = switches[3].isChecked
             }
             switches.forEachIndexed { index, control -> control.setOnCheckedChangeListener { _, checked ->
                 prefs.edit().putBoolean("input_option_${indices[index]}", checked).apply()

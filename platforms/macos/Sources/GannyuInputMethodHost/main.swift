@@ -143,8 +143,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             item.tag = index
             item.indentationLevel = [3, 7, 4].contains(index) ? 1 : 0
             item.state = values[index] != 0 ? .on : .off
-            if values[8] != 0 {
-                item.isEnabled = ![2, 4].contains(index)
+            if values[8] != 0 && index == 4 {
+                item.isEnabled = false
             } else {
                 item.isEnabled = [3, 7, 4].contains(index) ? values[2] != 0 : true
             }

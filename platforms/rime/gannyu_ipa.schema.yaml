@@ -7,7 +7,7 @@ schema:
   author:
     - GannyuInputMethod contributors
   description: |
-    二式（IPA 转写）方案；不使用一式的模糊、特殊符号和零声母转写规则。
+    二式（IPA 转写）方案；不使用一式的特殊符号和其他模糊规则。
 
 switches:
   - name: ascii_mode
@@ -19,6 +19,8 @@ switches:
     states: [赣普连带开, 赣普连带关]
   - name: gannyu_no_synonyms
     states: [同义词连带开, 同义词连带关]
+  - name: gannyu_no_fuzzy
+    states: [模糊匹配开, 模糊匹配关]
   - name: gannyu_no_mandarin
     states: ["  普拼兼容开", "  普拼兼容关"]
   - name: gannyu_no_wenbai

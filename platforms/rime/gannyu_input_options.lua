@@ -29,8 +29,9 @@ function M.names(env)
   local relations = M.enabled(env, "relations")
   local dictionary = mode == "both" and relations and "" or "_" .. mode .. (relations and "_rel" or "_norel")
   if ipa then
-    local mandarin = M.enabled(env, "mandarin")
-    local wenbai = M.enabled(env, "wenbai")
+    local fuzzy = M.enabled(env, "fuzzy")
+    local mandarin = fuzzy and M.enabled(env, "mandarin")
+    local wenbai = fuzzy and M.enabled(env, "wenbai")
     local suffix = dictionary .. (mandarin and "" or "_gan") .. (wenbai and "" or "_nowenbai")
     return root .. dictionary, suffix
   end

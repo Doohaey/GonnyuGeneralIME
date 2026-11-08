@@ -1593,8 +1593,8 @@ public:
                         } else if (inputOptions_[8] != 0) {
                             flags |= MF_CHECKED;
                         }
-                        if (!scheme2 && (option == 4 || option == 5 || option == 6) && !inputOptions_[2]) flags |= MF_GRAYED;
-                        if (scheme2 && (option == 3 || option == 6)) flags |= MF_GRAYED;
+                        if ((option == 4 || option == 5 || option == 6) && !inputOptions_[2]) flags |= MF_GRAYED;
+                        if (scheme2 && option == 6) flags |= MF_GRAYED;
                         if (option == 11 && !schemeAvailable_) flags |= MF_GRAYED;
                         AppendMenuW(menu, flags, 1000 + option, titles[option]);
                     }
@@ -3086,8 +3086,8 @@ STDMETHODIMP GannyuMenuButton::InitMenu(ITfMenu *menu) {
         } else if (owner_->InputOption(8) != 0) {
             flags |= TF_LBMENUF_CHECKED;
         }
-        if (!scheme2 && (option == 4 || option == 5 || option == 6) && !owner_->InputOption(2)) flags |= TF_LBMENUF_GRAYED;
-        if (scheme2 && (option == 3 || option == 6)) flags |= TF_LBMENUF_GRAYED;
+        if ((option == 4 || option == 5 || option == 6) && !owner_->InputOption(2)) flags |= TF_LBMENUF_GRAYED;
+        if (scheme2 && option == 6) flags |= TF_LBMENUF_GRAYED;
         if (option == 11 && !owner_->SchemeAvailable()) flags |= TF_LBMENUF_GRAYED;
         menu->AddMenuItem(1000 + option, flags, nullptr, nullptr, titles[option], static_cast<ULONG>(wcslen(titles[option])), nullptr);
     }

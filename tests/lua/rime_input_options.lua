@@ -57,5 +57,8 @@ assert(ipa_suffix == "_old_rel_gan_nowenbai")
 ipa.engine.context = {get_option = function(_, key) return key == "gannyu_both" end}
 ipa_dictionary, ipa_suffix = options.names(ipa)
 assert(ipa_dictionary == "gannyu_test" and ipa_suffix == "")
+ipa.engine.context = {get_option = function(_, key) return key == "gannyu_both" or key == "gannyu_no_fuzzy" end}
+ipa_dictionary, ipa_suffix = options.names(ipa)
+assert(ipa_dictionary == "gannyu_test" and ipa_suffix == "_gan_nowenbai")
 
 print("switch declarations control hot options without an additional marker")

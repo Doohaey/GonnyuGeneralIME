@@ -55,10 +55,7 @@ impl InputOptions {
     }
 
     pub fn mandarin_enabled(self) -> bool {
-        match self.scheme {
-            TranscriptionScheme::Ipa => self.mandarin,
-            TranscriptionScheme::GonPin => self.fuzzy && self.mandarin,
-        }
+        self.fuzzy && self.mandarin
     }
 
     pub fn synonyms_enabled(self) -> bool {
@@ -66,10 +63,7 @@ impl InputOptions {
     }
 
     pub fn wenbai_enabled(self) -> bool {
-        match self.scheme {
-            TranscriptionScheme::Ipa => self.wenbai,
-            TranscriptionScheme::GonPin => self.fuzzy && self.wenbai,
-        }
+        self.fuzzy && self.wenbai
     }
 
     pub fn fuzzy_rules_enabled(self) -> bool {

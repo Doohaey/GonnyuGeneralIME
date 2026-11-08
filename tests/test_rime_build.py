@@ -988,13 +988,13 @@ def test_fungcen_n_l_merger_rule_has_no_n_duplicates() -> None:
             assert (fields[0], fields[2]) not in removed
 
 
-def test_scheme2_is_built_from_dictionary_ipa_without_fuzzy_switches(tmp_path: Path) -> None:
+def test_scheme2_is_built_from_dictionary_ipa_without_fuzzy_rules(tmp_path: Path) -> None:
     counts = build("songau", tmp_path)
     assert counts["scheme2_spellings"] > 0
     base = (tmp_path / "gannyu_songau_ipa.schema.yaml").read_text(encoding="utf-8")
     assert "schema_id: gannyu_songau_ipa" in base
     assert "prism: gannyu_songau_ipa" in base
-    assert "gannyu_no_fuzzy" not in base
+    assert "gannyu_no_fuzzy" in base
     assert "gannyu_no_fuzzy_rules" not in base
     for suffix in ("", "_gan", "_nowenbai", "_gan_nowenbai"):
         assert (tmp_path / f"gannyu_songau_ipa{suffix}.schema.yaml").is_file()
