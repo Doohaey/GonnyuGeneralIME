@@ -61,7 +61,7 @@ def test_second_scheme_region_listing_matches_region_configuration() -> None:
 
 def test_fcitx5_workflow_runs_an_isolated_installer_smoke_test() -> None:
     content = (ROOT / ".github/workflows/fcitx5.yml").read_text(encoding="utf-8")
-    assert "for addon in gonnyu gonnyu-ipa; do" in content
+    assert "for addon in gonnyu gonnyu_II; do" in content
     assert 'artifact="build/GonnyuGeneralIME-${{ steps.product.outputs.version }}-fcitx5-$addon.tar.gz"' in content
     assert 'DESTDIR="$root" bash "$package_root/install.sh"' in content
     assert 'tar -xzf "$artifact" -C "$package_root"' in content

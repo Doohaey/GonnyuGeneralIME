@@ -42,4 +42,4 @@ function(gonnyu_addon addon_id scheme native_name label addon_name)
 endfunction()
 
 gonnyu_addon("gonnyu" 0 "赣语（一式·汉拼式）" "赣" "GonnyuGeneralIME")
-gonnyu_addon("gonnyu-ipa" 1 "赣语（二式·组合式）" "赣二" "GonnyuGeneralIME (Compositional)")
+gonnyu_addon("gonnyu_II" 1 "赣语（二式·组合式）" "赣二" "GonnyuGeneralIME (Compositional)")

@@ -177,7 +177,7 @@ iOS 上使用输入法时，除法国用户外，请直接到app store下载＂�
 
 ### Linux：Fcitx5
 
-一式与二式分别打包：一式下载 `GonnyuGeneralIME-版本号-fcitx5-gonnyu.tar.gz`，二式下载 `GonnyuGeneralIME-版本号-fcitx5-gonnyu-ipa.tar.gz`。解压后运行包内安装程序：
+一式与二式分别打包：一式下载 `GonnyuGeneralIME-版本号-fcitx5-gonnyu.tar.gz`，二式下载 `GonnyuGeneralIME-版本号-fcitx5-gonnyu_II.tar.gz`。解压后运行包内安装程序：
 
 ```sh
 mkdir GonnyuGeneralIME-fcitx5
@@ -238,7 +238,7 @@ cd GonnyuGeneralIME-fcitx5
 | Windows | 使用赣语输入法时，在语言栏打开“输入设置”。 |
 | iOS、Android | 打开赣语输入法主应用，在“输入设置”中调整。 |
 | Rime | 打开所用前端的方案选单，切换对应开关或读音模式。 |
-| Linux Fcitx5 原生版 | 安装“gonnyu”（一式·汉拼式）或“gonnyu-ipa”（二式·组合式）独立输入法；不提供运行时方案开关。 |
+| Linux Fcitx5 原生版 | 安装“gonnyu”（一式·汉拼式）或“gonnyu_II”（二式·组合式）独立输入法；不提供运行时方案开关。 |
 
 ## 本输入法采用的通用赣语拼音方案
 

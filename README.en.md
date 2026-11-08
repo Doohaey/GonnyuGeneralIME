@@ -177,7 +177,7 @@ Download and run `GonnyuGeneralIME-version-windows-installer.exe`. After the ins
 
 ### Linux Fcitx5
 
-Each scheme ships separately: download `GonnyuGeneralIME-version-fcitx5-gonnyu.tar.gz` for the first scheme or `GonnyuGeneralIME-version-fcitx5-gonnyu-ipa.tar.gz` for the second. Extract the archive and run the installer included in it:
+Each scheme ships separately: download `GonnyuGeneralIME-version-fcitx5-gonnyu.tar.gz` for the first scheme or `GonnyuGeneralIME-version-fcitx5-gonnyu_II.tar.gz` for the second. Extract the archive and run the installer included in it:
 
 ```sh
 mkdir GonnyuGeneralIME-fcitx5
@@ -238,7 +238,7 @@ Disabling fuzzy matching suspends its three child options while preserving their
 | Windows | With the Gan input method active, open **输入设置** in the language bar. |
 | iOS, Android | Open the Gan input method app and adjust **输入设置**. |
 | Rime | Open the front end’s schema menu and select a switch or reading mode. |
-| Native Linux Fcitx5 | Install the `gonnyu` (first scheme, Han-Pinyin style) or `gonnyu-ipa` (second scheme, Compositional) input method; there is no runtime scheme switch. |
+| Native Linux Fcitx5 | Install the `gonnyu` (first scheme, Han-Pinyin style) or `gonnyu_II` (second scheme, Compositional) input method; there is no runtime scheme switch. |
 
 ## The General Gon-pin Romanisation
 

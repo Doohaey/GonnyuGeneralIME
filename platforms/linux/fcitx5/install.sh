@@ -6,7 +6,7 @@ REPO_ROOT="$( cd "$SCRIPT_DIR/../../.." && pwd )"
 ADDONS=()
 if [ -d "$SCRIPT_DIR/payload" ]; then
   PAYLOAD_DIR="$SCRIPT_DIR/payload"
-  for addon in gonnyu gonnyu-ipa; do
+  for addon in gonnyu gonnyu_II; do
     if [ -f "$PAYLOAD_DIR/libfcitx5-$addon.so" ]; then
       ADDONS+=("$addon")
     fi
@@ -16,7 +16,7 @@ else
   if [ "$#" -gt 0 ]; then
     ADDONS=("$@")
   else
-    ADDONS=(gonnyu gonnyu-ipa)
+    ADDONS=(gonnyu gonnyu_II)
   fi
 fi
 
@@ -56,4 +56,4 @@ done
 
 echo "[2/2] 安装完成"
 echo "重启 fcitx5: fcitx5 -r 或注销重登。"
-echo "fcitx5-configtool → 添加输入法 → 选「GonnyuGeneralIME / 赣语（一式）」或「GonnyuGeneralIME IPA / 赣语（二式）」"
+echo "fcitx5-configtool → 添加输入法 → 选「GonnyuGeneralIME / 赣语（一式）」或「GonnyuGeneralIME II / 赣语（二式）」"

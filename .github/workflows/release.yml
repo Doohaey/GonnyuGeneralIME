@@ -49,7 +49,7 @@ jobs:
             -name 'GonnyuGeneralIME-${{ steps.product.outputs.version }}-rime-*.zip' -o \
             -name 'GonnyuGeneralIME-${{ steps.product.outputs.version }}-android.apk' -o \
             -name 'GonnyuGeneralIME-${{ steps.product.outputs.version }}-fcitx5-gonnyu.tar.gz' -o \
-            -name 'GonnyuGeneralIME-${{ steps.product.outputs.version }}-fcitx5-gonnyu-ipa.tar.gz' -o \
+            -name 'GonnyuGeneralIME-${{ steps.product.outputs.version }}-fcitx5-gonnyu_II.tar.gz' -o \
             -name 'GonnyuGeneralIME-${{ steps.product.outputs.version }}-windows-installer.exe' -o \
             -name 'GonnyuGeneralIME-${{ steps.product.outputs.version }}-macos.pkg' \
           \) -delete
@@ -72,7 +72,7 @@ jobs:
           for region in "${second_regions[@]}"; do
             test -f "release-assets/GonnyuGeneralIME-${PRODUCT_VERSION}-rime-${region}-II.zip"
           done
-          for suffix in android.apk fcitx5-gonnyu.tar.gz fcitx5-gonnyu-ipa.tar.gz windows-installer.exe macos.pkg; do
+          for suffix in android.apk fcitx5-gonnyu.tar.gz fcitx5-gonnyu_II.tar.gz windows-installer.exe macos.pkg; do
             test -f "release-assets/GonnyuGeneralIME-${PRODUCT_VERSION}-${suffix}"
           done
           release_flags=()

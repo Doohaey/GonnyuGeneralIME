@@ -30,4 +30,4 @@ if [ "$#" -gt 0 ]; then
 fi
 mkdir -p "$artifact_root"
 stage_addon gonnyu "$artifact_root/GonnyuGeneralIME-${version}-fcitx5-gonnyu.tar.gz"
-stage_addon gonnyu-ipa "$artifact_root/GonnyuGeneralIME-${version}-fcitx5-gonnyu-ipa.tar.gz"
+stage_addon gonnyu_II "$artifact_root/GonnyuGeneralIME-${version}-fcitx5-gonnyu_II.tar.gz"

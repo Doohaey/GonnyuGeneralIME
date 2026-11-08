@@ -67,7 +67,7 @@ jobs:
       - run: |
           smoke_root="$(mktemp -d)"
           trap 'rm -rf "$smoke_root"' EXIT
-          for addon in gonnyu gonnyu-ipa; do
+          for addon in gonnyu gonnyu_II; do
             artifact="build/GonnyuGeneralIME-${{ steps.product.outputs.version }}-fcitx5-$addon.tar.gz"
             package_root="$smoke_root/$addon"
             mkdir -p "$package_root"
@@ -83,5 +83,5 @@ jobs:
           name: GonnyuGeneralIME-${{ steps.product.outputs.version }}-fcitx5
           path: |
             build/GonnyuGeneralIME-${{ steps.product.outputs.version }}-fcitx5-gonnyu.tar.gz
-            build/GonnyuGeneralIME-${{ steps.product.outputs.version }}-fcitx5-gonnyu-ipa.tar.gz
+            build/GonnyuGeneralIME-${{ steps.product.outputs.version }}-fcitx5-gonnyu_II.tar.gz
           if-no-files-found: error

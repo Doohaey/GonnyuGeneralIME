@@ -92,11 +92,15 @@ echo "[1/4] 构建运行资源"
 (cd "$REPO_ROOT" && run_cargo run -p gonnyu-resource-build --release -- "$REPO_ROOT/resources" "$GONNYU_RESOURCE_DIR")
 
 echo "[2/4] 生成二式转写表"
-transcription_tool="${GANNYU_TRANSCRIPTION_TOOL:-$REPO_ROOT/../tools/build_transcription_resources.py}"
-if [ -f "$transcription_tool" ]; then
-  python3 "$transcription_tool" --root "$REPO_ROOT/resources" --output "$GONNYU_RESOURCE_DIR/regions"
-else
-  echo "二式转写表生成器未找到，跳过：$transcription_tool" >&2
+transcription_tool="${GANNYU_TRANSCRIPTION_TOOL:-$REPO_ROOT/platforms/rime/build_transcription_resources.py}"
+if [ ! -f "$transcription_tool" ]; then
+  echo "二式转写表生成器未找到：$transcription_tool" >&2
+  exit 1
+fi
+python3 "$transcription_tool" --root "$REPO_ROOT/resources" --output "$GONNYU_RESOURCE_DIR/regions"
+if [ ! -f "$GONNYU_RESOURCE_DIR/regions/lancong/transcription/gon_to_scheme2.tsv" ]; then
+  echo "二式转写表生成失败：缺少 lancong 转写表" >&2
+  exit 1
 fi
 
 echo "[3/4] 编译 Rust FFI"
@@ -107,7 +111,7 @@ BUILD_DIR="$REPO_ROOT/build/linux-fcitx5"
 cmake -S "$SCRIPT_DIR" -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=Release
 cmake --build "$BUILD_DIR" -j
 
-for addon in gonnyu gonnyu-ipa; do
+for addon in gonnyu gonnyu_II; do
   (cd "$REPO_ROOT" && run_cargo run -p gannyu-sanitize-binary --release -- "$BUILD_DIR/libfcitx5-$addon.so")
   (cd "$REPO_ROOT" && run_cargo run -p gannyu-sanitize-binary --release -- "$BUILD_DIR/libfcitx5-$addon.so" --verify-release --repo-root "$REPO_ROOT")
 done
