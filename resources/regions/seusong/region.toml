@@ -19,7 +19,7 @@ fuzzy_map = "../../fuzzy_scheme.tsv"
 "ʅ" = "ï"
 
 [ipa_zero_final_map]
-"ʯən" = "wen"
+"ʯən" = "yuen"
 
 [language]
 chars = "dictionaries/chars.tsv"

@@ -326,7 +326,7 @@ Checked-tone codas follow these spelling and input rules.
 
 With no initial consonant:
 
-- When `i` is followed by `-a`, `-o`, `-e`, or `-o` (including `ô`), `i` is written `y`.
+- When `i` is followed by `-a`, `-o`, `-e`, `i` is written `y`.
 - When `i` is followed by `-u`, a standalone syllable `iu` or `iu` directly followed by an entering-tone coda is written as a whole `yiu` (+ entering-tone coda), to distinguish it from `yu`; otherwise only `i` is written `y`.
 - In all other cases, `i` (including `ï`) is written `yi` (`yï`).
 
@@ -388,22 +388,22 @@ With no initial consonant:
 
 | gon-pin | Default IPA | Fungcen IPA | Tiqien IPA | Sinyi IPA | Songau IPA | Seusong IPA | Jingon IPA | Yikyan-Henfeng IPA | Jisuibaedu IPA | Xyucuênn IPA | Singzï IPA | Goungon IPA | Accepted alternative input | Notes |
 | --- | --- | --- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | --- | --- |
-| u | [u] | - | - | - | - | [ʯ]* | - | - | - | - | - | - | - |  |
-| uae | - | - | - | - | - | [uæ] or [ʯæ] | - | - | [uæ] | - | - | - |  |  |
+| u | [u] | - | - | - | - | - | - | - | - | - | - | - | - |  |
+| uae | - | - | - | - | - | [uæ] | - | - | [uæ] | - | - | - |  |  |
 | ua | [ua] | - | - | - | - | - | - | - | - | - | - | - | - |  |
 | uo | [uo] | - | [uɔ] | - | - | - | - | - | - | - | - | [uɔ] | - |  |
 | ue | [ue] | [uɛ] | [uɛ] | [uɛ] | - | - | [uɛ] | [uɛ] | [uɛ] | - | [uɛ] | - | - |  |
 | uia | - | - | - | - | - | - | - | - | - | - | [uia] | - |  |  |
 | uie | - | [uiɛ] | - | - | - | - | - | - | - | - | - | - | — |  |
 | ui | [ui] | - | - | - | - | - | - | - | - | - | - | - | — |  |
-| uai | [uai] | - | - | - | - | [ʯai] | - | - | - | - | - | - | - |  |
+| uai | [uai] | - | - | - | - | - | - | - | - | - | - | - | - |  |
 | uoi | - | - | [uɔi] | [uoi] or [uɔi] | - | - | - | [uoi] | - | - | - | - | — |  |
-| uei | — | [uɛi] | - | [uəi] | - | [uei] or [ʯei] | [uei] | [uei] | - | - | [uei] | [uəi] or [uɛi] | ui (after initial, one-way) |  |
+| uei | — | [uɛi] | - | [uəi] | - | [uei] | [uei] | [uei] | - | - | [uei] | [uəi] or [uɛi] | ui (after initial, one-way) |  |
 | ueu | - | - | - | [uəu] or [ueu] | - | - | - | - | - | - | - | - | - |  |
 | un | [un] | - | - | - | - | - | - | - | - | - | - | - | — |  |
 | uan | [uan] | - | - | [uɑn] | - | - | - | - | - | - | - | - | - |  |
 | uon | [uon] | - | [uɔn] | [uɔn] | - | - | [uɔn] | - | - | - | - | [uɔn] | uen, wen (no initial) |  |
-| uen | — | [uɛn] | [uɛn] | - | - | [uən] or [ʯən] or [ʯɛn] | [uɛn] | [uen] or [uɛn] | - | - | [uen] | [uən] or [uɛn] | un (after initial, one-way) |  |
+| uen | — | [uɛn] | [uɛn] | - | - | [uən] | [uɛn] | [uen] or [uɛn] | - | - | [uen] | [uən] or [uɛn] | un (after initial, one-way) |  |
 | ueon | - | - | - | - | - | - | - | - | - | - | - | [uɵn] |  |  |
 | uin | - | [uin] | - | [uin] | - | - | - | - | - | - | [uin] | - | - |  |
 | uien | - | [uiɛn] | - | - | - | - | - | - | - | - | [uiɛn] | - | - |  |
@@ -429,22 +429,23 @@ With no initial consonant:
 | ueik | - | [uɛiʔ] | - | [uəiʔ] | - | - | - | - | - | - | - | - | uik (after initial, one-way) |  |
 | uik | - | - | [uiʔ] | - | - | - | - | - | - | - | - | - | - |  |
 
-\* `u`: The rounded postalveolar apical vowel [ʯ] is written u; finals beginning with [ʯ] also use u-series spellings. The vowel and its medial forms correspond to the front rounded series and are listed under rounded finals by spelling.
-
 ##### Rounded front-vowel finals
 
-`yu` is provisionally used throughout for [y].
+`yu` is used throughout for [y] and [ʯ].
 
 | gon-pin | Default IPA | Fungcen IPA | Tiqien IPA | Sinyi IPA | Songau IPA | Seusong IPA | Jingon IPA | Yikyan-Henfeng IPA | Jisuibaedu IPA | Xyucuênn IPA | Singzï IPA | Goungon IPA | Accepted alternative input | Notes |
 | --- | --- | --- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | --- | --- |
-| yu | [y] | - | - | - | - | - | - | - | - | - | - | - | v (after an initial only), u (after an initial only, never immediately after y) |  |
+| yu | [y] | - | - | - | - | [ʯ] | - | - | - | - | - | - | v (after an initial only), u (after an initial only, never immediately after y) |  |
+| yuae | - | - | - | - | - | [ʯæ] | - | - | - | - | - | - | — |  |
 | yua | - | - | - | - | - | - | - | [ya] | - | - | - | - | — |  |
 | yue | [ye] | - | - | - | - | - | [yɛ] | [yɛ] | [yə] | - | - | - | - |  |
 | yueo | - | [yɵ] | - | - | - | - | - | - | - | - | - | - | — |  |
+| yuai | - | - | - | - | - | [ʯai] | - | - | - | - | - | - | — |  |
 | yuoi | - | - | - | - | - | - | - | [yoi] | - | - | - | - | — |  |
+| yuei | - | - | - | - | - | [ʯei] | - | - | - | - | - | - | — |  |
 | yun | [yn] | - | - | - | - | - | - | - | - | - | - | - | — |  |
 | yuon | [yon] | - | - | [yɔn] | - | - | [yɔn] | - | - | - | - | [yɔn] | yoin (without an initial), yuen |  |
-| yuen | - | - | - | - | - | - | [yɛn] | [yɛn] or [yɛŋ] | - | - | - | - | yueng |  |
+| yuen | - | - | - | - | - | [ʯən] or [ʯɛn] | [yɛn] | [yɛn] or [yɛŋ] | - | - | - | - | yueng |  |
 | yuenn | - | - | - | - | - | - | - | - | - | [yɛ̃] | - | - | yuen |  |
 | yuinn | - | - | - | - | - | - | - | - | - | [yĩ] | - | - | yuin |  |
 | yung | － | - | - | - | - | - | - | [yŋ] | - | - | - | - | yun (Yikyan) |  |
