@@ -1,13 +1,13 @@
 
 schema:
-  schema_id: gannyu_@REGION@_ipa
+  schema_id: gannyu_@REGION@_II
   name: @REGION_LABEL@（二式·组合式）
   version: "@VERSION@"
 @OPTIONS_DEPENDENCIES@
   author:
     - GannyuInputMethod contributors
   description: |
-    二式（IPA 转写）方案；不使用一式的特殊符号和其他模糊规则。
+    二式（组合式）方案；不使用一式的特殊符号和其他模糊规则。
 
 switches:
   - name: ascii_mode
@@ -65,8 +65,8 @@ translator:
   enable_sentence: true
   enable_completion: true
   spelling_hints: 8
-  prism: gannyu_@REGION@_ipa
-  user_dict: gannyu_@REGION@_ipa
+  prism: gannyu_@REGION@_II
+  user_dict: gannyu_@REGION@_II
 
 menu:
   page_size: 9

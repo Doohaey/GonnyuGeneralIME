@@ -111,6 +111,7 @@ public final class GannyuRegionStore {
     public static let didChange = Notification.Name("org.doohaey.gonnyu.regionDidChange")
     private let key = "org.doohaey.gonnyu.region"
     public static let optionsDidChange = Notification.Name("org.doohaey.gonnyu.optionsDidChange")
+    public static let userDataDidReset = Notification.Name("org.doohaey.gonnyu.userDataDidReset")
     public static let optionTitles = ["副标题", "赣普词语连带", "模糊匹配", "普拼兼容", "其他模糊规则", "读音模式", "同义词连带", "文白匹配", "方案"]
 
     public var inputOptions: [Int32] {
@@ -251,6 +252,10 @@ public final class GannyuEngine {
         try regionID.withCString { pointer in
             try jsonCall { gannyu_engine_switch_region($0, pointer, $1) }
         }
+    }
+
+    public func resetUserData() throws -> GannyuSnapshot {
+        try jsonCall { gannyu_engine_reset_user_data($0, Int32(GANNYU_USER_DATA_ALL), $1) }
     }
 
     private func jsonCall<T: Decodable>(

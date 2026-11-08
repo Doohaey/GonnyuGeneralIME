@@ -15,7 +15,7 @@ end
 
 function M.init(env)
   local schema_id = env.engine.schema.schema_id
-  local root = schema_id:sub(-4) == "_ipa" and schema_id:sub(1, -5) or schema_id
+  local root = schema_id:sub(-3) == "_II" and schema_id:sub(1, -4) or schema_id
   local name = root .. "_data"
   local data = require(name)
   users[name] = (users[name] or 0) + 1

@@ -21,15 +21,19 @@ Currently supports: **Lancong (Nanchang), Fenni (Fenyi), Fungcen (Fengcheng), Ti
 
 Rime schema repositories are available for Lancong (Nanchang), Fenni (Fenyi), Fungcen, Yikyan-Henfeng, Sinyi (Xinyu), and Goungon (Gao'an). Other installation options are available in the [Installation](#installation) section below.
 
-## Release 1.2.8
+## Release 1.3.0
 
-- feat(dictionary): Add Lancong dictionary entries.
-- data(dictionary): Update Lancong dictionary readings, frequencies, and equivalences.
+- feat: Add the Gon-pin Second Scheme (Compositional), switchable with the First Scheme (Han-Pinyin) in Input settings.
+- feat: Add n→l broad-final rules for six regions, plus plain-letter input for ô and er.
+- data: Use Lancong as the reference column, complete regional IPA inventories, and add First Scheme segment tables.
+- data: Align readings and IPA for Lancong en/et, Fungcen, Yikyan-Henfeng, Goungon, Seusong, and Sinyi; correct entries such as 杔 and 笮.
+- docs: Split the tutorial into First and Second Scheme modules, add segment tables, and update spelling notes, examples, and installation guidance.
+- fix: Fix Rime Second Scheme display and Lua module installation, and synchronize Android and Fcitx5 scheme settings.
 
 ## Contents
 
 - [GonnyuGeneralIME — A General Gon(Gan) Chinese Input Method](#gonnyugeneralime--a-general-gongan-chinese-input-method)
-  - [Release 1.2.8](#release-128)
+  - [Release 1.3.0](#release-130)
   - [Contents](#contents)
   - [Overview](#overview)
     - [What it provides](#what-it-provides)
@@ -80,7 +84,6 @@ Rime schema repositories are available for Lancong (Nanchang), Fenni (Fenyi), Fu
     - [Dependency declarations](#dependency-declarations)
     - [Licensing and rights reservation](#licensing-and-rights-reservation)
     - [Acknowledgements](#acknowledgements)
-  - [Origins: the loss of Gon(Gan)](#origins-the-loss-of-gongan)
   - [Contributors and contact](#contributors-and-contact)
 
 ## Overview
@@ -187,9 +190,32 @@ Restart Fcitx5 with `fcitx5 -r`, or sign out and back in. Then add **GonnyuGener
 
 ### Rime
 
-Download `GonnyuGeneralIME-version-rime-region.zip` for the required locality. The archive works with Rime front ends on every platform.
+Each locality provides two independent packages:
 
-For Windows Weasel, copy the archive contents into `%APPDATA%\Rime` and redeploy from the input-method menu. For Linux Fcitx5 Rime, copy the contents into `~/.local/share/fcitx5/rime/`, redeploy, then select the locality from the schema menu. For iOS and Android, import or deploy the ZIP in the installed Rime front end.
+- `GonnyuGeneralIME-version-rime-region.zip`: First scheme (Han-Pinyin style)
+- `GonnyuGeneralIME-version-rime-region-II.zip`: Second scheme (Compositional)
+
+Download only the package you need. To use both schemes, install both packages into the same Rime user directory.
+
+**Windows Weasel**
+
+1. Download the required ZIP.
+2. Extract it into `%APPDATA%\Rime`.
+3. Choose **Redeploy** from the input-method menu.
+4. Select the locality in the first or second scheme from the schema menu.
+
+**Linux Fcitx5 Rime**
+
+1. Download the required ZIP.
+2. Extract it into `~/.local/share/fcitx5/rime/`.
+3. Redeploy Rime.
+4. Select the required scheme from the schema menu.
+
+**iOS and Android**
+
+Import or deploy the required ZIP in your Rime front end, then select the scheme from the schema menu.
+
+If both packages are installed, keep both schemas in the `default.custom.yaml` schema list.
 
 ### Input settings
 
@@ -363,9 +389,9 @@ Checked-tone codas follow these spelling and input rules.
 | ep | - | - | [ɛp] | - | - | - | - | - | - | - | - | - | - |  |
 | eop | - | [ɵp] | - | - | - | - | - | - | - | - | - | - | — |  |
 | aek | - | [æʔ] | - | - | [æʔ] | - | - | - | - | - | - | - | — |  |
-| ak | [aʔ] | [aʔ] | [aʔ] | [ak] or [aʔ] | [aʔ] | - | - | [aʔ] | - | [aʔ] | - | [ak] or [aʔ] | — |  |
+| ak | [aʔ] | [aʔ] | [aʔ] | [ak] or [aʔ] | [aʔ] | - | - | [aʔ] | - | [aʔ] | - | [aʔ] | — |  |
 | aik | - | - | [aiʔ] | [aiʔ] | - | - | - | - | - | - | - | - | - |  |
-| ok | [oʔ] or [ɔʔ] | [oʔ] or [ɔʔ] | [ɔʔ] | [ok] or [oʔ] or [ɔʔ] | [ɔʔ] | - | - | [ɔʔ] | - | [oʔ] | - | [ɔk] or [ɔʔ] | uok (Yikyan) |  |
+| ok | [oʔ] or [ɔʔ] | [oʔ] or [ɔʔ] | [ɔʔ] | [ok] or [oʔ] or [ɔʔ] | [ɔʔ] | - | - | [ɔʔ] | - | [oʔ] | - | [ɔʔ] | uok (Yikyan) |  |
 | oek | - | - | - | [øʔ] | - | - | - | - | - | - | - | - | — |  |
 | oik | - | - | [ɔiʔ] | - | - | - | - | - | - | - | - | - | - |  |
 | ek | - | [ɨʔ] or [ɛʔ] | [ɛʔ] | [əʔ] or [ɛʔ] | - | - | - | [ɪʔ] or [ɛʔ] | - | [eʔ] | - | - | — |  |
@@ -424,7 +450,7 @@ With no initial consonant:
 | iep | - | [iɛp] | - | - | - | - | - | - | - | - | - | - | — |  |
 | ik | [ɿʔ] or [iʔ] | [iʔ] | [iʔ] | [ɿʔ] or [iʔ] | [iʔ] | - | - | [iʔ] | - | - | - | - |  |  |
 | iaek | - | - | - | - | [iæʔ] | - | - | - | - | - | - | - |  |  |
-| iak | [iaʔ] | [iaʔ] | [iaʔ] | [iaʔ] | [iaʔ] | - | - | [iaʔ] | - | [iaʔ] | - | [iak] or [iaʔ] | - |  |
+| iak | [iaʔ] | [iaʔ] | [iaʔ] | [iaʔ] | [iaʔ] | - | - | [iaʔ] | - | [iaʔ] | - | [iaʔ] | - |  |
 | iaik | - | - | - | [iaiʔ] | - | - | - | - | - | - | - | - | - |  |
 | iok | [ioʔ] or [iɔʔ] | [iɔʔ] | [iɔʔ] | [ioʔ] or [iɔʔ] | [iɔʔ] | - | - | - | - | [ioʔ] | - | [iɔk] | - |  |
 | iek | - | [iɛʔ] | [iɛʔ] | [iəʔ] or [iɛʔ] | [iɛʔ] | - | - | [iɪʔ] or [iɛʔ] | - | [ieʔ] | - | - |  |  |
@@ -474,7 +500,7 @@ With no initial consonant:
 | uot | [uot] | [uot] | - | [uot] or [uɔt] | - | - | - | - | - | - | - | - | - |  |
 | uet | [uət] or [uɛt] | - | - | [uət] or [uɛt] | - | - | - | - | - | - | - | [uət] or [uɛt] | - |  |
 | uep | - | - | - | - | - | - | - | - | - | - | - | - | - |  |
-| uk | [uk] or [uʔ] | [uʔ] | [uʔ] | [uʔ] | [uʔ] | - | - | [uʔ] | - | - | - | [uk] or [uʔ] | - |  |
+| uk | [uʔ] | [uʔ] | [uʔ] | [uʔ] | [uʔ] | - | - | [uʔ] | - | - | - | [uʔ] | - |  |
 | uaek | - | [uæʔ] | - | - | - | - | - | - | - | - | - | - | - |  |
 | uak | [uaʔ] | [uaʔ] | [uaʔ] | [uaʔ] | - | - | - | [uaʔ] | - | [uaʔ] | - | - | - |  |
 | uaik | - | - | [uaiʔ] | [uaiʔ] | - | - | - | - | - | - | - | - | - |  |
@@ -721,7 +747,6 @@ The contributor also reports alternative literature notations of 213 for yang le
 
 - Breathy voiced consonants add `h` after the consonant; both `[ɦ]` and `[ɡʰ]` are written `gh`.
 - When an initial ends in `-j`, the `-i-` medial is omitted.
-- `-h[ʔ]` is a coda only and is written `h`.
 
 #### Finals
 

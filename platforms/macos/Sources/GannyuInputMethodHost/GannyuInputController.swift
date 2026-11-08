@@ -44,6 +44,12 @@ final class GannyuInputController: IMKInputController {
             name: GannyuRegionStore.didChange,
             object: nil
         )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(userDataDidReset),
+            name: GannyuRegionStore.userDataDidReset,
+            object: nil
+        )
     }
 
     deinit { NotificationCenter.default.removeObserver(self) }
@@ -702,6 +708,11 @@ final class GannyuInputController: IMKInputController {
         if let engine, let result = try? engine.switchRegion(region) {
             render(result, client: client())
         }
+    }
+
+    @objc private func userDataDidReset() {
+        guard let engine, let result = try? engine.resetUserData() else { return }
+        render(result, client: client())
     }
 }
 

@@ -27,12 +27,12 @@ local function run(schema_id, data, comment)
 end
 
 local annotated = { annotations = { ["字"] = "[文]qit5*" }, readings = {}, synonyms = {} }
-assert(run("gannyu_test_ipa", annotated) == "[文]chit9*")
-assert(run("gannyu_test_ipa_gan", annotated) == "[文]chit9*")
+assert(run("gannyu_test_II", annotated) == "[文]chit9*")
+assert(run("gannyu_test_II_gan", annotated) == "[文]chit9*")
 assert(run("gannyu_test", annotated) == "[文]qit5*")
 
 local fallback = { annotations = {}, readings = {}, synonyms = {} }
-assert(run("gannyu_test_ipa", fallback, "Gsï4") == "sii4")
-assert(run("gannyu_test_ipa_gan", fallback, "Gsï4") == "sii4")
+assert(run("gannyu_test_II", fallback, "Gsï4") == "sii4")
+assert(run("gannyu_test_II_gan", fallback, "Gsï4") == "sii4")
 assert(run("gannyu_test", fallback, "Gsï4") == "sï4")
 print("scheme2 annotations follow the active scheme")

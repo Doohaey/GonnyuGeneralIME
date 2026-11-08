@@ -21,7 +21,7 @@ struct GannyuPipelineHandle {
   RimeSessionId session = 0;
   std::string schema_id;
   std::string region_id;
-  bool ipa_scheme = false;
+  bool scheme2 = false;
   size_t candidate_limit = 0;
   std::array<int, 6> input_options{{1, 1, 1, 1, 1, 0}};
   bool synonyms_enabled = true;
@@ -31,7 +31,7 @@ struct GannyuPipelineHandle {
 namespace {
 
 std::string SchemaFor(const GannyuPipelineHandle& handle) {
-  return "gannyu_" + handle.region_id + (handle.ipa_scheme ? "_ipa" : "");
+  return "gannyu_" + handle.region_id + (handle.scheme2 ? "_II" : "");
 }
 
 constexpr int kOk = 0;
@@ -641,8 +641,8 @@ int gannyu_engine_switch_region(GannyuPipelineHandle* handle, const char* region
     handle->region_id = region_id;
     std::string schema = SchemaFor(*handle);
     bool handled = Api()->select_schema(handle->session, schema.c_str());
-    if (!handled && handle->ipa_scheme) {
-      handle->ipa_scheme = false;
+    if (!handled && handle->scheme2) {
+      handle->scheme2 = false;
       schema = SchemaFor(*handle);
       handled = Api()->select_schema(handle->session, schema.c_str());
     }
@@ -676,7 +676,7 @@ int gannyu_engine_transcription_scheme_available(GannyuPipelineHandle* handle, i
     if (!HasRegisteredHandleLocked(runtime, handle)) return 0;
     RimeSchemaList list{};
     if (!Api()->get_schema_list(&list)) return 0;
-    const std::string target = "gannyu_" + handle->region_id + "_ipa";
+    const std::string target = "gannyu_" + handle->region_id + "_II";
     bool found = false;
     for (size_t index = 0; index < list.size; ++index) {
       if (list.list != nullptr && list.list[index].schema_id != nullptr &&
@@ -696,16 +696,16 @@ int gannyu_engine_set_transcription_scheme(GannyuPipelineHandle* handle, int sch
     Runtime& runtime = GlobalRuntime();
     std::lock_guard<std::mutex> lock(runtime.mutex);
     if (!HasRegisteredHandleLocked(runtime, handle)) return kInvalidArgument;
-    const bool ipa = scheme == 1;
-    if (handle->ipa_scheme == ipa) return kOk;
-    handle->ipa_scheme = ipa;
+    const bool scheme2 = scheme == 1;
+    if (handle->scheme2 == scheme2) return kOk;
+    handle->scheme2 = scheme2;
     const std::string schema = SchemaFor(*handle);
     const bool handled = Api()->select_schema(handle->session, schema.c_str());
     if (handled) {
       handle->schema_id = schema;
       ApplyInputOptions(handle);
     } else {
-      handle->ipa_scheme = !ipa;
+      handle->scheme2 = !scheme2;
       SetError("second transcription scheme is unavailable for this region");
     }
     return handled ? kOk : kLoadFailure;
@@ -760,7 +760,7 @@ int gannyu_engine_reset_user_data(GannyuPipelineHandle* handle, int scope, char*
     if (handle == nullptr || out_json == nullptr) return kInvalidArgument;
     *out_json = nullptr;
     if (scope != GANNYU_USER_DATA_ALL) {
-      SetError("Rime userdb reset supports complete per-schema reset only");
+      SetError("Rime userdb reset supports complete region reset only");
       return kInvalidArgument;
     }
 
@@ -770,7 +770,7 @@ int gannyu_engine_reset_user_data(GannyuPipelineHandle* handle, int scope, char*
 
     std::vector<GannyuPipelineHandle*> affected;
     for (GannyuPipelineHandle* candidate : runtime.handles) {
-      if (candidate->schema_id == handle->schema_id) affected.push_back(candidate);
+      if (candidate->region_id == handle->region_id) affected.push_back(candidate);
     }
     std::vector<GannyuPipelineHandle*> stopped;
     stopped.reserve(affected.size());
@@ -792,13 +792,25 @@ int gannyu_engine_reset_user_data(GannyuPipelineHandle* handle, int scope, char*
 
     std::error_code remove_error;
     std::filesystem::path userdb;
-    for (const char* suffix : {"", "_both_norel", "_new_rel", "_new_norel", "_old_rel", "_old_norel"}) {
-      const auto path = std::filesystem::path(runtime.user_data_dir) / (handle->schema_id + suffix + ".userdb");
-      std::error_code error;
-      std::filesystem::remove_all(path, error);
-      if (error && !remove_error) {
-        remove_error = error;
-        userdb = path;
+    const std::string prefix = "gannyu_" + handle->region_id;
+    std::error_code iterator_error;
+    std::filesystem::directory_iterator entries(runtime.user_data_dir, iterator_error);
+    if (!iterator_error) {
+      for (const auto& entry : entries) {
+        const std::string name = entry.path().filename().string();
+        const bool boundary = name.size() == prefix.size() ||
+                              (name.size() > prefix.size() &&
+                               (name[prefix.size()] == '_' || name[prefix.size()] == '.'));
+        if (name.compare(0, prefix.size(), prefix) != 0 || !boundary ||
+            name.size() < 7 || name.compare(name.size() - 7, 7, ".userdb") != 0) {
+          continue;
+        }
+        std::error_code error;
+        std::filesystem::remove_all(entry.path(), error);
+        if (error && !remove_error) {
+          remove_error = error;
+          userdb = entry.path();
+        }
       }
     }
 

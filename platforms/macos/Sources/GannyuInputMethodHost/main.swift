@@ -120,6 +120,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             menu.addItem(item)
         }
         menu.addItem(.separator())
+        let userDataEntry = NSMenuItem(title: "清空学习数据", action: nil, keyEquivalent: "")
+        userDataEntry.submenu = userDataMenu()
+        menu.addItem(userDataEntry)
+        menu.addItem(.separator())
         let settingsEntry = NSMenuItem(title: "输入设置", action: nil, keyEquivalent: "")
         settingsEntry.submenu = inputSettingsMenu()
         menu.addItem(settingsEntry)
@@ -127,6 +131,59 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         item.button?.title = "赣·\(currentLabel)"
         item.menu = menu
         statusItem = item
+    }
+
+    private func userDataMenu() -> NSMenu {
+        let menu = NSMenu(title: "清空学习数据")
+        menu.autoenablesItems = false
+        let current = NSMenuItem(title: "当前地区", action: #selector(clearUserData(_:)), keyEquivalent: "")
+        current.target = self
+        current.tag = 0
+        menu.addItem(current)
+        let all = NSMenuItem(title: "全部地区", action: #selector(clearUserData(_:)), keyEquivalent: "")
+        all.target = self
+        all.tag = 1
+        menu.addItem(all)
+        menu.addItem(.separator())
+        let note = NSMenuItem(title: "学习数据均存储在本地。", action: nil, keyEquivalent: "")
+        note.isEnabled = false
+        menu.addItem(note)
+        return menu
+    }
+
+    @objc private func clearUserData(_ sender: NSMenuItem) {
+        let allRegions = sender.tag == 1
+        let regions = (try? GannyuEngine.availableRegions()) ?? []
+        let regionIDs: [String]
+        if allRegions {
+            regionIDs = regions.map(\.id)
+        } else if let current = GannyuRegionStore.shared.currentID() {
+            regionIDs = [current]
+        } else {
+            regionIDs = []
+        }
+        guard !regionIDs.isEmpty else { return }
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        alert.messageText = allRegions ? "清空全部地区学习数据" : "清空当前地区学习数据"
+        alert.informativeText = "会删除学习得到的用户词与候选排序，且无法恢复。"
+        alert.addButton(withTitle: "清空")
+        alert.addButton(withTitle: "取消")
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        do {
+            for regionID in regionIDs {
+                let temporary = try GannyuEngine(regionID: regionID)
+                _ = try temporary.resetUserData()
+            }
+            NotificationCenter.default.post(name: GannyuRegionStore.userDataDidReset, object: nil)
+        } catch {
+            let failure = NSAlert()
+            failure.alertStyle = .critical
+            failure.messageText = "清空失败"
+            failure.informativeText = "用户数据未被完全清空，请稍后重试。"
+            failure.addButton(withTitle: "好")
+            failure.runModal()
+        }
     }
 
     private func inputSettingsMenu() -> NSMenu {

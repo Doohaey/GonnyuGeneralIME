@@ -210,3 +210,24 @@ def test_macos_region_selection_is_validated_against_embedded_catalog() -> None:
     assert "availableRegions()" in engine
     assert "regions.contains(where:" in engine
     assert "UserDefaults.standard.set(resolved" in engine
+
+
+def test_macos_clears_user_data_through_the_engine() -> None:
+    engine = (
+        ROOT / "platforms/macos/Sources/GannyuMacOSSupport/GannyuEngine.swift"
+    ).read_text(encoding="utf-8")
+    host = (ROOT / "platforms/macos/Sources/GannyuInputMethodHost/main.swift").read_text(
+        encoding="utf-8"
+    )
+    controller = (
+        ROOT / "platforms/macos/Sources/GannyuInputMethodHost/GannyuInputController.swift"
+    ).read_text(encoding="utf-8")
+
+    assert "gannyu_engine_reset_user_data" in engine
+    assert "userDataDidReset" in engine
+    assert "清空当前地区学习数据" in host
+    assert "清空全部地区学习数据" in host
+    assert "menu.addItem(userDataEntry)" in host
+    assert "temporary.resetUserData()" in host
+    assert "NotificationCenter.default.post(name: GannyuRegionStore.userDataDidReset" in host
+    assert "engine.resetUserData()" in controller

@@ -50,7 +50,7 @@ local ipa = environment({"gannyu_no_annotations"}, {
   gannyu_no_mandarin = true,
   gannyu_no_wenbai = true,
 })
-ipa.engine.schema.schema_id = "gannyu_test_ipa"
+ipa.engine.schema.schema_id = "gannyu_test_II"
 local ipa_dictionary, ipa_suffix = options.names(ipa)
 assert(ipa_dictionary == "gannyu_test_old_rel")
 assert(ipa_suffix == "_old_rel_gan_nowenbai")

@@ -20,8 +20,8 @@ end
 
 function M.names(env)
   local schema_id = env.engine.schema.schema_id
-  local ipa = schema_id:sub(-4) == "_ipa"
-  local root = ipa and schema_id:sub(1, -5) or schema_id
+  local ipa = schema_id:sub(-3) == "_II"
+  local root = ipa and schema_id:sub(1, -4) or schema_id
   if not supported(env) then return schema_id, "" end
   local context = env.engine and env.engine.context
   local mode = context and context:get_option("gannyu_new") and "new"

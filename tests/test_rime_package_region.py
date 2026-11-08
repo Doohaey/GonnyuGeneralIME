@@ -16,8 +16,8 @@ def test_package_region_splits_one_and_two_scheme_archives(tmp_path: Path) -> No
         f"gannyu_{region}.schema.yaml",
         f"gannyu_{region}.dict.yaml",
         f"gannyu_{region}_new_rel.dict.yaml",
-        f"gannyu_{region}_ipa.schema.yaml",
-        f"gannyu_{region}_ipa_gan.schema.yaml",
+        f"gannyu_{region}_II.schema.yaml",
+        f"gannyu_{region}_II_gan.schema.yaml",
         f"lua/gannyu_{region}_data.lua",
         f"lua/gannyu_{region}_new_rel_data.lua",
         f"lua/gannyu_{region}_annotations.bin",
@@ -43,15 +43,15 @@ def test_package_region_splits_one_and_two_scheme_archives(tmp_path: Path) -> No
     with ZipFile(one) as archive:
         names = set(archive.namelist())
         assert f"gannyu_{region}.schema.yaml" in names
-        assert f"gannyu_{region}_ipa.schema.yaml" not in names
+        assert f"gannyu_{region}_II.schema.yaml" not in names
         assert f"lua/gannyu_{region}_scheme2.lua" not in names
         assert b"schema: gannyu_lancong\n" in archive.read("default.custom.yaml")
     with ZipFile(two) as archive:
         names = set(archive.namelist())
-        assert f"gannyu_{region}_ipa.schema.yaml" in names
-        assert f"gannyu_{region}_ipa_gan.schema.yaml" in names
+        assert f"gannyu_{region}_II.schema.yaml" in names
+        assert f"gannyu_{region}_II_gan.schema.yaml" in names
         assert f"gannyu_{region}.schema.yaml" not in names
         assert f"lua/gannyu_{region}_scheme2.lua" in names
         assert f"gannyu_{region}.dict.yaml" in names
         assert f"lua/gannyu_{region}_new_rel_data.lua" in names
-        assert b"schema: gannyu_lancong_ipa\n" in archive.read("default.custom.yaml")
+        assert b"schema: gannyu_lancong_II\n" in archive.read("default.custom.yaml")

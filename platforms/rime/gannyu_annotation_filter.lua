@@ -66,7 +66,7 @@ local function display_for(env)
   if not schema_id then
     return nil
   end
-  local root = schema_id:match("^(.-)_ipa$") or schema_id:match("^(.-)_ipa_")
+  local root = schema_id:match("^(.-)_II$") or schema_id:match("^(.-)_II_")
   if not root then
     return nil
   end

@@ -94,15 +94,19 @@ int main(int argc, char** argv) {
     }
 
     const std::string schema_id = std::string("gannyu_") + region;
-    const std::filesystem::path userdb = std::filesystem::path(argv[3]) / (schema_id + ".userdb");
-    const std::filesystem::path marker = userdb / "gonnyu-reset-probe";
+    const std::filesystem::path root = std::filesystem::path(argv[3]);
+    const std::filesystem::path gon_marker = root / (schema_id + ".userdb") / "gonnyu-reset-probe";
+    const std::filesystem::path ii_marker = root / (schema_id + "_II.userdb") / "gonnyu-reset-probe";
+    const std::filesystem::path legacy_marker = root / (schema_id + "_ipa.userdb") / "gonnyu-reset-probe";
     std::error_code directory_error;
-    std::filesystem::create_directories(userdb, directory_error);
-    if (directory_error) {
-      gannyu_pipeline_destroy(handle);
-      return 12;
+    for (const auto& marker : {gon_marker, ii_marker, legacy_marker}) {
+      std::filesystem::create_directories(marker.parent_path(), directory_error);
+      if (directory_error) {
+        gannyu_pipeline_destroy(handle);
+        return 12;
+      }
+      std::ofstream(marker) << "reset must remove this file\n";
     }
-    std::ofstream(marker) << "reset must remove this file\n";
     snapshot = nullptr;
     if (gannyu_engine_reset_user_data(handle, GANNYU_USER_DATA_ALL, &snapshot) != 0 ||
         snapshot == nullptr) {
@@ -112,7 +116,8 @@ int main(int argc, char** argv) {
     const bool restored_schema = std::strstr(snapshot, schema_id.c_str()) != nullptr;
     std::puts(snapshot);
     gannyu_string_destroy(snapshot);
-    if (!restored_schema || std::filesystem::exists(marker)) {
+    if (!restored_schema || std::filesystem::exists(gon_marker) ||
+        std::filesystem::exists(ii_marker) || std::filesystem::exists(legacy_marker)) {
       gannyu_pipeline_destroy(handle);
       return 14;
     }

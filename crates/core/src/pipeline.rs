@@ -87,11 +87,11 @@ pub struct InputPipeline {
     fuzzy: FuzzyMap,
     tone_values: HashMap<String, u8>,
     user_dict: UserDictionary,
-    user_dict_ipa: UserDictionary,
+    user_dict_scheme2: UserDictionary,
     frequency_boosts: HashMap<String, u64>,
-    frequency_boosts_ipa: HashMap<String, u64>,
+    frequency_boosts_scheme2: HashMap<String, u64>,
     boosts_path: std::path::PathBuf,
-    boosts_path_ipa: std::path::PathBuf,
+    boosts_path_scheme2: std::path::PathBuf,
     sentence_prefix_cache: RefCell<HashMap<(String, usize), Vec<RankedCandidate>>>,
 }
 
@@ -203,15 +203,15 @@ impl InputPipeline {
     }
 
     fn empty_with_user_data_dir(user_data_dir: Option<&Path>) -> InputPipeline {
-        let (user_dict, user_dict_ipa) = match user_data_dir {
+        let (user_dict, user_dict_scheme2) = match user_data_dir {
             Some(directory) => (
                 UserDictionary::load_or_create_at(directory.join("user_dictionary.tsv")),
                 UserDictionary::load_or_create_at(directory.join("user_dictionary_II.tsv")),
             ),
             None => {
                 let user_dict = UserDictionary::load_or_create();
-                let ipa_path = user_dict.path().with_file_name("user_dictionary_II.tsv");
-                (user_dict, UserDictionary::load_or_create_at(ipa_path))
+                let scheme2_path = user_dict.path().with_file_name("user_dictionary_II.tsv");
+                (user_dict, UserDictionary::load_or_create_at(scheme2_path))
             }
         };
         InputPipeline {
@@ -229,11 +229,11 @@ impl InputPipeline {
             fuzzy: FuzzyMap::empty(),
             tone_values: HashMap::new(),
             user_dict,
-            user_dict_ipa,
+            user_dict_scheme2,
             frequency_boosts: HashMap::new(),
-            frequency_boosts_ipa: HashMap::new(),
+            frequency_boosts_scheme2: HashMap::new(),
             boosts_path: PathBuf::new(),
-            boosts_path_ipa: PathBuf::new(),
+            boosts_path_scheme2: PathBuf::new(),
             sentence_prefix_cache: RefCell::new(HashMap::new()),
         }
     }
@@ -326,7 +326,7 @@ impl InputPipeline {
             .parent()
             .unwrap_or_else(|| Path::new("."));
         pipeline.boosts_path = boosts_root.join("frequency_boosts.jsonl");
-        pipeline.boosts_path_ipa = boosts_root.join("frequency_boosts_II.jsonl");
+        pipeline.boosts_path_scheme2 = boosts_root.join("frequency_boosts_II.jsonl");
         pipeline.load_frequency_boosts();
         pipeline
             .user_dict
@@ -337,13 +337,13 @@ impl InputPipeline {
         pipeline.seed_user_dict_frequencies();
         if let Some(source) = pipeline.source_scheme2.as_ref() {
             pipeline
-                .user_dict_ipa
+                .user_dict_scheme2
                 .prune_existing(|hw| !source.by_headword(hw).is_empty());
         }
         let gon_entries: Vec<_> = pipeline.user_dict.entries().cloned().collect();
-        let ipa_entries: Vec<_> = pipeline.user_dict_ipa.entries().cloned().collect();
+        let scheme2_entries: Vec<_> = pipeline.user_dict_scheme2.entries().cloned().collect();
         if let Some(source) = pipeline.source_scheme2.as_mut() {
-            source.extend_from_entries(ipa_entries);
+            source.extend_from_entries(scheme2_entries);
         }
         pipeline.dictionary.extend_from_entries(gon_entries);
         Ok(pipeline)
@@ -389,18 +389,18 @@ impl InputPipeline {
         if !clear_words && !clear_frequencies {
             return false;
         }
-        if clear_words && (!self.user_dict.clear() || !self.user_dict_ipa.clear()) {
+        if clear_words && (!self.user_dict.clear() || !self.user_dict_scheme2.clear()) {
             return false;
         }
         if clear_frequencies {
             let boosts = HashMap::new();
             if !save_frequency_boosts_at(&self.boosts_path, &boosts)
-                || !save_frequency_boosts_at(&self.boosts_path_ipa, &boosts)
+                || !save_frequency_boosts_at(&self.boosts_path_scheme2, &boosts)
             {
                 return false;
             }
             self.frequency_boosts = boosts;
-            self.frequency_boosts_ipa = HashMap::new();
+            self.frequency_boosts_scheme2 = HashMap::new();
         }
         clear_retrieve_cache();
         self.sentence_prefix_cache.get_mut().clear();
@@ -477,7 +477,7 @@ impl InputPipeline {
             boosts
         }
         self.frequency_boosts = read(&self.boosts_path);
-        self.frequency_boosts_ipa = read(&self.boosts_path_ipa);
+        self.frequency_boosts_scheme2 = read(&self.boosts_path_scheme2);
     }
 
     /// Merge self-made word boosts into the user dictionary frequency column
@@ -486,37 +486,36 @@ impl InputPipeline {
         fn merge(
             dictionary: &mut UserDictionary,
             boosts: &HashMap<String, u64>,
-        ) -> Option<Vec<String>> {
+        ) -> Option<(HashMap<String, u64>, bool)> {
             let updates: Vec<(String, u64)> = boosts
                 .iter()
                 .filter(|(word, _)| dictionary.contains(word))
                 .map(|(word, boost)| (word.clone(), *boost))
                 .collect();
-            if updates.is_empty() || dictionary.set_frequencies(&updates) != updates.len() {
+            if updates.is_empty() {
+                return Some((boosts.clone(), false));
+            }
+            if dictionary.set_frequencies(&updates) != updates.len() {
                 return None;
             }
-            Some(updates.into_iter().map(|(word, _)| word).collect())
+            let mut remaining = boosts.clone();
+            for (word, _) in &updates {
+                remaining.remove(word);
+            }
+            Some((remaining, true))
         }
 
-        let mut staged = self.frequency_boosts.clone();
-        let mut changed = false;
-        if let Some(removed) = merge(&mut self.user_dict, &staged) {
-            for word in removed {
-                staged.remove(&word);
+        if let Some((remaining, changed)) = merge(&mut self.user_dict, &self.frequency_boosts) {
+            if !changed || save_frequency_boosts_at(&self.boosts_path, &remaining) {
+                self.frequency_boosts = remaining;
             }
-            changed = true;
         }
-        if let Some(removed) = merge(&mut self.user_dict_ipa, &staged) {
-            for word in removed {
-                staged.remove(&word);
-            }
-            changed = true;
-        }
-        if changed
-            && save_frequency_boosts_at(&self.boosts_path, &staged)
-            && save_frequency_boosts_at(&self.boosts_path_ipa, &staged)
+        if let Some((remaining, changed)) =
+            merge(&mut self.user_dict_scheme2, &self.frequency_boosts_scheme2)
         {
-            self.frequency_boosts = staged;
+            if !changed || save_frequency_boosts_at(&self.boosts_path_scheme2, &remaining) {
+                self.frequency_boosts_scheme2 = remaining;
+            }
         }
     }
 
@@ -524,7 +523,7 @@ impl InputPipeline {
     fn seed_user_dict_frequencies(&mut self) {
         use rand::Rng;
         let mut rng = rand::thread_rng();
-        for dictionary in [&mut self.user_dict, &mut self.user_dict_ipa] {
+        for dictionary in [&mut self.user_dict, &mut self.user_dict_scheme2] {
             let updates: Vec<(String, u64)> = dictionary
                 .entries()
                 .filter(|e| e.frequency.is_none_or(|f| f <= 1))
@@ -564,16 +563,19 @@ impl InputPipeline {
         if self.input_options == options {
             return;
         }
-        let use_ipa =
+        let use_scheme2 =
             options.scheme == crate::TranscriptionScheme::Ipa && self.source_scheme2.is_some();
-        if options.scheme == crate::TranscriptionScheme::Ipa && !use_ipa {
+        if options.scheme == crate::TranscriptionScheme::Ipa && !use_scheme2 {
             options.scheme = crate::TranscriptionScheme::GonPin;
         }
         let scheme_changed = self.input_options.scheme != options.scheme;
         if scheme_changed {
-            std::mem::swap(&mut self.user_dict, &mut self.user_dict_ipa);
-            std::mem::swap(&mut self.frequency_boosts, &mut self.frequency_boosts_ipa);
-            std::mem::swap(&mut self.boosts_path, &mut self.boosts_path_ipa);
+            std::mem::swap(&mut self.user_dict, &mut self.user_dict_scheme2);
+            std::mem::swap(
+                &mut self.frequency_boosts,
+                &mut self.frequency_boosts_scheme2,
+            );
+            std::mem::swap(&mut self.boosts_path, &mut self.boosts_path_scheme2);
         }
         let dictionary_changed = scheme_changed
             || self.input_options.relations_enabled() != options.relations_enabled()
@@ -585,7 +587,7 @@ impl InputPipeline {
             if self.source_dictionary.is_none() {
                 self.source_dictionary = Some(std::mem::take(&mut self.dictionary));
             }
-            let source = if use_ipa {
+            let source = if use_scheme2 {
                 self.source_scheme2.as_ref().unwrap()
             } else {
                 self.source_dictionary.as_ref().unwrap()
@@ -593,7 +595,7 @@ impl InputPipeline {
             self.dictionary = options.dictionary(source);
         }
         if scheme_changed {
-            if use_ipa {
+            if use_scheme2 {
                 if self.source_fuzzy.is_none() {
                     self.source_fuzzy = Some(std::mem::replace(&mut self.fuzzy, FuzzyMap::empty()));
                 } else {
@@ -625,7 +627,7 @@ impl InputPipeline {
         }
         self.excluded_words.clear();
         if !options.relations_enabled() {
-            let source = if use_ipa {
+            let source = if use_scheme2 {
                 self.source_scheme2.as_ref()
             } else {
                 self.source_dictionary.as_ref()
@@ -1143,10 +1145,10 @@ mod tests {
             nonce
         ));
         pipeline.user_dict = UserDictionary::empty_at(path.clone());
-        pipeline.user_dict_ipa =
+        pipeline.user_dict_scheme2 =
             UserDictionary::empty_at(path.with_file_name("user_dictionary_II.tsv"));
         pipeline.boosts_path = PathBuf::new();
-        pipeline.boosts_path_ipa = PathBuf::new();
+        pipeline.boosts_path_scheme2 = PathBuf::new();
         pipeline
     }
 
@@ -1268,6 +1270,55 @@ mod tests {
         assert!(!pipeline.user_dict.contains("车马"));
         assert!(!pipeline.frequency_boosts.is_empty());
     }
+    #[test]
+    fn boost_merges_are_scoped_per_scheme_and_clear_both() {
+        let directory = std::env::temp_dir().join(format!(
+            "gannyu_boost_scopes_{}_{}",
+            std::process::id(),
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        std::fs::create_dir_all(&directory).unwrap();
+        let mut pipeline = InputPipeline::empty_with_user_data_dir(Some(&directory));
+        pipeline.boosts_path = directory.join("frequency_boosts.jsonl");
+        pipeline.boosts_path_scheme2 = directory.join("frequency_boosts_II.jsonl");
+        assert!(pipeline.user_dict.add("车马", "ca1 ma1", "che1 ma3"));
+        assert!(pipeline
+            .user_dict_scheme2
+            .add("火车", "fo3 ca1", "huo3 che1"));
+        pipeline.frequency_boosts.insert("车马".to_string(), 20000);
+        pipeline
+            .frequency_boosts_scheme2
+            .insert("火车".to_string(), 30000);
+        pipeline.merge_boosts_into_user_dict();
+        assert_eq!(pipeline.user_dict.frequency("车马"), Some(20000));
+        assert_eq!(pipeline.user_dict_scheme2.frequency("火车"), Some(30000));
+        assert_eq!(pipeline.user_dict.frequency("火车"), None);
+        assert_eq!(pipeline.user_dict_scheme2.frequency("车马"), None);
+        assert!(pipeline.frequency_boosts.is_empty());
+        assert!(pipeline.frequency_boosts_scheme2.is_empty());
+        let gon = std::fs::read_to_string(&pipeline.boosts_path).unwrap_or_default();
+        let ii = std::fs::read_to_string(&pipeline.boosts_path_scheme2).unwrap_or_default();
+        assert!(!gon.contains("火车"));
+        assert!(!ii.contains("车马"));
+        pipeline.frequency_boosts.insert("车马".to_string(), 20000);
+        pipeline
+            .frequency_boosts_scheme2
+            .insert("火车".to_string(), 30000);
+        assert!(pipeline.clear_user_data(false, true));
+        assert!(std::fs::read_to_string(&pipeline.boosts_path)
+            .unwrap_or_default()
+            .trim()
+            .is_empty());
+        assert!(std::fs::read_to_string(&pipeline.boosts_path_scheme2)
+            .unwrap_or_default()
+            .trim()
+            .is_empty());
+        let _ = std::fs::remove_dir_all(&directory);
+    }
+
     #[test]
     fn empty_input_uses_configured_dictionary_hits_and_existing_boost_order() {
         let mut pipeline = pipeline_with_temp_user_dict();
