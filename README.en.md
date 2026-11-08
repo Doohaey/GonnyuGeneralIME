@@ -795,4 +795,4 @@ Given the scale of the dictionaries and the author's limited expertise and time,
 6. 剑邑 Jason. Fungcen (Fengcheng) testing and feedback.
 7. Brian Z. Xinyu (新喻) readings and dictionary entries. <https://github.com/BrianIZKom1911>
 8. 阿星. Goungon phonology and dictionary resources.
-9. 新余渝水Anatolia. Drafted the Second Scheme (Compositional) of Gon-pin.
+9. Anatolia. Sinyi (Xinyu) Drafted the Second Scheme (Compositional) of Gon-pin.

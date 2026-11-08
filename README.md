@@ -794,4 +794,4 @@ Windows 小狼毫将压缩包内容复制到 `%APPDATA%\Rime`，在输入法菜�
 6. 剑邑 Jason. 丰城. 程序测试与反馈.
 7. Brian Z. 新余（新喻）话字音与词库. https://github.com/BrianIZKom1911
 8. 阿星. 高安音系与词库.
-9. 新余渝水Anatolia. 赣拼二式（组合式）起草.
+9. Anatolia. 新余渝水. 赣拼二式（组合式）起草.
