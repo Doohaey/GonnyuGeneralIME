@@ -947,8 +947,8 @@ def test_n_l_hong_fuzzy_rules_are_scoped_to_registered_prefixes() -> None:
             ["ni", "nien", "nyu"],
         ),
         "goungon": (
-            ["nai", "nen", "nin"],
-            ["ni", "nian", "niong", "nong"],
+            ["nai", "nung", "nen", "nin", "nong"],
+            ["ni", "nian", "niong"],
         ),
     }
     for region, (positives, negatives) in cases.items():

@@ -1590,7 +1590,7 @@
             "n",
             "l"
           ],
-          "intent": "高安泥/娘细音 l 读；限 nai、nen、nin；i、ong 不转",
+          "intent": "高安泥/娘细音 l 读；限 nai、nung、nen、nin、nong；i 不转",
           "origin": {
             "kind": "linguistic"
           }
@@ -1724,7 +1724,7 @@
     },
     {
       "id": "n_l_gaoan_limited",
-      "description": "高安泥/娘细音 l 读仅限 ai、en、in；i、ong 不转；宁 din、你/尔 ng、酿/年/念/娘/女零声母不在此规则。",
+      "description": "高安泥/娘细音 l 读仅限 ai、ung、en、in、ong；i 不转；宁 din、你/尔 ng、酿/年/念/娘/女零声母不在此规则。",
       "configuration": "resources/fuzzy_scheme.tsv",
       "rules": [
         "F314"
