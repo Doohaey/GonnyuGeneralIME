@@ -341,7 +341,7 @@ Checked-tone codas follow these spelling and input rules.
 | an | [an] | [an] | [an] | [an] | [an] | [an] | [an] | [an] | [an] | - | [an] | [an] | — |  |
 | on | [on] | [on] | [ɔn] | [on] or [ɔn] | [ɔn] | [on] | [on] or [ɔn] | [on] | [on] | - | [on] | [ɔn] | — |  |
 | oen | - | - | - | [øn] | - | - | - | - | - | - | - | - | — |  |
-| en | [ɨn] or [en] or [ən] or [ɛn] | [ən] or [ɛn] | [ən] or [ɛn] | [ɪn] or [en] or [ɛn] | [ən] | [ən] | [ən] or [ɛn] | [en] or [ən] or [ɛn] | [ɛn] | - | [en] or [ɛn] | [ən] or [ɛn] | ing (Fungcen) |  |
+| en | [ɨn] or [ɛn] | [ən] or [ɛn] | [ən] or [ɛn] | [ɪn] or [ɛn] | [ən] | [ən] | [ən] or [ɛn] | [en] or [ən] or [ɛn] | [ɛn] | - | [en] or [ɛn] | [ən] or [ɛn] | ing (Fungcen) |  |
 | eon | - | - | - | - | - | - | - | - | - | - | - | [ɵn] |  |  |
 | ann* | - | - | - | - | - | - | - | - | - | [ã] | - | - | an |  |
 | ang | [ɑŋ] | [ɑŋ] | [ɑŋ] | [ɑŋ] | - | [ɑŋ] | [ɑŋ] | - | [ɑŋ] | - | [ɑŋ] | [ɑŋ] | — |  |
@@ -351,7 +351,7 @@ Checked-tone codas follow these spelling and input rules.
 | at | [at] | [at] | - | [at] | [at] | - | - | - | - | - | - | [at] | — |  |
 | ot | [ot] | [ot] | - | [ɔt] | [ot] or [ɔt] | - | - | - | - | - | - | [ɔt] | — |  |
 | oet | - | - | - | [øt] | - | - | - | - | - | - | - | - | — |  |
-| et | [ɨt] or [et] or [ət] or [ɛt] | [ɛt] | - | [ɪt] or [ət] or [ɛt] | - | - | - | - | - | - | - | [ət] or [ɛt] | — |  |
+| et | [ɨt] or [ɛt] | [ɛt] | - | [ɪt] or [ət] or [ɛt] | - | - | - | - | - | - | - | [ət] or [ɛt] | — |  |
 | eot | - | [ɵt] | - | - | - | - | - | - | - | - | - | - | — |  |
 | aep | - | [æp] | - | - | - | - | - | - | - | - | - | - | — |  |
 | ap | - | [ap] | [ap] | - | - | - | - | - | - | - | - | - | — |  |
@@ -359,7 +359,7 @@ Checked-tone codas follow these spelling and input rules.
 | ep | - | - | [ɛp] | - | - | - | - | - | - | - | - | - | - |  |
 | eop | - | [ɵp] | - | - | - | - | - | - | - | - | - | - | — |  |
 | aek | - | [æʔ] | - | - | [æʔ] | - | - | - | - | - | - | - | — |  |
-| ak | [aʔ] or [ɑʔ] | [aʔ] | [aʔ] | [ak] or [aʔ] | [aʔ] | - | - | [aʔ] | - | [aʔ] | - | [ak] or [aʔ] | — |  |
+| ak | [aʔ] | [aʔ] | [aʔ] | [ak] or [aʔ] | [aʔ] | - | - | [aʔ] | - | [aʔ] | - | [ak] or [aʔ] | — |  |
 | aik | - | - | [aiʔ] | [aiʔ] | - | - | - | - | - | - | - | - | - |  |
 | ok | [oʔ] or [ɔʔ] | [oʔ] or [ɔʔ] | [ɔʔ] | [ok] or [oʔ] or [ɔʔ] | [ɔʔ] | - | - | [ɔʔ] | - | [oʔ] | - | [ɔk] or [ɔʔ] | uok (Yikyan) |  |
 | oek | - | - | - | [øʔ] | - | - | - | - | - | - | - | - | — |  |
@@ -421,7 +421,7 @@ With no initial consonant:
 | iep | - | [iɛp] | - | - | - | - | - | - | - | - | - | - | — |  |
 | ik | [ɿʔ] or [iʔ] | [iʔ] | [iʔ] | [ɿʔ] or [iʔ] | [iʔ] | - | - | [iʔ] | - | - | - | - |  |  |
 | iaek | - | - | - | - | [iæʔ] | - | - | - | - | - | - | - |  |  |
-| iak | [iaʔ] | [iaʔ] | [iaʔ] | [iaʔ] or [iɑʔ] | [iaʔ] | - | - | [iaʔ] | - | [iaʔ] | - | [iak] or [iaʔ] | - |  |
+| iak | [iaʔ] | [iaʔ] | [iaʔ] | [iaʔ] | [iaʔ] | - | - | [iaʔ] | - | [iaʔ] | - | [iak] or [iaʔ] | - |  |
 | iaik | - | - | - | [iaiʔ] | - | - | - | - | - | - | - | - | - |  |
 | iok | [ioʔ] or [iɔʔ] | [iɔʔ] | [iɔʔ] | [ioʔ] or [iɔʔ] | [iɔʔ] | - | - | - | - | [ioʔ] | - | [iɔk] | - |  |
 | iek | - | [iɛʔ] | [iɛʔ] | [iəʔ] or [iɛʔ] | [iɛʔ] | - | - | [iɪʔ] or [iɛʔ] | - | [ieʔ] | - | - |  |  |
@@ -442,7 +442,7 @@ With no initial consonant:
 | --- | --- | --- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | --- | --- |
 | u | [u] | [u] | [u] | [u] | [u] | [u] | [u] | [u] | [u] | [u] | [u] | [u] | - |  |
 | uae | - | - | - | - | - | [uæ] | - | - | [uæ] | - | - | - |  |  |
-| ua | [ua] or [uɑ] | [ua] | [ua] | [ua] | - | [ua] | [ua] | [ua] | [ua] | [ua] | [ua] | [ua] | - |  |
+| ua | [ua] | [ua] | [ua] | [ua] | - | [ua] | [ua] | [ua] | [ua] | [ua] | [ua] | [ua] | - |  |
 | uo | [uo] | [uo] | [uɔ] | [uo] | - | [uo] | [uo] | [uo] | [uo] | [uo] | [uo] | [uɔ] | - |  |
 | ue | [ue] | - | [uɛ] | [ue] or [uɛ] | - | - | [uɛ] | [uɛ] | [uɛ] | [ue] | [uɛ] | - | - |  |
 | uia | - | - | - | - | - | - | - | - | - | - | [uia] | - |  |  |
@@ -453,7 +453,7 @@ With no initial consonant:
 | uei | — | [uɛi] | - | [uəi] | - | [uei] | [uei] | [uei] | - | - | [uei] | [uəi] or [uɛi] | ui (after initial, one-way) |  |
 | ueu | - | - | - | [ueu] | - | - | - | - | - | - | - | - | - |  |
 | un | [un] | [un] | [un] | [un] | - | - | [un] | - | [un] | - | - | - | — |  |
-| uan | [uan] | [uan] | [uan] | [uan] or [uɑn] | - | [uan] | [uan] | [uan] | [uan] | - | [uan] | [uan] | - |  |
+| uan | [uan] | [uan] | [uan] | [uan] | - | [uan] | [uan] | [uan] | [uan] | - | [uan] | [uan] | - |  |
 | uon | [uon] | [uon] | [uɔn] | [uon] or [uɔn] | - | - | [uon] or [uɔn] | [uon] | [uon] | - | [uon] | [uɔn] | uen, wen (no initial) |  |
 | uen | — | [uɛn] | [uɛn] | - | - | [uən] | [uɛn] | [uen] or [uɛn] | - | - | [uen] | [uən] or [uɛn] | un (after initial, one-way) |  |
 | ueon | - | - | - | - | - | - | - | - | - | - | - | [uɵn] |  |  |
