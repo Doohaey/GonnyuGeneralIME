@@ -51,7 +51,9 @@ Rime schema repositories are available for Lancong (Nanchang), Fenni (Fenyi), Fu
   - [The General Gon-pin Romanisation](#the-general-gon-pin-romanisation)
     - [First scheme (Han-Pinyin style)](#first-scheme-han-pinyin-style)
       - [Initials](#initials)
+        - [Initial segments](#initial-segments)
       - [Finals](#finals)
+        - [Final segments](#final-segments)
         - [Open finals](#open-finals)
         - [Front-vowel finals](#front-vowel-finals)
         - [Rounded finals](#rounded-finals)
@@ -257,6 +259,23 @@ The general Gon(Gan) romanisation (gon-pin) first scheme used by this project re
 | zz | - | - | - | - | - | - | - | - | - | - | [dz] | - | z (one-way) |  |
 | zzr | - | - | - | - | - | - | - | - | - | - | [dʐ] | - | zr, zh, zzh (one-way) |  |
 
+##### Initial segments
+
+The table below lists initial spellings by segment; IPA is shown in brackets.
+
+| Place | Stop, voiceless | Stop, aspirated | Stop, voiced | Affricate, voiceless | Affricate, aspirated | Affricate, voiced | Fricative, voiceless | Fricative, voiced | Nasal | Lateral |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Bilabial | b[p] | p[pʰ] | bb[b] | — | — | — | f[ɸ] | — | m[m] | — |
+| Labiodental | — | — | — | — | — | — | f[f] | v[v] | — | — |
+| Apical dental | — | — | — | z[ts] | c[tsʰ] | zz[dz] | s[s][θ] | — | — | — |
+| Apical alveolar | d[t] | t[tʰ] | dd[d] | — | — | — | — | — | n[n] | l[l] |
+| Blade | — | — | — | — | — | — | — | — | — | — |
+| Retroflex | — | — | — | zh[tʂ] | ch[tʂʰ] | zzr[dʐ] | sh[ʂ] | r[ʐ] | n[ɳ] | — |
+| Palatal | — | — | — | j[tɕ] | q[tɕʰ] | jj[dʑ] | x[ɕ] | — | n[ȵ] | — |
+| Palatal central | — | — | — | — | — | — | — | — | — | — |
+| Velar | g[k] | k[kʰ] | gg[ɡ] | — | — | — | h[x] | — | ng[ŋ] | — |
+| Glottal | — | — | — | — | — | — | h[h] | — | — | — |
+
 #### Finals
 
 Checked-tone codas follow these spelling and input rules.
@@ -264,6 +283,38 @@ Checked-tone codas follow these spelling and input rules.
 - The coda [ʔ] is written as `-k` in Gon-pin.
 - Checked-tone codas may be omitted during input while still matching the corresponding readings.
 - Each locality independently specifies a combination of `-t`, `-p`, and `-k`, or no checked-tone codas. The codas enabled for a locality are accepted interchangeably within that locality.
+
+##### Final segments
+
+The tables below list vowel, coda, and syllabic spellings by segment; IPA is shown in brackets.
+
+|  | Front unrounded | Front rounded | Central unrounded | Central rounded | Back unrounded | Back rounded |
+| --- | --- | --- | --- | --- | --- | --- |
+| Apical | i(ï)[ɿ][ʅ] | yu[ʯ] | — | — | — | — |
+| High | i[i] | yu[y] | e[ɨ] | — | e[ɯ] | u[u] |
+|  | e[ɪ] | — | — | — | — | — |
+| Close-mid | e(ê)[e] | oe[ø] | — | eo[ɵ] | e[ɤ] | o[o] |
+| Mid | — | — | e[ə] | — | — | — |
+| Open-mid | e(ê)[ɛ] | oe[œ] | — | — | — | o(ô)[ɔ] |
+|  | ae[æ] | — | — | — | — | — |
+| Low | a[a] | — | — | — | a[ɑ] | — |
+
+| Coda | Spelling |
+| --- | --- |
+| p | p |
+| t | t |
+| k | k |
+| ʔ | k |
+| m | m |
+| n | n |
+| ŋ | ng |
+
+| Syllabic | Spelling |
+| --- | --- |
+| m̩ | m |
+| n̩ | n |
+| ŋ̩ / ŋ̍ | ng |
+| ɭ̩ | l |
 
 ##### Open finals
 
