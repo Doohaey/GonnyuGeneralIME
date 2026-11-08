@@ -156,11 +156,14 @@ class GannyuInputMethodService : InputMethodService() {
         private val nativeBridge = NativePipelineBridge()
 
         @JvmStatic
-        fun nativeCreateStatic(context: Context, region: String?): Long {
+        fun nativeCreateStatic(context: Context, region: String?, scheme: Int? = null): Long {
             val resourceRoot = RimeResourceStore.prepare(context).absolutePath
             val userDataDir = RimeResourceStore.userDataDirectory(context).absolutePath
             val handle = nativeBridge.nativeCreate(resourceRoot, region, userDataDir)
-            if (handle != 0L && !nativeBridge.nativeSetInputOptions(handle, inputOptions(context))) {
+            val options = inputOptions(context).also { values ->
+                if (scheme != null) values[8] = scheme
+            }
+            if (handle != 0L && !nativeBridge.nativeSetInputOptions(handle, options)) {
                 nativeBridge.nativeDestroy(handle)
                 return 0
             }
@@ -304,10 +307,14 @@ class GannyuInputMethodService : InputMethodService() {
                     }
                     targets.all { region ->
                         val regionHandles = liveHandles[region].orEmpty()
-                        if (regionHandles.isNotEmpty()) {
-                            regionHandles.all(nativeBridge::nativeResetCurrentUserData)
+                        val liveCleared = regionHandles.all(nativeBridge::nativeResetCurrentUserData)
+                        val schemes = if (regions.firstOrNull { it.id == region }?.transcriptionSchemes?.contains("ipa") == true) {
+                            listOf(0, 1)
                         } else {
-                                val temporary = nativeCreateStatic(context, region)
+                            listOf(0)
+                        }
+                        val temporaryCleared = schemes.all { scheme ->
+                            val temporary = nativeCreateStatic(context, region, scheme)
                             if (temporary == 0L) {
                                 false
                             } else {
@@ -318,6 +325,7 @@ class GannyuInputMethodService : InputMethodService() {
                                 }
                             }
                         }
+                        liveCleared && temporaryCleared
                     }
                 }
                 onComplete(success)
