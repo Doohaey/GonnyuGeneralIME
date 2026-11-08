@@ -15,6 +15,7 @@
 #include <array>
 #include <cwctype>
 #include <cstdint>
+#include <filesystem>
 #include <functional>
 #include <iterator>
 #include <memory>
@@ -63,6 +64,16 @@ static constexpr wchar_t kToolbarXRegistryValue[] = L"ToolbarX";
 static constexpr wchar_t kToolbarYRegistryValue[] = L"ToolbarY";
 static constexpr size_t kVisibleCandidateCount = 9;
 static constexpr size_t kMaxDisplayCharacters = 30;
+static constexpr UINT kClearCurrentRegionCommand = 1;
+static constexpr UINT kClearAllRegionsCommand = 2;
+static constexpr wchar_t kUserDataRootName[] = L"GannyuInput";
+static constexpr wchar_t kUserDataRegionsName[] = L"regions";
+static constexpr const wchar_t *kUserDataFileNames[] = {
+    L"user_dictionary.tsv",
+    L"user_dictionary_II.tsv",
+    L"frequency_boosts.jsonl",
+    L"frequency_boosts_II.jsonl",
+};
 static const GUID kSupportedCategories[] = {
     GUID_TFCAT_TIP_KEYBOARD,
     GUID_TFCAT_TIPCAP_UIELEMENTENABLED,
@@ -326,6 +337,96 @@ std::string WideToUtf8(const std::wstring &value) {
     std::string output(static_cast<size_t>(length), '\0');
     WideCharToMultiByte(CP_UTF8, 0, value.data(), static_cast<int>(value.size()), output.data(), length, nullptr, nullptr);
     return output;
+}
+
+size_t Utf8CharacterCount(const std::string &value) {
+    size_t count = 0;
+    for (const unsigned char ch : value) {
+        if ((ch & 0xC0) != 0x80) {
+            ++count;
+        }
+    }
+    return count;
+}
+
+std::string JoinReadings(const std::vector<std::string> &values) {
+    std::string output;
+    for (const auto &value : values) {
+        if (value.empty()) {
+            continue;
+        }
+        if (!output.empty()) {
+            output.push_back(' ');
+        }
+        output += value;
+    }
+    return output;
+}
+
+std::filesystem::path RegionUserDataRoot() {
+    wchar_t buffer[MAX_PATH] = {};
+    DWORD length = GetEnvironmentVariableW(L"APPDATA", buffer, static_cast<DWORD>(_countof(buffer)));
+    if (length == 0 || length >= _countof(buffer)) {
+        return {};
+    }
+    return std::filesystem::path(buffer) / kUserDataRootName / kUserDataRegionsName;
+}
+
+std::string EnsureRegionUserDataDir(const std::string &regionId) {
+    if (regionId.empty() || regionId.find_first_of("\\/:*?\"<>|") != std::string::npos) {
+        return {};
+    }
+    const std::filesystem::path root = RegionUserDataRoot();
+    if (root.empty()) {
+        return {};
+    }
+    const std::filesystem::path directory = root / Utf8ToWide(regionId);
+    std::error_code error;
+    std::filesystem::create_directories(directory, error);
+    if (error) {
+        return {};
+    }
+    return WideToUtf8(directory.wstring());
+}
+
+int CreateRegionPipeline(const std::string &regionId, GannyuPipelineHandle **outHandle) {
+    const std::string directory = EnsureRegionUserDataDir(regionId);
+    if (!directory.empty()) {
+        return gannyu_pipeline_create_with_user_data_dir(
+            nullptr, regionId.c_str(), directory.c_str(), outHandle);
+    }
+    return gannyu_pipeline_create(nullptr, regionId.c_str(), outHandle);
+}
+
+void DeleteRegionUserDataFiles(const std::filesystem::path &directory) {
+    std::error_code error;
+    for (const wchar_t *name : kUserDataFileNames) {
+        std::filesystem::remove(directory / name, error);
+        error.clear();
+    }
+    std::filesystem::remove(directory, error);
+}
+
+bool ClearOtherRegionUserData(const std::string &currentRegionId) {
+    const std::filesystem::path root = RegionUserDataRoot();
+    if (root.empty()) {
+        return false;
+    }
+    std::error_code error;
+    if (!std::filesystem::is_directory(root, error)) {
+        return !error;
+    }
+    for (std::filesystem::directory_iterator it(root, error), end; !error && it != end; it.increment(error)) {
+        std::error_code entryError;
+        if (!it->is_directory(entryError)) {
+            continue;
+        }
+        if (WideToUtf8(it->path().filename().wstring()) == currentRegionId) {
+            continue;
+        }
+        DeleteRegionUserDataFiles(it->path());
+    }
+    return !error;
 }
 
 std::string JsonUnescape(const std::string &value) {
@@ -1444,6 +1545,7 @@ public:
     void SelectInputOption(UINT itemId) {
         if (itemId < 1000 || itemId > 1011) return;
         if (itemId == 1011 && !schemeAvailable_) return;
+        ClearLearnedUserWord();
         const size_t indices[] = {0, 1, 6, 2, 3, 7, 4};
         if (itemId == 1010) {
             inputOptions_[8] = 0;
@@ -1478,8 +1580,7 @@ public:
         const auto found = std::find(regionIds_.begin(), regionIds_.end(), regionId);
         ShowLoadingWindow(found == regionIds_.end() ? Utf8ToWide(regionId) : RegionLabel(static_cast<size_t>(std::distance(regionIds_.begin(), found))));
         GannyuPipelineHandle *replacement = nullptr;
-        const char *requested = regionId.c_str();
-        if (gannyu_pipeline_create(nullptr, requested, &replacement) != 0 || !replacement) {
+        if (CreateRegionPipeline(regionId, &replacement) != 0 || !replacement) {
             ShowLoadFailure();
             return;
         }
@@ -1561,17 +1662,23 @@ public:
                 }
                 if (PtInRect(&userDataButtonRect_, point)) {
                     HMENU menu = CreatePopupMenu();
-                    AppendMenuW(menu, MF_STRING, GANNYU_USER_DATA_WORDS, L"用户词");
-                    AppendMenuW(menu, MF_STRING, GANNYU_USER_DATA_FREQUENCIES, L"用户词频");
-                    AppendMenuW(menu, MF_STRING, GANNYU_USER_DATA_ALL, L"全部");
+                    AppendMenuW(menu, MF_STRING, kClearCurrentRegionCommand, L"当前地区");
+                    AppendMenuW(menu, MF_STRING, kClearAllRegionsCommand, L"全部地区");
                     AppendMenuW(menu, MF_SEPARATOR, 0, nullptr);
                     AppendMenuW(menu, MF_STRING | MF_GRAYED, 0, L"用户数据均存储在本地。 ");
                     POINT pt; GetCursorPos(&pt);
-                    UINT scope = TrackPopupMenu(menu, TPM_RETURNCMD | TPM_NONOTIFY, pt.x, pt.y, 0, hwnd, nullptr);
+                    UINT command = TrackPopupMenu(menu, TPM_RETURNCMD | TPM_NONOTIFY, pt.x, pt.y, 0, hwnd, nullptr);
                     DestroyMenu(menu);
-                    if (scope && MessageBoxW(hwnd, L"清空后无法恢复。", L"清空用户词库", MB_OKCANCEL | MB_ICONWARNING) == IDOK) {
-                        EnsurePipeline();
-                        if (pipeline_) gannyu_pipeline_user_data_clear(pipeline_, (int)scope);
+                    if (command == kClearCurrentRegionCommand || command == kClearAllRegionsCommand) {
+                        const bool allRegions = command == kClearAllRegionsCommand;
+                        const wchar_t *message = allRegions
+                            ? L"将清空全部地区学习到的用户词与词频，且无法恢复。"
+                            : L"将清空当前地区学习到的用户词与词频，且无法恢复。";
+                        if (MessageBoxW(hwnd, message, L"清空学习数据", MB_OKCANCEL | MB_ICONWARNING) == IDOK) {
+                            if (!ClearUserData(allRegions)) {
+                                MessageBoxW(hwnd, L"部分学习数据未能清空，请稍后重试。", L"清空失败", MB_OK | MB_ICONERROR);
+                            }
+                        }
                     }
                     return 0;
                 }
@@ -1698,8 +1805,10 @@ private:
             return;
         }
         GannyuPipelineHandle *handle = nullptr;
-        const char *requested = regionId_.empty() ? nullptr : regionId_.c_str();
-        if (gannyu_pipeline_create(nullptr, requested, &handle) == 0) {
+        const int status = regionId_.empty()
+            ? gannyu_pipeline_create(nullptr, nullptr, &handle)
+            : CreateRegionPipeline(regionId_, &handle);
+        if (status == 0) {
             pipeline_ = handle;
             ApplyStoredInputOptions();
         }
@@ -1974,6 +2083,9 @@ private:
                 buffer_.erase(cursor_ - 1, 1);
                 --cursor_;
             }
+            if (buffer_.empty()) {
+                ClearLearnedUserWord();
+            }
             RefreshCandidates();
             return true;
         }
@@ -1984,6 +2096,9 @@ private:
             }
             if (cursor_ < buffer_.size()) {
                 buffer_.erase(cursor_, 1);
+            }
+            if (buffer_.empty()) {
+                ClearLearnedUserWord();
             }
             RefreshCandidates();
             return true;
@@ -2156,6 +2271,57 @@ private:
         return SUCCEEDED(request) && SUCCEEDED(editResult);
     }
 
+    void ClearLearnedUserWord() {
+        learnedText_.clear();
+        learnedReadings_.clear();
+        learnedMandarinReadings_.clear();
+        learnedReadingsComplete_ = true;
+        learnedMandarinComplete_ = true;
+    }
+
+    void AccumulateLearnedUserWord(const CandidateItem &item) {
+        learnedText_ += WideToUtf8(item.text);
+        if (!item.reading.empty()) {
+            learnedReadings_.push_back(WideToUtf8(item.reading));
+        } else {
+            learnedReadingsComplete_ = false;
+        }
+        if (!item.mandarinReading.empty()) {
+            learnedMandarinReadings_.push_back(WideToUtf8(item.mandarinReading));
+        } else {
+            learnedMandarinComplete_ = false;
+        }
+    }
+
+    void SaveLearnedUserWord() {
+        if (pipeline_ && Utf8CharacterCount(learnedText_) >= 2 && learnedReadingsComplete_ &&
+            !learnedReadings_.empty()) {
+            const std::string pinyin = JoinReadings(learnedReadings_);
+            const std::string mandarin = learnedMandarinComplete_
+                ? JoinReadings(learnedMandarinReadings_)
+                : std::string();
+            gannyu_pipeline_user_dict_add(
+                pipeline_, learnedText_.c_str(), pinyin.c_str(), mandarin.c_str(), nullptr);
+        }
+        ClearLearnedUserWord();
+    }
+
+    bool ClearUserData(bool allRegions) {
+        if (!pipeline_) {
+            EnsurePipeline();
+        }
+        bool ok = pipeline_ != nullptr;
+        if (pipeline_) {
+            ok = gannyu_pipeline_user_data_clear(pipeline_, GANNYU_USER_DATA_ALL) == 0 && ok;
+            ClearLearnedUserWord();
+            Reset();
+        }
+        if (allRegions) {
+            ok = ClearOtherRegionUserData(regionId_) && ok;
+        }
+        return ok;
+    }
+
     void CommitSelectedCandidate(ITfContext *context, size_t index) {
         if (!context || index >= candidates_.size()) {
             return;
@@ -2167,6 +2333,7 @@ private:
         if (pipeline_) {
             std::string headword = WideToUtf8(item.text);
             gannyu_pipeline_user_dict_boost(pipeline_, headword.c_str(), nullptr);
+            AccumulateLearnedUserWord(item);
         }
         if (!buffer_.empty() && item.consumedBytes > 0 && item.consumedBytes < buffer_.size()) {
             buffer_.erase(0, item.consumedBytes);
@@ -2176,6 +2343,7 @@ private:
             RefreshCandidates();
             return;
         }
+        SaveLearnedUserWord();
         Reset(false);
     }
 
@@ -2792,6 +2960,7 @@ private:
     }
 
     void ClearInputModel() {
+        ClearLearnedUserWord();
         buffer_.clear();
         cursor_ = 0;
         candidates_.clear();
@@ -2937,6 +3106,11 @@ private:
     std::vector<std::string> regionLabels_;
     std::string buffer_;
     size_t cursor_ = 0;
+    std::string learnedText_;
+    std::vector<std::string> learnedReadings_;
+    std::vector<std::string> learnedMandarinReadings_;
+    bool learnedReadingsComplete_ = true;
+    bool learnedMandarinComplete_ = true;
     std::wstring preeditDisplay_;
     size_t preeditCursor_ = 0;
     std::vector<CandidateItem> candidates_;
