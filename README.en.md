@@ -57,7 +57,6 @@ Rime schema repositories are available for Lancong (Nanchang), Fenni (Fenyi), Fu
         - [Rounded finals](#rounded-finals)
         - [Rounded front-vowel finals](#rounded-front-vowel-finals)
         - [Syllabic laterals and nasals](#syllabic-laterals-and-nasals)
-        - [Other segments](#other-segments)
       - [Tones](#tones)
         - [Lancong (Nanchang)](#lancong-nanchang)
         - [Fungcen (Fengcheng)](#fungcen-fengcheng)
@@ -72,6 +71,7 @@ Rime schema repositories are available for Lancong (Nanchang), Fenni (Fenyi), Fu
         - [Singzï (Xingzi)](#singzï-xingzi)
         - [Goungon (Goungon)](#goungon-goungon)
     - [Second scheme (Compositional)](#second-scheme-compositional)
+    - [Other notes](#other-notes)
   - [References](#references)
     - [Literature](#literature)
     - [Reference implementations](#reference-implementations)
@@ -213,7 +213,7 @@ Disabling fuzzy matching suspends its three child options while preserving their
 
 ## The General Gon-pin Romanisation
 
-
+The system aims to cover phonemes across localities, represents necessary phonemic contrasts, and provides consistent notation for nasalised finals and voiced consonants in some Gon(Gan) varieties. To accommodate mergers in newer varieties and facilitate input, it does not attempt to transcribe every phonetic detail, such as breathy or slack phonation, and merges sound values that are not contrastive within a locality or occur as alternative pronunciations.
 
 The input method provides two parallel schemes: the first scheme (Han-Pinyin style) and the second scheme (Compositional). They can be switched in Input settings.
 
@@ -469,10 +469,6 @@ With no initial consonant:
 | ng | [ŋ̩] | - | [ŋ̍] | [ŋ̍] | [ŋ̍] | - | [ŋ̍] | [ŋ̍] | [ŋ̍] | - | - | [ŋ̍] |  |
 | l | - | - | - | - | - | [ɭ̩] | - | - | - | - | - | - |  |
 
-##### Other segments
-
-The system also records a number of extensions based on published descriptions and observed sound changes, including pronunciations recorded in a 1935 language survey and selected alternations involving `-n` and `-ng` codas.
-
 #### Tones
 
 `0` denotes the neutral tone.
@@ -726,9 +722,11 @@ The second scheme uses universal tone numbers.
 
 `*` marks a secondary tone and may follow the number, as in `1*`. Locality tone classes are assigned to these universal numbers by tone-class name.
 
-#### Other notes
+### Other notes
 
-Switch schemes in Input settings; localities without the second scheme offer the first scheme only.
+1. Beyond the segment inventories above, the system also provides a number of extended notations based on published descriptions and observed sound changes. These include pronunciations recorded in the 1935 language survey and selected alternations involving `-n` and `-ng` codas.
+2. For the Lancong (Nanchang) system, the primary reference is Xiong Zhenghui's *Nanchang Fangyan Cidian*. A small number of entries in that dictionary are overly old-fashioned, too local, or unsuitable for actual listening; these have been adjusted. For example, the Lancong syllable written `fui` in Gon-pin is recorded as [ɸui] in the 1935 *Nanchang Yinxi* but as [fɨi] in Xiong's dictionary. The older pronunciation does not sound close to “fei”; to keep input consistent with actual listening and supported by a source, the 1935 IPA notation is used.
+3. Switch schemes in Input settings; localities without the second scheme offer the first scheme only.
 
 ## References
 
