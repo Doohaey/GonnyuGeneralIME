@@ -49,6 +49,17 @@ def test_fcitx5_workflow_runs_an_isolated_installer_smoke_test() -> None:
     assert 'tar -xzf "$artifact" -C "$package_root"' in content
 
 
+def test_fcitx5_scopes_user_data_by_region() -> None:
+    source = (ROOT / "platforms/linux/fcitx5/gannyu_fcitx5.cpp").read_text(encoding="utf-8")
+
+    assert "std::string regionUserDataDirectory(const std::string &region)" in source
+    assert '"XDG_DATA_HOME"' in source
+    assert '"/.local/share/gannyu-input"' in source
+    assert '"/regions/"' in source
+    assert "gannyu_pipeline_create_with_user_data_dir(" in source
+    assert "regionUserDataDirectory(regionId_)" in source
+
+
 def test_fcitx5_buffer_supports_middle_editing() -> None:
     source = (ROOT / "platforms/linux/fcitx5/gannyu_fcitx5.cpp").read_text(encoding="utf-8")
 

@@ -55,6 +55,22 @@ std::vector<std::string> parseStringField(const std::string &json, const std::st
     return out;
 }
 
+std::string regionUserDataDirectory(const std::string &region) {
+    if (region.empty() || region == "." || region == ".." ||
+        region.find('/') != std::string::npos || region.find('\\') != std::string::npos) {
+        return {};
+    }
+    std::string base;
+    if (const char *xdg = std::getenv("XDG_DATA_HOME"); xdg && *xdg) {
+        base = std::string(xdg) + "/gannyu-input";
+    } else if (const char *home = std::getenv("HOME"); home && *home) {
+        base = std::string(home) + "/.local/share/gannyu-input";
+    } else {
+        return {};
+    }
+    return base + "/regions/" + region;
+}
+
 struct RankedItem {
     std::string text;
     std::string comment;
@@ -617,8 +633,15 @@ private:
     void ensurePipeline() {
         if (pipeline_) return;
         GannyuPipelineHandle *h = nullptr;
-        const char *region = regionId_.empty() ? nullptr : regionId_.c_str();
-        int code = gannyu_pipeline_create(manifestPath_.c_str(), region, &h);
+        const std::string dataDirectory = regionUserDataDirectory(regionId_);
+        int code;
+        if (dataDirectory.empty()) {
+            const char *region = regionId_.empty() ? nullptr : regionId_.c_str();
+            code = gannyu_pipeline_create(manifestPath_.c_str(), region, &h);
+        } else {
+            code = gannyu_pipeline_create_with_user_data_dir(
+                manifestPath_.c_str(), regionId_.c_str(), dataDirectory.c_str(), &h);
+        }
         if (code == 0) {
             pipeline_ = h;
             if (GANNYU_TRANSCRIPTION_SCHEME != 0) {
