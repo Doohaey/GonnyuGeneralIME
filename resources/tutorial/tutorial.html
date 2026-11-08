@@ -19,6 +19,14 @@
     th, td { padding: .55em .7em; border: 1px solid #d8e0eb; text-align: left; white-space: nowrap; }
     th { background: #f3f6fb; }
     .more { margin: 1.5em 0 0; }
+    details.scheme { margin: 0 0 1em; border: 1px solid #d8e0eb; border-radius: 12px; overflow: hidden; background: #fff; }
+    details.scheme > summary { cursor: pointer; padding: .85em 1em; font-weight: 600; font-size: 1.15em; background: #f3f6fb; list-style: none; }
+    details.scheme > summary::-webkit-details-marker { display: none; }
+    details.scheme > summary::after { content: "＋"; float: right; font-weight: 400; }
+    details.scheme[open] > summary::after { content: "－"; }
+    .scheme-body { padding: 0 1em 1em; }
+    .scheme-body > h2:first-child { margin-top: .8em; }
+    code { font-family: inherit; }
     a { color: #185cc8; overflow-wrap: anywhere; }
     @media (max-width: 480px) { body { padding: 0; background: #fff; } main { border: 0; border-radius: 0; box-shadow: none; } }
     @media (prefers-color-scheme: dark) {
@@ -26,6 +34,8 @@
       main { background: #1c1d20; border-color: #383a40; box-shadow: none; }
       th { background: #292b30; }
       th, td { border-color: #383a40; }
+      details.scheme { background: #1c1d20; border-color: #383a40; }
+      details.scheme > summary { background: #292b30; }
       a { color: #62a8ff; }
     }
   </style>
@@ -33,6 +43,9 @@
 <body>
   <main>
     <h1>使用教程</h1>
+    <details class="scheme" open>
+      <summary>一式（汉拼式）</summary>
+      <div class="scheme-body">
     <h2>拼音说明</h2>
     <ol>
       <li>可使用汉语拼音普通话发音或者赣语拼音输入。显示发音为赣语拼音。</li>
@@ -222,6 +235,102 @@
       <li>“A读音/[又]B读音”配对表示（词语中）某字可能有两个读音。</li>
     </ol>
     <p class="more">更多内容请查看本项目github，有意见可以在这里提出issue反馈，或可通过README.md提供之方法联系作者，也欢迎对本项目star支持！<a href="https://github.com/Doohaey/GonnyuGeneralIME">https://github.com/Doohaey/GonnyuGeneralIME</a>。</p>
+      </div>
+    </details>
+    <details class="scheme">
+      <summary>二式（组合式）</summary>
+      <div class="scheme-body">
+        <h2>声母</h2>
+        <div class="table-wrap">
+<table>
+<thead><tr><th>部位</th><th>塞音清</th><th>塞音次清</th><th>塞音浊</th><th>塞擦音清</th><th>塞擦音次清</th><th>塞擦音浊</th><th>擦音清</th><th>擦音浊</th><th>鼻音</th><th>边音</th></tr></thead>
+<tbody>
+<tr><td>双唇</td><td>p[p]</td><td>ph[pʰ]</td><td>b[b]</td><td>—</td><td>—</td><td>—</td><td>f[ɸ]</td><td>v[β]</td><td>m[m]</td><td>—</td></tr>
+<tr><td>唇齿</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>f[f]</td><td>v[v]</td><td>—</td><td>—</td></tr>
+<tr><td>舌尖前</td><td>—</td><td>—</td><td>—</td><td>ts[ts]</td><td>tsh[tsʰ]</td><td>dz[dz]</td><td>s[s]</td><td>z[z]</td><td>—</td><td>—</td></tr>
+<tr><td>舌尖中</td><td>t[t]</td><td>th[tʰ]</td><td>d[d]</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>n[n]</td><td>l[l]</td></tr>
+<tr><td>舌叶</td><td>—</td><td>—</td><td>—</td><td>tr[tʃ]</td><td>trh[tʃʰ]</td><td>dr[dʒ]</td><td>sr[ʃ]</td><td>zr[ʒ]</td><td>—</td><td>—</td></tr>
+<tr><td>舌尖后</td><td>—</td><td>—</td><td>—</td><td>tr[tʂ]</td><td>trh[tʂʰ]</td><td>dr[dʐ]</td><td>sr[ʂ]</td><td>zr[ʐ]</td><td>nr[ɳ]</td><td>—</td></tr>
+<tr><td>舌面前</td><td>tj[ȶ]</td><td>tjh[ȶʰ]</td><td>dj[ȡ]</td><td>c[tɕ]</td><td>ch[tɕʰ]</td><td>dzj[dʑ]</td><td>x/hj[ɕ]</td><td>zj[ʑ]</td><td>nj[ȵ]</td><td>—</td></tr>
+<tr><td>舌面中</td><td>kj[c]</td><td>khj[cʰ]</td><td>gj[ɟ]</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>gn[ɲ]</td><td>—</td></tr>
+<tr><td>舌根</td><td>k[k]</td><td>kh[kʰ]</td><td>g[ɡ]</td><td>—</td><td>—</td><td>—</td><td>h[x]</td><td>gh[ɣ]</td><td>ng[ŋ]</td><td>—</td></tr>
+<tr><td>喉</td><td>-h[ʔ]</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>h[h]</td><td>gh[ɦ]</td><td>—</td><td>—</td></tr>
+</tbody>
+</table>
+</div>
+        <ul>
+          <li>送气浊音在辅音后加 <code>h</code>；<code>[ɦ]</code> 与 <code>[ɡʰ]</code> 都拼作 <code>gh</code>。</li>
+          <li>声母本身带 <code>-j</code> 时，拼写省去 <code>-i-</code> 介音。</li>
+          <li><code>-h[ʔ]</code> 只作韵尾，写作 <code>h</code>。</li>
+        </ul>
+        <h2>韵母</h2>
+        <p>二式韵母由元音表与韵尾直接组合。</p>
+        <div class="table-wrap">
+<table>
+<thead><tr><th></th><th>前不圆唇</th><th>前圆唇</th><th>央不圆唇</th><th>央圆唇</th><th>后不圆唇</th><th>后圆唇</th></tr></thead>
+<tbody>
+<tr><td>舌尖</td><td>ii[ɿ][ʅ]</td><td>yu[ʮ][ʯ]</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+<tr><td>高</td><td>i[i]</td><td>y[y]</td><td>ir[ɨ]</td><td>yr[ʉ]</td><td>ur[ɯ]</td><td>u[u]</td></tr>
+<tr><td></td><td>ir[ɪ]</td><td>y[ʏ]</td><td>—</td><td>—</td><td>u[ʊ]</td><td>—</td></tr>
+<tr><td>半高</td><td>e[e]</td><td>oe[ø]</td><td>er[ɘ]</td><td>eo[ɵ]</td><td>er[ɤ]</td><td>o[o]</td></tr>
+<tr><td>中</td><td>—</td><td>—</td><td>er[ə]</td><td>—</td><td>—</td><td>—</td></tr>
+<tr><td>半低</td><td>ee[ɛ]</td><td>oe[œ]</td><td>er[ɜ]</td><td>—</td><td>ea[ʌ]</td><td>oo[ɔ]</td></tr>
+<tr><td></td><td>ae[æ]</td><td>—</td><td>ar[ɐ]</td><td>eo[ɞ]</td><td>—</td><td>—</td></tr>
+<tr><td>低</td><td>a[a]</td><td>oe[ɶ]</td><td>—</td><td>—</td><td>a[ɑ]</td><td>oa[ɒ]</td></tr>
+</tbody>
+</table>
+</div>
+        <div class="table-wrap">
+<table>
+<thead><tr><th>韵尾</th><th>二式</th></tr></thead>
+<tbody>
+<tr><td>p</td><td>p</td></tr>
+<tr><td>t</td><td>t</td></tr>
+<tr><td>k</td><td>k</td></tr>
+<tr><td>ʔ</td><td>h</td></tr>
+<tr><td>m</td><td>m</td></tr>
+<tr><td>n</td><td>n</td></tr>
+<tr><td>ŋ</td><td>ng</td></tr>
+</tbody>
+</table>
+</div>
+        <p>边鼻韵：</p>
+        <div class="table-wrap">
+<table>
+<thead><tr><th>边鼻韵</th><th>二式</th></tr></thead>
+<tbody>
+<tr><td>m̩</td><td>m</td></tr>
+<tr><td>n̩</td><td>n</td></tr>
+<tr><td>ŋ̍ / ŋ̩</td><td>ng</td></tr>
+<tr><td>ɭ̩</td><td>l</td></tr>
+</tbody>
+</table>
+</div>
+        <p>鼻化用 <code>nn</code> 表示；若鼻化元音仍有鼻音韵尾，只写韵尾。</p>
+        <h2>声调</h2>
+        <p>二式声调采用通用编号。</p>
+        <div class="table-wrap">
+<table>
+<thead><tr><th>调号</th><th>调类</th></tr></thead>
+<tbody>
+<tr><td>0</td><td>轻声</td></tr>
+<tr><td>1</td><td>阴平</td></tr>
+<tr><td>2</td><td>阳平</td></tr>
+<tr><td>3</td><td>上声（阴上）</td></tr>
+<tr><td>4</td><td>阳上</td></tr>
+<tr><td>5</td><td>去声（阴去）</td></tr>
+<tr><td>6</td><td>阳去</td></tr>
+<tr><td>7</td><td>入声（阴入）</td></tr>
+<tr><td>8</td><td>阳入</td></tr>
+<tr><td>9</td><td>特殊调类</td></tr>
+</tbody>
+</table>
+</div>
+        <p><code>*</code> 表示次调，可与调号组合，如 <code>1*</code>。地区调类按调类名称归入上述通用编号。</p>
+        <h2>额外说明</h2>
+        <p>方案切换在输入设置中完成；未启用二式的地区只有一式可选。</p>
+      </div>
+    </details>
   </main>
 </body>
 </html>

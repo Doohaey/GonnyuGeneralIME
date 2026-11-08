@@ -33,3 +33,12 @@ def test_android_backspace_uses_grapheme_safe_deletion() -> None:
     assert "getTextBeforeCursor(32, 0)" in source
     assert "BreakIterator.getCharacterInstance(Locale.ROOT)" in source
     assert "deleteSurroundingTextInCodePoints(codePointCount, 0)" in source
+
+
+def test_tutorial_has_two_clickable_scheme_modules() -> None:
+    html = (ROOT / "resources/tutorial/tutorial.html").read_text(encoding="utf-8")
+    assert html.count('<details class="scheme"') == 2
+    assert "<summary>一式（汉拼式）</summary>" in html
+    assert "<summary>二式（组合式）</summary>" in html
+    assert html.index("<summary>一式（汉拼式）</summary>") < html.index("拼音说明")
+    assert html.index("<summary>二式（组合式）</summary>") < html.index("二式韵母由元音表与韵尾直接组合")
