@@ -31,7 +31,7 @@ local function convert_text(text, display)
         index = next_index
         next_index = next_offset(index)
       end
-      local body_end = index
+      local body_end = next_index - 1
       while next_index <= length do
         local char = text:sub(next_index, next_index)
         if char:match("%d") or char == "*" then

@@ -26,7 +26,7 @@ local function run(schema_id, data, comment)
   return output[1].comment
 end
 
-local annotated = { annotations = { 字 = "[文]qit5*" }, readings = {}, synonyms = {} }
+local annotated = { annotations = { ["字"] = "[文]qit5*" }, readings = {}, synonyms = {} }
 assert(run("gannyu_test_ipa", annotated) == "[文]chit9*")
 assert(run("gannyu_test_ipa_gan", annotated) == "[文]chit9*")
 assert(run("gannyu_test", annotated) == "[文]qit5*")
