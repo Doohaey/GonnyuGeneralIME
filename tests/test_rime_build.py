@@ -672,6 +672,9 @@ def test_annotation_filter_rebuilds_sentence_readings_and_cleans_internal_marker
     source = (Path(__file__).resolve().parents[1] / "platforms" / "rime" / "gannyu_annotation_filter.lua").read_text(encoding="utf-8")
 
     assert "sentence_reading(candidate.text, data, display)" in source
+    assert "convert_text(clean_spelling(candidate.comment), display)" in source
+    assert 'schema_id:match("^(.-)_ipa$")' in source
+    assert 'schema_id:match("^(.-)_ipa_")' in source
     assert ':gsub("^G", ""):gsub(" G", " ")' in source
 
 

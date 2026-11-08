@@ -63,13 +63,16 @@ local displays = {}
 
 local function display_for(env)
   local schema_id = env.engine and env.engine.schema and env.engine.schema.schema_id
-  if not schema_id or schema_id:sub(-4) ~= "_ipa" then
+  if not schema_id then
+    return nil
+  end
+  local root = schema_id:match("^(.-)_ipa$") or schema_id:match("^(.-)_ipa_")
+  if not root then
     return nil
   end
   if displays[schema_id] ~= nil then
     return displays[schema_id] or nil
   end
-  local root = schema_id:sub(1, -5)
   local ok, display = pcall(require, root .. "_scheme2")
   if ok and type(display) == "table" then
     displays[schema_id] = display
@@ -105,7 +108,7 @@ function M.func(input, env)
     end
     candidate.comment = enabled and (annotation
       or sentence_reading(candidate.text, data, display)
-      or clean_spelling(candidate.comment)) or ""
+      or convert_text(clean_spelling(candidate.comment), display)) or ""
     if enabled and data.synonyms and require("gannyu_input_options").enabled(env, "synonyms") then
       local words = data.synonyms[candidate.text]
       if words and #words > 0 then

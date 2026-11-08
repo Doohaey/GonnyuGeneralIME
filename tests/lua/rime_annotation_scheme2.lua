@@ -6,19 +6,18 @@ package.preload["gannyu_input_options"] = function()
   return { enabled = function() return true end }
 end
 package.preload["gannyu_test_scheme2"] = function()
-  return { spellings = { qit = "chit", ne = "ner" }, tones = { ["5*"] = "9*" } }
+  return { spellings = { qit = "chit", ne = "ner", ["sï"] = "sii" }, tones = { ["5*"] = "9*" } }
 end
 
 local filter = require("gannyu_annotation_filter")
-local function run(schema_id)
-  local data = { annotations = { 字 = "[文]qit5*" }, readings = {}, synonyms = {} }
+local function run(schema_id, data, comment)
   local env = { engine = { schema = { schema_id = schema_id } }, data = data }
   local input = { iter = function()
     local emitted = false
     return function()
       if emitted then return nil end
       emitted = true
-      return { text = "字", comment = "" }
+      return { text = "字", comment = comment or "" }
     end
   end }
   local output = {}
@@ -27,6 +26,13 @@ local function run(schema_id)
   return output[1].comment
 end
 
-assert(run("gannyu_test_ipa") == "[文]chit9*")
-assert(run("gannyu_test") == "[文]qit5*")
+local annotated = { annotations = { 字 = "[文]qit5*" }, readings = {}, synonyms = {} }
+assert(run("gannyu_test_ipa", annotated) == "[文]chit9*")
+assert(run("gannyu_test_ipa_gan", annotated) == "[文]chit9*")
+assert(run("gannyu_test", annotated) == "[文]qit5*")
+
+local fallback = { annotations = {}, readings = {}, synonyms = {} }
+assert(run("gannyu_test_ipa", fallback, "Gsï4") == "sii4")
+assert(run("gannyu_test_ipa_gan", fallback, "Gsï4") == "sii4")
+assert(run("gannyu_test", fallback, "Gsï4") == "sï4")
 print("scheme2 annotations follow the active scheme")
