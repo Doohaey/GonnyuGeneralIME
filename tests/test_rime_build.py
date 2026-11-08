@@ -674,8 +674,8 @@ def test_annotation_filter_rebuilds_sentence_readings_and_cleans_internal_marker
 
     assert "sentence_reading(candidate.text, data, display)" in source
     assert "convert_text(clean_spelling(candidate.comment), display)" in source
-    assert 'schema_id:match("^(.-)_ipa$")' in source
-    assert 'schema_id:match("^(.-)_ipa_")' in source
+    assert 'schema_id:match("^(.-)_II$")' in source
+    assert 'schema_id:match("^(.-)_II_")' in source
     assert ':gsub("^G", ""):gsub(" G", " ")' in source
 
 
@@ -855,9 +855,8 @@ def test_rime_installers_discover_regions_from_build_output() -> None:
     for name in ("install.sh", "install_macos.sh"):
         content = (Path(__file__).resolve().parents[1] / "platforms/rime" / name).read_text(encoding="utf-8")
         assert "gannyu_*.schema.yaml" in content
-        assert "gannyu_*_data.lua" in content
-        assert "gannyu_annotation_filter.lua" in content
-        assert "gannyu_relation_filter.lua" in content
+        assert '"$output_dir"/lua/*.lua' in content
+        assert '"$output_dir"/lua/gannyu_*_annotations.bin' in content
         assert '"$user_dir/lua/gannyu_filter.lua"' in content
         assert "gannyu_default_*.lua" not in content
         assert "gannyu_default_processor.lua" in content
@@ -995,25 +994,25 @@ def test_fungcen_n_l_merger_rule_has_no_n_duplicates() -> None:
 def test_scheme2_is_built_from_dictionary_ipa_without_fuzzy_rules(tmp_path: Path) -> None:
     counts = build("songau", tmp_path)
     assert counts["scheme2_spellings"] > 0
-    base = (tmp_path / "gannyu_songau_ipa.schema.yaml").read_text(encoding="utf-8")
-    assert "schema_id: gannyu_songau_ipa" in base
-    assert "prism: gannyu_songau_ipa" in base
+    base = (tmp_path / "gannyu_songau_II.schema.yaml").read_text(encoding="utf-8")
+    assert "schema_id: gannyu_songau_II" in base
+    assert "prism: gannyu_songau_II" in base
     assert "gannyu_no_fuzzy" in base
     assert "gannyu_no_fuzzy_rules" not in base
     for suffix in ("", "_gan", "_nowenbai", "_gan_nowenbai"):
-        assert (tmp_path / f"gannyu_songau_ipa{suffix}.schema.yaml").is_file()
-    norel = (tmp_path / "gannyu_songau_ipa_new_norel_gan.schema.yaml").read_text(encoding="utf-8")
-    assert "prism: gannyu_songau_ipa_new_rel_gan" in norel
+        assert (tmp_path / f"gannyu_songau_II{suffix}.schema.yaml").is_file()
+    norel = (tmp_path / "gannyu_songau_II_new_norel_gan.schema.yaml").read_text(encoding="utf-8")
+    assert "prism: gannyu_songau_II_new_rel_gan" in norel
     display = (tmp_path / "lua/gannyu_songau_scheme2.lua").read_text(encoding="utf-8")
     assert "spellings = {" in display
     assert "tones = {" in display
     assert '["qit"] = "chit"' in display
     assert '["5"] = "7"' in display
-    assert "gannyu_songau_ipa" in (tmp_path / "default.custom.yaml").read_text(encoding="utf-8")
+    assert "gannyu_songau_II" in (tmp_path / "default.custom.yaml").read_text(encoding="utf-8")
 
     fenni_counts = build("fenni", tmp_path)
     assert fenni_counts["scheme2_spellings"] == 0
-    assert not (tmp_path / "gannyu_fenni_ipa.schema.yaml").exists()
+    assert not (tmp_path / "gannyu_fenni_II.schema.yaml").exists()
 
 
 def test_scheme2_tone_map_keeps_starred_subclasses() -> None:
