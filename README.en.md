@@ -370,7 +370,6 @@ Checked-tone codas follow these spelling and input rules.
 | oik | - | - | [ɔiʔ] | - | - | - | - | - | - | - | - | - | - |  |
 | ek | - | [ɨʔ] or [ɛʔ] | [ɛʔ] | [əʔ] or [ɛʔ] | - | - | - | [ɪʔ] or [ɛʔ] | - | [eʔ] | - | - | — |  |
 | eok | - | [ɵʔ] | - | - | - | - | - | - | - | - | - | - | — |  |
-| euk | - | - | - | - | - | - | - | - | - | - | - | - | — |  |
 
 \* Nasalized finals are marked with `nn` at the end; a final single `n` can be typed as a one-way alias for `nn`, e.g. `an`→`ann`. The other nasalized finals in the tables follow the same rule. Omit `nn` when a coda follows.
 
