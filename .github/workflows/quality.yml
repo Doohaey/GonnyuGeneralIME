@@ -42,9 +42,11 @@ jobs:
         with:
           python-version: "3.12"
       - run: python -m pip install --upgrade pip pytest pypinyin
+      - run: sudo apt-get update && sudo apt-get install -y lua5.4
       - run: cargo fmt --check
       - run: cargo clippy --workspace --all-targets --locked -- -D warnings
       - run: cargo test --workspace --locked
       - run: python -m pytest -q tests
         env:
           QT_QPA_PLATFORM: offscreen
+          GANNYU_LUA_BIN: lua5.4

@@ -1018,3 +1018,11 @@ def test_scheme2_is_built_from_dictionary_ipa_without_fuzzy_rules(tmp_path: Path
 def test_scheme2_tone_map_keeps_starred_subclasses() -> None:
     tones = transcription.build_tone_map({"tone_classes": {"5*": {"name": "阴入乙"}}})
     assert tones["5*"] == "7*"
+
+
+def test_scheme2_build_cache_is_idempotent(tmp_path: Path, capsys) -> None:
+    build("songau", tmp_path)
+    capsys.readouterr()
+    build("songau", tmp_path)
+    output = capsys.readouterr().out
+    assert "resource-cache [songau] hit" in output
