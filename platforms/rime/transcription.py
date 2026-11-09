@@ -101,7 +101,7 @@ def ipa_syllable_to_scheme2(syllable: str, *, ee_e_opposition: bool = False,
         coda = codas[final[-1]]
         final = final[:-1]
 
-    if initial_spelling.endswith("j") and final.startswith("i"):
+    if initial_spelling.endswith("j") and len(final) > 1 and final.startswith("i"):
         final = final[1:]
 
     vowels = groups["vowel"]

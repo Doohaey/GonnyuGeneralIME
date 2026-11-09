@@ -2,6 +2,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from platforms.rime import transcription
 from platforms.rime.build_transcription_resources import ROOT, build_region
 
 RESOURCES = ROOT / "resources"
@@ -18,6 +19,13 @@ def test_build_region_writes_core_lookup_tables(tmp_path: Path) -> None:
     assert tone[0] == "scheme1\tscheme2"
     assert "4\t5" in tone
     assert (target / "scheme2_map.tsv").read_text(encoding="utf-8").splitlines()[0] == "scheme2\tscheme1"
+
+
+def test_j_initial_keeps_i_nucleus() -> None:
+    assert transcription.ipa_syllable_to_scheme2("ȵi") == "nji"
+    assert transcription.ipa_syllable_to_scheme2("ȵin") == "njin"
+    assert transcription.ipa_syllable_to_scheme2("ȵia") == "nja"
+    assert transcription.ipa_syllable_to_scheme2("ȵiu") == "nju"
 
 
 def test_build_region_skips_first_scheme_only_regions(tmp_path: Path) -> None:
