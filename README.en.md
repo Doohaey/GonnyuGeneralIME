@@ -21,19 +21,15 @@ Currently supports: **Lancong (Nanchang), Fenni (Fenyi), Fungcen (Fengcheng), Ti
 
 Rime schema repositories are available for Lancong (Nanchang), Fenni (Fenyi), Fungcen, Yikyan-Henfeng, Sinyi (Xinyu), and Goungon (Gao'an). Other installation options are available in the [Installation](#installation) section below.
 
-## Release 1.3.0
+## Release 1.3.1
 
-- feat: Add the Gon-pin Second Scheme (Compositional), switchable with the First Scheme (Han-Pinyin) in Input settings.
-- feat: Add n→l broad-final rules for six regions, plus plain-letter input for ô and er.
-- data: Use Lancong as the reference column, complete regional IPA inventories, and add First Scheme segment tables.
-- data: Align readings and IPA for Lancong en/et, Fungcen, Yikyan-Henfeng, Goungon, Seusong, and Sinyi; correct entries such as 杔 and 笮.
-- docs: Split the tutorial into First and Second Scheme modules, add segment tables, and update spelling notes, examples, and installation guidance.
-- fix: Fix Rime Second Scheme display and Lua module installation, and synchronize Android and Fcitx5 scheme settings.
+- data: Add entries to the Lancong dictionary.
+- fix: Fix the Second Scheme medial spelling.
 
 ## Contents
 
 - [GonnyuGeneralIME — A General Gon(Gan) Chinese Input Method](#gonnyugeneralime--a-general-gongan-chinese-input-method)
-  - [Release 1.3.0](#release-130)
+  - [Release 1.3.1](#release-131)
   - [Contents](#contents)
   - [Overview](#overview)
     - [What it provides](#what-it-provides)
