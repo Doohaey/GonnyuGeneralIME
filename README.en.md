@@ -830,6 +830,7 @@ The project compiles its regional dictionaries from participants’ everyday lan
 15. Xiao Jiugen. *A Study of the Badu Dialect* (八都方言研究) [D]. Master's thesis, Guangxi University, 2001.
 16. Mei Zhixing. *A Study of Variation in the Central Rounded Vowel [ɵ] in the Goungon Dialect* (高安方言央圆唇元音[ɵ]的变异研究) [Dissertation]. Guangdong University of Foreign Studies, 2020.
 17. 南陸 (srili). Zhihu profile [EB/OL]. <https://www.zhihu.com/people/srili>. Accessed 2026-11-08.
+18. Gu Guolin. *Kaom (Archaic Phonology Micro Mirror)* [EB/OL]. <http://www.kaom.net/>. Accessed 2026-11-10.
 
 ### Reference implementations
 
