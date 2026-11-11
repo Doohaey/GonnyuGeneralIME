@@ -1406,7 +1406,7 @@ class GannyuInputMethodService : InputMethodService() {
             val topMargin = (this as? FrameLayout.LayoutParams)?.topMargin ?: dp(20)
             height = (parentHeight - topMargin).takeIf { it > 0 } ?: dp(154)
         }
-        val availableWidth = candidateExpandedScroll.width - dp(6) - dp(42)
+        val availableWidth = candidateExpandedScroll.width - dp(6)
         if (availableWidth <= 0) {
             candidateExpandedScroll.post { renderExpandedCandidates() }
             return
@@ -1438,7 +1438,7 @@ class GannyuInputMethodService : InputMethodService() {
                 setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12f)
                 setTextColor(keySecondaryTextColor)
                 setOnClickListener { loadMoreCandidates() }
-            }, LinearLayout.LayoutParams(availableWidth, dp(44)))
+            }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(44)))
         }
         candidateExpandedScroll.post {
             if (candidateExpanded && candidateLoadGeneration == generation) candidateExpandedScroll.scrollTo(0, scrollY)
