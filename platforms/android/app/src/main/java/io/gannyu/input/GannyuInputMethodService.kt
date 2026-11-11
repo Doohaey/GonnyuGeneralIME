@@ -34,6 +34,7 @@ private class NativePipelineBridge {
     external fun nativeCreate(manifestPath: String?, regionId: String?, dataDir: String): Long
     external fun nativeLastError(): String?
     external fun nativeSetInputOptions(handle: Long, values: IntArray): Boolean
+    external fun nativeSetCandidateLimit(handle: Long, limit: Int): Boolean
     external fun nativeSnapshot(handle: Long): String?
     external fun nativeCandidates(handle: Long, offset: Int, limit: Int): String?
     external fun nativeProcessKey(handle: Long, eventJson: String): String?
@@ -167,8 +168,15 @@ class GannyuInputMethodService : InputMethodService() {
                 nativeBridge.nativeDestroy(handle)
                 return 0
             }
+            if (handle != 0L && !nativeBridge.nativeSetCandidateLimit(handle, candidateLimit(context))) {
+                nativeBridge.nativeDestroy(handle)
+                return 0
+            }
             return handle
         }
+
+        fun candidateLimit(context: Context): Int =
+            if (context.resources.configuration.smallestScreenWidthDp >= 600) 36 else 18
 
         fun inputOptions(context: Context): IntArray {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -600,6 +608,7 @@ class GannyuInputMethodService : InputMethodService() {
         }
         enqueueNativeOperation { handle ->
             check(nativeBridge.nativeSetInputOptions(handle, inputOptions(this)))
+            check(nativeBridge.nativeSetCandidateLimit(handle, candidateLimit(this)))
             nativeBridge.nativeSnapshot(handle)
         }
         renderKeyboard()
@@ -1397,7 +1406,7 @@ class GannyuInputMethodService : InputMethodService() {
             val topMargin = (this as? FrameLayout.LayoutParams)?.topMargin ?: dp(20)
             height = (parentHeight - topMargin).takeIf { it > 0 } ?: dp(154)
         }
-        val availableWidth = candidateExpandedScroll.width - dp(6)
+        val availableWidth = candidateExpandedScroll.width - dp(6) - dp(42)
         if (availableWidth <= 0) {
             candidateExpandedScroll.post { renderExpandedCandidates() }
             return
@@ -1429,7 +1438,7 @@ class GannyuInputMethodService : InputMethodService() {
                 setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12f)
                 setTextColor(keySecondaryTextColor)
                 setOnClickListener { loadMoreCandidates() }
-            }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(44)))
+            }, LinearLayout.LayoutParams(availableWidth, dp(44)))
         }
         candidateExpandedScroll.post {
             if (candidateExpanded && candidateLoadGeneration == generation) candidateExpandedScroll.scrollTo(0, scrollY)

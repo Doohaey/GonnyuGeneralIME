@@ -201,3 +201,13 @@ Java_io_gannyu_input_NativePipelineBridge_nativeSetInputOptions(JNIEnv* env, job
         gannyu_engine_set_transcription_scheme((GannyuPipelineHandle*)(intptr_t)handle, options[8]) == 0
         ? JNI_TRUE : JNI_FALSE;
 }
+
+JNIEXPORT jboolean JNICALL
+Java_io_gannyu_input_NativePipelineBridge_nativeSetCandidateLimit(
+    JNIEnv* env, jobject thiz, jlong handle, jint limit) {
+    (void)env;
+    (void)thiz;
+    if (handle == 0 || limit <= 0) return JNI_FALSE;
+    return gannyu_engine_set_candidate_limit((GannyuPipelineHandle*)(intptr_t)handle,
+                                             (size_t)limit) == 0 ? JNI_TRUE : JNI_FALSE;
+}
