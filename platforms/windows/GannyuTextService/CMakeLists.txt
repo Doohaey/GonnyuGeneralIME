@@ -48,6 +48,7 @@ target_link_libraries(GannyuTextService PRIVATE
     ws2_32
     userenv
     bcrypt
+    synchronization
 )
 
 set_target_properties(GannyuTextService PROPERTIES
