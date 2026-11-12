@@ -267,7 +267,7 @@ The general Gon(Gan) romanisation (gon-pin) first scheme used by this project re
 | x | [ɕ] | [ɕ] | [ɕ] | [ɕ] | [ɕ] | [ɕ] | [ɕ] | [ɕ] | [ɕ] | [ɕ] | [ɕ] | [ɕ] |  |  |
 | g | [k] | [k] | [k] | [k] | [k] | [k] | [k] | [k] | [k] | [k] | [k] | [k] |  |  |
 | k | [kʰ] | [kʰ] | [kʰ] | [kʰ] | [kʰ] | [kʰ] | [kʰ] | [kʰ] | [kʰ] | [kʰ] | - | [kʰ] |  |  |
-| ng | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | - | Velar nasal; example: 眼 ngan3. |
+| ng | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | - | Velar nasal. |
 | h | [h] | [x] or [h] | [h] | [h] | [x] | [x] | [x] or [h] | [x] | [x] | [h] | [x] | [h] | — | The default [h] is articulated farther back than Mandarin h. |
 | v | - | [v] | [v] | - | [v] | - | - | - | - | - | - | - | w, wu (at the start of a syllable, one-way) |  |
 | ch | - | - | - | - | - | [tʂʰ] | - | - | - | - | - | - |  |  |
@@ -338,7 +338,7 @@ Syllabic laterals and nasals:
 
 Checked-tone codas follow these spelling and input rules.
 
-- The coda [ʔ] is written as `-k` in Gon-pin.
+- The coda [ʔ] is written as `-k` in Gon-pin. Most major Gan points no longer have a true -k coda; Jianning retains the full -p/-t/-k three-way distinction, but [-ʔ] and [-k] are not contrastive there.
 - Checked-tone codas may be omitted during input while still matching the corresponding readings.
 - Each locality independently specifies a combination of `-t`, `-p`, and `-k`, or no checked-tone codas. The codas enabled for a locality are accepted interchangeably within that locality.
 
@@ -448,9 +448,9 @@ With no initial consonant:
 | iaek | - | - | - | - | [iæʔ] | - | - | - | - | - | - | - |  |  |
 | iak | [iaʔ] | [iaʔ] | [iaʔ] | [iaʔ] | [iaʔ] | - | - | [iaʔ] | - | [iaʔ] | - | [iaʔ] | - |  |
 | iaik | - | - | - | [iaiʔ] | - | - | - | - | - | - | - | - | - |  |
-| iok | [ioʔ] or [iɔʔ] | [iɔʔ] | [iɔʔ] | [ioʔ] or [iɔʔ] | [iɔʔ] | - | - | - | - | [ioʔ] | - | [iɔk] | - |  |
+| iok | [ioʔ] or [iɔʔ] | [iɔʔ] | [iɔʔ] | [ioʔ] or [iɔʔ] | [iɔʔ] | - | - | - | - | [ioʔ] | - | [iɔʔ] | - |  |
 | iek | - | [iɛʔ] | [iɛʔ] | [iəʔ] or [iɛʔ] | [iɛʔ] | - | - | [iɪʔ] or [iɛʔ] | - | [ieʔ] | - | - |  |  |
-| iuk | [iuʔ] | [iuʔ] | [iuʔ] | [iuʔ] | [iuʔ] | - | - | [iuʔ] | - | - | - | [iuk] | - |  |
+| iuk | [iuʔ] | [iuʔ] | [iuʔ] | [iuʔ] | [iuʔ] | - | - | [iuʔ] | - | - | - | [iuʔ] | - |  |
 | iuok | - | - | - | [iuɔʔ] | - | - | - | - | - | - | - | - | - |  |
 | iuek | - | - | - | [iuəʔ] | - | - | - | - | - | - | - | - | - |  |
 
