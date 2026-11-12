@@ -338,7 +338,7 @@ Syllabic laterals and nasals:
 
 Checked-tone codas follow these spelling and input rules.
 
-- The coda [ʔ] is written as `-k` in Gon-pin. Most major Gan points no longer have a true -k coda; Jianning retains the full -p/-t/-k three-way distinction, but [-ʔ] and [-k] are not contrastive there.
+- The coda [ʔ] is written as `-k` in Gon-pin. Most major Gan points no longer have a true -k coda; Jianning retains the full -p/-t/-k three-way distinction, but [-ʔ] does not exist there, so it is not contrastive with [-k].
 - Checked-tone codas may be omitted during input while still matching the corresponding readings.
 - Each locality independently specifies a combination of `-t`, `-p`, and `-k`, or no checked-tone codas. The codas enabled for a locality are accepted interchangeably within that locality.
 
