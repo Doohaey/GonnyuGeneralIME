@@ -16,6 +16,7 @@ import android.widget.ArrayAdapter
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.ScrollView
+import android.widget.SeekBar
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
@@ -29,6 +30,8 @@ class SetupActivity : Activity() {
     private lateinit var manageUserDataButton: Button
     private lateinit var openImePickerButton: Button
     private lateinit var inputOptionsContainer: android.widget.LinearLayout
+    private lateinit var keyboardHeightSeekBar: SeekBar
+    private lateinit var keyboardHeightValue: TextView
     private var busy = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,6 +46,9 @@ class SetupActivity : Activity() {
         openImePickerButton = findViewById(R.id.openImePicker)
         inputOptionsContainer = android.widget.LinearLayout(this).apply { orientation = android.widget.LinearLayout.VERTICAL }
         findViewById<android.widget.LinearLayout>(R.id.settingsSections).addView(inputOptionsContainer, 2)
+        keyboardHeightSeekBar = findViewById(R.id.keyboardHeightSeekBar)
+        keyboardHeightValue = findViewById(R.id.keyboardHeightValue)
+        setupKeyboardHeight()
         refreshInputOptions()
         setupRegionPicker(statusView)
         manageUserDataButton.setOnClickListener { showClearChoices() }
@@ -70,6 +76,40 @@ class SetupActivity : Activity() {
         inputOptionsContainer.removeAllViews()
         inputOptionsContainer.addView(TextView(this).apply { text = "输入设置"; textSize = 18f })
         GannyuInputMethodService.populateInputOptions(this, inputOptionsContainer)
+    }
+
+    private fun setupKeyboardHeight() {
+        val minimum = GannyuInputMethodService.KEYBOARD_HEIGHT_MIN_PERCENT
+        val step = GannyuInputMethodService.KEYBOARD_HEIGHT_STEP_PERCENT
+        val steps = (GannyuInputMethodService.KEYBOARD_HEIGHT_MAX_PERCENT - minimum) / step
+        keyboardHeightSeekBar.max = steps
+        val current = GannyuInputMethodService.keyboardHeightPercent(this)
+        val progress = ((current - minimum + step / 2) / step).coerceIn(0, steps)
+        val percent = minimum + progress * step
+        keyboardHeightSeekBar.progress = progress
+        GannyuInputMethodService.setKeyboardHeightPercent(this, percent)
+        updateKeyboardHeightLabel(percent)
+        keyboardHeightSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                val value = minimum + progress * step
+                GannyuInputMethodService.setKeyboardHeightPercent(this@SetupActivity, value)
+                updateKeyboardHeightLabel(value)
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) = Unit
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) = Unit
+        })
+        findViewById<Button>(R.id.keyboardHeightReset).setOnClickListener {
+            val default = GannyuInputMethodService.KEYBOARD_HEIGHT_DEFAULT_PERCENT
+            keyboardHeightSeekBar.progress = (default - minimum) / step
+            GannyuInputMethodService.setKeyboardHeightPercent(this, default)
+            updateKeyboardHeightLabel(default)
+        }
+    }
+
+    private fun updateKeyboardHeightLabel(percent: Int) {
+        keyboardHeightValue.text = getString(R.string.keyboard_height_value, percent)
     }
 
     private fun scrollToRegionPicker() {

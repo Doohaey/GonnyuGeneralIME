@@ -1,6 +1,7 @@
 package io.gannyu.input
 
 import android.content.Context
+import android.content.res.Configuration
 import android.inputmethodservice.InputMethodService
 import android.os.Build
 import android.os.Handler
@@ -112,6 +113,8 @@ class GannyuInputMethodService : InputMethodService() {
     private var emojiPageIndex = 0
     private var englishMode = false
     private var lastRenderedKeyboardWidth = 0
+    private var keyHeightPx = 0
+    private var keyTextScale = 1f
     // One-shot state only: it is never persisted and resets after one letter.
     private var englishShift = false
     private var editorSelectionCollapsed: Boolean? = null
@@ -142,6 +145,12 @@ class GannyuInputMethodService : InputMethodService() {
         private const val TAG = "GonnyuIME"
         private const val PREFS_NAME = "gannyu.runtime"
         private const val KEY_SELECTED_REGION = "selected_region"
+        private const val KEY_KEYBOARD_HEIGHT_PERCENT = "keyboard_height_percent"
+        const val KEYBOARD_HEIGHT_MIN_PERCENT = 85
+        const val KEYBOARD_HEIGHT_MAX_PERCENT = 130
+        const val KEYBOARD_HEIGHT_DEFAULT_PERCENT = 100
+        const val KEYBOARD_HEIGHT_STEP_PERCENT = 5
+        private const val KEYBOARD_BASE_HEIGHT_DP = 46
         const val USER_DATA_CURRENT_REGION = 1
         const val USER_DATA_ALL_REGIONS = 2
         @Volatile var preloadedHandle: Long = 0
@@ -177,6 +186,18 @@ class GannyuInputMethodService : InputMethodService() {
 
         fun candidateLimit(context: Context): Int =
             if (context.resources.configuration.smallestScreenWidthDp >= 600) 36 else 18
+
+        fun keyboardHeightPercent(context: Context): Int =
+            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .getInt(KEY_KEYBOARD_HEIGHT_PERCENT, KEYBOARD_HEIGHT_DEFAULT_PERCENT)
+                .coerceIn(KEYBOARD_HEIGHT_MIN_PERCENT, KEYBOARD_HEIGHT_MAX_PERCENT)
+
+        fun setKeyboardHeightPercent(context: Context, percent: Int) {
+            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .putInt(KEY_KEYBOARD_HEIGHT_PERCENT, percent.coerceIn(KEYBOARD_HEIGHT_MIN_PERCENT, KEYBOARD_HEIGHT_MAX_PERCENT))
+                .apply()
+        }
 
         fun inputOptions(context: Context): IntArray {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -507,6 +528,11 @@ class GannyuInputMethodService : InputMethodService() {
                 nativeBridge.nativeSnapshot(handle)
             }
         }
+        if (key == KEY_KEYBOARD_HEIGHT_PERCENT) {
+            Handler(Looper.getMainLooper()).post {
+                if (::keyboardRows.isInitialized) renderKeyboard()
+            }
+        }
     }
 
     override fun onCreate() {
@@ -807,6 +833,13 @@ class GannyuInputMethodService : InputMethodService() {
         val measuredWidth = keyboardRows.width - keyboardRows.paddingLeft - keyboardRows.paddingRight
         val width = measuredWidth.takeIf { it > 0 } ?: resources.displayMetrics.widthPixels - dp(12)
         lastRenderedKeyboardWidth = width
+        val heightPercent = if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            KEYBOARD_HEIGHT_DEFAULT_PERCENT
+        } else {
+            keyboardHeightPercent(this)
+        }
+        keyHeightPx = dp(((KEYBOARD_BASE_HEIGHT_DP * heightPercent) + 50) / 100)
+        keyTextScale = heightPercent / 100f
         val gap = dp(if (width <= dp(315)) 4 else if (width <= dp(350)) 5 else 6)
         val keyWidth = (width - gap * 9) / 10
         when (keyboardPage) {
@@ -827,7 +860,7 @@ class GannyuInputMethodService : InputMethodService() {
             orientation = LinearLayout.HORIZONTAL
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
-                dp(46) + gap,
+                keyHeightPx + gap,
             )
         }
         r2.addView(spacer((keyWidth + gap) / 2))
@@ -847,7 +880,7 @@ class GannyuInputMethodService : InputMethodService() {
     private fun renderBottomRow(keyWidth: Int, gap: Int) {
         val r4 = KeyboardRowLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(46))
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, keyHeightPx)
         }
         val keys = bottomRowLabels(shouldShowImeSwitchKey())
         keys.forEachIndexed { index, label ->
@@ -889,7 +922,7 @@ class GannyuInputMethodService : InputMethodService() {
         orientation = LinearLayout.HORIZONTAL
         layoutParams = LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
-            dp(46) + bottomGap,
+            keyHeightPx + bottomGap,
         )
         keys.forEachIndexed { index, key ->
             val width = if (deleteExtended && index == keys.lastIndex) {
@@ -925,16 +958,17 @@ class GannyuInputMethodService : InputMethodService() {
             else -> key.label
         }
         isAllCaps = false
-        setTextSize(TypedValue.COMPLEX_UNIT_DIP, if (key.isLetter) 23f else if (key.label == "表情") 18f else if (key.label.length > 2) 12f else 15f)
+        val baseTextSize = if (key.isLetter) 23f else if (key.label == "表情") 18f else if (key.label.length > 2) 12f else 15f
+        setTextSize(TypedValue.COMPLEX_UNIT_DIP, baseTextSize * keyTextScale)
         if (key.isLetter) setTypeface(Typeface.DEFAULT_BOLD)
         if (key.label == "空格") contentDescription = "空格"
         if (key.label == "↵") contentDescription = text
         if (key.label == "表情") contentDescription = "表情"
         if (key.label in setOf("上一页", "下一页")) contentDescription = "${key.label}，第${emojiPageIndex + 1}页，共${EMOJI_PAGES.size}页"
         if (keyboardPage == KeyboardPage.EMOJI && key.label !in ACTION_KEYS && key.label != "空格") {
-            setTextSize(TypedValue.COMPLEX_UNIT_DIP, 23f)
+            setTextSize(TypedValue.COMPLEX_UNIT_DIP, 23f * keyTextScale)
         }
-        layoutParams = LinearLayout.LayoutParams(width, dp(46), if (width == 0) 1f else 0f).apply {
+        layoutParams = LinearLayout.LayoutParams(width, keyHeightPx, if (width == 0) 1f else 0f).apply {
             marginEnd = gap
         }
         setPadding(0, 0, 0, 0)
@@ -944,7 +978,8 @@ class GannyuInputMethodService : InputMethodService() {
         if (key.label == IME_SWITCH_KEY) {
             val icon = getDrawable(R.drawable.ic_globe)?.mutate()
             icon?.setTint(keyTextColor)
-            icon?.setBounds(0, 0, dp(18), dp(18))
+            val iconSize = dp((18 * keyTextScale).toInt())
+            icon?.setBounds(0, 0, iconSize, iconSize)
             foreground = icon
             foregroundGravity = android.view.Gravity.CENTER
             gravity = android.view.Gravity.CENTER
@@ -994,13 +1029,16 @@ class GannyuInputMethodService : InputMethodService() {
         val rootLocation = IntArray(2)
         anchor.getLocationInWindow(anchorLocation)
         root.getLocationInWindow(rootLocation)
-        val width = dp(58)
-        val height = dp(66)
+        val width = dp((58 * keyTextScale).toInt())
+        val height = dp((66 * keyTextScale).toInt())
         val centerX = anchorLocation[0] - rootLocation[0] + anchor.width / 2
         val left = centerX.coerceIn(width / 2 + dp(3), root.width - width / 2 - dp(3)) - width / 2
         val top = (anchorLocation[1] - rootLocation[1] - height - dp(5)).coerceAtLeast(0)
         keyPreview.text = label
+        keyPreview.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 28f * keyTextScale)
         keyPreview.layoutParams = (keyPreview.layoutParams as FrameLayout.LayoutParams).apply {
+            this.width = width
+            this.height = height
             leftMargin = left
             topMargin = top
         }

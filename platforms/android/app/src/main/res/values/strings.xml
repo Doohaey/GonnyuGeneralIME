@@ -16,6 +16,10 @@
     <string name="region_label">地区方案</string>
     <string name="region_summary">在这里切换地区方案；切换时会预加载对应资源。</string>
     <string name="region_loading">正在预加载 %1$s 资源，请稍候…</string>
+    <string name="keyboard_height_label">竖屏键盘高度</string>
+    <string name="keyboard_height_summary">仅在竖屏生效；默认 100%。</string>
+    <string name="keyboard_height_value">当前：%1$d%%</string>
+    <string name="keyboard_height_reset">恢复默认</string>
     <string name="user_dictionary_label">用户词库</string>
     <string name="user_dictionary_summary">管理根据输入习惯学习的用户词库。</string>
     <string name="user_data_local_notice">用户数据均存储在本地。</string>
