@@ -38,7 +38,7 @@ fn dispatch(args: &[String]) -> Result<(), Box<dyn Error>> {
         Some("forward") => {
             let skip_install = args.get(1).map(String::as_str) == Some("--skip-install")
                 || args.get(1).map(String::as_str) == Some("-S");
-            forward::run(!skip_install);
+            let _ = forward::run(!skip_install);
             Ok(())
         }
         Some("help") | Some("--help") | Some("-h") | None => {
