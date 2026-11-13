@@ -7,7 +7,9 @@ initial	β	v	双唇浊擦音
 initial	m	m	
 initial	f	f	
 initial	v	v	
+initial	ʋ	v	借 v
 initial	ts	ts	
+initial	tθ	tsl	齿间
 initial	tsʰ	tsh	送气
 initial	dz	dz	浊
 initial	s	s	
@@ -27,6 +29,7 @@ initial	tʂʰ	trh	舌尖后送气
 initial	dʐ	dr	舌尖后浊
 initial	ʂ	sr	舌尖后
 initial	ʐ	zr	舌尖后浊
+initial	ɻ	r	借 r
 initial	ɳ	nr	舌尖后鼻音
 initial	ȶ	tj	舌面前
 initial	ȶʰ	tjh	舌面前送气

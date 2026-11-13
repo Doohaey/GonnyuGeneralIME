@@ -248,6 +248,23 @@ The general Gon(Gan) romanisation (gon-pin) first scheme used by this project re
 
 #### Initials
 
+##### Initial segments
+
+The table below lists initial spellings by segment; IPA is shown in brackets.
+
+| Place | Stop, voiceless | Stop, aspirated | Stop, voiced | Affricate, voiceless | Affricate, aspirated | Affricate, voiced | Fricative, voiceless | Fricative, voiced | Nasal | Lateral |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Bilabial | b[p] | p[pʰ] | bb[b] | — | — | — | f[ɸ] | — | m[m] | — |
+| Labiodental | — | — | — | — | — | — | f[f] | v[v] | — | — |
+| Apical dental | — | — | — | z[ts] | c[tsʰ] | zz[dz] | s[s] | — | — | — |
+| Apical alveolar | d[t] | t[tʰ] | dd[d] | — | — | — | — | — | n[n] | l[l] |
+| Blade | — | — | — | — | — | — | — | — | — | — |
+| Retroflex | — | — | — | zh[tʂ] | ch[tʂʰ] | zzr[dʐ] | sh[ʂ] | r[ʐ] | n[ɳ] | — |
+| Palatal | — | — | — | j[tɕ] | q[tɕʰ] | jj[dʑ] | x[ɕ] | — | n[ȵ] | — |
+| Palatal central | — | — | — | — | — | — | — | — | — | — |
+| Velar | g[k] | k[kʰ] | gg[ɡ] | — | — | — | h[x] | — | ng[ŋ] | — |
+| Glottal | — | — | — | — | — | — | h[h] | — | — | — |
+
 | gon-pin | Lancong IPA | Fungcen IPA | Tiqien IPA | Sinyi IPA | Songau IPA | Seusong IPA | Jingon IPA | Yikyan-Henfeng IPA | Jisuibaedu IPA | Xyucuênn IPA | Singzï IPA | Goungon IPA | Accepted alternative input | Notes |
 | --- | --- | --- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | --- | --- |
 | ∅ | [] or [ʔ] | - | - | - | - | - | - | - | - | - | - | - |  | Zero initial, with [ʔ] as a special case. |
@@ -280,23 +297,6 @@ The general Gon(Gan) romanisation (gon-pin) first scheme used by this project re
 | jj | - | - | - | - | - | - | - | - | - | - | [dʑ] | - | j (one-way) |  |
 | zz | - | - | - | - | - | - | - | - | - | - | [dz] | - | z (one-way) |  |
 | zzr | - | - | - | - | - | - | - | - | - | - | [dʐ] | - | zr, zh, zzh (one-way) |  |
-
-##### Initial segments
-
-The table below lists initial spellings by segment; IPA is shown in brackets.
-
-| Place | Stop, voiceless | Stop, aspirated | Stop, voiced | Affricate, voiceless | Affricate, aspirated | Affricate, voiced | Fricative, voiceless | Fricative, voiced | Nasal | Lateral |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Bilabial | b[p] | p[pʰ] | bb[b] | — | — | — | f[ɸ] | — | m[m] | — |
-| Labiodental | — | — | — | — | — | — | f[f] | v[v] | — | — |
-| Apical dental | — | — | — | z[ts] | c[tsʰ] | zz[dz] | s[s] | — | — | — |
-| Apical alveolar | d[t] | t[tʰ] | dd[d] | — | — | — | — | — | n[n] | l[l] |
-| Blade | — | — | — | — | — | — | — | — | — | — |
-| Retroflex | — | — | — | zh[tʂ] | ch[tʂʰ] | zzr[dʐ] | sh[ʂ] | r[ʐ] | n[ɳ] | — |
-| Palatal | — | — | — | j[tɕ] | q[tɕʰ] | jj[dʑ] | x[ɕ] | — | n[ȵ] | — |
-| Palatal central | — | — | — | — | — | — | — | — | — | — |
-| Velar | g[k] | k[kʰ] | gg[ɡ] | — | — | — | h[x] | — | ng[ŋ] | — |
-| Glottal | — | — | — | — | — | — | h[h] | — | — | — |
 
 #### Finals
 
@@ -729,18 +729,18 @@ The contributor also reports alternative literature notations of 213 for yang le
 
 #### Initials
 
-| Place | Stop, voiceless | Stop, aspirated | Stop, voiced | Affricate, voiceless | Affricate, aspirated | Affricate, voiced | Fricative, voiceless | Fricative, voiced | Nasal | Lateral |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Bilabial | p[p] | ph[pʰ] | b[b] | — | — | — | f[ɸ] | v[β] | m[m] | — |
-| Labiodental | — | — | — | — | — | — | f[f] | v[v] | — | — |
-| Apical dental | — | — | — | ts[ts] | tsh[tsʰ] | dz[dz] | s[s] | z[z] | — | — |
-| Apical alveolar | t[t] | th[tʰ] | d[d] | — | — | — | — | — | n[n] | l[l] |
-| Blade | — | — | — | tr[tʃ] | trh[tʃʰ] | dr[dʒ] | sr[ʃ] | zr[ʒ] | — | — |
-| Retroflex | — | — | — | tr[tʂ] | trh[tʂʰ] | dr[dʐ] | sr[ʂ] | zr[ʐ] | nr[ɳ] | — |
-| Palatal | tj[ȶ] | tjh[ȶʰ] | dj[ȡ] | c[tɕ] | ch[tɕʰ] | dzj[dʑ] | x/hj[ɕ] | zj[ʑ] | nj[ȵ] | — |
-| Palatal central | kj[c] | khj[cʰ] | gj[ɟ] | — | — | — | — | — | gn[ɲ] | — |
-| Velar | k[k] | kh[kʰ] | g[ɡ] | — | — | — | h[x] | gh[ɣ] | ng[ŋ] | — |
-| Glottal | -h[ʔ] | — | — | — | — | — | h[h] | gh[ɦ] | — | — |
+| Place | Stop, voiceless | Stop, aspirated | Stop, voiced | Affricate, voiceless | Affricate, aspirated | Affricate, voiced | Fricative, voiceless | Fricative, voiced | Lateral affricate, voiceless | Lateral affricate, aspirated | Lateral fricative, voiceless | Nasal | Lateral | Approximant |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Bilabial | p[p] | ph[pʰ] | b[b] | — | — | — | f[ɸ] | v[β] | — | — | — | m[m] | — | — |
+| Labiodental | — | — | — | — | — | — | f[f] | v[v] | — | — | — | — | — | v[ʋ] |
+| Apical dental | — | — | — | ts[ts] tsl[tθ] | tsh[tsʰ] | dz[dz] | s[s] | z[z] | ts[tɬ] | tsh[tɬʰ] | s[ɬ] | — | — | — |
+| Apical alveolar | t[t] | th[tʰ] | d[d] | — | — | — | — | — | — | — | — | n[n] | l[l] | — |
+| Blade | — | — | — | tr[tʃ] | trh[tʃʰ] | dr[dʒ] | sr[ʃ] | zr[ʒ] | — | — | — | — | — | — |
+| Retroflex | — | — | — | tr[tʂ] | trh[tʂʰ] | dr[dʐ] | sr[ʂ] | zr[ʐ] | — | — | — | nr[ɳ] | — | r[ɻ] |
+| Palatal | tj[ȶ] | tjh[ȶʰ] | dj[ȡ] | c[tɕ] | ch[tɕʰ] | dzj[dʑ] | x[ɕ] | zj[ʑ] | — | — | — | nj[ȵ] | — | — |
+| Palatal central | kj[c] | khj[cʰ] | gj[ɟ] | — | — | — | — | — | — | — | — | gn[ɲ] | — | — |
+| Velar | k[k] | kh[kʰ] | g[ɡ] | — | — | — | h[x] | gh[ɣ] | — | — | — | ng[ŋ] | — | — |
+| Glottal | -h[ʔ] | — | — | — | — | — | h[h] | gh[ɦ] | — | — | — | — | — | — |
 
 - Breathy voiced consonants add `h` after the consonant; both `[ɦ]` and `[ɡʰ]` are written `gh`.
 - When an initial ends in `-j`, the `-i-` medial is omitted.
