@@ -350,7 +350,7 @@ Checked-tone codas follow these spelling and input rules.
 | a | [a] | [a] | [a] | [a] | [a] | [a] | [a] | [a] | [a] | [a] | [a] | [a] | — |  |
 | o* | [o] | [o] | [ɔ] | [o] | [o] | [o] | [o] or [ɔ] | [o] | [o] | [o] or [ɔ] | [o] or [ɔ] | [ɔ] | oo (→ ô) |  |
 | oe | - | - | - | [ø] | - | - | [œ] | - | - | - | - | - |  |  |
-| e* | [e] or [ə] | [ə] or [ɛ] | [ɛ] | [e] or [ɛ] | [ə] | [e] | [ə] or [ɛ] | [e] or [ə] or [ɛ] | [ə] or [ɛ] | [e] or [ɤ] or [ɛ] | [ɛ] | [ə] or [ɛ] | ir (→ e), er (→ e), ee (→ ê) |  |
+| e* | [e] or [ə] | [ə] or [ɛ] | [ɛ] | [e] or [ɛ] | [ə] | [e] | [ə] or [ɛ] | [ə] or [ɛ] | [ə] or [ɛ] | [e] or [ɤ] or [ɛ] | [ɛ] | [ə] or [ɛ] | ir (→ e), er (→ e), ee (→ ê) |  |
 | eo | [ɵ] | [ɵ] | [ɵ] | [ɵ] | - | - | [ɵ] | - | - | - | - | [ɵ] | o (standalone syllable, one-way) |  |
 | ai | [ai] | [ai] | [ai] | [ai] | [ai] | [ai] | [ai] | [ai] | [ai] | [ai] | [ai] | [ai] | — |  |
 | oi | [oi] | [oi] | [ɔi] | [oi] or [ɔi] | [ɔi] | - | [ɔi] | [oi] | - | - | - | [ɔi] | — |  |
@@ -528,7 +528,6 @@ With no initial consonant:
 | yuinn | - | - | - | - | - | - | - | - | - | [yĩ] | - | - | yuin |  |
 | yung | － | - | - | - | - | - | - | [yŋ] | - | - | - | - | yun (Yikyan) |  |
 | yuong | - | - | - | - | - | - | - | [yɔŋ] | - | - | - | - |  |  |
-| yueng | - | - | - | - | - | - | - | [yeŋ] | - | - | - | - | — |  |
 | yut | [yt] | [yt] | - | [yt] | - | - | - | - | - | - | - | - | - |  |
 | yuot | [yot] | - | - | [yɔt] | - | - | - | - | - | - | - | [yɔt] | yue, yuet, yuek |  |
 | yuet | - | [yet] | - | - | - | - | - | - | - | - | - | - | - |  |
