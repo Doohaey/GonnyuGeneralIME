@@ -4,11 +4,11 @@ name_zh = "宿松"
 status = "active"
 
 [tone_classes]
-1 = { name = "陰平", value = "22" }
-2 = { name = "陽平", value = "35" }
+1 = { name = "阴平", value = "22" }
+2 = { name = "阳平", value = "35" }
 3 = { name = "上", value = "51" }
-4 = { name = "陰去", value = "21" }
-5 = { name = "陽去", value = "314" }
+4 = { name = "阴去", value = "21" }
+5 = { name = "阳去", value = "314" }
 6 = { name = "入", value = "55" }
 
 [phonology]
