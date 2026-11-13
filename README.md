@@ -184,7 +184,7 @@ cd GonnyuGeneralIME-fcitx5
 ./install.sh
 ```
 
-重启 Fcitx5（`fcitx5 -r`）或注销后重新登录，并在 `fcitx5-configtool` 中添加“GonnyuGeneralIME / 赣语（一式）”或“GonnyuGeneralIME (Compositional) / 赣语（二式）”。
+重启 Fcitx5（`fcitx5 -r`）或注销后重新登录，并在 `fcitx5-configtool` 中添加“GonnyuGeneralIME / 赣语（一式·汉拼式）”或“GonnyuGeneralIME / 赣语（二式·组合式）”。
 
 ### Rime
 

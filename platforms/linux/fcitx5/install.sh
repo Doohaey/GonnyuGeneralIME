@@ -56,4 +56,4 @@ done
 
 echo "[2/2] 安装完成"
 echo "重启 fcitx5: fcitx5 -r 或注销重登。"
-echo "fcitx5-configtool → 添加输入法 → 选「GonnyuGeneralIME / 赣语（一式）」或「GonnyuGeneralIME II / 赣语（二式）」"
+echo "fcitx5-configtool → 添加输入法 → 选「GonnyuGeneralIME / 赣语（一式·汉拼式）」或「GonnyuGeneralIME / 赣语（二式·组合式）」"

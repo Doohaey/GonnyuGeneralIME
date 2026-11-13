@@ -184,7 +184,7 @@ cd GonnyuGeneralIME-fcitx5
 ./install.sh
 ```
 
-Restart Fcitx5 with `fcitx5 -r`, or sign out and back in. Then add **GonnyuGeneralIME / 赣语（一式）** or **GonnyuGeneralIME (Compositional) / 赣语（二式）** in `fcitx5-configtool`.
+Restart Fcitx5 with `fcitx5 -r`, or sign out and back in. Then add **GonnyuGeneralIME / 赣语（一式·汉拼式）** or **GonnyuGeneralIME / 赣语（二式·组合式）** in `fcitx5-configtool`.
 
 ### Rime
 
