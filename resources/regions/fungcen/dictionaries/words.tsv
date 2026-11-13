@@ -22,7 +22,7 @@
 压岁钱	tsaʔ5 ɕi4 tɕʰiɛn2	zak5 xi4 qiên2	ya1 sui4 qian2	官			123900		
 压着	tsaʔ5 tɑu4	zak5 dau4	ya1 zhe5	官			127517		
 去喊下他	tɕʰiɛ4 uiɛ1 xa1 tɕiɛ1	qiê4 wiê1 ha1 jiê1	qu4 han3 xia4 ta1	官			124997		
-吃饭	tɕʰiaʔ5 fan1	qiak5 fan1	chi1 fan4	官			126884		
+喫饭	tɕʰiaʔ5 fan1	qiak5 fan1	chi1 fan4	官	吃饭	chi1 fan4	126884		
 吸吮糖果	tɕin1 tʰoŋ2 tsi3	jin1 tong2 zi3	xi1 shun3 tang2 guo3	官			127785		
 呼喊人	uiɛ1 ȵin2	wiê1 nin2	hu1 han3 ren2	官			127221		
 咬人	ŋæt5 ȵin2	ngaet5 nin2	yao3 ren2	官			124469		
@@ -30,8 +30,8 @@
 咬紧	ŋæt5 tɕin3	ngaet5 jin3	yao3 jin3	官			122409		
 哪个	hɛi4 ko4	hêi4 go4	na3 ge5	官			126473		
 哪边	hɛi4 piɛn1	hêi4 biên1	na3 bian1	官			123419		
-喝口水	tsʰyet5 kʰiɛu3 sy3	cyuêt5 kiêu3 syu3	he1 kou3 shui3	官			127354		
-喝粥	tsʰyet5 tsuʔ5	cyuêt5 zuk5	he1 zhou1	官			126549		
+啜口水	tsʰɵt5 kʰiɛu3 sy3	ceot5 kiêu3 syu3	chuai4 kou3 shui3	官	喝口水	he1 kou3 shui3	127354		
+啜粥	tsʰɵt5 tsuʔ5	ceot5 zuk5	chuai4 zhou1	官	喝粥	he1 zhou1	126549		
 坐歪了	tsʰo4 tɕʰia4 li4	co4 qia4 li4	zuo4 wai1 le5	官			125056		
 塞紧	tsuʔ5 tɕin3	zuk5 jin3	sai1 jin3	官			127017		
 填满	tsuʔ5 mɛn3	zuk5 mên3	tian2 man3	官			123703		
@@ -50,7 +50,7 @@
 忘记	lai2 tɕi4	lai2 ji4	wang4 ji4	官			127596		
 性交	tsʰɔʔ5 piɛʔ5	cok5 biêk5	xing4 jiao1	官			123323		
 性交	tsʰɔʔ5 piɛt5	cok5 biêt5	xing4 jiao1	官			123323		
-想着吃	tɕʰiɛn4 tɑu4 tɕʰiaʔ5	qiên4 dau4 qiak5	xiang3 zhe5 chi1	官			125679		
+想着喫	tɕʰiɛn4 tɑu4 tɕʰiaʔ5	qiên4 dau4 qiak5	xiang3 zhe5 chi1	官	想着吃	xiang3 zhe5 chi1	125679		
 房事	tsʰɔʔ5 piɛʔ5	cok5 biêk5	fang2 shi4	官			123007		
 房事	tsʰɔʔ5 piɛt5	cok5 biêt5	fang2 shi4	官			123007		
 扎到手	tsʰam2 tɑu4 səu3	cam2 dau4 seu3	zha1 dao4 shou3	官			123467		
@@ -132,8 +132,8 @@
 轻点手指	tu1 tsi3 tʰɛu2	du1 zi3 têu2	qing1 dian3 shou3 zhi3	官			123926		
 这件衣服	kɛi1 tɕʰiɛn4 i1 soŋ2	gêi1 qiên4 yi1 song2	zhe4 jian4 yi1 fu2	官			124527		
 锄头	tɕiɔʔ5 tʰɛu2	jiok5 têu2	chu2 tou5	官			127151		
-饮茶	tsʰyet5 tsʰa2	cyuêt5 ca2	yin3 cha2	官			123448		
-饮酒	tɕʰiaʔ5 tɕiəu3	qiak5 jieu3	yin3 jiu3	官			123915		
+啜茶	tsʰɵt5 tsʰa2	ceot5 ca2	chuai4 cha2	官	饮茶	yin3 cha2	123448		
+喫酒	tɕʰiaʔ5 tɕiəu3	qiak5 jieu3	chi1 jiu3	官	喝酒	he1 jiu3	123915		
 鼻塞	tsuʔ5 pʰɨʔ6 tsi3	zuk5 pek6 zi3	bi2 se4	官			127042		
 天亮	tʰiɛn1 lioŋ1	tiên1 liong1	tian1 liang4	官			100441		
 上午	soŋ1 u3	song1 wu3	shang4 wu3	官			91163		
@@ -155,8 +155,8 @@
 袖子	tɕʰiəu4 tsi3	qieu4 zi3	xiu4 zi5	官			103409		
 割水稻	kɵʔ5 fi3 tʰɑu1	geok5 fi3 tau1	ge1 shui3 dao4	官			99366		
 栽水稻	tsai1 fi3 tʰɑu1	zai1 fi3 tau1	zai1 shui3 dao4	官			99846		
-喝汤	hɵʔ5 tʰoŋ1	heok5 tong1	he1 tang1	官			100650		
-喝一口	hɵʔ5 it5 kʰiɛu3	heok5 yit5 kiêu3	he1 yi1 kou3	官			102603		
+喝汤	hɵt6 tʰoŋ1	heot6 tong1	he1 tang1	官	喝汤	he1 tang1	100650		
+喝一口	hɵt6 it5 kʰiɛu3	heot6 yit5 kiêu3	he1 yi1 kou3	官	喝一口	he1 yi1 kou3	102603		
 吃一口	tsʰi2 it5 kʰiɛu3	ci2 yit5 kiêu3	chi1 yi1 kou3	官			97506		
 翅膀	tsʰi4 poŋ1	ci4 bong1	chi4 bang3	官			103218		
 鸡翅膀	tɕi1 tsʰi4 poŋ1	ji1 ci4 bong1	ji1 chi4 bang3	官			98557		
@@ -165,8 +165,8 @@
 尾长的小鸟	mi3 tsʰoŋ2 tɨʔ6 ɕiau3 tiɛu3	mi3 cong2 dek6 xiau3 diêu3	wei3 zhang3 de5 xiao3 niao3	官			103996		
 蝴蝶	fu2 tiɛ2	fu2 diê2	hu2 die2	官			106538		
 小时候	ɕiau3 si2 həu2	xiau3 si2 heu2	xiao3 shi2 hou4	官			103903		
-月亮	ȵyet6 lioŋ1	nyuêt6 liong1	yue4 liang4	官			104854		
-月亮神	ȵyet6 lioŋ1 sin2	nyuêt6 liong1 sin2	yue4 liang4 shen2	官			93930		
+月亮	ȵyɵt6 lioŋ1	nyueot6 liong1	yue4 liang4	官			104854		
+月亮神	ȵyɵt6 lioŋ1 sin2	nyueot6 liong1 sin2	yue4 liang4 shen2	官			93930		
 男后生	lon2 hɛu1 sɑŋ1	lon2 hêu1 sang1	nan2 hou4 sheng1	官			95470		
 小孩	ɕiau3 hɛi2	xiau3 hêi2	xiao3 hai2	官			106831		
 少年	sɛu3 ȵiɛn1	sêu3 niên1	shao4 nian2	官			104968		
@@ -237,11 +237,11 @@
 世纪	si3 tɕi2	si3 ji2	shi4 ji4	赣			131100		
 潮汐	tsʰɛu1 ɕiʔ6	cêu1 xik6	chao2 xi1	赣			25298		
 瞬间	suɛn3 kan2	suên3 gan2	shun4 jian1	赣			1374		
-月份	ȵyet6 fin1	nyuêt6 fin1	yue4 fen4	赣			1754		
+月份	ȵyɵt6 fin1	nyueot6 fin1	yue4 fen4	赣			1754		
 山脉	san2 mɛʔ5	san2 mêk5	shan1 mai4	赣			1913		
 雷鸣	lɛi1 mən2	lêi1 men2	lei2 ming2	赣			129		
 暴雨	pʰɑu1 i3	pau1 yi3	bao4 yu3	赣			558		
-冰雪	pən1 ɕyet5	ben1 xyuêt5	bing1 xue3	赣			486		
+冰雪	pən1 ɕyɵt5	ben1 xyueot5	bing1 xue3	赣			486		
 行星	ɕin2 ɕin1	xin2 xin1	xing2 xing1	赣			25703		
 不要	mɔʔ6 iɛu4	mok6 yêu4	bu2 yao4	官			124512		
 以刀斧砍削	ȵi3 tɑu1 fu3 kʰan3 ɕiau1	ni3 dau1 fu3 kan3 xiau1	yi3 dao1 fu3 kan3 xue1	官			126432		
@@ -249,7 +249,7 @@
 伸展	sən1 tsɛn3	sen1 zên3	shen1 zhan3	官			122825		
 儿子	ȵin2 tsi3	nin2 zi3	er2 zi5	官			145000		
 冻裂	tuŋ4 liɛt6	dung4 liêt6	dong4 lie4	官			127736		
-凝固的动物血块	ȵin2 ku4 kɛi1 tʰuŋ4 uɛiʔ5 ɕyet5 kʰuai4	nin2 gu4 gêi1 tung4 wêik5 xyuêt5 kuai4	ning2 gu4 de5 dong4 wu4 xue4 kuai4	官			124071		
+凝固的动物血块	ȵin2 ku4 kɛi1 tʰuŋ4 uɛiʔ5 ɕyɵt5 kʰuai4	nin2 gu4 gêi1 tung4 wêik5 xyueot5 kuai4	ning2 gu4 de5 dong4 wu4 xue4 kuai4	官			124071		
 击打	tɕi1 tæp6	ji1 daep6	ji1 da3	官			127042		
 勺取	sɔʔ6 tɕʰi3	sok6 qi3	shao2 qu3	官			124785		
 口水	kʰiɛu3 fi3	kiêu3 fi3	kou3 shui3	官			122443		
