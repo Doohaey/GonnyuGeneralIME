@@ -531,8 +531,8 @@ With no initial consonant:
 | yueng | - | - | - | - | - | - | - | [yeŋ] | - | - | - | - | — |  |
 | yut | [yt] | [yt] | - | [yt] | - | - | - | - | - | - | - | - | - |  |
 | yuot | [yot] | - | - | [yɔt] | - | - | - | - | - | - | - | [yɔt] | yue, yuet, yuek |  |
-| yueot | - | [yɵt] | - | - | - | - | - | - | - | - | - | - | — |  |
 | yuet | - | [yet] | - | - | - | - | - | - | - | - | - | - | - |  |
+| yueot | - | [yɵt] | - | - | - | - | - | - | - | - | - | - | — |  |
 | yuep | - | [yep] | - | - | - | - | - | - | - | - | - | - | — |  |
 | yuk | - | [yʔ] | [yʔ] | [yʔ] | - | - | - | [yʔ] | - | - | - | - | - |  |
 | yuak | - | - | - | - | - | - | - | [yaʔ] | - | - | - | - | - |  |
@@ -573,10 +573,10 @@ The Fungcen (Fengcheng) dictionary uses six tone markers:
 
 | Marker | Tone category | Pitch value |
 | --- | --- | --- |
-| 1 | yin level | 33 |
-| 2 | yang level | 35 |
-| 3 | rising | 213 |
-| 4 | departing | 31 |
+| 1 | yin level | 35 |
+| 2 | yang level | 33 |
+| 3 | rising | 31 |
+| 4 | departing | 213 |
 | 5 | yin checked | 1 |
 | 6 | yang checked | 5 |
 
