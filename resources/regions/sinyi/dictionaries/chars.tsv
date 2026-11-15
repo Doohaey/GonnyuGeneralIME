@@ -1,6 +1,6 @@
 本词	国际音标	方言拼音	汉语拼音	词汇属性	对应官话词	官话拼音	词频	同义词	新旧标记
 丁	tin1	din1	ding1	文			120000		
-丁	tiaŋ1	diang1	ding1	赣			120000		本1
+丁	tiɑŋ1	diang1	ding1	赣			120000		本1
 七	tɕʰit5	qit5	qi1	赣			280000		本1
 七	tɕʰiət5*	qiet5*	qi1	赣			280000		
 万	uan4	wan4	wan4	赣			120000		
@@ -24,7 +24,7 @@
 世	ɕi2	xi2	shi4	赣			120000		
 丘	tɕʰiu1	qiu1	qiu1	赣			145000		
 丙	pin3	bin3	bing3	文			224999		
-丙	piaŋ3	biang3	bing3	白			224999		本1
+丙	piɑŋ3	biang3	bing3	白			224999		本1
 业	ȵiaiʔ5	niaik5	ye4	赣			120000		老
 业	ȵiɛt5	niêt5	ye4	赣			120000		本1
 丛	tsʰuŋ2	cung2	cong2	赣			270000		
@@ -86,8 +86,8 @@
 乳	lai3	lai3	ru3	白			125000		
 乳	ɵ3	eo3	ru3	文			125000		
 了	liɛu3	liêu3	le5	赣			470908		
-争	tsaŋ1	zang1	zheng1	白			120000		本1
-争	tɕiaŋ1	jiang1	zheng1	白			120000		
+争	tsɑŋ1	zang1	zheng1	白			120000		本1
+争	tɕiɑŋ1	jiang1	zheng1	白			120000		
 争	tsɛn1	zên1	zheng1	文			120000		
 事	sɿ4	sï4	shi4	赣			225000		本1
 事	sɿ1	sï1	shi4	白			100000		
@@ -104,7 +104,7 @@
 互	fu4	fu4	hu4	赣			125000		新
 互	u4	wu4	hu4	赣			125000		本1
 五	ŋ̍3	ng3	wu3	赣			370000		
-井	tɕiaŋ3	jiang3	jing3	赣			120000		本1
+井	tɕiɑŋ3	jiang3	jing3	赣			120000		本1
 井	tɕin3	jin3	jing3	文			120000		新
 亚	ŋa4*	nga4*	ya4	赣			120000		
 些	sɛ1	sê1	xie1	官			120000		
@@ -288,7 +288,7 @@
 值	tɕʰiəʔ5*	qiek5*	zhi2	赣			370000		
 倾	tɕʰiun1	qiun1	qing1	赣			120000		
 假	ka3	ga3	jia3	赣			120000		
-偋	paŋ2	bang2	bing4	赣			120000		
+偋	pɑŋ2	bang2	bing4	赣			120000		
 偏	pʰiɛn1*	piên1*	pian1	赣			120000		
 做	tsɿ2	zï2	zuo4	赣			428314		
 健	tɕʰiɛn4	qiên4	jian4	赣			120000		
@@ -321,8 +321,8 @@
 儿	li0	li0	er2	白			100000		
 允	iun3	yun3	yun3	赣			120000		
 元	ȵyɔn2	nyuon2	yuan2	赣			370000		
-兄	saŋ1	sang1	xiong1	赣			120000		
-兄	ɕiaŋ1	xiang1	xiong1	赣			120000		本1
+兄	sɑŋ1	sang1	xiong1	赣			120000		
+兄	ɕiɑŋ1	xiang1	xiong1	赣			120000		本1
 充	tʰuŋ1	tung1	chong1	赣			120000		
 兆	tʰɛu4	têu4	zhao4	赣			120000		
 先	sɛn1	sên1	xian1	赣			370000		
@@ -387,11 +387,11 @@
 冯	uŋ2	wung2	feng2	赣			120000		本1
 冰	pin1	bin1	bing1	赣			120000		
 况	kʰuoŋ2	kuong2	kuang4	赣			120000		
-冷	laŋ3	lang3	leng3	赣			120000		
+冷	lɑŋ3	lang3	leng3	赣			120000		
 冻	tuŋ2	dung2	dong4	赣			145000		
 净	tɕʰin4	qin4	jing4	文			120000		新
-净	tɕʰiaŋ4	qiang4	jing4	赣			120000		
-净	tɕiaŋ2	jiang2	jing4	赣			120000		
+净	tɕʰiɑŋ4	qiang4	jing4	赣			120000		
+净	tɕiɑŋ2	jiang2	jing4	赣			120000		
 准	tun3	dun3	zhun3	赣			120000		
 凉	lioŋ2	liong2	liang2	赣			120000		
 凋	tiɛu1	diêu1	diao1	赣			120000		
@@ -570,7 +570,7 @@
 卿	tɕʰin1*	qin1*	qing1	赣			120000		
 厂	tʰoŋ3	tong3	chang3	赣			184000		
 厅	tʰin1*	tin1*	ting1	文			120000		新
-厅	tʰiaŋ1	tiang1	ting1	赣			120000		
+厅	tʰiɑŋ1	tiang1	ting1	赣			120000		
 历	lit5	lit5	li4	赣			145000		
 历	liəʔ5	liek5	li4	赣			145000		本1
 厉	li4	li4	li4	赣			120000		
@@ -655,7 +655,7 @@
 吊	tʰiɛu2	tiêu2	diao4	赣			145000		
 同	tʰuŋ2	tung2	tong2	赣			370000		
 名	min2	min2	ming2	赣			120000		
-名	miaŋ2	miang2	ming2	赣			120000		
+名	miɑŋ2	miang2	ming2	赣			120000		
 后	hɛu4	hêu4	hou4	赣			374793		
 吏	li4	li4	li4	赣			103563		
 吐	tʰu3	tu3	tu3	赣			170000		
@@ -672,7 +672,7 @@
 否	fɛu3	fêu3	fou3	赣			155000		
 否	ueu3	wêu3	fou3	赣			155000		
 含	hon2	hon2	han2	赣			130000		
-听	tʰiaŋ1*	tiang1*	ting1	赣			120000		
+听	tʰiɑŋ1*	tiang1*	ting1	赣			120000		
 启	tɕʰi3	qi3	qi3	赣			120000		
 吴	ŋ̍2	ng2	wu2	赣			245000		
 吵	tsʰau3	cau3	chao3	赣			120000		
@@ -694,8 +694,8 @@
 呼	fu1	fu1	hu1	赣			120000		本1
 呼	u1	wu1	hu1	赣			120000		
 命	min4	min4	ming4	文			120000		新
-命	miaŋ4	miang4	ming4	赣			120000		本1
-命	miaŋ1	miang1	ming4	赣			120000		
+命	miɑŋ4	miang4	ming4	赣			120000		本1
+命	miɑŋ1	miang1	ming4	赣			120000		
 咀	tɕi3	ji3	ju3	赣			120000		本1
 咀	tsɿ3	zï3	ju3	赣			120000		
 和	fo2	fo2	he2	文			805815		老
@@ -817,7 +817,7 @@
 坏	uai4	wai4	huai4	赣			120000		本1
 坐	tsʰo4	co4	zuo4	赣			175000		
 坐	tɕʰio2	qio2	zuo4	赣			175000		
-坑	kʰaŋ1*	kang1*	keng1	赣			120000		
+坑	kʰɑŋ1*	kang1*	keng1	赣			120000		
 块	kʰuai3	kuai3	kuai4	赣			170000		
 块	kʰuai1*	kuai1*	kuai4	赣			170000		
 坚	tɕiɛn1	jiên1	jian1	赣			120000		
@@ -828,8 +828,8 @@
 坡	po1	bo1	po1	赣			120000		
 坡	pʰo1	po1	po1	赣			120000		
 坤	kʰun1	kun1	kun1	赣			120000		
-坪	pʰiaŋ1*	piang1*	ping2	赣			120000		
-坪	pʰiaŋ3	piang3	ping2	赣			120000		
+坪	pʰiɑŋ1*	piang1*	ping2	赣			120000		
+坪	pʰiɑŋ3	piang3	ping2	赣			120000		
 坯	pʰi1*	pi1*	pi1	赣			104096		
 坳	ŋau4	ngau4	ao4	赣			72351		
 坼	tsʰaʔ5*	cak5*	che4	赣			120000		
@@ -847,7 +847,7 @@
 垮	kʰua3	kua3	kua3	赣			145000		
 埃	ŋai1	ngai1	ai1	赣			120000		
 埋	mai2	mai2	mai2	赣			120000		
-城	saŋ2	sang2	cheng2	赣			120000		本1
+城	sɑŋ2	sang2	cheng2	赣			120000		本1
 城	tɕʰin2	qin2	cheng2	文			120000		新
 域	iuʔ5	yiuk5	yu4	赣			195000		本1
 域	iɔʔ5	yok5	yu4	赣			195000		
@@ -897,7 +897,7 @@
 壬	lɪn2	len2	ren2	文			120000		
 壮	tsoŋ2	zong2	zhuang4	赣			120000		
 壮	tɕioŋ2	jiong2	zhuang4	赣			120000		
-声	saŋ1	sang1	sheng1	赣			120000		本1
+声	sɑŋ1	sang1	sheng1	赣			120000		本1
 声	sɪn1	sen1	sheng1	文			120000		
 壳	kʰoʔ5*	kok5*	ke2	赣			145000		
 壶	fu2	fu2	hu2	赣			120000		
@@ -985,7 +985,7 @@
 姐	tɕia3	jia3	jie3	赣			145000		
 姑	ku1	gu1	gu1	赣			120000		
 姪	tʰəʔ5*	tek5*	zhi2	赣			120000	侄	本1
-姓	siaŋ2	siang2	xing4	赣			120000		本1
+姓	siɑŋ2	siang2	xing4	赣			120000		本1
 姓	sin4	sin4	xing4	文			120000		新
 委	ui3	wi3	wei3	赣			140000		
 姚	iɛu2	yêu2	yao2	赣			120000		
@@ -1070,7 +1070,7 @@
 宙	tʰɪu4	teu4	zhou4	赣			104086		
 宙	tɕiu2	jiu2	zhou4	赣			104086		
 定	tʰin4	tin4	ding4	赣			120000		
-定	tʰiaŋ4	tiang4	ding4	赣			120000		
+定	tʰiɑŋ4	tiang4	ding4	赣			120000		
 宛	uɔn3	won3	wan3	赣			120000		
 宜	ȵi2	ni2	yi2	赣			120000		
 宜	i2	yi2	yi2	赣			120000		
@@ -1205,7 +1205,7 @@
 岗	koŋ3	gong3	gang3	赣			120000		
 岩	ŋan2	ngan2	yan2	赣			100329		
 岭	lin3	lin3	ling3	文			120000		新
-岭	liaŋ3	liang3	ling3	赣			120000		本1
+岭	liɑŋ3	liang3	ling3	赣			120000		本1
 岳	ŋoʔ5	ngok5	yue4	赣			120000		
 岸	ŋon4	ngon4	an4	赣			120000		
 峡	haiʔ5*	haik5*	xia2	赣			170000		老
@@ -1280,7 +1280,7 @@
 干	kɔn4*	gon4*	gan4	赣			125000		
 乾	tɕʰiɛn2	qiên2	gan4	赣			125000		
 平	pʰin2	pin2	ping2	赣			120000		
-平	pʰiaŋ2	piang2	ping2	赣			120000		
+平	pʰiɑŋ2	piang2	ping2	赣			120000		
 年	ȵiɛn2	niên2	nian2	赣			498559		本1
 年	ȵiɛn1	niên1	nian2	赣			498559		
 并	pin2	bin2	bing4	赣			415230		
@@ -1359,9 +1359,9 @@
 彩	tɕʰiɔi3	qioi3	cai3	赣			120000		
 彪	piɛu1	biêu1	biao1	赣			170000		
 彬	pin1	bin1	bin1	赣			120000		
-彭	pʰaŋ2	pang2	peng2	赣			120000		
+彭	pʰɑŋ2	pang2	peng2	赣			120000		
 影	in3	yin3	ying3	赣			120000		
-影	iaŋ3	yang3	ying3	赣			120000		
+影	iɑŋ3	yang3	ying3	赣			120000		
 役	yt5	yut5	yi4	赣			120000		本1
 役	iuəʔ5	yuek5	yi4	赣			120000		老
 役	iuɔʔ5	yuok5	yi4	赣			120000		
@@ -1372,8 +1372,8 @@
 征	tɪn1	den1	zheng1	赣			120000		本1
 征	tɕin1	jin1	zheng1	赣			120000		
 径	tɕin1	jin1	jing4	文			120000		
-径	tɕʰiaŋ2	qiang2	jing4	白			100000		本1
-径	tɕiaŋ2	jiang2	jing4	赣			120000		
+径	tɕʰiɑŋ2	qiang2	jing4	白			100000		本1
+径	tɕiɑŋ2	jiang2	jing4	赣			120000		
 待	tʰɔi4	toi4	dai4	赣			205000		
 很	hɛn3	hên3	hen3	赣			235000		
 律	lit5	lit5	lv4	赣			245000		
@@ -1419,9 +1419,9 @@
 怠	tʰɔi4	toi4	dai4	赣			120000		
 急	tɕiət5	jiet5	ji2	赣			250000		本1
 急	tɕit5	jit5	ji2	赣			250000		
-性	saŋ2	sang2	xing4	赣			120000		本1
+性	sɑŋ2	sang2	xing4	赣			120000		本1
 性	sin4	sin4	xing4	文			120000		
-性	siaŋ2	siang2	xing4	赣			120000		
+性	siɑŋ2	siang2	xing4	赣			120000		
 怨	yɔn4	yuon4	yuan4	赣			120000		
 怪	kuai4*	guai4*	guai4	赣			120000		本1
 怪	kʰuai2	kuai2	guai4	赣			120000		又1
@@ -1463,7 +1463,7 @@
 悲	pi1	bi1	bei1	赣			120000		
 情	tɕʰin2	qin2	qing2	赣			120000		
 惊	tɕin1	jin1	jing1	赣			120000		
-惊	tɕiaŋ1	jiang1	jing1	赣			120000		
+惊	tɕiɑŋ1	jiang1	jing1	赣			120000		
 惑	uɛʔ5	wêk5	huo4	赣			120000		本1
 惑	fɛʔ5	fêk5	huo4	赣			120000		
 惑	uaʔ5	wak5	huo4	赣			120000		老
@@ -1513,14 +1513,14 @@
 懊	ŋau4	ngau4	ao4	赣			105404		
 懒	lan3	lan3	lan3	赣			220000		
 懵	muŋ3	mung3	meng3	赣			90000		本1
-懵	maŋ1	mang1	meng3	白			100000		
+懵	mɑŋ1	mang1	meng3	白			100000		
 戊	mɛu4	mêu4	wu4	赣			145000		
 戌	suət5	suet5	xu1	赣			145000		本1
 戌	suɔʔ5	suok5	xu1	赣			145000		新
 戎	iuŋ2	yung2	rong2	赣			120000		
 戏	ɕi2	xi2	xi4	赣			120000		
-成	saŋ2	sang2	cheng2	赣			416686		
-成	tsʰaŋ2	cang2	cheng2	赣			416686		
+成	sɑŋ2	sang2	cheng2	赣			416686		
+成	tsʰɑŋ2	cang2	cheng2	赣			416686		
 成	tɕʰin2	qin2	cheng2	文			416686		新
 我	ŋo3	ngo3	wo3	赣			578841		
 我	ŋa1*	nga1*	wo3	白			128841	吾	
@@ -1805,10 +1805,10 @@
 摹	mu2	mu2	mo2	赣			120000		
 撇	pʰiaiʔ5*	piaik5*	pie1	赣			220000		老
 撇	pʰiɛt5*	piêt5*	pie3	赣			120000		
-撑	tsʰaŋ1	cang1	cheng1	赣			195000		本1
-撑	tsʰaŋ2	cang2	cheng1	赣	顶嘴	ding3 zui3	195000		
-撑	tɕʰiaŋ1	qiang1	cheng1	赣			195000		
-撑	tɕʰiaŋ2	qiang2	cheng1	赣			195000		
+撑	tsʰɑŋ1	cang1	cheng1	赣			195000		本1
+撑	tsʰɑŋ2	cang2	cheng1	赣	顶嘴	ding3 zui3	195000		
+撑	tɕʰiɑŋ1	qiang1	cheng1	赣			195000		
+撑	tɕʰiɑŋ2	qiang2	cheng1	赣			195000		
 撕	sɛ1	sê1	si1	赣			120000		
 撚	lɛn3	lên3	nian3	赣			120000		
 撞	tsʰoŋ4	cong4	zhuang4	赣			120000		本1
@@ -1860,7 +1860,7 @@
 数	sɿ3	sï3	shu3	赣			310000		
 敲	kʰau1*	kau1*	qiao1	赣			120000		
 敲	kʰoʔ5*	kok5*	qiao1	赣			120000		
-整	taŋ3	dang3	zheng3	白			120000		
+整	tɑŋ3	dang3	zheng3	白			120000		
 整	tɪn3	den3	zheng3	文			120000		本1
 整	tɕin3	jin3	zheng3	文			120000		
 敷	fu1	fu1	fu1	赣			120000		
@@ -1915,9 +1915,9 @@
 昆	kʰun1	kun1	kun1	赣			120000		
 昌	tʰoŋ1*	tong1*	chang1	赣			156892		
 明	min2	min2	ming2	文			120000		
-明	miaŋ2	miang2	ming2	赣			120000		本1
-明	miaŋ1*	miang1*	ming2	赣			100000		
-明	maŋ1*	mang1*	ming2	白			100000		又1
+明	miɑŋ2	miang2	ming2	赣			120000		本1
+明	miɑŋ1*	miang1*	ming2	赣			100000		
+明	mɑŋ1*	mang1*	ming2	白			100000		又1
 昏	fun1	fun1	hun1	赣			120000		本1
 昏	un1	wun1	hun1	赣			120000		
 易	i4	yi4	yi4	赣	容易	rong2 yi4	120000		
@@ -1927,12 +1927,12 @@
 昔	səʔ5	sek5	xi1	赣			120000		
 昔	sit5	sit5	xi1	赣			120000		本1
 是	ɕi4	xi4	shi4	赣			120000		
-星	saŋ1	sang1	xing1	赣			120000		本1
+星	sɑŋ1	sang1	xing1	赣			120000		本1
 星	sin1	sin1	xing1	文			120000		
-星	siaŋ1	siang1	xing1	赣			120000		
+星	siɑŋ1	siang1	xing1	赣			120000		
 映	in2	yin2	ying4	赣			120000		
 映	in3	yin3	ying4	赣			120000		
-映	iaŋ3	yang3	ying4	赣			120000		
+映	iɑŋ3	yang3	ying4	赣			120000		
 春	tʰun1*	tun1*	chun1	赣			120000		
 昧	muɔi2	muoi2	mei4	赣			120000		
 昨	tsʰok5*	cok5*	zuo2	赣			120000		
@@ -1943,7 +1943,7 @@
 显	sɛn3	sên3	xian3	赣			175000		
 显	ɕiɛn3	xiên3	xian3	赣			175000		本1
 晃	foŋ3	fong3	huang3	赣			120000		本1
-晃	uaŋ4	wang4	huang3	白			120000		
+晃	uɑŋ4	wang4	huang3	白			120000		
 晋	tɕin2	jin2	jin4	赣			120000		
 晌	soŋ3	song3	shang3	赣			120000		
 晏	ŋan2	ngan2	yan4	赣	晚	wan3	120000		
@@ -1956,7 +1956,7 @@
 景	tɕin3	jin3	jing3	赣			120000		
 晰	səʔ5	sek5	xi1	赣			120000		本1
 晰	sit5	sit5	xi1	赣			120000		
-晴	tɕʰiaŋ2	qiang2	qing2	赣			120000		
+晴	tɕʰiɑŋ2	qiang2	qing2	赣			120000		
 晶	tɕin1	jin1	jing1	赣			120000		
 智	ti2	di2	zhi4	赣			120000		
 智	tɕi2	ji2	zhi4	赣			120000		
@@ -1976,7 +1976,7 @@
 曩	loŋ3	long3	nang3	赣			120000		
 曲	tɕʰiuʔ5*	qiuk5*	qu1	赣			145000		
 更	kɛn2	gên2	geng4	赣			120000		
-更	kaŋ1	gang1	geng4	赣			120000		
+更	kɑŋ1	gang1	geng4	赣			120000		
 曹	tsʰau2	cau2	cao2	赣			120000		
 曹	tɕʰiau2	qiau2	cao2	赣			120000		
 曾	tsɛn1	zên1	zeng1	赣			120000		本1
@@ -2143,7 +2143,7 @@
 桃	hau1*	hau1*	tao2	赣			120000		
 桃	hau2	hau2	tao2	赣			120000		
 桅	ŋɔi2	ngoi2	wei2	赣			120000		
-框	kʰuaŋ1*	kuang1*	kuang1	赣			120000		
+框	kʰuɑŋ1*	kuang1*	kuang1	赣			120000		
 案	ŋɔn2	ngon2	an4	赣			120000		
 桌	tsoʔ5	zok5	zhuo1	赣			120000		本1
 桌	tɕioʔ5	jiok5	zhuo1	赣			120000		
@@ -2162,8 +2162,8 @@
 梅	mi1	mi1	mei2	赣			120000		
 梅	mi2	mi2	mei2	赣			120000		
 梓	tsɿ3	zï3	zi3	赣			70836		
-梗	kuaŋ3	guang3	geng3	赣			120000		本1
-梗	kuaŋ1*	guang1*	geng3	赣			120000		
+梗	kuɑŋ3	guang3	geng3	赣			120000		本1
+梗	kuɑŋ1*	guang1*	geng3	赣			120000		
 梢	sau1	sau1	shao1	赣			120000		
 梦	muŋ4	mung4	meng4	赣			320000		
 梭	so1	so1	suo1	赣			120000		
@@ -2178,7 +2178,7 @@
 棕	tsuŋ1	zung1	zong1	赣			120000		本1
 棕	tɕiuŋ1	jiung1	zong1	赣			120000		
 棚	pʰuŋ2	pung2	peng2	赣			120000		新
-棚	pʰaŋ2	pang2	peng2	赣			120000		本1
+棚	pʰɑŋ2	pang2	peng2	赣			120000		本1
 棠	tʰoŋ2	tong2	tang2	赣			120000		
 棠	tʰoŋ1*	tong1*	tang2	赣			120000		
 森	sɛn1	sên1	sen1	赣			120000		
@@ -2225,13 +2225,13 @@
 樟	toŋ1	dong1	zhang1	赣			120000		
 模	mu2	mu2	mo2	赣			170000		本1
 模	mu1*	mu1*	mo2	赣			170000		
-横	uaŋ2	wang2	heng2	赣			120000		本1
+横	uɑŋ2	wang2	heng2	赣			120000		本1
 横	hɛn1*	hên1*	heng2	文			120000		
-横	uaŋ3	wang3	heng2	赣			120000		
+横	uɑŋ3	wang3	heng2	赣			120000		
 樱	in1	yin1	ying1	赣			120000		
 樵	tɕʰiɛu1*	qiêu1*	qiao2	赣			120000		
 橄	kɔn3	gon3	gan3	赣			133572		
-橙	tsʰaŋ2	cang2	cheng2	赣			120000		老
+橙	tsʰɑŋ2	cang2	cheng2	赣			120000		老
 橙	tʰɪn2	ten2	cheng2	赣			120000		新
 橡	sioŋ4	siong4	xiang4	赣			120000		
 檀	tʰan2	tan2	tan2	赣			120000		
@@ -2251,9 +2251,9 @@
 歉	tɕʰiɛn3	qiên3	qian4	赣			120000		
 歉	tɕʰiɛn2	qiên2	qian4	赣			120000		
 歌	ko1	go1	ge1	赣			145000		
-正	taŋ4*	dang4*	zheng4	白			120000		
+正	tɑŋ4*	dang4*	zheng4	白			120000		
 正	tɪn4*	den4*	zheng4	文			120000		本1
-正	taŋ1*	dang1*	zheng1	赣	正月	zheng1 yue4	120000		
+正	tɑŋ1*	dang1*	zheng1	赣	正月	zheng1 yue4	120000		
 正	tɕin2	jin2	zheng4	文			120000		
 此	tsʰɿ3	cï3	ci3	赣			310000		
 步	pʰu4	pu4	bu4	赣			150000		
@@ -2459,7 +2459,7 @@
 混	un4	wun4	hun4	赣			275000		本1
 淹	iɛn1	yên1	yan1	赣			120000		
 添	tʰiɛn1*	tiên1*	tian1	赣			120000		
-清	tɕʰiaŋ1*	qiang1*	qing1	赣			120000		本1
+清	tɕʰiɑŋ1*	qiang1*	qing1	赣			120000		本1
 淘	tʰau2	tau2	tao2	赣			125000		
 渊	yɔn1	yuon1	yuan1	赣			120000		
 渐	tɕʰiɛn4	qiên4	jian4	赣			145000		
@@ -2637,8 +2637,8 @@
 牒	tʰiaiʔ5*	tiaik5*	die2	赣			77959		老
 牒	tʰiɛt6	tiêt6	die2	赣			77959		本1
 牙	ŋa2	nga2	ya2	赣			120000		
-牚	tsʰaŋ2	cang2	cheng1	赣			120000		
-牚	tɕʰiaŋ2	qiang2	cheng1	赣			120000		
+牚	tsʰɑŋ2	cang2	cheng1	赣			120000		
+牚	tɕʰiɑŋ2	qiang2	cheng1	赣			120000		
 牛	ȵiu2	niu2	niu2	赣			120000		
 牡	mɛu3	mêu3	mu3	赣			120000		
 牡	mu3	mu3	mu3	文			120000		
@@ -2651,7 +2651,7 @@
 物	mɔʔ5	mok5	wu4	白			205100		老
 牯	ku3	gu3	gu3	赣			90000		
 牯	ku1	gu1	gu3	赣			90000		
-牲	saŋ1	sang1	sheng1	赣			120000		本1
+牲	sɑŋ1	sang1	sheng1	赣			120000		本1
 牲	sɛn1	sên1	sheng1	文			120000		新
 牵	tɕʰiɛn1*	qiên1*	qian1	赣			130000		
 牸	tsʰɿ2	cï2	zi4	赣			120000		
@@ -2743,13 +2743,13 @@
 瓯	ŋɛu1	ngêu1	ou1	赣			90000		
 瓶	pʰin2	pin2	ping2	赣			120000		
 瓷	tsʰɿ2	cï2	ci2	赣			120000		
-甏	pʰaŋ4	pang4	beng4	赣			120000		
+甏	pʰɑŋ4	pang4	beng4	赣			120000		
 甘	kon1	gon1	gan1	赣			120000		
 甚	sɪn4	sen4	shen4	赣			120000		
 甜	tʰiɛn2	tiên2	tian2	赣			120000		
-生	saŋ1	sang1	sheng1	赣			120000		
+生	sɑŋ1	sang1	sheng1	赣			120000		
 生	sɛn1	sên1	sheng1	赣			120000		
-甥	saŋ1	sang1	sheng1	赣			120000		
+甥	sɑŋ1	sang1	sheng1	赣			120000		
 用	iuŋ4	yung4	yong4	赣			400000		
 甫	pʰu3	pu3	fu3	赣			120000		
 甬	iuŋ3	yung3	yong3	赣			79242		
@@ -2775,8 +2775,8 @@
 疆	tɕioŋ1	jiong1	jiang1	赣			120000		
 疑	ȵi2	ni2	yi2	赣			155000		
 疔	lin1	lin1	ding1	文			120000		
-疔	liaŋ1	liang1	ding1	赣			120000		
-疔	tiaŋ1	diang1	ding1	赣			120000		本1
+疔	liɑŋ1	liang1	ding1	赣			120000		
+疔	tiɑŋ1	diang1	ding1	赣			120000		本1
 疗	liɛu2	liêu2	liao2	赣			100732		
 疝	san2	san2	shan4	赣			70712		
 疟	ȵioʔ5	niok5	nve4	赣			120000		
@@ -2798,7 +2798,7 @@
 疾	tɕʰit6	qit6	ji2	赣			120000		本1
 痂	ka1	ga1	jia1	赣			120000		
 病	pʰin4	pin4	bing4	赣			120000		
-病	pʰiaŋ4	piang4	bing4	赣			120000		
+病	pʰiɑŋ4	piang4	bing4	赣			120000		
 症	tɪn4*	den4*	zheng4	赣			120000		本1
 症	tɕin2	jin2	zheng4	赣			120000		
 痈	iuŋ1	yung1	yong1	赣			120000		
@@ -2847,7 +2847,7 @@
 盅	tuŋ1	dung1	zhong1	赣			90000		
 盆	pʰun2	pun2	pen2	赣			120000		
 盈	in2	yin2	ying2	赣			120000		
-盈	iaŋ4	yang4	ying2	赣			120000	賸	
+盈	iɑŋ4	yang4	ying2	赣			120000	賸	
 益	iəʔ5	yek5	yi4	赣			120000		
 益	it5	yit5	yi4	赣			120000		本1
 盏	tsan3	zan3	zhan3	赣			120000		
@@ -2876,9 +2876,9 @@
 相	soŋ1	song1	xiang1	白			120000		
 盼	pʰan1*	pan1*	pan4	赣			120000		
 盾	tʰun4	tun4	dun4	赣			130000		
-省	saŋ3	sang3	sheng3	赣			120000		本1
+省	sɑŋ3	sang3	sheng3	赣			120000		本1
 省	sɛn3	sên3	sheng3	文	行省	xing2 sheng3	120000		
-省	siaŋ3	siang3	xing3	赣			120000		
+省	siɑŋ3	siang3	xing3	赣			120000		
 眉	mi1	mi1	mei2	赣			120000		
 眉	mi2	mi2	mei2	赣			120000		
 看	kʰɔn4*	kon4*	kan4	赣			370000		
@@ -2897,10 +2897,10 @@
 着	tʰoʔ5*	tok5*	zhuo2	赣			120000		
 着	tʰo2	to2	zhuo2	赣			120000		
 睁	tsɛn1	zên1	zheng1	赣			120000		
-睁	tɕiaŋ1	jiang1	zheng1	赣			120000		
+睁	tɕiɑŋ1	jiang1	zheng1	赣			120000		
 睇	tʰi1*	ti1*	di4	赣			120000		
 睛	tɕin1	jin1	jing1	文			120000		
-睛	tɕiaŋ1	jiang1	jing1	白			120000		
+睛	tɕiɑŋ1	jiang1	jing1	白			120000		
 睡	suəi2	suei2	shui4	赣			120000		本1
 睡	suoi2	suoi2	shui4	赣			120000		
 睡	hɵi4*	heoi4*	shui4	赣			120000		
@@ -2945,7 +2945,7 @@
 破	pʰo2	po2	po4	赣			125000		
 础	tsʰɿ3	cï3	chu3	赣			120000		
 硫	liu2	liu2	liu2	赣			195000		
-硬	ŋaŋ4	ngang4	ying4	赣			120000		
+硬	ŋɑŋ4	ngang4	ying4	赣			120000		
 确	kʰoʔ5*	kok5*	que4	赣			190000		
 碍	ŋoi4	ngoi4	ai4	赣			120000		
 碍	ŋai3	ngai3	ai4	赣			120000		
@@ -2967,7 +2967,7 @@
 磕	kʰɔt5*	kot5*	ke1	赣			120000		本1
 磨	mo2	mo2	mo2	赣			120000		
 磨	mo4	mo4	mo2	赣			120000		
-磬	tɕʰiaŋ4	qiang4	qing4	赣			120000		
+磬	tɕʰiɑŋ4	qiang4	qing4	赣			120000		
 礓	tɕioŋ1	jiong1	jiang1	赣			120000		
 示	ɕi4	xi4	shi4	赣			230250		
 示	ɕi2	xi2	shi4	赣			230250		
@@ -3028,7 +3028,7 @@
 稀	ɕi1	xi1	xi1	赣			120000		
 稇	kʰun3	kun3	kun3	赣			120000		
 程	tʰɪn2	ten2	cheng2	文			120000		本1
-程	tsʰaŋ2	cang2	cheng2	白			120000		老
+程	tsʰɑŋ2	cang2	cheng2	白			120000		老
 程	tɕʰin2	qin2	cheng2	文			120000		
 稍	sau3	sau3	shao1	赣			120000		
 税	suəi2	suei2	shui4	赣			220000		本1
@@ -3103,7 +3103,7 @@
 筏	faiʔ5	faik5	fa2	赣			120000		老
 筏	ɸat5	fat5	fa2	赣			120000		本1
 筐	tɕʰioŋ1*	qiong1*	kuang1	赣			105363		
-筐	kʰuaŋ1*	kuang1*	kuang1	赣			105363		
+筐	kʰuɑŋ1*	kuang1*	kuang1	赣			105363		
 筑	tuʔ5	duk5	zhu4	赣			145000		
 筒	tʰuŋ2	tung2	tong3	赣			120000		
 筒	tʰuŋ3	tung3	tong3	赣			120000		
@@ -3173,7 +3173,7 @@
 粽	tsuŋ3	zung3	zong4	赣			90000		
 粽	tɕiuŋ2	jiung2	zong4	赣			90000		
 精	tɕin1	jin1	jing1	赣			120000		
-精	tɕiaŋ1	jiang1	jing1	赣			120000		
+精	tɕiɑŋ1	jiang1	jing1	赣			120000		
 糊	u1*	wu1*	hu2	赣			120000		
 糊	u2	wu2	hu2	赣			120000		本1
 糍	tsʰɿ2	cï2	ci2	赣			90000		
@@ -3235,7 +3235,7 @@
 绉	tsɛu2	zêu2	zhou4	赣			90000		
 绍	sɛu4	sêu4	shao4	赣			145000		
 经	tɕin1	jin1	jing1	赣			120000		
-经	tɕiaŋ1	jiang1	jing1	赣			120000		
+经	tɕiɑŋ1	jiang1	jing1	赣			120000		
 绑	poŋ3	bong3	bang3	赣			170000		
 绒	luŋ2	lung2	rong2	赣			120000		
 结	tɕiaiʔ5	jiaik5	jie2	赣			130000		老
@@ -3261,7 +3261,7 @@
 维	ui2	wi2	wei2	赣			120000		
 绵	miɛn2	miên2	mian2	赣			120000		
 绷	puŋ1	bung1	beng1	赣			145000		
-绷	paŋ1	bang1	beng1	赣			145000		
+绷	pɑŋ1	bang1	beng1	赣			145000		
 绸	tʰɪu2	teu2	chou2	赣			125000		
 绸	tɕʰiu2	qiu2	chou2	赣			125000		
 综	tsuŋ1	zung1	zong1	赣			120000		
@@ -3324,7 +3324,7 @@
 群	tɕʰiun2	qiun2	qun2	赣			370000		本1
 群	kʰuin2	kuin2	qun2	赣			370000		
 羹	kɛn1	gên1	geng1	赣			120000		
-羹	kaŋ1	gang1	geng1	赣			120000		
+羹	kɑŋ1	gang1	geng1	赣			120000		
 羽	i3	yi3	yu3	赣			120000		
 翁	uŋ1	wung1	weng1	赣			120000		
 翅	tɕʰi4	qi4	chi4	赣			120000		
@@ -3344,7 +3344,7 @@
 而	i2	yi2	er2	白			393233		
 耍	sa3	sa3	shua3	赣			120000		
 耐	lai4	lai4	nai4	赣			120000		
-耕	kaŋ1	gang1	geng1	赣			120000		老
+耕	kɑŋ1	gang1	geng1	赣			120000		老
 耕	kɛn1	gên1	geng1	文			120000		新
 耙	pʰa4	pa4	ba4	赣			120000		
 耙	pʰa2	pa2	ba4	赣			120000		
@@ -3445,7 +3445,7 @@
 脾	pʰi2	pi2	pi2	赣			120000		
 腆	liɛn3	liên3	tian3	赣			120000		
 腆	tʰiɛn3	tiên3	tian3	赣			120000		本1
-腈	tɕiaŋ1	jiang1	jing1	赣			5964		
+腈	tɕiɑŋ1	jiang1	jing1	赣			5964		
 腈	tɕʰin2	qin2	jing1	文			5964		
 腊	laiʔ5	laik5	la4	赣			120000		老
 腊	lat5	lat5	la4	赣			120000		本1
@@ -3456,8 +3456,8 @@
 腐	u0	wu0	fu3	赣			120000		
 腑	fu3	fu3	fu3	赣			120000		
 腔	tɕʰioŋ1*	qiong1*	qiang1	赣			120000		
-腥	saŋ1	sang1	xing1	赣			120000		本1
-腥	siaŋ1	siang1	xing1	赣			120000		
+腥	sɑŋ1	sang1	xing1	赣			120000		本1
+腥	siɑŋ1	siang1	xing1	赣			120000		
 腮	suoi1	suoi1	sai1	赣			120000		
 腰	iɛu1	yêu1	yao1	赣			120000		
 腱	tɕʰiɛn4	qiên4	jian4	赣			120000		
@@ -3473,7 +3473,7 @@
 膜	moʔ5	mok5	mo2	赣			120000		
 膝	sɛʔ5	sêk5	xi1	赣			120000		
 膝	sit5	sit5	xi1	赣			120000		本1
-膨	pʰaŋ2	pang2	peng2	赣			120000		本1
+膨	pʰɑŋ2	pang2	peng2	赣			120000		本1
 膳	sɛn4	sên4	shan4	赣			90000		
 膻	sɛn1	sên1	shan1	赣			120000		
 臂	piɛ1	biê1	bi4	赣			120000		
@@ -3571,7 +3571,7 @@
 茸	luŋ2	lung2	rong1	赣			120000		
 荀	sun2	sun2	xun2	赣			71805		
 荆	tɕin1	jin1	jing1	赣			120000		
-荆	tɕiaŋ1	jiang1	jing1	赣			120000		
+荆	tɕiɑŋ1	jiang1	jing1	赣			120000		
 草	tsʰau3	cau3	cao3	赣			120000		
 草	tɕʰiau3	qiau3	cao3	赣			120000		
 荐	tɕiɛn2	jiên2	jian4	赣			125000		
@@ -3616,8 +3616,8 @@
 萌	mɛn2	mên2	meng2	赣			120000		
 萍	pʰin2	pin2	ping2	赣			120000		
 萤	in1	yin1	ying2	赣			120000		
-萤	iaŋ1	yang1	ying2	赣			120000		
-萦	iaŋ1	yang1	ying2	赣			120000		
+萤	iɑŋ1	yang1	ying2	赣			120000		
+萦	iɑŋ1	yang1	ying2	赣			120000		
 萨	saiʔ5	saik5	sa4	赣			125000		老
 萨	sat5	sat5	sa4	赣			125000		本1
 落	loʔ5	lok5	luo4	赣			120000		
@@ -3634,7 +3634,7 @@
 葵	kʰui1*	kui1*	kui2	赣			120000		
 蒋	tɕioŋ3	jiong3	jiang3	赣			145000		
 蒙	muŋ2	mung2	meng2	赣			120000		
-蒙	maŋ1	mang1	meng2	赣			120000		
+蒙	mɑŋ1	mang1	meng2	赣			120000		
 蒙	mu1*	mu1*	meng2	赣			120000		
 蒙	muŋ1	mung1	meng2	赣			120000		
 蒜	suɔn2	suon2	suan4	赣			120000		
@@ -3758,7 +3758,7 @@
 衅	sɪn4	sen4	xin4	赣			108091		
 衅	ɕin4	xin4	xin4	赣			108091		本1
 行	ɕin2	xin2	xing2	文			270000		
-行	haŋ2	hang2	xing2	白	走	zou3	270000		本1
+行	hɑŋ2	hang2	xing2	白	走	zou3	270000		本1
 行	hɛn2	hên2	xing2	赣			270000		又1
 行	hoŋ2	hong2	hang2	赣			270000		
 衔	han2	han2	xian2	赣			120000		
@@ -3847,7 +3847,7 @@
 譬	pi3	bi3	pi4	赣			120000		
 计	tɕi2	ji2	ji4	赣			200000		
 订	tʰin4	tin4	ding4	赣			120000		新
-订	tʰiaŋ4	tiang4	ding4	赣			120000		老
+订	tʰiɑŋ4	tiang4	ding4	赣			120000		老
 讣	pʰu2	pu2	fu4	赣			90000		
 讥	tɕi1	ji1	ji1	赣			120000		
 讨	tʰau3	tau3	tao3	赣			120000		
@@ -3907,7 +3907,7 @@
 诵	suŋ4	sung4	song4	赣			120000		
 诵	suŋ2	sung2	song4	赣			120000		
 请	tɕʰin3	qin3	qing3	文			120000		新
-请	tɕʰiaŋ3	qiang3	qing3	赣			120000		
+请	tɕʰiɑŋ3	qiang3	qing3	赣			120000		
 诸	tsɿ1	zï1	zhu1	赣			145000		
 诸	tɕy1	jyu1	zhu1	赣			145000		本1
 诺	loʔ5	lok5	nuo4	赣			104414		
@@ -4023,7 +4023,7 @@
 赞	tɕian2	jian2	zan4	赣			125000		
 赠	tsʰɛn4	cên4	zeng4	赣			120000		
 赢	in2	yin2	ying2	赣			120000		
-赢	iaŋ2	yang2	ying2	赣			120000		
+赢	iɑŋ2	yang2	ying2	赣			120000		
 赤	tʰaʔ5*	tak5*	chi4	赣			120000		
 赤	tɕʰiaʔ5*	qiak5*	chi4	赣			120000		
 赦	sa4	sa4	she4	赣			120000		
@@ -4092,7 +4092,7 @@
 轰	kʰuŋ2	kung2	hong1	赣			120000		
 轴	tʰuʔ5*	tuk5*	zhou2	赣			120000		
 轴	tɕʰiu1*	qiu1*	zhou2	赣			120000		
-轻	tɕʰiaŋ1*	qiang1*	qing1	赣			120000		
+轻	tɕʰiɑŋ1*	qiang1*	qing1	赣			120000		
 载	tsɔi2	zoi2	zai4	赣			120000		
 载	tsɔi3	zoi3	zai4	赣			120000		本1
 载	tɕiɔi2	jioi2	zai4	赣			120000		
@@ -4139,7 +4139,7 @@
 迈	ma1	ma1	mai4	赣			120000		
 迈	mai4	mai4	mai4	赣			120000		
 迎	ȵin2	nin2	ying2	文			120000		
-迎	ȵiaŋ2	niang2	ying2	白			120000		
+迎	ȵiɑŋ2	niang2	ying2	白			120000		
 运	iun4	yun4	yun4	赣			135000		
 近	tɕʰin4	qin4	jin4	赣			145000		
 还	fan2	fan2	huan2	赣			120000		新
@@ -4179,7 +4179,7 @@
 递	tʰi4	ti4	di4	赣			107990		
 途	tʰu2	tu2	tu2	赣			120000		
 逗	tʰɛu4	têu4	dou4	赣			105279		
-逛	kʰuaŋ1*	kuang1*	guang4	赣			120000		
+逛	kʰuɑŋ1*	kuang1*	guang4	赣			120000		
 逝	ɕi4	xi4	shi4	赣			102514		
 逞	tʰɛn3	tên3	cheng3	赣			108731		
 速	sɿʔ5	sïk5	su4	赣			120000		
@@ -4222,7 +4222,7 @@
 郊	kau3	gau3	jiao1	赣			120000		
 郊	kau1	gau1	jiao1	赣			120000		
 郎	loŋ2	long2	lang2	赣			145000		
-郑	tʰaŋ4	tang4	zheng4	赣			120000		老
+郑	tʰɑŋ4	tang4	zheng4	赣			120000		老
 郑	tʰɛn4	tên4	zheng4	赣			120000		新
 郡	tɕʰiun4	qiun4	jun4	赣			90000		
 部	pʰu4	pu4	bu4	赣			145000		
@@ -4250,8 +4250,8 @@
 醉	tɕi2	ji2	zui4	赣			120000		
 醉	tɕi4	ji4	zui4	赣			120000		本1
 醋	tsʰɿ2	cï2	cu4	赣			120000		
-醒	saŋ3	sang3	xing3	赣			120000		
-醒	siaŋ3	siang3	xing3	赣			120000		本1
+醒	sɑŋ3	sang3	xing3	赣			120000		
+醒	siɑŋ3	siang3	xing3	赣			120000		本1
 醮	tɕiɛu2	jiêu2	jiao4	赣			90000		
 采	tsʰɔi3	coi3	cai3	赣			120000		本1
 采	tɕʰiɔi3	qioi3	cai3	赣			120000		
@@ -4271,10 +4271,10 @@
 錾	tɕʰian4	qian4	zan4	赣			120000		
 针	tɪn1	den1	zhen1	赣			120000		本1
 针	tɕin1	jin1	zhen1	赣			120000		
-钉	liaŋ1	liang1	ding1	赣			120000		
-钉	liaŋ2	liang2	ding4	赣			120000		
-钉	tiaŋ1	diang1	ding1	赣			120000		本1
-钉	tiaŋ2	diang2	ding4	赣			120000		本1
+钉	liɑŋ1	liang1	ding1	赣			120000		
+钉	liɑŋ2	liang2	ding4	赣			120000		
+钉	tiɑŋ1	diang1	ding1	赣			120000		本1
+钉	tiɑŋ2	diang2	ding4	赣			120000		本1
 钓	liɛu2	liêu2	diao4	赣			120000		
 钓	tʰiɛu2	tiêu2	diao4	赣			120000		
 钗	tsʰai1*	cai1*	chai1	赣			90000		
@@ -4300,7 +4300,7 @@
 铁	tʰiaiʔ5*	tiaik5*	tie3	赣			150000		老
 铁	tʰiɛt5*	tiêt5*	tie3	赣			150000		本1
 铃	lin2	lin2	ling2	文			120000		
-铃	liaŋ2	liang2	ling2	赣			120000		
+铃	liɑŋ2	liang2	ling2	赣			120000		
 铇	pʰau4	pau4	bao4	赣			120000		
 铎	tʰoʔ5*	tok5*	duo2	赣			120000		
 铜	tʰuŋ2	tung2	tong2	赣			170000		
@@ -4351,7 +4351,7 @@
 镊	ȵiaiʔ5	niaik5	nie4	赣			120000		老
 镊	ȵiɛt5	niêt5	nie4	赣			120000		本1
 镜	tɕin2	jin2	jing4	赣			103654		
-镜	tɕiaŋ2	jiang2	jing4	赣			103654		
+镜	tɕiɑŋ2	jiang2	jing4	赣			103654		
 镢	tɕyɔt5	jyuot5	jue2	赣			78044		
 镫	tɛn2	dên2	deng4	赣			120000		
 镬	uo1	wo1	huo4	赣			72695	锅	
@@ -4460,7 +4460,7 @@
 雪	suɔt5	suot5	xue3	赣			120000		本1
 雪	siɛt5	siêt5	xue3	赣			120000		
 零	lin2	lin2	ling2	文			120000		新
-零	liaŋ2	liang2	ling2	赣			120000		本1
+零	liɑŋ2	liang2	ling2	赣			120000		本1
 雷	lui2	lui2	lei2	赣			120000		本1
 雷	luoi2	luoi2	lei2	赣			120000		老
 雾	u4	wu4	wu4	赣			120000		
@@ -4479,11 +4479,11 @@
 露	lu2	lu2	lu4	赣			130000		本1
 露	lu1	lu1	lu4	白			100000		
 青	tɕʰin1*	qin1*	qing1	文			120000		新
-青	tɕʰiaŋ1*	qiang1*	qing1	赣			120000		
+青	tɕʰiɑŋ1*	qiang1*	qing1	赣			120000		
 靖	tɕʰin4	qin4	jing4	文			120000		新
-靖	tɕʰiaŋ4	qiang4	jing4	赣			120000		老
+靖	tɕʰiɑŋ4	qiang4	jing4	赣			120000		老
 静	tɕʰin4	qin4	jing4	文			120000		新
-静	tɕʰiaŋ4	qiang4	jing4	赣			120000		
+静	tɕʰiɑŋ4	qiang4	jing4	赣			120000		
 非	ɸi1	fi1	fei1	赣			120000		
 靠	kʰau2	kau2	kao4	赣			310000		
 靡	mi1	mi1	mi2	赣			120000		
@@ -4492,8 +4492,8 @@
 革	kɛʔ5	gêk5	ge2	赣			145000		
 革	kɛ1	gê1	ge2	赣			145000		
 靪	lin1	lin1	ding1	文			120000		
-靪	liaŋ1	liang1	ding1	赣			120000		
-靪	tiaŋ1	diang1	ding1	赣			120000		本1
+靪	liɑŋ1	liang1	ding1	赣			120000		
+靪	tiɑŋ1	diang1	ding1	赣			120000		本1
 靴	ɕio1	xio1	xue1	赣			120000		
 鞍	ŋon1	ngon1	an1	赣			145000		
 鞘	sɛu1	sêu1	qiao4	赣			120000		
@@ -4520,10 +4520,10 @@
 预	i4	yi4	yu4	赣			120000		本1
 预	y4	yu4	yu4	文			120000		
 领	lin3	lin3	ling3	文			120000		
-领	liaŋ3	liang3	ling3	赣			120000		
+领	liɑŋ3	liang3	ling3	赣			120000		
 颈	tɕin3	jin3	jing3	文			120000		新
-颈	tɕiaŋ3	jiang3	jing3	赣			120000		本1
-颈	tɕiaŋ0	jiang0	jing3	赣			120000		
+颈	tɕiɑŋ3	jiang3	jing3	赣			120000		本1
+颈	tɕiɑŋ0	jiang0	jing3	赣			120000		
 频	pʰin2	pin2	pin2	赣			286707		
 颖	in3	yin3	ying3	赣			107726		
 颗	kʰuo3	kuo3	ke1	赣			120000		
@@ -4559,8 +4559,8 @@
 饵	ɛ3	ê3	er3	赣			120000		
 饵	ɵ3	eo3	er3	赣			120000		本1
 饶	lɛu2	lêu2	rao2	赣			205000		
-饼	piaŋ3	biang3	bing3	赣			120000		
-饼	piaŋ1*	biang1*	bing3	赣			120000		
+饼	piɑŋ3	biang3	bing3	赣			120000		
+饼	piɑŋ1*	biang1*	bing3	赣			120000		
 饼	pin3	bin3	bing3	文			120000		
 饿	ŋo4	ngo4	e4	赣			120000		
 馃	kuo3	guo3	guo3	赣			120000		
@@ -4702,7 +4702,7 @@
 义	ȵi4	ni4	yi4	赣			195000		
 乒	pʰin1*	pin1*	ping1	赣			120000		
 乓	pʰoŋ1*	pong1*	pang1	赣			120000		
-仃	tʰiaŋ1	tiang1	ding1	赣			120000		
+仃	tʰiɑŋ1	tiang1	ding1	赣			120000		
 仄	tsɛʔ5	zêk5	ze4	赣			120000		本1
 仄	tɕiɛʔ5	jiêk5	ze4	赣			120000		
 休	siu1	siu1	xiu1	赣			125000		
@@ -4737,7 +4737,7 @@
 卤	lu3	lu3	lu3	赣			120000		
 厘	li2	li2	li2	赣			120000		
 另	lin4	lin4	ling4	赣			102964		
-叮	tʰiaŋ1	tiang1	ding1	赣			120000		
+叮	tʰiɑŋ1	tiang1	ding1	赣			120000		
 喫	tɕʰiaʔ5*	qiak5*	chi1	赣			120000		
 吨	tun3	dun3	dun1	赣			120000		
 吸	tɕiət5	jiet5	xi1	赣			120000		又1
@@ -4769,7 +4769,7 @@
 嗯	n̩3	n3	n2	赣			123456		
 嗯	ŋ̍1	ng1	n2	赣			123456		
 嗯	ŋ̍3	ng3	n2	赣			123456		
-嘭	pʰaŋ2	pang2	peng1	赣			120000		
+嘭	pʰɑŋ2	pang2	peng1	赣			120000		
 嘻	ɕi1	xi1	xi1	赣			120000		
 噪	tɕiau2	jiau2	zao4	赣			120000		
 噪	tsau2	zau2		赣			120000		本1
@@ -4794,7 +4794,7 @@
 娟	tɕyɔn1	jyuon1	juan1	赣			120000		
 娼	tʰoŋ4	tong4	chang1	赣			120000		
 婊	piɛu3	biêu3	biao3	赣			120000		
-婸	tʰaŋ3	tang3	dang4	赣			120000		
+婸	tʰɑŋ3	tang3	dang4	赣			120000		
 嫂	sau3	sau3	sao3	赣			120000		
 嫌	sɛn2	sên2	xian2	赣			145000		
 嫌	ɕiɛn2	xiên2	xian2	赣			145000		本1
@@ -4838,7 +4838,7 @@
 拄	tsʰɿ3	cï3	zhu3	赣			120000		
 拗	ŋau3	ngau3	ao3	赣			130000		
 拦	lan2	lan2	lan2	赣			120000		
-挣	tɕiaŋ2	jiang2	zheng1	赣			120000		
+挣	tɕiɑŋ2	jiang2	zheng1	赣			120000		
 挦	tɕʰiɛn2	qiên2	xian2	赣			90000		
 挲	sa1	sa1	sa1	赣			120000		
 挼	lo2	lo2	rua2	赣			120000		
@@ -4952,7 +4952,7 @@
 狠	hɛn3	hên3	hen3	赣			120000		
 狲	sun1	sun1	sun1	赣			72018		
 猖	tʰoŋ1*	tong1*	chang1	赣			120000		
-猛	maŋ3	mang3	meng3	赣			120000		
+猛	mɑŋ3	mang3	meng3	赣			120000		
 猛	muŋ3	mung3	meng3	赣			120000		
 玲	lin2	lin2	ling2	赣			120000		
 珠	tsɿ1	zï1	zhu1	赣			145000		
@@ -4973,7 +4973,7 @@
 癌	ŋai2	ngai2	ai2	赣			120000		
 癫	liɛn1	liên1	dian1	赣			90000		本1
 癫	tʰiɛn1	tiên1	dian1	赣			90000		
-盯	tiaŋ1	diang1	ding1	赣			120000		
+盯	tiɑŋ1	diang1	ding1	赣			120000		
 眯	mi1	mi1	mi1	赣			120000		
 眼	ŋan1*	ngan1*	yan3	赣			370000		
 眼	ŋan3	ngan3	yan3	赣			370000		
@@ -5038,7 +5038,7 @@
 腻	ȵi2	ni2	ni4	赣			120000		
 腻	ȵia2	nia2	ni4	赣			120000		
 膀	pʰoŋ3	pong3	bang3	赣			120000		本1
-膀	paŋ1	bang1	bang3	白			100000		
+膀	pɑŋ1	bang1	bang3	白			100000		
 膘	piɛu1	biêu1	biao1	赣			90000		
 膛	tʰoŋ2	tong2	tang2	赣			120000		
 臌	ku3	gu3	gu3	赣			120000		
@@ -5267,12 +5267,12 @@
 的	tɛ0	dê0	de5	白			100000	仔	
 啥	sa2	sa2	sha2	赣			100000		
 咋	tsʰai1*	cai1*	za3	赣			100000		
-怎	tsʰaŋ1*	cang1*	zen3	赣			100000		本1
+怎	tsʰɑŋ1*	cang1*	zen3	赣			100000		本1
 巅	tɛn1	dên1	dian1	赣			100000		
 姆	m̩1	m1	mu3	赣			100000		
 仂	liəʔ5	liek5	le4	赣			100000		
 孲	ŋa2	nga2	ya1	赣			100000		
-梆	paŋ1	bang1	bang1	赣			100000		
+梆	pɑŋ1	bang1	bang1	赣			100000		
 黆	sɛn4	sên4	guang1	赣			100000		
 绚	suon4	suon4	xuan4	赣			100000		
 褴	lan1	lan1	lan2	赣			100000		
@@ -5298,7 +5298,7 @@
 姆	m̩0	m0	mu3	赣			145000		
 婆	pʰo0	po0	po2	赣			140000		
 毛	mau0	mau0	mao2	赣			120000		
-生	saŋ0	sang0	sheng1	赣			120000		
+生	sɑŋ0	sang0	sheng1	赣			120000		
 巴	pa0	ba0	ba1	赣			120000		
 道	tʰau0	tau0	dao4	赣			320545		
 人	ȵin0	nin0	ren2	赣			120000		
@@ -5313,7 +5313,7 @@
 脚	tɕioʔ0	jiok0	jiao3	赣			120000		
 腐	fu0	fu0	fu3	赣			120000		
 头	tʰɛu0	têu0	tou2	赣			245000		
-正	taŋ0	dang0	zheng4	白			120000		
+正	tɑŋ0	dang0	zheng4	白			120000		
 场	tʰoŋ0	tong0	chang3	赣			145000		
 凳	tɛn0	dên0	deng4	赣			120000		
 膏	kau0	gau0	gao1	赣			120000		
@@ -5322,7 +5322,7 @@
 猡	lo0	lo0	luo2	赣			100000		
 嘎	ka0	ga0	ga1	赣			121117		
 菜	tsʰɔi0	coi0	cai4	赣			225000		
-梗	kuaŋ0	guang0	geng3	赣			120000		
+梗	kuɑŋ0	guang0	geng3	赣			120000		
 麦	maʔ0	mak0	mai4	赣			120000		
 鸡	tɕi0	ji0	ji1	赣			120000		
 拾	sɪt5	set5	shi2	赣			120000		

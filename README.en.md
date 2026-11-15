@@ -518,7 +518,7 @@ With no initial consonant:
 | yu | [y] | [y] | [y] | [y] | - | [ʯ] | [y] | [y] | [y] | [y] | - | - | v (after an initial only), u (after an initial only, never immediately after y) |  |
 | yuae | - | - | - | - | - | [ʯæ] | - | - | - | - | - | - | — |  |
 | yua | - | - | - | - | - | - | - | [ya] | - | - | - | - | — |  |
-| yue | [ye] or [yə] | [ye] | - | - | - | - | [yɛ] | [yɛ] | [yə] | [ye] | - | - | - |  |
+| yue | [ye] | [ye] | - | - | - | - | [yɛ] | [yɛ] | [yə] | [ye] | - | - | - |  |
 | yueo | - | [yɵ] | - | - | - | - | - | - | - | - | - | - | — |  |
 | yuai | - | - | - | - | - | [ʯai] | - | - | - | - | - | - | — |  |
 | yuoi | - | - | - | - | - | - | - | [yoi] | - | - | - | - | — |  |
