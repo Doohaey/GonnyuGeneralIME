@@ -805,8 +805,10 @@ The second scheme uses universal tone numbers.
 ### Other notes
 
 1. Beyond the segment inventories above, the system also provides a number of extended notations based on published descriptions and observed sound changes. These include pronunciations recorded in the 1935 language survey and selected alternations involving `-n` and `-ng` codas.
-2. For the Lancong (Nanchang) system, the primary reference is Xiong Zhenghui's *Nanchang Fangyan Cidian*. A small number of entries in that dictionary are overly old-fashioned, too local, or unsuitable for actual listening; these have been adjusted. For example, the Lancong syllable written `fui` in Gon-pin is recorded as [ɸui] in the 1935 *Nanchang Yinxi* but as [fɨi] in Xiong's dictionary. The older pronunciation does not sound close to “fei”; to keep input consistent with actual listening and supported by a source, the 1935 IPA notation is used.
-3. Switch schemes in Input settings; localities without the second scheme offer the first scheme only.
+2. Switch schemes in Input settings; localities without the second scheme offer the first scheme only.
+3. For the Lancong (Nanchang) system, the primary reference is Xiong Zhenghui's *Nanchang Fangyan Cidian*. A small number of entries in that dictionary are overly old-fashioned, too local, or unsuitable for actual listening; these have been adjusted. For example, the Lancong syllable written `fui` in Gon-pin is recorded as [ɸui] in the 1935 *Nanchang Yinxi* but as [fɨi] in Xiong's dictionary. The older pronunciation does not sound close to “fei”; to keep input consistent with actual listening and supported by a source, the 1935 IPA notation is used.
+4. For the Gao'an (Gou-ngon) system, the *Gao'an Fangyan Cidian* is used as a reference. The [ɵ] vowel inventory is added in particular. In addition, the Gao'an dictionary records the lateral nasal coda as [ŋ̍], but this is in practice hard to distinguish from [n̩], so the latter is also added as part of the Gao'an system.
+5. Sinyi (Xinyu City) is a rapidly growing immigrant city with a highly mixed accent; the 1970s–80s generation largely came from rural towns. This input method provides dedicated phonologies for Shui Bei and Shui Xi, the major towns that represent the urban population of Sinyi, and incorporates them into the Sinyi content.
 
 ## References
 
