@@ -546,7 +546,7 @@ With no initial consonant:
 | gon-pin | Lancong IPA | Fungcen IPA | Tiqien IPA | Sinyi IPA | Songau IPA | Seusong IPA | Jingon IPA | Yikyan-Henfeng IPA | Jisuibaedu IPA | Xyucuênn IPA | Singzï IPA | Goungon IPA | Notes |
 | --- | --- | --- | --- | --- | --- | --- | ------- | ------- | ------- | ------- | ------- | ------- | --- |
 | m | [m̩] | [m̩] | [m̩] | [m̩] | [m̩] | [m̩] | [m̩] | [m̩] | [m̩] | - | [m̩] | [m̩] |  |
-| n | [n̩] | - | - | [n̩] | - | [n̩] | - | [n̩] | - | - | [n̩] | - |  |
+| n | [n̩] | - | - | [n̩] | - | [n̩] | - | [n̩] | - | - | [n̩] | [n̩] |  |
 | ng | [ŋ̍] | [ŋ̩] | [ŋ̍] | [ŋ̍] | [ŋ̍] | - | [ŋ̍] | [ŋ̍] | [ŋ̍] | - | - | [ŋ̍] |  |
 | l | - | - | - | - | - | [ɭ̩] | - | - | - | - | - | - |  |
 

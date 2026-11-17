@@ -22,6 +22,9 @@ status = "active"
 6 = 6
 7 = 7
 
+[ipa_final_map]
+"n̩" = "n"
+
 [phonology]
 jqx_u_to_yu = true
 syllables = "phonology/syllables.jsonl"
