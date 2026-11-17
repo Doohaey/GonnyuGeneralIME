@@ -23,8 +23,8 @@ Rime schema repositories are available for Lancong (Nanchang), Fenni (Fenyi), Fu
 
 ## Release 1.3.3
 
-- data: Read 实, 式, and 锡 as xit6 (ɕit7) in Lancong, remove the xik6/iʔ final, and update 确实, 确确实实, 作式子, and 劈实.
-- docs: Keep only ɿʔ for the Lancong ik final and align the syllable inventory and audit contract.
+- data: Dictionary updates.
+- docs: Documentation updates.
 
 ## Contents
 
