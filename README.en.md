@@ -21,17 +21,15 @@ Currently supports: **Lancong (Nanchang), Fenni (Fenyi), Fungcen (Fengcheng), Ti
 
 Rime schema repositories are available for Lancong (Nanchang), Fenni (Fenyi), Fungcen, Yikyan-Henfeng, Sinyi (Xinyu), and Goungon (Gao'an). Other installation options are available in the [Installation](#installation) section below.
 
-## Release 1.3.2
+## Release 1.3.3
 
-- feat: Adjustable keyboard height on Android.
-- data: Update entries, readings, literary/colloquial and variant-reading pairs, and entering-tone codas in the Lancong, Fungcen, Goungon, Seusong, Yikyan-Henfeng, and Fenni dictionaries.
-- docs: Add ʋ, ɻ, tθ and lateral pre-ɿ variants to the Second Scheme.
-- fix: Correct Seusong tone class names, the Windows synchronization library, and CLI forwarding.
+- data: Read 实, 式, and 锡 as xit6 (ɕit7) in Lancong, remove the xik6/iʔ final, and update 确实, 确确实实, 作式子, and 劈实.
+- docs: Keep only ɿʔ for the Lancong ik final and align the syllable inventory and audit contract.
 
 ## Contents
 
 - [GonnyuGeneralIME — A General Gon(Gan) Chinese Input Method](#gonnyugeneralime--a-general-gongan-chinese-input-method)
-  - [Release 1.3.2](#release-132)
+  - [Release 1.3.3](#release-133)
   - [Contents](#contents)
   - [Overview](#overview)
     - [What it provides](#what-it-provides)
