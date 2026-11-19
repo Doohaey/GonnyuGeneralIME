@@ -413,6 +413,18 @@
           "origin": {
             "kind": "explicit"
           }
+        },
+        {
+          "id": "F320",
+          "match": [
+            "common",
+            "wei",
+            "wui"
+          ],
+          "intent": "零声母 wei 旧写兼容 uəi",
+          "origin": {
+            "kind": "explicit"
+          }
         }
       ]
     },

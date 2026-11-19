@@ -33,6 +33,7 @@ fungcen	coda	p	k			syllable-final	true	true	secondary			none
 common	rime	o	eo	ɵ	儿	syllable-final	false	false	primary	o	独立音节 o 单向兼容 eo	none
 fungcen	coda	t	k			syllable-final	true	true	secondary			none
 common	rime	wei	wi	ui	为	anywhere	false	true	primary	wei	零声母 wei 单向兼容 wi，可接续匹配入声韵尾	none
+common	rime	wei	wui	uəi	会	anywhere	false	false	primary	wei	零声母 wei 旧写兼容 uəi	none
 common	onset	siu	seu		兽	syllable-final	false	false	primary			none
 common	rime	uen	uon	uon	碗	syllable-final	false	false	primary		带声母 uon 可从 uen 模糊输入	none
 songau	coda		k			syllable-final	false	true	fallback		自动生成：完整音系检测到该入声韵尾，输入省略韵尾时匹配带尾形式	none
@@ -78,7 +79,7 @@ common	rime	yao	yeu	iɛu	妖	syllable-final	false	false	primary	yao	普通话拼
 common	onset	zzh	zzr			syllable-initial	false	true	primary			none
 xyucuenn	rime	an	ann			syllable-final	false	false	primary		遂川鼻化韵可由单 n 韵尾输入匹配 nn 规范写法	none
 common	rime	ep	et			syllable-final	false	true	secondary	guep	普通 e／ir／er→e 级联组合兼容	none
-common	rime	et	ek			syllable-final	false	true	secondary	bet,cet,det,fet,jyuet,kuet,let,met,pet,qyuet,set,tet,tuet,wet,yet,yuet,zet	普通 e／ir／er→e 级联组合兼容	none
+common	rime	et	ek			syllable-final	false	true	secondary	bet,cet,det,fet,jyuet,kuet,let,met,pet,qyuet,set,tet,tuet,yet,yuet,zet	普通 e／ir／er→e 级联组合兼容	none
 common	rime	en	iên			syllable-final	false	false	primary	ng,k,g	各地仅匹配带帽 iên 目标	none
 common	rime	yan	yên	ian	烟	syllable-final	false	false	primary	yan	仅保留输入 yan→yên 的模糊，不改写现有 yan	none
 lancong	coda		t		客	syllable-final	false	true	fallback		入声尾：输入不带尾可模糊匹配带尾（za→zat）	none
