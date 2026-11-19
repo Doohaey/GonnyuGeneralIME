@@ -55,6 +55,43 @@ class SmartQuoteSourceTests(unittest.TestCase):
         assert "attributedSubstring(from:" not in source
         assert "＂" not in source
 
+    def test_desktop_maps_fullwidth_dash(self):
+        mac = (ROOT / "platforms/macos/Sources/GannyuInputMethodHost/GannyuInputController.swift").read_text()
+        assert 'case "_": return "——"' in declaration(mac, "private func fullwidthSymbol(for text: String) -> String?")
+        windows = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text()
+        windows_fullwidth = declaration(windows, "const wchar_t *FullwidthSymbolFor(wchar_t ch)")
+        assert "case L'_':" in windows_fullwidth
+        assert 'L"\\x2014\\x2014"' in windows_fullwidth
+        linux = (ROOT / "platforms/linux/fcitx5/gannyu_fcitx5.cpp").read_text()
+        linux_fullwidth = declaration(linux, "std::string chineseFullwidthSymbol(int sym)")
+        assert "case '_':" in linux_fullwidth
+        assert r'"\xE2\x80\x94\xE2\x80\x94"' in linux_fullwidth
+
+    def test_desktop_maps_extended_fullwidth_symbols(self):
+        mac = declaration(
+            (ROOT / "platforms/macos/Sources/GannyuInputMethodHost/GannyuInputController.swift").read_text(),
+            "private func fullwidthSymbol(for text: String) -> String?",
+        )
+        for key, symbol in [("/", "、"), ("^", "……"), ("|", "·"), ("$", "￥"), ("{", "『"), ("}", "』")]:
+            assert f'case "{key}": return "{symbol}"' in mac
+        windows = declaration(
+            (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text(),
+            "const wchar_t *FullwidthSymbolFor(wchar_t ch)",
+        )
+        for key, literal in [("/", 'L"\\x3001"'), ("^", 'L"\\x2026\\x2026"'), ("|", 'L"\\x00B7"'),
+                             ("$", 'L"\\xFFE5"'), ("{", 'L"\\x300E"'), ("}", 'L"\\x300F"')]:
+            assert f"case L'{key}':" in windows
+            assert literal in windows
+        linux = declaration(
+            (ROOT / "platforms/linux/fcitx5/gannyu_fcitx5.cpp").read_text(),
+            "std::string chineseFullwidthSymbol(int sym)",
+        )
+        for key, literal in [("/", r'"\xE3\x80\x81"'), ("^", r'"\xE2\x80\xA6\xE2\x80\xA6"'),
+                             ("|", r'"\xC2\xB7"'), ("$", r'"\xEF\xBF\xA5"'),
+                             ("{", r'"\xE3\x80\x8E"'), ("}", r'"\xE3\x80\x8F"')]:
+            assert f"case '{key}':" in linux
+            assert literal in linux
+
     def test_windows_uses_alternating_quote(self):
         source = (ROOT / "platforms/windows/GannyuTextService/GannyuTextService.cpp").read_text()
         assert "std::wstring CurrentDoubleQuote() const" in source

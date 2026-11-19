@@ -119,6 +119,13 @@ std::string chineseFullwidthSymbol(int sym) {
         case '>':  return "\xE3\x80\x8B"; /* 》U+300B */
         case '~':  return "\xEF\xBD\x9E"; /* ～U+FF5E */
         case '-':  return "\xEF\xBC\x8D"; /* －U+FF0D */
+        case '_':  return "\xE2\x80\x94\xE2\x80\x94";
+        case '^':  return "\xE2\x80\xA6\xE2\x80\xA6";
+        case '/':  return "\xE3\x80\x81";
+        case '|':  return "\xC2\xB7";
+        case '$':  return "\xEF\xBF\xA5";
+        case '{':  return "\xE3\x80\x8E";
+        case '}':  return "\xE3\x80\x8F";
         default:   return {};
     }
 }

@@ -650,6 +650,20 @@ const wchar_t *FullwidthSymbolFor(wchar_t ch) {
             return L"\xFF5E";
         case L'-':
             return L"\xFF0D";
+        case L'_':
+            return L"\x2014\x2014";
+        case L'^':
+            return L"\x2026\x2026";
+        case L'/':
+            return L"\x3001";
+        case L'|':
+            return L"\x00B7";
+        case L'$':
+            return L"\xFFE5";
+        case L'{':
+            return L"\x300E";
+        case L'}':
+            return L"\x300F";
         default:
             return nullptr;
     }

@@ -305,6 +305,13 @@ final class GannyuInputController: IMKInputController {
         case ">": return "》"
         case "~": return "～"
         case "-": return "－"
+        case "_": return "——"
+        case "^": return "……"
+        case "/": return "、"
+        case "|": return "·"
+        case "$": return "￥"
+        case "{": return "『"
+        case "}": return "』"
         default: return nil
         }
     }
