@@ -1003,9 +1003,10 @@ def build_uncached(region: str, output: Path, display_name: str = "short") -> di
         .replace("@FUZZY_ALGEBRA@", "\n".join(["    - xform/^W/G/", *algebra]))
     )
     (output / f"{schema_id}.schema.yaml").write_text(schema, encoding="utf-8")
-    second_scheme_enabled, ee_e_opposition, oo_o_opposition = transcription.scheme2_config(config)
+    second_scheme_enabled, ee_e_opposition, oo_o_opposition, uu_u_opposition = transcription.scheme2_config(config)
     gon_map = (transcription.build_gon_map(entries, ee_e_opposition=ee_e_opposition,
-                                           oo_o_opposition=oo_o_opposition)
+                                           oo_o_opposition=oo_o_opposition,
+                                           uu_u_opposition=uu_u_opposition)
                if second_scheme_enabled else {})
     if second_scheme_enabled and not gon_map:
         second_scheme_enabled = False

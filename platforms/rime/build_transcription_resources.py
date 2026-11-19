@@ -70,7 +70,7 @@ def write_pairs(path: Path, header: tuple[str, str], pairs) -> None:
 
 def build_region(region: str, resources_root: Path, output_root: Path) -> bool:
     region_dir, config = load_config(resources_root, region)
-    enabled, ee_e_opposition, oo_o_opposition = transcription.scheme2_config(config)
+    enabled, ee_e_opposition, oo_o_opposition, uu_u_opposition = transcription.scheme2_config(config)
     if not enabled:
         return False
     readings = load_readings(region_dir, config)
@@ -78,6 +78,7 @@ def build_region(region: str, resources_root: Path, output_root: Path) -> bool:
         readings,
         ee_e_opposition=ee_e_opposition,
         oo_o_opposition=oo_o_opposition,
+        uu_u_opposition=uu_u_opposition,
     )
     if not gon_map:
         return False

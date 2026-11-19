@@ -27,6 +27,8 @@ initial	tʃʰ	trh	舌叶送气
 initial	dʒ	dr	舌叶浊
 initial	ʃ	sr	舌叶
 initial	ʒ	zr	舌叶浊
+initial	ʈ	tr	舌尖后塞音
+initial	ɖ	dr	舌尖后浊塞音
 initial	tʂ	tr	舌尖后
 initial	tʂʰ	trh	舌尖后送气
 initial	dʐ	dr	舌尖后浊
@@ -68,7 +70,7 @@ vowel	ɯ	ur
 vowel	u	u	
 vowel	ɪ	ir	
 vowel	ʏ	y	
-vowel	ʊ	u	
+vowel	ʊ	uu	对立地区启用；非对立地区并入 u
 vowel	e	e	
 vowel	ø	oe	
 vowel	ɘ	er	

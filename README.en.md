@@ -395,17 +395,13 @@ Checked-tone codas follow these spelling and input rules.
 
 \* Nasalized finals are marked with `nn` at the end; a final single `n` can be typed as a one-way alias for `nn`, e.g. `an`→`ann`. The other nasalized finals in the tables follow the same rule. Omit `nn` when a coda follows.
 
-\* Some regions use `ê` for IPA [ɛ] or [e]; typing `e` alone matches `ê`, `ir` and `er` precisely correspond to Gon-pin `e`, and `ee` precisely corresponds to Gon-pin `ê`. The same applies to `ê` in other finals.
+\* Some regions use `ê` for IPA [ɛ] or [e]; typing `e` alone matches `ê`. `ir`, `er`, and `ee` are all compositional inputs: `ir` and `er` precisely correspond to Gon-pin `e`, and `ee` precisely corresponds to Gon-pin `ê`. The same applies to `ê` in other finals.
 
-\* Some regions use `ô` for IPA [ɔ]; typing `o` alone matches `ô`, and `oo` precisely corresponds to Gon-pin `ô`. The same applies to `ô` in other finals.
+\* Some regions use `ô` for IPA [ɔ]; typing `o` alone matches `ô`, and `oo` (compositional input) precisely corresponds to Gon-pin `ô`. The same applies to `ô` in other finals.
 
 ##### Front-vowel finals
 
-With no initial consonant:
-
-- When `i` is followed by `-a`, `-o`, `-e`, `i` is written `y`.
-- When `i` is followed by `-u`, a standalone syllable `iu` or `iu` directly followed by an entering-tone coda is written as a whole `yiu` (+ entering-tone coda), to distinguish it from `yu`; otherwise only `i` is written `y`.
-- In all other cases, `i` (including `ï`) is written `yi` (`yï`).
+With no initial consonant, namely i-initial: prepend y when i is the only vowel; otherwise i becomes y. iu is written yiu (+ entering-tone coda), to distinguish it from yu. The same applies to ï.
 
 | gon-pin | Lancong IPA | Fungcen IPA | Tiqien IPA | Sinyi IPA | Songau IPA | Seusong IPA | Jingon IPA | Yikyan-Henfeng IPA | Jisuibaedu IPA | Xyucuênn IPA | Singzï IPA | Goungon IPA | Accepted alternative input | Notes |
 | --- | --- | --- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | --- | --- |
@@ -454,18 +450,15 @@ With no initial consonant:
 | iuok | - | - | - | [iuɔʔ] | - | - | - | - | - | - | - | - | - |  |
 | iuek | - | - | - | [iuəʔ] | - | - | - | - | - | - | - | - | - |  |
 
-\* `i`: Some regions use `ï` for IPA [ɿ] or [ʅ], including [ɿ] in other finals. Input uses `i`, which can match `ï` through one-way fuzzy matching; `ii` precisely inputs `ï`. [ɿ] and [ʅ] are open finals and are listed among the front-vowel finals by spelling.
+\* `i`: Some regions use `ï` for IPA [ɿ] or [ʅ], including [ɿ] in other finals. Input uses `i`, which can match `ï` through one-way fuzzy matching; `ii` (compositional input) precisely inputs `ï`. [ɿ] and [ʅ] are open finals and are listed among the front-vowel finals by spelling.
 
 ##### Rounded finals
 
-With no initial consonant:
-
-- When `u` is followed by `a`, `o`, `e`, or `i`, `u` is written `w`.
-- In all other cases, `u` is written `wu`.
+With no initial consonant, namely u-initial: prepend w when u is the only vowel; otherwise u becomes w. u followed by the central vowel [ɘ~ə] is written wu, with the central vowel not written separately.
 
 | gon-pin | Lancong IPA | Fungcen IPA | Tiqien IPA | Sinyi IPA | Songau IPA | Seusong IPA | Jingon IPA | Yikyan-Henfeng IPA | Jisuibaedu IPA | Xyucuênn IPA | Singzï IPA | Goungon IPA | Accepted alternative input | Notes |
 | --- | --- | --- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | --- | --- |
-| u | [u] | [u] | [u] | [u] | [u] | [u] | [u] | [u] | [u] | [u] | [u] | [u] | - |  |
+| u* | [u] | [u] | [u] | [u] | [u] | [u] | [u] | [u] | [u] | [u] | [u] | [u] | - |  |
 | uae | - | - | - | - | - | [uæ] | - | - | [uæ] | - | - | - |  |  |
 | ua | [ua] | [ua] | [ua] | [ua] | - | [ua] | [ua] | [ua] | [ua] | [ua] | [ua] | [ua] | - |  |
 | uo | [uo] | [uo] | [uɔ] | [uo] | - | [uo] | [uo] | [uo] | [uo] | [uo] | [uo] | [uɔ] | - |  |
@@ -506,6 +499,8 @@ With no initial consonant:
 | uek | — | [uɨʔ] or [uɛʔ] | [uɛʔ] | [uɛʔ] | - | - | - | [uəʔ] or [uɛʔ] | - | [ueʔ] | - | - | — |  |
 | ueik | - | [uɛiʔ] | - | - | - | - | - | - | - | - | - | - | uik (after initial, one-way) |  |
 | uik | - | - | [uiʔ] | - | - | - | - | - | - | - | - | - | - |  |
+
+\* u: Some regions use `û` for IPA [ʊ]; typing `u` alone matches `û`, and `uu` (compositional input) precisely corresponds to Gon-pin `û`. The same applies to `û` in other finals.
 
 ##### Rounded front-vowel finals
 
@@ -736,7 +731,7 @@ The contributor also reports alternative literature notations of 213 for yang le
 | Apical dental | — | — | — | ts[ts] tsl[tθ] | tsh[tsʰ] | dz[dz] | s[s] | z[z] | ts[tɬ] | tsh[tɬʰ] | s[ɬ] | — | — | — |
 | Apical alveolar | t[t] | th[tʰ] | d[d] | — | — | — | — | — | — | — | — | n[n] | l[l] | — |
 | Blade | — | — | — | tr[tʃ] | trh[tʃʰ] | dr[dʒ] | sr[ʃ] | zr[ʒ] | — | — | — | — | — | — |
-| Retroflex | — | — | — | tr[tʂ] | trh[tʂʰ] | dr[dʐ] | sr[ʂ] | zr[ʐ] | — | — | — | nr[ɳ] | — | r[ɻ] |
+| Retroflex | tr[ʈ] | — | dr[ɖ] | tr[tʂ] | trh[tʂʰ] | dr[dʐ] | sr[ʂ] | zr[ʐ] | — | — | — | nr[ɳ] | — | r[ɻ] |
 | Palatal | tj[ȶ] | tjh[ȶʰ] | dj[ȡ] | c[tɕ] | ch[tɕʰ] | dzj[dʑ] | x[ɕ] | zj[ʑ] | — | — | — | nj[ȵ] | — | — |
 | Palatal central | kj[c] | khj[cʰ] | gj[ɟ] | — | — | — | — | — | — | — | — | gn[ɲ] | — | — |
 | Velar | k[k] | kh[kʰ] | g[ɡ] | — | — | — | h[x] | gh[ɣ] | — | — | — | ng[ŋ] | — | — |
@@ -781,6 +776,12 @@ Syllabic laterals and nasals:
 | ng | [ŋ̍] / [ŋ̩] |
 | l | [ɭ̩] |
 
+The second scheme writes `ee`, `oo`, and `uu` as double letters in regions with the corresponding phonemic opposition; without the opposition they merge into `e`, `o`, and `u`.
+
+Zero onset (pseudo-initials):
+- i-initial: prepend j when i is the only vowel; otherwise i becomes j. iu is written ju. ii likewise.
+- u-initial: prepend w when u is the only vowel; otherwise u becomes w. u followed by the central vowel [ɘ~ə] is written wu, with the central vowel not written separately.
+
 Nasalisation is written `nn`; if a nasalised vowel still has a nasal coda, only the coda is written.
 
 #### Tones
@@ -806,7 +807,7 @@ The second scheme uses universal tone numbers.
 
 1. Beyond the segment inventories above, the system also provides a number of extended notations based on published descriptions and observed sound changes. These include pronunciations recorded in the 1935 language survey and selected alternations involving `-n` and `-ng` codas.
 2. Switch schemes in Input settings; localities without the second scheme offer the first scheme only.
-3. For the Lancong (Nanchang) system, the primary reference is Xiong Zhenghui's *Nanchang Fangyan Cidian*. A small number of entries in that dictionary are overly old-fashioned, too local, or unsuitable for actual listening; these have been adjusted. For example, the Lancong syllable written `fui` in Gon-pin is recorded as [ɸui] in the 1935 *Nanchang Yinxi* but as [fɨi] in Xiong's dictionary. The older pronunciation does not sound close to “fei”; to keep input consistent with actual listening and supported by a source, the 1935 IPA notation is used.
+3. For the Lancong (Nanchang) system, the primary reference is Xiong Zhenghui's *Nanchang Fangyan Cidian*. A small number of entries in that dictionary are overly old-fashioned, too local, or have perception issues affected by various factors; these have been adjusted. For example, the Lancong syllable written `fui` in Gon-pin is recorded as [ɸui] in the 1935 *Nanchang Yinxi* but as [fɨi] in Xiong's dictionary. The older pronunciation does not sound close to “fei”; to keep input consistent with actual listening and supported by a source, the 1935 IPA notation is used to avoid special transcription.
 4. For the Gao'an (Gou-ngon) system, the *Gao'an Fangyan Cidian* is used as a reference. The [ɵ] vowel inventory is added in particular. In addition, the Gao'an dictionary records the lateral nasal coda as [ŋ̍], but this is in practice hard to distinguish from [n̩], so the latter is also added as part of the Gao'an system.
 5. Sinyi (Xinyu City) is a rapidly growing immigrant city with a highly mixed accent; the 1970s–80s generation largely came from rural towns. This input method provides dedicated phonologies for Shui Bei and Shui Xi, the major towns that represent the urban population of Sinyi, and incorporates them into the Sinyi content.
 

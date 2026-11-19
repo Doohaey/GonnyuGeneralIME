@@ -18,3 +18,6 @@ raw_input = "raw/source.dict.yaml"
 [transcription]
 schemes = ["gon-pin"]
 default = "gon-pin"
+
+[transcription.ipa]
+uu_u_opposition = false

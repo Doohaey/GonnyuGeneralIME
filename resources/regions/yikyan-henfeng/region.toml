@@ -119,5 +119,6 @@ schemes = ["gon-pin", "ipa"]
 default = "gon-pin"
 
 [transcription.ipa]
+uu_u_opposition = false
 ee_e_opposition = false
 oo_o_opposition = false

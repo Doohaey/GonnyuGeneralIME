@@ -55,7 +55,7 @@ def test_special_vowel_inputs_survive_without_optional_rules() -> None:
     rules = essential_rules(load_rules(RULES_PATH, "lancong"))
     assert {(rule.source, rule.target) for rule in rules} == {
         ("ir", "e"), ("er", "e"), ("e", "ê"), ("ee", "ê"), ("i", "ï"), ("ii", "ï"),
-        ("o", "ô"), ("oo", "ô"),
+        ("o", "ô"), ("oo", "ô"), ("u", "û"), ("uu", "û"),
     }
     _, entries = load_entries("lancong")
     special = next(strip_tone(entry.gan) for entry in entries if entry.word == "且" and entry.new_old.startswith("新"))

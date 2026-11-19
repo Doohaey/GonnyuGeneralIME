@@ -40,13 +40,14 @@ def table():
     return _load_table(_table_signature(TABLE))
 
 
-def normalize_ipa(value: str) -> str:
-    return (unicodedata.normalize("NFC", value)
-            .replace("Ǿ", "").replace("ʨ", "tɕ").replace("α", "ɑ")
-            .replace("I", "i").replace("ʊ", "u").replace("ᴀ", "a")
-            .replace("ᴇ", "e").replace("ː", "")
-            .replace("ts'", "tsʰ").replace("tɕ'", "tɕʰ")
-            .replace("p'", "pʰ").replace("t'", "tʰ").replace("k'", "kʰ"))
+def normalize_ipa(value: str, *, preserve_uu: bool = False) -> str:
+    normalized = (unicodedata.normalize("NFC", value)
+                  .replace("Ǿ", "").replace("ʨ", "tɕ").replace("α", "ɑ")
+                  .replace("I", "i")
+                  .replace("ᴀ", "a").replace("ᴇ", "e").replace("ː", "")
+                  .replace("ts'", "tsʰ").replace("tɕ'", "tɕʰ")
+                  .replace("p'", "pʰ").replace("t'", "tʰ").replace("k'", "kʰ"))
+    return normalized if preserve_uu else normalized.replace("ʊ", "u")
 
 
 def _syllabic_spelling(body: str) -> str | None:
@@ -59,10 +60,41 @@ def _syllabic_spelling(body: str) -> str | None:
     return {"m": "m", "n": "n", "ŋ": "ng"}[match.group(1)]
 
 
+_CODA_IPA = frozenset({"p", "t", "k", "ʔ", "m", "n", "ŋ"})
+
+
+def _strip_ipa_codas(final: str) -> str:
+    while final and final[-1] in _CODA_IPA:
+        final = final[:-1]
+    return final
+
+
+def _zero_onset_initial(spelling: str, final: str) -> str:
+    final = unicodedata.normalize(
+        "NFC", unicodedata.normalize("NFD", final).replace("\u0303", "")
+    ).lstrip("~")
+    if not final:
+        return spelling
+    if final.startswith(("ɿ", "ʅ")):
+        return "j" + spelling
+    if final.startswith("i"):
+        if _strip_ipa_codas(final) == "i":
+            return "j" + spelling
+        return "j" + spelling[1:]
+    if final.startswith(("u", "ʊ")):
+        if final.startswith(("uə", "uɘ")):
+            return spelling.replace("uer", "wu", 1)
+        if _strip_ipa_codas(final) in {"u", "ʊ"}:
+            return "w" + spelling
+        return "w" + spelling[1:]
+    return spelling
+
+
 def ipa_syllable_to_scheme2(syllable: str, *, ee_e_opposition: bool = False,
-                            oo_o_opposition: bool = False) -> str:
+                            oo_o_opposition: bool = False,
+                            uu_u_opposition: bool = False) -> str:
     groups = table()
-    body = normalize_ipa(syllable).lstrip("~").strip()
+    body = normalize_ipa(syllable, preserve_uu=uu_u_opposition).lstrip("~").strip()
     if not body:
         return ""
     syllabic = _syllabic_spelling(body)
@@ -87,6 +119,7 @@ def ipa_syllable_to_scheme2(syllable: str, *, ee_e_opposition: bool = False,
             break
 
     final = body
+    raw_final = final
     syllabic = _syllabic_spelling(final)
     if syllabic is not None:
         return initial_spelling + syllabic
@@ -117,14 +150,17 @@ def ipa_syllable_to_scheme2(syllable: str, *, ee_e_opposition: bool = False,
         nucleus.append(spelling)
 
     nasal = "nn" if nasalized and coda not in {"n", "ng", "m"} else ""
-    return initial_spelling + "".join(nucleus) + nasal + coda
+    spelling = initial_spelling + "".join(nucleus) + nasal + coda
+    if not initial_spelling:
+        spelling = _zero_onset_initial(spelling, raw_final)
+    return spelling
 
 
 def strip_tone(token: str) -> str:
     return re.sub(r"[0-9]\*?$", "", token.strip())
 
 
-def scheme2_config(config: dict) -> tuple[bool, bool, bool]:
+def scheme2_config(config: dict) -> tuple[bool, bool, bool, bool]:
     section = config.get("transcription", {}) or {}
     schemes = section.get("schemes", ["gon-pin"])
     if isinstance(schemes, str):
@@ -132,11 +168,13 @@ def scheme2_config(config: dict) -> tuple[bool, bool, bool]:
     ipa = section.get("ipa", {}) or {}
     return ("ipa" in schemes,
             bool(ipa.get("ee_e_opposition", False)),
-            bool(ipa.get("oo_o_opposition", False)))
+            bool(ipa.get("oo_o_opposition", False)),
+            bool(ipa.get("uu_u_opposition", False)))
 
 
 def build_gon_map(entries, *, ee_e_opposition: bool = False,
-                  oo_o_opposition: bool = False) -> dict[str, tuple[str, ...]]:
+                  oo_o_opposition: bool = False,
+                  uu_u_opposition: bool = False) -> dict[str, tuple[str, ...]]:
     """Return gan syllable -> possible scheme2 spellings, tone-stripped."""
     result: dict[str, set[str]] = {}
     for entry in entries:
@@ -149,6 +187,7 @@ def build_gon_map(entries, *, ee_e_opposition: bool = False,
                 strip_tone(ipa_token),
                 ee_e_opposition=ee_e_opposition,
                 oo_o_opposition=oo_o_opposition,
+                uu_u_opposition=uu_u_opposition,
             )
             gan = strip_tone(gan_token)
             if scheme2 and gan:

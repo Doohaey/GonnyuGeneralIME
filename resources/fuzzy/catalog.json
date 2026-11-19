@@ -132,7 +132,7 @@
     {
       "id": "symbol_input",
       "label": "特殊符号输入",
-      "description": "ê、普通 e（ir／er）、ï 与 ô 的输入表示。",
+      "description": "ê、普通 e（ir／er）、ï、ô 与 û 的输入表示。",
       "rules": [
         {
           "id": "F044",
@@ -218,6 +218,31 @@
           "origin": {
             "kind": "explicit",
             "basis": "单写 e 输入兼容 ê；ee 作为精确输入形式"
+          }
+        },
+        {
+          "id": "F318",
+          "match": [
+            "common",
+            "u",
+            "û"
+          ],
+          "intent": "u 可单向模糊匹配 û",
+          "origin": {
+            "kind": "explicit",
+            "basis": "单写 u 输入兼容 û；uu 作为精确输入形式"
+          }
+        },
+        {
+          "id": "F319",
+          "match": [
+            "common",
+            "uu",
+            "û"
+          ],
+          "intent": "uu 精确输入 û",
+          "origin": {
+            "kind": "explicit"
           }
         }
       ]
