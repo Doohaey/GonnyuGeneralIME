@@ -146,3 +146,57 @@ fn n_l_hong_fuzzy_rules_are_scoped_to_registered_prefixes() {
         }
     }
 }
+
+#[test]
+fn whole_syllable_aliases_require_complete_syllable() {
+    let map = FuzzyMap::load_tsv_for_region(fuzzy_path(), "lancong").expect("load regional rules");
+    let forms = |input: &str| -> Vec<String> {
+        map.normalize(input, SyllableScheme::GonPin)
+            .into_iter()
+            .map(|form| form.text)
+            .collect()
+    };
+    assert!(forms("er").iter().any(|form| form == "eo"));
+    assert!(!forms("ern").iter().any(|form| form == "eon"));
+    assert!(!forms("ber").iter().any(|form| form == "beo"));
+    assert!(forms("en").iter().any(|form| form == "ng"));
+    assert!(!forms("fen").iter().any(|form| form == "ng"));
+    assert!(forms("ei").iter().any(|form| form == "ê"));
+    assert!(!forms("bei").iter().any(|form| form == "ê"));
+    for (canonical, alias) in [("eo", "er"), ("ng", "en"), ("ê", "ei")] {
+        assert!(!forms(canonical).iter().any(|form| form == alias));
+    }
+}
+
+#[test]
+fn whole_syllable_en_matches_ng_in_every_region() {
+    for region in [
+        "fenni",
+        "fungcen",
+        "goungon",
+        "jingon",
+        "jisuibaedu",
+        "lancong",
+        "seusong",
+        "singzi",
+        "sinyi",
+        "songau",
+        "tiqien",
+        "xyucuenn",
+        "yikyan-henfeng",
+    ] {
+        let map = FuzzyMap::load_tsv_for_region(fuzzy_path(), region).expect("load regional rules");
+        let forms: Vec<String> = map
+            .normalize("en", SyllableScheme::GonPin)
+            .into_iter()
+            .map(|form| form.text)
+            .collect();
+        assert!(forms.iter().any(|form| form == "ng"), "{region}");
+        let component: Vec<String> = map
+            .normalize("fen", SyllableScheme::GonPin)
+            .into_iter()
+            .map(|form| form.text)
+            .collect();
+        assert!(!component.iter().any(|form| form == "ng"), "{region}");
+    }
+}

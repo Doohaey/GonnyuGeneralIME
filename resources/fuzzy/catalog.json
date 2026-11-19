@@ -1503,6 +1503,42 @@
           "origin": {
             "kind": "explicit"
           }
+        },
+        {
+          "id": "F315",
+          "match": [
+            "common",
+            "er",
+            "eo"
+          ],
+          "intent": "整音节 er 单向兼容 eo",
+          "origin": {
+            "kind": "explicit"
+          }
+        },
+        {
+          "id": "F316",
+          "match": [
+            "common",
+            "ei",
+            "ê"
+          ],
+          "intent": "整音节 ei 单向兼容帽子 e",
+          "origin": {
+            "kind": "explicit"
+          }
+        },
+        {
+          "id": "F317",
+          "match": [
+            "common",
+            "en",
+            "ng"
+          ],
+          "intent": "整音节 en 单向兼容 ng",
+          "origin": {
+            "kind": "explicit"
+          }
         }
       ]
     },

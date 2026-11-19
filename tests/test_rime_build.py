@@ -1,3 +1,4 @@
+import csv
 import hashlib
 import json
 import re
@@ -271,6 +272,44 @@ def test_eo_accepts_only_standalone_o_one_way() -> None:
         for target, source in (("eo", "e"), ("geot", "got"), ("geot", "get"),
                                ("yueok", "yuek")):
             assert f"    - derive/^G{target}$/F{source}/" not in algebra
+
+
+def test_whole_syllable_aliases_require_complete_syllable() -> None:
+    rules = load_rules(RULES_PATH, "lancong")
+    assert "eo" in normalize("er", rules)
+    assert "eon" not in normalize("ern", rules)
+    assert "beo" not in normalize("ber", rules)
+    assert "ng" in normalize("en", rules)
+    assert "ng" not in normalize("fen", rules)
+    assert "ê" in normalize("ei", rules)
+    assert "ê" not in normalize("bei", rules)
+    for canonical, alias in (("eo", "er"), ("ng", "en"), ("ê", "ei")):
+        assert alias not in normalize(canonical, rules)
+        assert alias not in normalize(canonical, rules, reverse=True)
+
+
+def test_whole_syllable_en_matches_ng_in_every_region() -> None:
+    for region in active_regions():
+        rules = load_rules(RULES_PATH, region)
+        assert "ng" in normalize("en", rules), region
+        assert "ng" not in normalize("fen", rules), region
+
+
+def test_en_to_ng_frequency_keeps_native_en_candidates_first() -> None:
+    for region in ("songau", "goungon"):
+        path = RULES_PATH.parent / "regions" / region / "dictionaries" / "chars.tsv"
+        with path.open(encoding="utf-8", newline="") as handle:
+            rows = list(csv.DictReader(handle, delimiter="\t"))
+
+        def reading_frequencies(syllable: str) -> list[int]:
+            return [int(row["词频"]) for row in rows
+                    if len(row["方言拼音"].split()) == 1
+                    and re.sub(r"[0-9]+\*?$", "", row["方言拼音"]) == syllable]
+
+        en_frequencies = reading_frequencies("en")
+        ng_frequencies = reading_frequencies("ng")
+        assert en_frequencies and ng_frequencies, region
+        assert max(ng_frequencies) < min(en_frequencies), region
 
 
 def test_ir_and_er_match_plain_e_and_double_e_matches_circumflex_one_way() -> None:
