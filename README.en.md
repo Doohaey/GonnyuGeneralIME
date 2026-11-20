@@ -487,8 +487,7 @@ With no initial consonant, namely u-initial: prepend w when u is the only vowel;
 | uaet | - | [uæt] | - | - | - | - | - | - | - | - | - | - | - |  |
 | uat | [uat] | - | - | [uat] | - | - | - | - | - | - | - | [uat] | - |  |
 | uot | [uot] | [uot] | - | [uot] or [uɔt] | - | - | - | - | - | - | - | - | - |  |
-| uet | [uət] or [uɛt] | - | - | [uət] or [uɛt] | - | - | - | - | - | - | - | [uət] or [uɛt] | - |  |
-| uêt | - | [uɛt] | - | - | - | - | - | - | - | - | - | - | - |  |
+| uet | [uət] or [uɛt] | [uɛt] | - | [uət] or [uɛt] | - | - | - | - | - | - | - | [uət] or [uɛt] | - |  |
 | uep | - | - | - | - | - | - | - | - | - | - | - | - | - |  |
 | uk | [uʔ] | [uʔ] | [uʔ] | [uʔ] | [uʔ] | - | - | [uʔ] | - | - | - | [uʔ] | - |  |
 | uaek | - | [uæʔ] | - | - | - | - | - | - | - | - | - | - | - |  |
