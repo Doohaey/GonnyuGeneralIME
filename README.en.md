@@ -267,7 +267,7 @@ The table below lists initial spellings by segment; IPA is shown in brackets.
 
 | gon-pin | Lancong IPA | Fungcen IPA | Tiqien IPA | Sinyi IPA | Songau IPA | Seusong IPA | Jingon IPA | Yikyan-Henfeng IPA | Jisuibaedu IPA | Xyucuênn IPA | Singzï IPA | Goungon IPA | Accepted alternative input | Notes |
 | --- | --- | --- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | --- | --- |
-| ∅ | [] or [ʔ] | - | - | - | - | - | - | - | - | - | - | - |  | Zero initial, with [ʔ] as a special case. |
+| ∅ | [] or [ʔ] | - | - | - | - | - | [] | - | - | - | - | - |  | Zero initial, with [ʔ] as a special case. |
 | b | [p] | [p] | [p] | [p] | [p] | [p] | [p] | [p] | [p] | [p] | [p] | [p] |  |  |
 | p | [pʰ] | [pʰ] | [pʰ] | [pʰ] | [pʰ] | [pʰ] | [pʰ] | [pʰ] | [pʰ] | [pʰ] | - | [pʰ] |  |  |
 | m | [m] | [m] | [m] | [m] | [m] | [m] | [m] | [m] | [m] | [m] | [m] | [m] | - |  |
@@ -285,7 +285,7 @@ The table below lists initial spellings by segment; IPA is shown in brackets.
 | g | [k] | [k] | [k] | [k] | [k] | [k] | [k] | [k] | [k] | [k] | [k] | [k] |  |  |
 | k | [kʰ] | [kʰ] | [kʰ] | [kʰ] | [kʰ] | [kʰ] | [kʰ] | [kʰ] | [kʰ] | [kʰ] | - | [kʰ] |  |  |
 | ng | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | [ŋ] | - | Velar nasal. |
-| h | [h] | [x] or [h] | [h] | [h] | [x] | [x] | [x] or [h] | [x] | [x] | [h] | [x] | [h] | — | The default [h] is articulated farther back than Mandarin h. |
+| h | [h] | [x] or [h] | [h] | [h] | [x] | [x] | [h] | [x] | [x] | [h] | [x] | [h] | — | The default [h] is articulated farther back than Mandarin h. |
 | v | - | [v] | [v] | - | [v] | - | - | - | - | - | - | - | w, wu (at the start of a syllable, one-way) |  |
 | ch | - | - | - | - | - | [tʂʰ] | - | - | - | - | - | - |  |  |
 | r | - | - | - | - | - | [ʐ] | - | - | - | - | - | - |  |  |
@@ -347,11 +347,11 @@ Checked-tone codas follow these spelling and input rules.
 
 | gon-pin | Lancong IPA | Fungcen IPA | Tiqien IPA | Sinyi IPA | Songau IPA | Seusong IPA | Jingon IPA | Yikyan-Henfeng IPA | Jisuibaedu IPA | Xyucuênn IPA | Singzï IPA | Goungon IPA | Accepted alternative input | Notes |
 | --- | --- | --- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | --- | --- |
-| ae | - | [æ] | - | - | [æ] | [æ] | [æ] | - | [æ] | [æ] | - | - | — |  |
+| ae | - | [æ] | - | - | [æ] | [æ] | - | - | [æ] | [æ] | - | - | — |  |
 | a | [a] | [a] | [a] | [a] | [a] | [a] | [a] | [a] | [a] | [a] | [a] | [a] | — |  |
-| o* | [o] | [o] | [ɔ] | [o] | [o] | [o] | [o] or [ɔ] | [o] | [o] | [o] or [ɔ] | [o] or [ɔ] | [ɔ] | oo (→ ô) |  |
-| oe | - | - | - | [ø] | - | - | [œ] | - | - | - | - | - |  |  |
-| e* | [e] or [ə] | [ə] or [ɛ] | [ɛ] | [e] or [ɛ] | [ə] | [e] | [ə] or [ɛ] | [ə] or [ɛ] | [ə] or [ɛ] | [e] or [ɤ] or [ɛ] | [ɛ] | [ə] or [ɛ] | ir (→ e), er (→ e), ee (→ ê), ei (→ ê) |  |
+| o* | [o] | [o] | [ɔ] | [o] | [o] | [o] | [o] | [o] | [o] | [o] or [ɔ] | [o] or [ɔ] | [ɔ] | oo (→ ô) |  |
+| oe | - | - | - | [ø] | - | - | - | - | - | - | - | - |  |  |
+| e* | [e] or [ə] | [ə] or [ɛ] | [ɛ] | [e] or [ɛ] | [ə] | [e] | [ɛ] | [ə] or [ɛ] | [ə] or [ɛ] | [e] or [ɤ] or [ɛ] | [ɛ] | [ə] or [ɛ] | ir (→ e), er (→ e), ee (→ ê), ei (→ ê) |  |
 | eo | [ɵ] | [ɵ] | [ɵ] | [ɵ] | - | - | [ɵ] | - | - | - | - | [ɵ] | o (standalone syllable, one-way), er (standalone syllable, one-way) |  |
 | ai | [ai] | [ai] | [ai] | [ai] | [ai] | [ai] | [ai] | [ai] | [ai] | [ai] | [ai] | [ai] | — |  |
 | oi | [oi] | [oi] | [ɔi] | [oi] or [ɔi] | [ɔi] | - | [ɔi] | [oi] | - | - | - | [ɔi] | — |  |
@@ -366,9 +366,9 @@ Checked-tone codas follow these spelling and input rules.
 | em | - | - | [ɛm] | - | - | - | - | - | - | - | - | - | - |  |
 | aen | - | - | - | - | [æn] | - | - | - | - | - | - | - |  |  |
 | an | [an] | [an] | [an] | [an] | [an] | [an] | [an] | [an] | [an] | - | [an] | [an] | — |  |
-| on | [on] | [on] | [ɔn] | [on] or [ɔn] | [ɔn] | [on] | [on] or [ɔn] | [on] | [on] | - | [on] | [ɔn] | — |  |
+| on | [on] | [on] | [ɔn] | [on] or [ɔn] | [ɔn] | [on] | [on] | [on] | [on] | - | [on] | [ɔn] | — |  |
 | oen | - | - | - | [øn] | - | - | - | - | - | - | - | - | — |  |
-| en | [ɨn] or [ɛn] | [ən] or [ɛn] | [ən] or [ɛn] | [ɪn] or [ɛn] | [ən] | [ən] | [ən] or [ɛn] | [en] or [ən] or [ɛn] | [ɛn] | - | [en] or [ɛn] | [ən] or [ɛn] | ing (Fungcen) |  |
+| en | [ɨn] or [ɛn] | [ən] or [ɛn] | [ən] or [ɛn] | [ɪn] or [ɛn] | [ən] | [ən] | [ən] | [en] or [ən] or [ɛn] | [ɛn] | - | [en] or [ɛn] | [ən] or [ɛn] | ing (Fungcen) |  |
 | eon | - | - | - | - | - | - | - | - | - | - | - | [ɵn] |  |  |
 | ann* | - | - | - | - | - | - | - | - | - | [ã] | - | - | an |  |
 | ang | [ɑŋ] | [ɑŋ] | [ɑŋ] | [ɑŋ] | - | [ɑŋ] | [ɑŋ] | - | [ɑŋ] | - | [ɑŋ] | [ɑŋ] | — |  |
@@ -409,14 +409,14 @@ With no initial consonant, namely i-initial (excluding ï): prepend y when i is 
 | i* | [ɿ] or [i] | [i] | [ɿ] or [i] | [ɿ] or [i] | [i] | [ʅ] or [ɿ] or [i] | [ɿ] or [i] | [ɿ] or [i] | [ɿ] or [i] | [ɿ] or [i] | [ʅ] or [ɿ] or [i] | [i] | ii (→ ï) |  |
 | iae | - | - | - | - | [iæ] | - | - | - | - | [iæ] | - | - |  |  |
 | ia | [ia] | [ia] | [ia] | [ia] | [ia] | [ia] | [ia] | [ia] | [ia] | [ia] | [ia] | [ia] | — |  |
-| io | - | [iɔ] | [iɔ] | [io] | - | [io] | [io] or [iɔ] | [io] | [io] | [io] or [iɔ] | [io] or [iɔ] | [iɔ] | - |  |
+| io | - | [iɔ] | [iɔ] | [io] | - | [io] | [io] | [io] | [io] | [io] or [iɔ] | [io] or [iɔ] | [iɔ] | - |  |
 | ie | [ie] | [iɛ] | [iɛ] | [ie] or [iɛ] | [iɛ] | [ie] | [iɛ] | [iɛ] | [iɛ] | [ie] | [iɛ] | [iɛ] | — |  |
 | iai | - | - | - | [iai] | - | - | - | - | - | - | - | - | - |  |
 | ioi | - | - | - | [ioi] or [iɔi] | - | - | - | - | - | - | - | - | - |  |
 | iu* | [iu] | [iu] | [iu] | [iu] | [iu] | - | [iu] | [iu] | [iu] | [iu] | [iu] | [iu] | you (no initial) |  |
 | iaeu | - | - | - | - | [iæu] | - | - | - | - | - | - | - |  |  |
 | iau | - | [iau] | [iau] | [iau] | - | [iɑu] | [iau] | [iau] | [iau] | - | [iau] | [iau] | - |  |
-| iou | - | - | - | - | - | - | [iɔu] | - | [iou] | - | - | - |  |  |
+| iou | - | - | - | - | - | - | - | - | [iou] | - | - | - |  |  |
 | ieu | [iɛu] | [iəu] or [iɛu] | - | [iɛu] | [iɛu] | [iəu] | - | [iəu] | - | - | - | [iɛu] | eu (after g, k, ng) |  |
 | im | - | [im] | [im] | - | - | - | - | - | - | - | - | - | - |  |
 | iam | - | - | [iam] | - | - | - | - | - | - | - | - | - | - |  |
@@ -473,8 +473,8 @@ With no initial consonant, namely u-initial: prepend w when u is the only vowel;
 | ueu | - | - | - | [ueu] | - | - | - | - | - | - | - | - | - |  |
 | un | [un] | [un] | [un] | [un] | - | - | [un] | - | [un] | - | - | - | — |  |
 | uan | [uan] | [uan] | [uan] | [uan] | - | [uan] | [uan] | [uan] | [uan] | - | [uan] | [uan] | - |  |
-| uon | [uon] | [uon] | [uɔn] | [uon] or [uɔn] | - | - | [uon] or [uɔn] | [uon] | [uon] | - | [uon] | [uɔn] | uen, wen (no initial) |  |
-| uen | — | [uɛn] | [uɛn] | - | - | [uən] | [uɛn] | [uen] or [uɛn] | - | - | [uen] | [uən] or [uɛn] | un (after initial, one-way) |  |
+| uon | [uon] | [uon] | [uɔn] | [uon] or [uɔn] | - | - | [uon] | [uon] | [uon] | - | [uon] | [uɔn] | uen, wen (no initial) |  |
+| uen | — | [uɛn] | [uɛn] | - | - | [uən] | - | [uen] or [uɛn] | - | - | [uen] | [uən] or [uɛn] | un (after initial, one-way) |  |
 | ueon | - | - | - | - | - | - | - | - | - | - | - | [uɵn] |  |  |
 | uin | - | [uin] | - | [uin] | - | - | - | - | - | - | [uin] | - | - |  |
 | uien | - | [uiɛn] | - | - | - | - | - | - | - | - | [uiɛn] | - | - |  |
@@ -517,7 +517,7 @@ With no initial consonant, namely u-initial: prepend w when u is the only vowel;
 | yuoi | - | - | - | - | - | - | - | [yoi] | - | - | - | - | — |  |
 | yuei | - | - | - | - | - | [ʯei] | - | - | - | - | - | - | — |  |
 | yun | [yn] | [yn] | [yn] | - | - | - | [yn] | [yn] | [yn] | - | - | - | — |  |
-| yuon | [yon] | [yon] | - | [yɔn] | - | - | [yon] or [yɔn] | [yon] | [yon] | - | - | [yɔn] | yoin (without an initial), yuen |  |
+| yuon | [yon] | [yon] | - | [yɔn] | - | - | [yon] | [yon] | [yon] | - | - | [yɔn] | yoin (without an initial), yuen |  |
 | yuen | - | - | - | - | - | [ʯən] or [ʯɛn] | [yɛn] | [yɛn] | - | - | - | - | yueng |  |
 | yuenn | - | - | - | - | - | - | - | - | - | [yɛ̃] | - | - | yuen |  |
 | yuinn | - | - | - | - | - | - | - | - | - | [yĩ] | - | - | yuin |  |
