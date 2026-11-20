@@ -60,7 +60,7 @@ def _syllabic_spelling(body: str) -> str | None:
     return {"m": "m", "n": "n", "ŋ": "ng"}[match.group(1)]
 
 
-_CODA_IPA = frozenset({"p", "t", "k", "ʔ", "m", "n", "ŋ"})
+_CODA_IPA = frozenset({"p", "t", "k", "ʔ", "m", "n", "ŋ", "l"})
 
 
 def _strip_ipa_codas(final: str) -> str:

@@ -28,6 +28,11 @@ def test_j_initial_keeps_i_nucleus() -> None:
     assert transcription.ipa_syllable_to_scheme2("ȵiu") == "nju"
 
 
+def test_lateral_coda_uses_l_in_scheme2() -> None:
+    assert transcription.ipa_syllable_to_scheme2("uəl") == "wul"
+    assert transcription.ipa_syllable_to_scheme2("kuəl") == "kuerl"
+
+
 def test_build_region_skips_first_scheme_only_regions(tmp_path: Path) -> None:
     assert not build_region("fenni", RESOURCES, tmp_path)
     assert not (tmp_path / "fenni").exists()
