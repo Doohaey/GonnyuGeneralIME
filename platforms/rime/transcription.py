@@ -75,8 +75,6 @@ def _zero_onset_initial(spelling: str, final: str) -> str:
     ).lstrip("~")
     if not final:
         return spelling
-    if final.startswith(("ɿ", "ʅ")):
-        return "j" + spelling
     if final.startswith("i"):
         if _strip_ipa_codas(final) == "i":
             return "j" + spelling

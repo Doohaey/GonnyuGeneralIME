@@ -401,7 +401,7 @@ Checked-tone codas follow these spelling and input rules.
 
 ##### Front-vowel finals
 
-With no initial consonant, namely i-initial: prepend y when i is the only vowel; otherwise i becomes y. iu is written yiu (+ entering-tone coda), to distinguish it from yu. The same applies to ï.
+With no initial consonant, namely i-initial (excluding ï): prepend y when i is the only vowel; otherwise i becomes y. iu is written yiu (+ entering-tone coda), to distinguish it from yu.
 
 | gon-pin | Lancong IPA | Fungcen IPA | Tiqien IPA | Sinyi IPA | Songau IPA | Seusong IPA | Jingon IPA | Yikyan-Henfeng IPA | Jisuibaedu IPA | Xyucuênn IPA | Singzï IPA | Goungon IPA | Accepted alternative input | Notes |
 | --- | --- | --- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | --- | --- |
@@ -779,7 +779,7 @@ Syllabic laterals and nasals:
 The second scheme writes `ee`, `oo`, and `uu` as double letters in regions with the corresponding phonemic opposition; without the opposition they merge into `e`, `o`, and `u`.
 
 Zero onset (pseudo-initials):
-- i-initial: prepend j when i is the only vowel; otherwise i becomes j. iu is written ju. ii likewise.
+- i-initial (excluding ii): prepend j when i is the only vowel; otherwise i becomes j. iu is written ju.
 - u-initial: prepend w when u is the only vowel; otherwise u becomes w. u followed by the central vowel [ɘ~ə] is written wu, with the central vowel not written separately.
 
 Nasalisation is written `nn`; if a nasalised vowel still has a nasal coda, only the coda is written.
