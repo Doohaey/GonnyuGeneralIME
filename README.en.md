@@ -354,8 +354,8 @@ Checked-tone codas follow these spelling and input rules.
 | eo | [ɵ] | [ɵ] | [ɵ] | [ɵ] | - | - | [ɵ] | - | - | - | - | [ɵ] | o (standalone syllable, one-way), er (standalone syllable, one-way) |  |
 | ai | [ai] | [ai] | [ai] | [ai] | [ai] | [ai] | [ai] | [ai] | [ai] | [ai] | [ai] | [ai] | — |  |
 | oi | [oi] | [oi] | [ɔi] | [oi] or [ɔi] | [ɔi] | - | [ɔi] | [oi] | - | - | - | [ɔi] | — |  |
-| ei | [ɨi] or [ei] | [ɛi] | [ɛi] | [əi] | - | [ei] | [ei] | [ei] | - | - | [ei] | [ei] or [əi] or [ɛi] | — | － |
 | oei | - | - | - | [øi] | - | - | - | - | - | - | - | - | — |  |
+| ei | [ɨi] or [ei] | [ɛi] | [ɛi] | [əi] | - | [ei] | [ei] | [ei] | - | - | [ei] | [ei] or [əi] or [ɛi] | — | － |
 | aeu | - | - | - | - | [æu] | - | - | - | - | - | - | - |  |  |
 | au | [au] | [ɑu] | [au] | [au] | [au] | [ɑu] | [au] | [au] | [au] | - | [au] | [au] | ao |  |
 | ou | - | - | [ɔu] | - | - | - | - | [ɔu] | - | - | - | [ɔu] | - |  |
