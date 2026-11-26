@@ -355,7 +355,7 @@ Checked-tone codas follow these spelling and input rules.
 | ai | [ai] | [ai] | [ai] | [ai] | [ai] | [ai] | [ai] | [ai] | [ai] | [ai] | [ai] | [ai] | — |  |
 | oi | [oi] | [oi] | [ɔi] | [oi] or [ɔi] | [ɔi] | - | [ɔi] | [oi] | - | - | - | [ɔi] | — |  |
 | ei | [ɨi] or [ei] | [ɛi] | [ɛi] | [əi] | - | [ei] | [ei] | [ei] | - | - | [ei] | [ei] or [əi] or [ɛi] | — | － |
-| eoi | - | - | - | [ɵi] | - | - | - | - | - | - | - | - | — |  |
+| oei | - | - | - | [øi] | - | - | - | - | - | - | - | - | — |  |
 | aeu | - | - | - | - | [æu] | - | - | - | - | - | - | - |  |  |
 | au | [au] | [ɑu] | [au] | [au] | [au] | [ɑu] | [au] | [au] | [au] | - | [au] | [au] | ao |  |
 | ou | - | - | [ɔu] | - | - | - | - | [ɔu] | - | - | - | [ɔu] | - |  |
